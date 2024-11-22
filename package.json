@@ -1,0 +1,32 @@
+{
+  "source": "src/index.html",
+  "browserslist": "defaults",
+  "type": "module",
+  "scripts": {
+    "start": "npm run clean && parcel",
+    "lint": "cd src && tsc && cd ../worker && tsc && cd .. && eslint",
+    "build": "npm run clean && npm run lint && parcel build",
+    "clean": "rm -rf .parcel-cache dist && git clean -dxn"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@parcel/transformer-sass": "^2.13.0",
+    "@parcel/transformer-typescript-tsc": "^2.13.0",
+    "@stylistic/eslint-plugin": "^2.11.0",
+    "@types/bootstrap": "^5.2.10",
+    "@types/node": "^22.9.1",
+    "@types/papaparse": "^5.3.15",
+    "@types/webpack-env": "^1.18.5",
+    "eslint": "^9.15.0",
+    "parcel": "^2.13.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.15.0"
+  },
+  "dependencies": {
+    "@parcel/service-worker": "^2.13.0",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "papaparse": "^5.4.1"
+  }
+}

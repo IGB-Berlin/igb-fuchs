@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "oderwat.indent-rainbow",
+    "github.vscode-github-actions",
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-german",
+  ]
+}
+/* vim: set filetype=javascript ts=2 sw=2 expandtab : */

@@ -1,0 +1,21 @@
+{
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "editor.tabSize": 2,
+  "makefile.configureOnOpen": false,
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "indentRainbow.ignoreErrorLanguages": [
+    "markdown"
+  ],
+  "cSpell.language": "de,de-DE,en,en-US",
+  "cSpell.words": [ "Hauke", "Dämpfling", "Daempfling" ],
+  "cSpell.ignoreWords": [
+    "leibniz",
+    "papaparse",
+    "tseslint"
+  ],
+}
+/* vim: set filetype=javascript ts=2 sw=2 expandtab : */

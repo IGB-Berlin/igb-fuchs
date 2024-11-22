@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--TODO link rel="manifest" href="manifest.json"-->
+  <!--TODO link rel="icon" href="icons/favicon.ico"-->
+  <title>IGB Field</title>
+  <style> /* parcel will handle these */
+    @import "styles.scss";  /* imports bootstrap */
+    @import "~/node_modules/bootstrap-icons/font/bootstrap-icons.css";
+  </style>
+  <script type="module"> /* parcel will handle these */
+    import 'bootstrap';
+    import './main.ts';
+  </script>
+</head>
+<body>
+  <div class="modal fade" id="about-dialog" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="aboutModalLabel">
+            <span class="text-igb-green">IGB</span>-<span class="text-leibniz-blue">Field</span></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Copyright &copy; 2024 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
+            at the <a href="https://www.igb-berlin.de/" target="_blank">Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB)</a>,
+            Berlin, Germany</p>
+          <div class="accordion" id="aboutAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicense"
+                    aria-expanded="false" aria-controls="collapseLicense">License: GNU GPL 3.0+</button>
+              </h2>
+              <div id="collapseLicense" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                <div class="accordion-body">
+                  <p>This program is free software: you can redistribute it and/or modify it under
+                    the terms of the GNU General Public License as published by the Free Software
+                    Foundation, either version 3 of the License, or (at your option) any later version.</p>
+                  <p>This program is distributed in the hope that it will be useful, but WITHOUT
+                    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+                    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
+                  <p>You should have received a copy of the GNU General Public License along with
+                    this program. If not, see <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLibraries"
+                    aria-expanded="false" aria-controls="collapseLibraries">Used Libraries</button>
+              </h2>
+              <div id="collapseLibraries" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                <div class="accordion-body">
+                  <ul>
+                    <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap</a>,
+                      Copyright (c) 2011-2024 The Bootstrap Authors,
+                      <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank">License: MIT</a></li>
+                    <li><a href="https://icons.getbootstrap.com/" target="_blank">Bootstrap Icons</a>,
+                      Copyright (c) 2019-2024 The Bootstrap Authors,
+                      <a href="https://github.com/twbs/icons/blob/main/LICENSE" target="_blank">License: MIT</a></li>
+                    <li><a href="https://popper.js.org/docs/" target="_blank">Popper.js</a>,
+                      Copyright (c) 2019 Federico Zivolo,
+                      <a href="https://github.com/floating-ui/floating-ui/blob/v2.x/LICENSE.md" target="_blank">License: MIT</a></li>
+                    <li><a href="https://www.papaparse.com/" target="_blank">Papa Parse</a>,
+                      Copyright (c) 2015 Matthew Holt,
+                      <a href="https://github.com/mholt/PapaParse/blob/master/LICENSE" target="_blank">License: MIT</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <header></header>
+  <main></main>
+</body>
+</html>

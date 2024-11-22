@@ -1,0 +1,19 @@
+{   // https://aka.ms/devcontainer.json
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    // https://github.com/devcontainers/features/tree/main/src/common-utils
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "installOhMyZshConfig": false,
+      "nonFreePackages": true,
+      "username": "none"
+    },
+    // https://github.com/devcontainers/features/tree/main/src/node
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/guiyomh/features/vim:0": {}
+  },
+  "forwardPorts": [ 1234 ],
+  "postCreateCommand": "npm ci"
+}
+/* vim: set filetype=javascript ts=2 sw=2 expandtab : */
