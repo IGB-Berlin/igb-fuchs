@@ -17,9 +17,15 @@
  */
 //import * as bootstrap from 'bootstrap'
 import { jsx } from './jsx-dom'
+import { Dict, I18n } from 'i18n-js'
+import * as translations from './translations.json'
+
+// https://fnando.github.io/i18n/
+const i18n = new I18n(translations as Dict,
+  { defaultLocale: 'en-US', missingBehavior: 'error', locale: navigator.language })
 
 export function test() {
   //const aboutModal = new bootstrap.Modal('#about-dialog')
   //aboutModal.show()
-  return <h1>Hello, World!</h1>
+  return <h1>{i18n.t('hello-world')}</h1>
 }
