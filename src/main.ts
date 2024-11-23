@@ -16,6 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test } from './ui'
+import * as location from './location'
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
 
@@ -36,4 +37,6 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
 window.addEventListener('DOMContentLoaded', async () => {
   setTheme()
   document.body.appendChild(test())
+  await location.query()
+  //location.start()
 })
