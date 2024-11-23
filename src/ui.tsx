@@ -20,6 +20,7 @@ import { jsx } from './jsx-dom'
 import { i18n } from './i18n'
 import * as location from './location'
 import * as share from './share'
+import { takePicture } from './camera'
 
 export async function test() {
   const dummy = <div><h1>{i18n.t('hello-world')}</h1></div>
@@ -28,5 +29,6 @@ export async function test() {
   //location.start()
   dummy.appendChild(<button onclick={async () => await share.shareCsv('test.csv', new ArrayBuffer(0))}>Share Test</button>)
   dummy.appendChild(<button onclick={async () => await share.downloadCsv('test.csv', new ArrayBuffer(0))}>Download</button>)
+  dummy.appendChild(<button onclick={takePicture}>Take Picture</button>)
   return dummy
 }

@@ -50,6 +50,8 @@ export default tseslint.config({
     '@typescript-eslint/restrict-template-expressions': [ 'warn', { 'allowNumber': true, 'allowBoolean': true } ],
     '@typescript-eslint/no-misused-promises': [ 'error', { 'checksVoidReturn': false } ],
     '@typescript-eslint/require-await': 'off',
+    'prefer-promise-reject-errors': 'off',
+    '@typescript-eslint/prefer-promise-reject-errors': 'off',
     // https://stackoverflow.com/a/78734642
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': [
