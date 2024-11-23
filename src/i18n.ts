@@ -15,18 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import * as bootstrap from 'bootstrap'
-import { jsx } from './jsx-dom'
-import { i18n } from './i18n'
-import * as location from './location'
-import * as share from './share'
+import { Dict, I18n } from 'i18n-js'
+import * as translations from './translations.json'
 
-export async function test() {
-  const dummy = <div><h1>{i18n.t('hello-world')}</h1></div>
-  dummy.appendChild(<button onclick={()=>new bootstrap.Modal('#about-dialog').show()}>About</button>)
-  await location.query()
-  //location.start()
-  dummy.appendChild(<button onclick={async () => await share.shareCsv('test.csv', new ArrayBuffer(0))}>Share Test</button>)
-  dummy.appendChild(<button onclick={async () => await share.downloadCsv('test.csv', new ArrayBuffer(0))}>Download</button>)
-  return dummy
-}
+// https://fnando.github.io/i18n/
+export const i18n = new I18n(translations as Dict,
+  { defaultLocale: 'en-US', missingBehavior: 'error', locale: navigator.language })
