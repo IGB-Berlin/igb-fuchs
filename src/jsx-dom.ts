@@ -40,7 +40,7 @@ export function jsx(tag: Tag, props: Props, ...children: Children) :JSX.Element 
     else if ( key.startsWith('on') && key.toLowerCase() in window && typeof val === 'function' )
       el.addEventListener(key.toLowerCase().substring(2), val)
     else if ( typeof val === 'string' || typeof val === 'number' ) {
-      if ( key === 'className' && typeof val === 'string' )
+      if ( ( key === 'className' || key==='class' ) && typeof val === 'string' )
         el.classList.add(...val.split(/\s+/).flatMap(s => s && s.trim() ? [s.trim()] : []))
       else
         el.setAttribute(key, val.toString())

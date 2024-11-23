@@ -15,21 +15,26 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import * as bootstrap from 'bootstrap'
+import { jsx } from './jsx-dom'
+import { i18n } from './i18n'
 
-export function assert(condition: unknown, msg?: string): asserts condition {
-  if (!condition) throw new Error(msg)
+export function noStorageAlert() {
+  const dialog = <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
+    data-bs-keyboard="false" tabindex="-1" aria-labelledby="noStorageAlert" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header text-bg-danger">
+          <h1 class="modal-title fs-5" id="noStorageAlert">
+            <i className="bi-exclamation-triangle-fill me-2"/>
+            {i18n.t('alert-no-storage-title')}</h1>
+        </div>
+        <div class="modal-body">
+          {i18n.t('alert-no-storage-text')}
+        </div>
+      </div>
+    </div>
+  </div>
+  const modal = new bootstrap.Modal(dialog)
+  modal.show()
 }
-
-// https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API#testing_for_availability
-export const CAN_LOCAL_STORAGE :boolean = (() => {
-  let storage :Storage|undefined
-  try {
-    storage = window['localStorage']
-    const x = '__storage_test__'
-    storage.setItem(x, x)
-    storage.removeItem(x)
-    return true
-  } catch (e) {
-    return !!( e instanceof DOMException && e.name === 'QuotaExceededError' && storage && storage.length>0 )
-  }
-})()

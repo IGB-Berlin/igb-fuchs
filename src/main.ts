@@ -15,7 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { test } from './ui'
+import { CAN_LOCAL_STORAGE } from './utils'
+import * as misc from './misc'
+import * as ui from './ui'
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
 
@@ -35,5 +37,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
 
 window.addEventListener('DOMContentLoaded', async () => {
   setTheme()
-  document.body.appendChild(await test())
+  if (!CAN_LOCAL_STORAGE) {
+    misc.noStorageAlert()
+    throw new Error('localStorage not available, can\'t continue')
+  }
+  await ui.init()
 })

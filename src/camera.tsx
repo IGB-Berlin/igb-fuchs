@@ -114,10 +114,8 @@ export function takePicture() :Promise<Blob|null> {
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
       canvas.getContext('2d')?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
-      curImage = await new Promise<Blob>((resolve, reject) => {
-        try { canvas.toBlob(blob => blob ? resolve(blob) : reject('Unknown error'), 'image/png') }
-        catch (ex) { reject(ex) }
-      })
+      curImage = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(blob => blob ? resolve(blob) : reject('Unknown error'), 'image/png'))
       photo.src = canvas.toDataURL('image/png')
       displayPhoto()
     }
@@ -153,16 +151,13 @@ export function takePicture() :Promise<Blob|null> {
   btnCancel.addEventListener('click', () => { endVideo(); accepted = false })
   dialog.addEventListener('hide.bs.modal', endVideo)
 
-  return new Promise<Blob|null>((resolve, reject) => {
-    try {
-      const modal = new bootstrap.Modal(dialog)
-      dialog.addEventListener('hidden.bs.modal', () => {
-        modal.dispose()
-        document.body.removeChild(dialog)
-        resolve( accepted ? curImage : null )
-      })
-      modal.show()
-    }
-    catch (ex) { reject(ex) }
+  return new Promise<Blob|null>(resolve => {
+    const modal = new bootstrap.Modal(dialog)
+    dialog.addEventListener('hidden.bs.modal', () => {
+      modal.dispose()
+      document.body.removeChild(dialog)
+      resolve( accepted ? curImage : null )
+    })
+    modal.show()
   })
 }

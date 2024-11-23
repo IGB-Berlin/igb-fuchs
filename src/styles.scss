@@ -27,6 +27,8 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   --igb-green-bg: #9DBD15;
   --leibniz-blue-bg: #006EB7;
 }
+.d-ib-light { display: inline-block; }
+.d-ib-dark { display: none; }
 
 @include bs.color-mode(dark) {
   :root {
@@ -37,12 +39,28 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
     --igb-green-fg: #9DBD15;
     --leibniz-blue-fg: #006EB7;
   }
+  .d-ib-light { display: none; }
+  .d-ib-dark { display: inline-block; }
 }
 
 .text-igb-green {
   color: var(--igb-green-fg);
 }
-
+.bg-igb-green {
+  background-color: var(--igb-green-bg);
+}
 .text-leibniz-blue {
   color: var(--leibniz-blue-fg);
+}
+.bg-leibniz-blue {
+  background-color: var(--leibniz-blue-bg);
+}
+
+.navbar-brand {
+  font-family: Roboto, Tahoma, sans-serif;
+  font-weight: bolder;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
