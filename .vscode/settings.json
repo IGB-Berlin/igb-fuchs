@@ -15,7 +15,8 @@
   "cSpell.ignoreWords": [
     "leibniz",
     "papaparse",
-    "tseslint"
+    "tseslint",
+    "unitless"
   ],
 }
 /* vim: set filetype=javascript ts=2 sw=2 expandtab : */
