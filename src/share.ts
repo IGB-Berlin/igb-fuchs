@@ -16,9 +16,16 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export async function shareCsv(fn :string, data :ArrayBuffer) {
-  const sh = { files: [new File([data], fn, { type: 'text/csv', endings: 'native' })] }
-  await navigator.share(sh)
+export async function shareCsv(fn :string, data :ArrayBuffer) :Promise<boolean> {
+  try {
+    const sh = { files: [new File([data], fn, { type: 'text/csv', endings: 'native' })] }
+    await navigator.share(sh)
+    return true
+  }
+  catch(ex) {
+    console.warn('Share failed', ex)
+    return false
+  }
 }
 
 export async function downloadCsv(fn :string, data :ArrayBuffer) {

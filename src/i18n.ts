@@ -16,7 +16,16 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { Dict, I18n } from 'i18n-js'
-import * as translations from './translations.json'
+
+const translations :Record<string, [string,string]> = {
+  'hello-world': ['Hello, World!', 'Hallo, Welt!'],
+  'ok': ['OK', 'OK'],
+  'cancel': ['Cancel', 'Abbrechen'],
+  'take-picture': ['Take Picture', 'Bild Aufnehmen'],
+  'accept': ['Accept', 'Annehmen'],
+  'retry': ['Retry', 'Wiederholen'],
+  'failed-camera': ['Failed to start camera', 'Konnte Kamera nicht starten'],
+}
 
 // https://fnando.github.io/i18n/
 export const i18n = new I18n(translations as Dict,
