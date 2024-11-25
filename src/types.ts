@@ -44,7 +44,7 @@ type Timestamp = string
  *
  * Precision: https://gis.stackexchange.com/a/8674 : eight decimal places ~1.1mm, Google Maps now gives six for ~11cm
  */
-export interface WGS84Coordinates {
+export interface IWGS84Coordinates {
   lat :number
   lon :number
 }
@@ -52,13 +52,13 @@ export interface WGS84Coordinates {
 export type MeasurementTypeId = 'temperature'|'water-level'|'conductivity'|'o2-percent'|'o2-absolute'|'ph'
 export type Units = '°C'|'cm'|'µS/cm'|'%'|'mg/L'|'pH'
 
-interface MeasurementTypeBase<I extends Identifier, U extends string> {
+interface IMeasurementTypeBase<I extends Identifier, U extends string> {
   custom ?:boolean
   id :I
   units :U
 }
 /** Describes a type of measurement (not a specific measurement value). */
-export interface MeasurementType extends MeasurementTypeBase<MeasurementTypeId, Units> {
+export interface IMeasurementType extends IMeasurementTypeBase<MeasurementTypeId, Units> {
   custom :never
   //TODO Later: Are MeasurementTypeId and Units always linked?
   id :MeasurementTypeId
@@ -72,7 +72,7 @@ export interface MeasurementType extends MeasurementTypeBase<MeasurementTypeId, 
 }
 /** Alternative to `MeasurementType` for use in case a unplanned measurement
  * needs to be taken, or a measurement type is not yet supported by this app. */
-export interface CustomMeasurement extends MeasurementTypeBase<Identifier, string> {
+export interface ICustomMeasurement extends IMeasurementTypeBase<Identifier, string> {
   custom :true
   /** This ID may *not* be a value from `MeasurementTypeId` and *must* be unique. */
   id :Identifier
@@ -82,48 +82,49 @@ export interface CustomMeasurement extends MeasurementTypeBase<Identifier, strin
 }
 
 /** Records an actual recorded measurement. */
-export interface Measurement {
+export interface IMeasurement {
   /** *Must* reference an identifier from `SamplingTrip.measurementTypes`. */
   typeId :Identifier
   time :Timestamp
   value :number
 }
 
+//TODO: SampleType instead of WaterType (don't limit to water, could be sediment, fish, etc.)
 export type WaterType = 'surface-stream'|'surface-pond'|'ground'|'precipitation'
 
 /** Describes a sample taken as a template type - actual
  * samples are recorded as `Sample`s. */
-export interface SampleType {
+export interface ISampleType {
   waterType :WaterType
   /** Optional: The typical measurements performed on this sample.
    * See also `SamplingTripTemplate.typicalMeasurements` if every location is the same. */
-  typicalMeasurements ?:MeasurementType[]
+  typicalMeasurements ?:IMeasurementType[]
 }
 /** Records an actual sample taken. */
-export interface Sample extends SampleType {
-  measurements :Measurement[]
+export interface ISample extends ISampleType {
+  measurements :IMeasurement[]
   notes ?:string
   typicalMeasurements :never
 }
 
 /** Describes a sampling location as a template type - actual
  * measurement sites are recorded as `SamplingPoint`s. */
-export interface SamplingLocation {
+export interface ISamplingLocation {
   id :Identifier
   name :string
   alternateNames ?:string[]
   description ?:string
-  normalCoordinates :WGS84Coordinates
+  normalCoordinates :IWGS84Coordinates
   /** Optional: The typical samples taken at this location,
    * each of which can have a set of typical measurements. */
-  typicalSamples ?:SampleType[]
+  typicalSamples ?:ISampleType[]
 }
 /** Records and actual sampling point. */
-export interface SamplingPoint extends SamplingLocation {
+export interface ISamplingPoint extends ISamplingLocation {
   startTime :Timestamp
   endTime :Timestamp
-  actualCoordinates :WGS84Coordinates
-  samples :Sample[]
+  actualCoordinates :IWGS84Coordinates
+  samples :ISample[]
   notes ?:string
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
   photos ?:string[]
@@ -132,18 +133,18 @@ export interface SamplingPoint extends SamplingLocation {
 
 /** Describes a sampling trip as a template type - actual
  * sampling trips are recorded as `SamplingTrip`s. */
-export interface SamplingTripTemplate {
+export interface ISamplingTripTemplate {
   /** Name of this sampling trip template; must be unique. */
   name :string
   description ?:string
   /** Optional: The typical points on this sampling trip. */
-  typicalPoints ?:SamplingLocation[]
+  typicalPoints ?:ISamplingLocation[]
   /** Optional: The typical measurements performed at each location.
    * See also `SamplingLocation.typicalSamples` for per-site specification. */
-  typicalMeasurements ?:MeasurementType[]
+  typicalMeasurements ?:IMeasurementType[]
 }
 /** Records an entire sampling trip. */
-export interface SamplingTrip extends SamplingTripTemplate {
+export interface ISamplingTrip extends ISamplingTripTemplate {
   id :Identifier
   startTime :Timestamp
   endTime :Timestamp
@@ -152,11 +153,13 @@ export interface SamplingTrip extends SamplingTripTemplate {
   persons :string
   weather :string
   notes ?:string
-  points :SamplingPoint[]
+  points :ISamplingPoint[]
   /** *Must* contain all the measurement types performed on this trip with unique
    * identifiers; i.e. every `Measurement.typeId` *must* be represented here.
    * TODO Later: Can also be used at the beginning of the trip to plan which measurements will be offered in UI by default? */
-  measurementTypes :(MeasurementType|CustomMeasurement)[]
+  measurementTypes :(IMeasurementType|ICustomMeasurement)[]
   typicalPoints :never
   typicalMeasurements :never
 }
+
+
