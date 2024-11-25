@@ -16,7 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestamp, isTimestampSet, JsonSerializable, SanityCheckable, Timestamp } from './common'
-import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-types'
+import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
 import { assert } from '../utils'
 
 export interface IMeasurement {

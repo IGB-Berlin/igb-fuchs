@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-types'
+import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
 import { JsonSerializable, SanityCheckable } from './common'
 import { assert } from '../utils'
