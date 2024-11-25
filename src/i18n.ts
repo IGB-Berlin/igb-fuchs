@@ -53,4 +53,5 @@ const translations :Record<string, [string,string]> = {
 export const i18n = new I18n({
   'en-US': Object.fromEntries( Array.from(Object.entries(translations)).map(([k,v]) => [k, v[0]]) ),
   'de-DE': Object.fromEntries( Array.from(Object.entries(translations)).map(([k,v]) => [k, v[1]]) ),
-}, { defaultLocale: 'en-US', missingBehavior: 'error', locale: navigator.language })
+}, { defaultLocale: 'en-US', missingBehavior: 'error', locale:
+  navigator.language.toLowerCase()==='de' || navigator.language.toLowerCase().startsWith('de-')?'de-DE':'en-US' })
