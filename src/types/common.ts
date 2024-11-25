@@ -16,19 +16,24 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// The backslash is required when RE.source is used as <input type="text" pattern={...} />
+// eslint-disable-next-line no-useless-escape
+export const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/
+
 export abstract class JsonSerializable {
   abstract toJSON(key :string) :object
   static fromJSON(_obj :object) { throw new Error('not implemented') }  /* Implementations must override! */
 }
 
 export interface SanityCheckable {
+  /** Returns a list of warnings on the object. */
   sanityCheck() :string[]
 }
 
 /** Identifier stored as string */
 export type Identifier = string
 export function isIdentifier(v :unknown) :v is Identifier {
-  return typeof v === 'string'  //TODO Later: enforce format
+  return typeof v === 'string' && !!v.match(IDENTIFIER_RE)
 }
 
 /** Timestamp stored as string */
