@@ -24,6 +24,8 @@ import { assert } from './utils'
 import { jsx } from './jsx-dom'
 import { i18n } from './i18n'
 import { MeasTypeEditor } from './editors/meas-type'
+import { ListEditor } from './editors/list-edit'
+import { MeasurementType } from './types/meas-type'
 
 export async function init() {
   const htmlMain = document.querySelector('main')
@@ -52,6 +54,9 @@ export async function init() {
     </div>)
   const testEd = new MeasTypeEditor(null, ()=>console.log('Editor done!'))
   htmlMain.appendChild( <div class="border rounded m-3 p-3">{testEd.el}</div>) //TODO: Debug, remove
+  htmlMain.appendChild( new ListEditor([
+    new MeasurementType({ id:'x', unit:'cm' }), new MeasurementType({ id:'y', unit:'ml' })
+  ], MeasTypeEditor).el )
 }
 
 /*export async function test() {

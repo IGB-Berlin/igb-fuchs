@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Identifier, isIdentifier, JsonSerializable, SanityCheckable } from './common'
+import { Identifier, isIdentifier, JsonSerializable, ListEditable, SanityCheckable } from './common'
 import { assert } from '../utils'
 
 export interface IMeasurementType {
@@ -42,7 +42,7 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
 }
 
 /** Describes a type of measurement (not a specific measurement value). */
-export class MeasurementType extends JsonSerializable implements IMeasurementType, SanityCheckable {
+export class MeasurementType extends JsonSerializable implements IMeasurementType, SanityCheckable, ListEditable {
   //TODO Later: MeasurementType.id should have translations (?)
   id :Identifier
   unit :string
@@ -75,6 +75,9 @@ export class MeasurementType extends JsonSerializable implements IMeasurementTyp
     //TODO: When reading from json, we should really deduplicate all the MeasurementTypes, Samples, ...
     assert(isIMeasurementType(obj))
     return new MeasurementType(obj)
+  }
+  listDisplay() {
+    return this.id + ( this.unit.trim().length ? ' ['+this.unit+']' : '' )
   }
   sanityCheck() :string[] {
     const rv :string[] = []

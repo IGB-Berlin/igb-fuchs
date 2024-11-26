@@ -25,6 +25,10 @@ export abstract class JsonSerializable {
   static fromJSON(_obj :object) { throw new Error('not implemented') }  /* Implementations must override! */
 }
 
+export interface ListEditable {
+  listDisplay() :HTMLElement|string
+}
+
 export interface SanityCheckable {
   /** Returns a list of warnings on the object. */
   sanityCheck() :string[]

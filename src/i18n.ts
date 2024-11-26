@@ -27,6 +27,9 @@ const translations :Record<string, [string,string]> = {
   'retry': ['Retry', 'Wiederholen'],
   'failed-camera': ['Failed to start camera', 'Konnte Kamera nicht starten'],
   'about': ['About', 'Über'],
+  'edit': ['Edit', 'Bearbeiten'],
+  'delete': ['Delete', 'Löschen'],
+  'new': ['New', 'Neu'],
   'save-and-close': ['Save & Close', 'Speichern & Schließen'],
   'alert-no-storage-title': ['Error: No Storage Available', 'Fehler: Kein Speicher verfügbar'],
   'alert-no-storage-text': [
