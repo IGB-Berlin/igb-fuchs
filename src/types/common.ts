@@ -29,6 +29,10 @@ export interface SanityCheckable {
   /** Returns a list of warnings on the object. */
   sanityCheck() :string[]
 }
+export function isSanityCheckable(o :unknown) :o is SanityCheckable {
+  if (!o || typeof o !== 'object') return false
+  return 'sanityCheck' in o && typeof o.sanityCheck === 'function'
+}
 
 /** Identifier stored as string */
 export type Identifier = string

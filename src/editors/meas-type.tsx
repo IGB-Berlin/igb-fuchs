@@ -15,11 +15,42 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { IDENTIFIER_RE, isIdentifier } from '../types/common'
 import { MeasurementType } from '../types/meas-type'
-import { jsx, safeCastElement } from '../jsx-dom'
-import { IDENTIFIER_RE } from '../types/common'
+import { DoneCallback, Editor } from './base'
+import { assert } from '../utils'
 
-export function makeMeasurementTypeEditor(mt :MeasurementType, done :()=>void) :HTMLElement {
+export class MeasTypeEditor extends Editor<MeasurementType> {
+  readonly el :HTMLElement
+  protected readonly inpId :HTMLInputElement
+  protected readonly inpUnit :HTMLInputElement
+  constructor(obj :MeasurementType|null, doneCb :DoneCallback) {
+    super(obj, doneCb)
+    this.inpId = safeCastElement(HTMLInputElement,
+      <input type="text" required pattern={IDENTIFIER_RE.source} value={this.obj?.id||''} />)
+    this.inpUnit = safeCastElement(HTMLInputElement,
+      <input type="text" value={this.obj?.unit||''} />)
+    this.el = this.makeForm('Measurement Type', [
+      this.makeRow(this.inpId, 'ID', <><i>Required.</i> An identifier.</>, 'Invalid identifier'),
+      this.makeRow(this.inpUnit, 'Unit', <><i>Recommended.</i> Units</>, null),
+    ])
+  }
+  get isDirty() {
+    return (this.obj?.id ?? '') !== this.inpId.value
+      || (this.obj?.unit ?? '') !== this.inpUnit.value
+  }
+  protected formSubmit() {
+    if (this.obj) {
+      assert(isIdentifier(this.inpId.value))  //TODO: Is there a cleaner way to handle this?
+      this.obj.id = this.inpId.value
+      this.obj.unit = this.inpUnit.value.trim()
+    } else
+      this.obj = new MeasurementType({ id: this.inpId.value, unit: this.inpUnit.value.trim() })
+  }
+}
+
+/*export function makeMeasurementTypeEditor(mt :MeasurementType, done :()=>void) :HTMLElement {
   const inpId = safeCastElement(HTMLInputElement,
     <input type="text" class="form-control" id="inpMeasTypeId" aria-describedby="inpMeasTypeIdHelp"
       required pattern={IDENTIFIER_RE.source} value={mt.id} />)
@@ -30,9 +61,7 @@ export function makeMeasurementTypeEditor(mt :MeasurementType, done :()=>void) :
         <label for="inpMeasTypeId" class="col-sm-2 col-form-label">ID</label>
         <div class="col-sm-10">
           {inpId}
-          <div id="inpMeasTypeIdHelp" class="form-text">
-            An identifier
-          </div>
+          <div id="inpMeasTypeIdHelp" class="form-text">An identifier</div>
           <div class="invalid-feedback">Not a valid id</div>
         </div>
       </div>
@@ -48,4 +77,4 @@ export function makeMeasurementTypeEditor(mt :MeasurementType, done :()=>void) :
     event.stopPropagation()
   })
   return form
-}
+}*/

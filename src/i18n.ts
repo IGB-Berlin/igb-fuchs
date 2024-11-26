@@ -27,6 +27,7 @@ const translations :Record<string, [string,string]> = {
   'retry': ['Retry', 'Wiederholen'],
   'failed-camera': ['Failed to start camera', 'Konnte Kamera nicht starten'],
   'about': ['About', 'Über'],
+  'save-and-close': ['Save & Close', 'Speichern & Schließen'],
   'alert-no-storage-title': ['Error: No Storage Available', 'Fehler: Kein Speicher verfügbar'],
   'alert-no-storage-text': [
     'Your browser has not made any local storage available. This app cannot be used in "private browsing" mode,'

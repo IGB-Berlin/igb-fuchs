@@ -78,6 +78,8 @@ export class MeasurementType extends JsonSerializable implements IMeasurementTyp
   }
   sanityCheck() :string[] {
     const rv :string[] = []
+    //TODO: Translations (here and all other sanity check methods)
+    if (!this.unit.length) rv.push(`No units specified for measurement type ${this.id}`)
     if (!Number.isFinite(this.min)) rv.push(`No minimum value specified for measurement type ${this.id}`)
     if (!Number.isFinite(this.max)) rv.push(`No maximum value specified for measurement type ${this.id}`)
     if (!Number.isFinite(this.fractionalDigits)) rv.push(`No number of places after the decimal point specified for measurement type ${this.id}`)

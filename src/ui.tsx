@@ -23,8 +23,7 @@ import { assert } from './utils'
 //import * as share from './share'
 import { jsx } from './jsx-dom'
 import { i18n } from './i18n'
-import { MeasurementType } from './types/meas-type'
-import { makeMeasurementTypeEditor } from './editors/meas-type'
+import { MeasTypeEditor } from './editors/meas-type'
 
 export async function init() {
   const htmlMain = document.querySelector('main')
@@ -51,10 +50,9 @@ export async function init() {
     <div class="container rounded border text-center mt-5 px-2 py-4">
       {i18n.t('no-project-open')} <hr class="my-3" /> {btnOpenProject}
     </div>)
-  htmlMain.appendChild( //TODO: Debug, remove
-    <div class="border rounded m-3 p-3">
-      {makeMeasurementTypeEditor(new MeasurementType({ id:'x', unit:'x' }), ()=>{})}
-    </div>) }
+  const testEd = new MeasTypeEditor(null, ()=>console.log('Editor done!'))
+  htmlMain.appendChild( <div class="border rounded m-3 p-3">{testEd.el}</div>) //TODO: Debug, remove
+}
 
 /*export async function test() {
   const dummy = <div><h1>{i18n.t('hello-world')}</h1></div>
