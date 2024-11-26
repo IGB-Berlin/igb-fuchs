@@ -107,6 +107,8 @@ interface ISamplingTripTemplate {
   name :string
   description ?:string|null
   locations :ISamplingLocationTemplate[]
+  //TODO: A "commonSamples" field that is used when the location's samples array is empty
+  // (can the locations just reference this array or is that too complicated? in either cade, it's more deduplication for fromJSON)
 }
 function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
   if (!o || typeof o !== 'object') return false

@@ -20,6 +20,18 @@
 // eslint-disable-next-line no-useless-escape
 export const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/
 
+/* TODO: We'll need to keep these three lists/dicts of templates:
+ * - Measurement Type
+ * - Sampling Location
+ * - Sampling Trip
+ * Note Sample Templates are just a part of the Sampling Location Template and don't need their own list.
+ * However, when building the list of Sampling Location Templates and deduplicating them, the comparisons
+ * of the objects need to exclude the samples, so the equals() method will need a parameter
+ * or there'll need to be a separate equals method for that comparison.
+ * (Actually could just always set the samples Array to [] for the objects that go in the global list.)
+ * Note we still need to implement checks that the `id`s of the above objects are always unique.
+ */
+
 export abstract class JsonSerializable {
   abstract toJSON(key :string) :object
   static fromJSON(_obj :object) { throw new Error('not implemented') }  /* Implementations must override! */
@@ -45,7 +57,7 @@ export function isIdentifier(v :unknown) :v is Identifier {
 }
 
 /** Timestamp stored as string */
-export type Timestamp = string
+export type Timestamp = string  //TODO: should be number (Unix Timestamp), is best for use with JS Date
 export const NO_TIMESTAMP :Timestamp = ''
 export function isTimestamp(v :unknown) :v is Timestamp {
   return typeof v === 'string'  //TODO Later: enforce ISO 8601 format (remember empty string is acceptable too)

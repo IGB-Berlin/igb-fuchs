@@ -27,6 +27,7 @@ function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
   if (!o || typeof o !== 'object') return false
   if (Object.keys(o).length!==3 || !('type' in o && 'lat' in o && 'lon' in o)) return false  // keys
   if (!Number.isFinite(o.lat) || !Number.isFinite(o.lon)) return false  // types
+  if (o.type!=='WGS84') return false
   return true
 }
 function tryWgs84Import(o :unknown) :IWgs84Coordinates|null {
@@ -37,7 +38,7 @@ function tryWgs84Import(o :unknown) :IWgs84Coordinates|null {
 }
 
 export type ICoordinates = IWgs84Coordinates
-export function isICoordinates(o :unknown) :o is IWgs84Coordinates {
+export function isICoordinates(o :unknown) :o is ICoordinates {
   return isIWgs84Coordinates(o)
 }
 
@@ -73,6 +74,17 @@ class Wgs84Coordinates extends AbstractCoordinates implements IWgs84Coordinates 
   lon :number
   constructor(o :IWgs84Coordinates) {
     super()
+    /* TODO: The following checks probably belong in a validate() method that is required by the abstract base class.
+     * This is true on all of these classes; should validate after editing.
+     * Also note lat and lon have known ranges that should be validated.
+     * Btw, can probably drop ICoordinates and just use WGS84.
+     * Other general thoughts: If Measurement Types and Sampling Location Templates are going in a dict for easier cross-referencing,
+     * then I need to rethink whether toJSON on each object is necessary...? Probably is, but at least fromJSON will have to do a
+     * lot of deduplication and so the abstract base class will have to require an equals() method too.
+     * Probably don't need a fromJSON on every class.
+     * So I'll probably redo the abstract base class, and merge in the two interfaces that are currently separate
+     * (classes that don't need sanity checks can just return []).
+     */
     assert(Number.isFinite(o.lat) && Number.isFinite(o.lon))
     this.lat = o.lat
     this.lon = o.lon

@@ -55,6 +55,10 @@ export class SamplingLocation extends JsonSerializable implements ISamplingLocat
   id :Identifier
   name :string
   description :string
+  /* TODO: On the one hand, could merge wgs84lat and wgs84lon attrs into here, on the other,
+   * should probably record nominal location (from the template) vs. actual location.
+   * Also, should we discourage users from editing values like `id`, `name` etc. from template?
+   */
   coordinates :ICoordinates
   startTime :Timestamp
   endTime :Timestamp
