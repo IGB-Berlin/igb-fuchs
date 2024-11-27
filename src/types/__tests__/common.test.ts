@@ -24,7 +24,7 @@ test('dataSetsEqual', () => {
     readonly x :string
     constructor(x :string) { super(); this.x = x }
     override equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
-    override summaryDisplay() { return this.x }
+    override summaryDisplay() :[string,null] { return [this.x,null] }
     override warningsCheck() { return [] }
     override toJSON(_key: string) { return { x: this.x } }
     override validate() { }

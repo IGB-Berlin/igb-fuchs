@@ -34,7 +34,7 @@ export class ListEditor<T extends DataObjectBase> {
           const btnDel = <button class="ms-2 btn btn-danger"><i
             class="bi-trash3-fill"/><span class="d-none d-sm-inline"> {tr('Delete')}</span></button>
           return <li class="list-group-item d-flex">
-            <div class="me-auto">{item.summaryDisplay()}</div>
+            <div class="me-auto">{item.summaryAsHtml()}</div>
             {btnDel}
             {btnEdit}
           </li>

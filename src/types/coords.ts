@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { tr } from '../i18n'
 import { DataObjectBase } from './common'
 
 export interface IWgs84Coordinates {
@@ -47,12 +48,14 @@ export class Wgs84Coordinates extends DataObjectBase implements IWgs84Coordinate
   }
   override validate() {
     if (!( Number.isFinite(this.wgs84lat) && this.wgs84lat >=  -90 && this.wgs84lat <=  90 ))
-      throw new Error('Invalid latitude, required is a number between -90 and +90: '+String(this.wgs84lat))
+      throw new Error(`${tr('invalid-latitude')}: ${this.wgs84lat}`)
     if (!( Number.isFinite(this.wgs84lon) && this.wgs84lon >= -180 && this.wgs84lon <= 180 ))
-      throw new Error('Invalid longitude, required is a number between -180 and +180: '+String(this.wgs84lon))
+      throw new Error(`${tr('invalid-longitude')}: ${this.wgs84lon}`)
   }
   override warningsCheck() { return [] }
-  override summaryDisplay() { return this.wgs84lat.toFixed(6)+','+this.wgs84lon.toFixed(6) }
+  /** Note display should include the hint "Lat,Lon" somewhere. */
+  override summaryDisplay() :[string,null] {
+    return [ this.wgs84lat.toFixed(6)+','+this.wgs84lon.toFixed(6), null ] }
   override equals(o: unknown) {
     return isIWgs84Coordinates(o) && this.wgs84lat===o.wgs84lat && this.wgs84lon===o.wgs84lon }
   override toJSON(_key :string) :IWgs84Coordinates {

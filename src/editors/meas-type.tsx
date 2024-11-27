@@ -16,10 +16,9 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { isValidName, VALID_NAME_RE } from '../types/common'
+import { VALID_NAME_RE } from '../types/common'
 import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { DoneCallback, Editor } from './base'
-import { assert } from '../utils'
 
 export class MeasTypeEditor extends Editor<MeasurementType> {
   readonly el :HTMLElement
@@ -42,7 +41,6 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
   }
   protected formSubmit() {
     if (this.obj) {
-      assert(isValidName(this.inpName.value))  //TODO: There's now a cleaner way to handle this, .validate(), which our caller should use
       this.obj.name = this.inpName.value
       this.obj.unit = this.inpUnit.value.trim()
     } else

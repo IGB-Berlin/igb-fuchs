@@ -15,14 +15,20 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ISamplingLocationTemplate } from './location'
+import { ISamplingTripTemplate } from './trip'
+import { IMeasurementType } from './meas-type'
 
-/* TODO: We'll need to keep these three lists/dicts of templates:
- * - Measurement Type
- * - Sampling Location
- * - Sampling Trip
+/* TODO: Implement the templates dictionary.
  * Note Sample Templates are just a part of the Sampling Location Template and don't need their own list.
  * However, when building the list of Sampling Location Templates and deduplicating them, the comparisons
  * of the objects need to exclude the samples, so the main dict should just hold the Sampling Location Templates
  * with the Sample Templates set to an empty Array [].
  * Note we still need to implement checks that the `names`s of the above objects are always unique.
  */
+
+export interface ITemplates {
+  measTypes: { [name :string] :IMeasurementType }
+  locations: { [name :string] :ISamplingLocationTemplate }
+  trips: { [name :string] :ISamplingTripTemplate }
+}

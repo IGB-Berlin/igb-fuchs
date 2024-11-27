@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, DataObjectBase, Timestamp, isValidTimestamp } from './common'
+import { tr } from '../i18n'
+import { isTimestamp, isTimestampSet, DataObjectBase, Timestamp, validateTimestamp } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
 
 export interface IMeasurement {
@@ -45,10 +46,9 @@ export class Measurement extends DataObjectBase implements IMeasurement {
   }
   formattedValue() {
     return Number.isFinite(this.type.precision) ? this.value.toFixed(this.type.precision) : this.value.toString() }
-  override validate() {
-    if (!isValidTimestamp(this.time)) throw new Error(`Invalid timestamp: ${String(this.time)}`) }
-  override summaryDisplay() {
-    return `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`.trim() }
+  override validate() { validateTimestamp(this.time) }
+  override summaryDisplay() :[string,null] {
+    return [ `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`, null ] }
   override equals(o: unknown) {
     return isIMeasurement(o) && this.type.equals(o.type) && this.time===o.time && this.value===o.value }
   override toJSON(_key: string): IMeasurement {
@@ -56,13 +56,12 @@ export class Measurement extends DataObjectBase implements IMeasurement {
   }
   override warningsCheck() {
     const rv = []  // this.type should be checked as part of the templates check
-    if (!isTimestampSet(this.time)) rv.push('No timestamp set on this measurement')
+    if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
     if (Number.isFinite(this.value)) {
-      if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`This value is below the minimum (${this.value} < ${this.type.min})`)
-      if (Number.isFinite(this.type.max) && this.value > this.type.max) rv.push(`This value is above the maximum (${this.value} > ${this.type.max})`)
-      //if (Number.isFinite(this.type.fractionalDigits)) ... can't really check this here since it applies to `string` inputs
-    }
-    else rv.push('No value set on this measurement')
+      if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
+      if (Number.isFinite(this.type.max) && this.value > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)
+      if (Number.isFinite(this.type.precision)) { /* can't check this here since it applies to `string` inputs - check via input box pattern */ }
+    } else rv.push(tr('No measurement value'))
     return rv
   }
 }

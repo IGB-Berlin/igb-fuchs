@@ -63,8 +63,10 @@ export abstract class Editor<T extends DataObjectBase> {
       event.preventDefault()
       event.stopPropagation()
       if (form.checkValidity()) {
-        this.formSubmit()
+        this.formSubmit()  //TODO: rename to something like `form2obj`
         assert(this.obj)
+        try { this.obj.validate() }
+        catch (_ex) { /* TODO: Show error and don't allow submission */ }
         const warnings = this.obj.warningsCheck()
         warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
         warnAlert.classList.toggle('d-none', !warnings.length)

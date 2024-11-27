@@ -18,10 +18,11 @@
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
 import { DataObjectBase, dataSetsEqual, DataObjectTemplate } from './common'
+import { i18n, tr } from '../i18n'
 
-const sampleTypes = ['',
+const sampleTypes = ['undefined',
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
-  'sediment', 'soil', 'vegetation', 'organism',  //TODO Later: should this be freeform instead?
+  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',  //TODO Later: should this be freeform instead?
 ] as const
 
 type SampleType = typeof sampleTypes[number]
@@ -58,9 +59,9 @@ export class Sample extends DataObjectBase implements ISample {
     this.validate()
   }
   override validate() {
-    if (!isSampleType(this.type)) throw new Error(`Invalid sample type ${String(this.type)}`) }
-  override summaryDisplay() {
-    return `${this.type} (${this.measurements.length} meas.)` }
+    if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
+  override summaryDisplay() :[string,string] {
+    return [ this.type, i18n.t('measurements', {count: this.measurements.length}) ] }
   override equals(o: unknown) {
     return isISample(o) && this.type===o.type && this.notes.trim()===o.notes?.trim()
       && dataSetsEqual(this.measurements, o.measurements.map(m => new Measurement(m)))
@@ -72,7 +73,7 @@ export class Sample extends DataObjectBase implements ISample {
   }
   override warningsCheck() {
     const rv :string[] = []
-    if (!this.measurements.length) rv.push('No measurements')
+    if (!this.measurements.length) rv.push(tr('No measurements'))
     return rv.concat( this.measurements.flatMap(m => m.warningsCheck()) )
   }
 }
@@ -102,16 +103,16 @@ export class SampleTemplate extends DataObjectTemplate<Sample> implements ISampl
     this.validate()
   }
   override validate() {
-    if (!isSampleType(this.type)) throw new Error(`Invalid sample type ${String(this.type)}`) }
-  override summaryDisplay() { return this.type }
+    if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
+  override summaryDisplay() :[string,string] {
+    return [ this.type, i18n.t('measurements', {count: this.measurementTypes.length}) ] }
   override equals(o: unknown) {
     return isISampleTemplate(o) && this.type===o.type
       && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
   }
   override warningsCheck() { return [] }
   override toJSON(_key: string): ISampleTemplate {
-    return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) }
-  }
-  toDataObject() :Sample {
+    return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) } }
+  templateToObject() :Sample {
     return new Sample({ type: this.type, measurements: [] }, this) }
 }

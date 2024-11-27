@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateTimestamp, validateName } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
-import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, isValidName, isValidTimestamp, dataSetsEqual } from './common'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
+import { i18n, tr } from '../i18n'
 
-interface ISamplingTrip {
+export interface ISamplingTrip {
   name :string
   description ?:string|null
   startTime :Timestamp
@@ -76,12 +77,15 @@ export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
     this.validate()
   }
   override validate() {
-    if (!isValidName(this.name)) throw new Error(`Invalid name ${this.name}`)
-    if (!isValidTimestamp(this.startTime)) throw new Error(`Invalid start timestamp ${this.startTime}`)
-    if (!isValidTimestamp(this.endTime)) throw new Error(`Invalid end timestamp ${this.endTime}`)
-    if (!isValidTimestamp(this.lastModified)) throw new Error(`Invalid timestamp ${this.lastModified}`)
+    validateName(this.name)
+    validateTimestamp(this.startTime)
+    validateTimestamp(this.endTime)
+    validateTimestamp(this.lastModified)
   }
-  override summaryDisplay() { return this.name }
+  override summaryDisplay() :[string,string] {
+    const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toDateString()+'; ' : ''
+    return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
+  }
   override equals(o: unknown) {
     return isISamplingTrip(o) && this.name===o.name && this.description.trim()===o.description?.trim()
       && this.startTime===o.startTime && this.endTime===o.endTime && this.persons.trim()===o.persons?.trim()
@@ -101,16 +105,16 @@ export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
   }
   override warningsCheck() {
     const rv :string[] = []
-    if (!isTimestampSet(this.startTime)) rv.push('No start time')
-    if (!isTimestampSet(this.endTime)) rv.push('No end time')
-    if (this.locations.length) rv.push('No locations')
+    if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
+    if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    if (this.locations.length) rv.push(tr('No sampling locations'))
     return rv.concat( this.locations.flatMap(l => l.warningsCheck()) )
   }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
 
-interface ISamplingTripTemplate {
+export interface ISamplingTripTemplate {
   name :string
   description ?:string|null
   locations :ISamplingLocationTemplate[]
@@ -143,9 +147,9 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTrip> imple
     this.commonSamples = o.commonSamples.map(s => new SampleTemplate(s))
     this.validate()
   }
-  override validate() {
-    if (!isValidName(this.name)) throw new Error(`Invalid name ${this.name}`) }
-  override summaryDisplay() { return this.name }
+  override validate() { validateName(this.name) }
+  override summaryDisplay() :[string,string] {
+    return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ] }
   override equals(o: unknown) {
     return isISamplingTripTemplate(o) && this.name===o.name && this.description.trim()===o.description?.trim()
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
@@ -160,11 +164,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTrip> imple
   }
   override warningsCheck() {
     const rv :string[] = []
-    if (!this.locations.length) rv.push(`No locations for sampling trip template ${this.name}`)
+    if (!this.locations.length) rv.push(tr('no-trip-loc'))
     this.locations.forEach(l => l.samples.forEach(s => s.measurementTypes.forEach( t => rv.push(...t.warningsCheck()) )))
     return rv
   }
-  toDataObject(startNow :boolean) :SamplingTrip {
+  templateToObject(startNow :boolean) :SamplingTrip {
     const rv :ISamplingTrip = { name: this.name, locations: [],
       startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()
