@@ -15,77 +15,94 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Identifier, isIdentifier, JsonSerializable, ListEditable, SanityCheckable } from './common'
-import { assert } from '../utils'
+import { isValidName, NO_TIMESTAMP, DataObjectTemplate, timestampNow } from './common'
+import { Measurement } from './meas'
+
+export const VALID_UNIT_RE = /^[^\s](?:.*[^\s])?$/u
 
 export interface IMeasurementType {
-  id :Identifier
+  name :string
   unit :string
   min ?:number|null
   max ?:number|null
-  fractionalDigits ?:number|null
+  precision ?:number|null
   notes ?:string|null
 }
-const measurementTypeKeys = ['id','unit','min','max','fractionalDigits','notes'] as const
+const measurementTypeKeys = ['name','unit','min','max','precision','notes'] as const
 type MeasurementTypeKey = typeof measurementTypeKeys[number] & keyof IMeasurementType
 export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   if (!o || typeof o !== 'object') return false
-  if (!('id' in o && 'unit' in o)) return false  // required keys
+  if (!('name' in o && 'unit' in o)) return false  // required keys
   for (const k of Object.keys(o)) if (!measurementTypeKeys.includes(k as MeasurementTypeKey)) return false  // extra keys
   // type checks
-  if (isIdentifier(o.id) || typeof o.unit !== 'string') return false
+  if (typeof o.name !== 'string' || typeof o.unit !== 'string') return false
   if ('min' in o && !( o.min===null || typeof o.min === 'number' )) return false
   if ('max' in o && !( o.max===null || typeof o.max === 'number' )) return false
-  if ('fractionalDigits' in o && !( o.fractionalDigits===null || typeof o.fractionalDigits === 'number' )) return false
+  if ('precision' in o && !( o.precision===null || typeof o.precision === 'number' )) return false
   if ('notes' in o && !( o.notes===null || typeof o.notes !== 'string' )) return false
   return true
 }
 
 /** Describes a type of measurement (not a specific measurement value). */
-export class MeasurementType extends JsonSerializable implements IMeasurementType, SanityCheckable, ListEditable {
-  //TODO Later: MeasurementType.id should have translations (?)
-  id :Identifier
+export class MeasurementType extends DataObjectTemplate<Measurement> implements IMeasurementType {
+  name :string
   unit :string
-  /** Option: Minimum value, for input validation. */
+  /** Minimum value, for input validation. (Optional but recommended.) */
   min :number
-  /** Optional: Maximum value, for input validation. */
+  /** Maximum value, for input validation. (Optional but recommended.) */
   max :number
-  /** Optional: Number of places after the decimal point (both for input validation and for display rounding). */
-  fractionalDigits :number
+  /** Number of places after the decimal point, both for input validation and for display rounding. (Optional but recommended.) */
+  precision :number
   notes :string
   constructor(o :IMeasurementType) {
     super()
-    assert(isIdentifier(o.id))
-    this.id = o.id
+    this.name = o.name
     this.unit = o.unit
     this.min = 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
     this.max = 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
-    this.fractionalDigits = 'fractionalDigits' in o && o.fractionalDigits!==null && Number.isFinite(o.fractionalDigits) ? o.fractionalDigits : NaN
-    this.notes = 'notes' in o && o.notes!==null ? o.notes : ''
+    this.precision = 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
+    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.validate()
+  }
+  override validate() {
+    if (!isValidName(this.name)) throw new Error(`Invalid name: ${this.name}`)
+    if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`Invalid unit: ${this.unit}`)
+    if (this.min>this.max) throw new Error(`Invalid min/max, ${this.min}>${this.max}`)
+    if (this.precision<0) throw new Error(`Invalid precision, ${this.precision}<0`)
+  }
+  override equals(o: unknown) {
+    return isIMeasurementType(o) && this.name===o.name && this.unit===o.unit && this.min===o.min && this.max===o.max
+      && ( Number.isNaN(this.precision) && Number.isNaN(o.precision) || this.precision===o.precision )
+      && this.notes.trim() === o.notes?.trim()
   }
   override toJSON(_key :string) :IMeasurementType {
-    const rv :IMeasurementType = { id: this.id, unit: this.unit }
+    const rv :IMeasurementType = { name: this.name, unit: this.unit }
     if (Number.isFinite(this.min)) rv.min = this.min
     if (Number.isFinite(this.max)) rv.max = this.max
-    if (Number.isFinite(this.fractionalDigits)) rv.fractionalDigits = this.fractionalDigits
-    if (this.notes.trim().length) rv.notes = this.notes
+    if (Number.isFinite(this.precision)) rv.precision = this.precision
+    if (this.notes.trim().length) rv.notes = this.notes.trim()
     return rv
   }
-  static override fromJSON(obj :object) :MeasurementType {
-    //TODO: When reading from json, we should really deduplicate all the MeasurementTypes, Samples, ...
-    assert(isIMeasurementType(obj))
-    return new MeasurementType(obj)
+  override summaryDisplay() {
+    return this.name + ( this.unit.trim().length ? ' ['+this.unit+']' : '' )
   }
-  listDisplay() {
-    return this.id + ( this.unit.trim().length ? ' ['+this.unit+']' : '' )
-  }
-  sanityCheck() :string[] {
+  override warningsCheck() {
     const rv :string[] = []
-    //TODO: Translations (here and all other sanity check methods)
-    if (!this.unit.length) rv.push(`No units specified for measurement type ${this.id}`)
-    if (!Number.isFinite(this.min)) rv.push(`No minimum value specified for measurement type ${this.id}`)
-    if (!Number.isFinite(this.max)) rv.push(`No maximum value specified for measurement type ${this.id}`)
-    if (!Number.isFinite(this.fractionalDigits)) rv.push(`No number of places after the decimal point specified for measurement type ${this.id}`)
+    if (!this.unit.length) rv.push('No units specified')
+    if (!Number.isFinite(this.min)) rv.push('No minimum value specified')
+    if (!Number.isFinite(this.max)) rv.push('No maximum value specified')
+    if (!Number.isFinite(this.precision)) rv.push('No precision specified')
     return rv
+  }
+  toDataObject(value :number, timeNow :boolean) :Measurement {
+    return new Measurement({ type: this.toJSON('type'), time: timeNow ? timestampNow() : NO_TIMESTAMP, value: value }) }
+  /** Regular expression that can be used to validate measurement value inputs of this type. */
+  get validPattern() {
+    const after = !Number.isFinite(this.precision)
+      ? '[0-9]+'
+      : this.precision===0 ? ''
+        : this.precision===1 ? '[0-9]'
+          : `[0-9]{1,${this.precision}}`
+    return after.length ? `^[\\-\\+](?:[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+][0-9]+$'
   }
 }

@@ -17,12 +17,12 @@
  */
 import { i18n } from '../i18n'
 import { jsx } from '../jsx-dom'
-import { ListEditable, JsonSerializable } from '../types/common'
+import { DataObjectBase } from '../types/common'
 import { DoneCallback, Editor } from './base'
 
-type EditorClass<T extends JsonSerializable & ListEditable> = { new (initObj :T|null, doneCb :DoneCallback): Editor<T> }
+type EditorClass<T extends DataObjectBase> = { new (initObj :T|null, doneCb :DoneCallback): Editor<T> }
 
-export class ListEditor<T extends JsonSerializable & ListEditable> {
+export class ListEditor<T extends DataObjectBase> {
   readonly el :HTMLElement
   constructor(theList :Array<T>, _editorClass :EditorClass<T>) {
     const btnNew = <button class="btn btn-info"><i class="bi-plus-circle"/> {i18n.t('new')}</button>
@@ -34,7 +34,7 @@ export class ListEditor<T extends JsonSerializable & ListEditable> {
           const btnDel = <button class="ms-2 btn btn-danger"><i
             class="bi-trash3-fill"/><span class="d-none d-sm-inline"> {i18n.t('delete')}</span></button>
           return <li class="list-group-item d-flex">
-            <div class="me-auto">{item.listDisplay()}</div>
+            <div class="me-auto">{item.summaryDisplay()}</div>
             {btnDel}
             {btnEdit}
           </li>

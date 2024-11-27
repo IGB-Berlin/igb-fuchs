@@ -22,7 +22,7 @@ import stylistic from '@stylistic/eslint-plugin'
 
 export default tseslint.config({
   files: ['./*.js', '**/*.ts', '**/*.tsx'],
-  ignores: ['./dist/**'],
+  ignores: ['./dist/**', './coverage/**'],
   extends: [
     eslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,

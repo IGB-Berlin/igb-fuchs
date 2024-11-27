@@ -55,7 +55,7 @@ export async function init() {
   const testEd = new MeasTypeEditor(null, ()=>console.log('Editor done!'))
   htmlMain.appendChild( <div class="border rounded m-3 p-3">{testEd.el}</div>) //TODO: Debug, remove
   htmlMain.appendChild( new ListEditor([
-    new MeasurementType({ id:'x', unit:'cm' }), new MeasurementType({ id:'y', unit:'ml' })
+    new MeasurementType({ name:'x', unit:'cm' }), new MeasurementType({ name:'y', unit:'ml' })
   ], MeasTypeEditor).el )
 }
 

@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isSanityCheckable, JsonSerializable } from '../types/common'
+import { DataObjectBase } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { assert } from '../utils'
 import { i18n } from '../i18n'
 
 export type DoneCallback = () => void
 
-export abstract class Editor<T extends JsonSerializable> {
+export abstract class Editor<T extends DataObjectBase> {
   protected readonly initObj :Readonly<T>|null  //TODO: remove if unused
   protected obj :T|null
   protected readonly doneCb :DoneCallback
@@ -64,14 +64,13 @@ export abstract class Editor<T extends JsonSerializable> {
       event.stopPropagation()
       if (form.checkValidity()) {
         this.formSubmit()
-        if (isSanityCheckable(this.obj)) {
-          const warnings = this.obj.sanityCheck()
-          warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
-          warnAlert.classList.toggle('d-none', !warnings.length)
-          btnSubmit.classList.toggle('btn-success', !warnings.length)
-          btnSubmit.classList.toggle('btn-warning', !!warnings.length)
-          //TODO: If the user changed something, re-run the sanity check, otherwise, the next "submit" click finishes the form
-        }
+        assert(this.obj)
+        const warnings = this.obj.warningsCheck()
+        warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
+        warnAlert.classList.toggle('d-none', !warnings.length)
+        btnSubmit.classList.toggle('btn-success', !warnings.length)
+        btnSubmit.classList.toggle('btn-warning', !!warnings.length)
+        //TODO: If the user changed something, re-run the sanity check, otherwise, the next "submit" click finishes the form
       }
     })
     return form

@@ -17,8 +17,7 @@
  */
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
-import { JsonSerializable, SanityCheckable } from './common'
-import { assert } from '../utils'
+import { DataObjectBase, dataSetsEqual, DataObjectTemplate } from './common'
 
 const sampleTypes = ['',
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
@@ -45,30 +44,36 @@ export function isISample(o :unknown) :o is ISample {
 }
 
 /** Records an actual sample taken. */
-export class Sample extends JsonSerializable implements ISample, SanityCheckable {
-  //TODO Later: Sample.type should have translations (?)
+export class Sample extends DataObjectBase implements ISample {
   type :SampleType
   measurements :Measurement[]
   notes :string
-  constructor(o :ISample) {
+  template :SampleTemplate|null
+  constructor(o :ISample, template :SampleTemplate|null) {
     super()
     this.type = o.type
     this.measurements = o.measurements.map(m => new Measurement(m))
-    this.notes = 'notes' in o && o.notes!==null ? o.notes : ''
+    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.template = template
+    this.validate()
+  }
+  override validate() {
+    if (!isSampleType(this.type)) throw new Error(`Invalid sample type ${String(this.type)}`) }
+  override summaryDisplay() {
+    return `${this.type} (${this.measurements.length} meas.)` }
+  override equals(o: unknown) {
+    return isISample(o) && this.type===o.type && this.notes.trim()===o.notes?.trim()
+      && dataSetsEqual(this.measurements, o.measurements.map(m => new Measurement(m)))
   }
   override toJSON(_key: string): ISample {
     const rv :ISample = { type: this.type, measurements: this.measurements.map((m,mi) => m.toJSON(mi.toString())) }
-    if (this.notes.trim().length) rv.notes = this.notes
+    if (this.notes.trim().length) rv.notes = this.notes.trim()
     return rv
   }
-  static override fromJSON(obj: object): Sample {
-    assert(isISample(obj))
-    return new Sample(obj)
-  }
-  sanityCheck() :string[] {
+  override warningsCheck() {
     const rv :string[] = []
     if (!this.measurements.length) rv.push('No measurements')
-    return rv.concat( this.measurements.flatMap(m => m.sanityCheck()) )
+    return rv.concat( this.measurements.flatMap(m => m.warningsCheck()) )
   }
 }
 
@@ -86,7 +91,7 @@ export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
   return true
 }
 
-export class SampleTemplate extends JsonSerializable implements ISampleTemplate {
+export class SampleTemplate extends DataObjectTemplate<Sample> implements ISampleTemplate {
   type :SampleType
   /** The typical measurement types performed on this sample. */
   measurementTypes :MeasurementType[]
@@ -94,15 +99,19 @@ export class SampleTemplate extends JsonSerializable implements ISampleTemplate 
     super()
     this.type = o.type
     this.measurementTypes = o.measurementTypes.map(m => new MeasurementType(m))
+    this.validate()
   }
+  override validate() {
+    if (!isSampleType(this.type)) throw new Error(`Invalid sample type ${String(this.type)}`) }
+  override summaryDisplay() { return this.type }
+  override equals(o: unknown) {
+    return isISampleTemplate(o) && this.type===o.type
+      && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
+  }
+  override warningsCheck() { return [] }
   override toJSON(_key: string): ISampleTemplate {
     return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) }
   }
-  static override fromJSON(obj: object): SampleTemplate {
-    assert(isISampleTemplate(obj))
-    return new SampleTemplate(obj)
-  }
-  toSample() :Sample {
-    return new Sample({ type: this.type, measurements: [] })
-  }
+  toDataObject() :Sample {
+    return new Sample({ type: this.type, measurements: [] }, this) }
 }

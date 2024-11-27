@@ -15,31 +15,30 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Identifier, isIdentifier, isTimestamp, isTimestampSet, JsonSerializable, NO_TIMESTAMP, SanityCheckable, Timestamp, timestampNow } from './common'
+import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, isValidName, isValidTimestamp, dataSetsEqual } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
-import { AbstractCoordinates, ICoordinates, isICoordinates } from './coords'
-import { assert } from '../utils'
+import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 
 export interface ISamplingLocation {
-  id :Identifier
   name :string
   description ?:string|null
-  coordinates :ICoordinates
+  nominalCoords :IWgs84Coordinates
+  actualCoords :IWgs84Coordinates
   startTime :Timestamp
   endTime :Timestamp
   samples :ISample[]
   notes ?:string|null
   photos ?:string[]
 }
-const samplingLocationKeys = ['id','name','description','coordinates','startTime','endTime','samples','notes','photos'] as const
+const samplingLocationKeys = ['name','description','nominalCoords','actualCoords','startTime','endTime','samples','notes','photos'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   if (!o || typeof o !== 'object') return false
-  if (!('id' in o && 'name' in o && 'coordinates' in o && 'startTime' in o && 'endTime' in o && 'samples' in o)) return false  // required keys
+  if (!('name' in o && 'nominalCoords' in o && 'actualCoords' in o && 'startTime' in o && 'endTime' in o && 'samples' in o)) return false  // required keys
   for (const k of Object.keys(o)) if (!samplingLocationKeys.includes(k as SamplingLocationKey)) return false  // extra keys
   // type checks
-  if (!isIdentifier(o.id) || typeof o.name !== 'string' || !isICoordinates(o.coordinates) || !isTimestamp(o.startTime) || !isTimestamp(o.endTime)
-    || !Array.isArray(o.samples)) return false
+  if (typeof o.name !== 'string' || !isIWgs84Coordinates(o.nominalCoords) || !isIWgs84Coordinates(o.actualCoords)
+    || !isTimestamp(o.startTime) || !isTimestamp(o.endTime) || !Array.isArray(o.samples)) return false
   for (const s of o.samples) if (!isISample(s)) return false
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
@@ -51,112 +50,127 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 }
 
 /** Records and actual sampling point. */
-export class SamplingLocation extends JsonSerializable implements ISamplingLocation, SanityCheckable {
-  id :Identifier
+export class SamplingLocation extends DataObjectBase implements ISamplingLocation {
   name :string
   description :string
-  /* TODO: On the one hand, could merge wgs84lat and wgs84lon attrs into here, on the other,
-   * should probably record nominal location (from the template) vs. actual location.
-   * Also, should we discourage users from editing values like `id`, `name` etc. from template?
-   */
-  coordinates :ICoordinates
+  nominalCoords :IWgs84Coordinates
+  get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
+  /** If the actual sample was taken at a slightly different location from the nominal location. */
+  actualCoords :IWgs84Coordinates
+  get actCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.actualCoords) }
   startTime :Timestamp
   endTime :Timestamp
   samples :Sample[]
   notes :string
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
   photos :string[]
-  constructor(o :ISamplingLocation) {
+  template :SamplingLocationTemplate|null
+  constructor(o :ISamplingLocation, template :SamplingLocationTemplate|null) {
     super()
-    assert(isIdentifier(o.id) && isTimestamp(o.startTime) && isTimestamp(o.endTime))
-    this.id = o.id
     this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description : ''
-    this.coordinates = o.coordinates
+    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
+    this.nominalCoords = o.nominalCoords
+    this.actualCoords = o.actualCoords
     this.startTime = o.startTime
     this.endTime = o.endTime
-    this.samples = o.samples.map(s => new Sample(s))
-    this.notes = 'notes' in o && o.notes!==null ? o.notes : ''
+    this.samples = o.samples.map(s => new Sample(s, null))
+    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.photos = 'photos' in o ? o.photos : []
+    this.template = template
+    this.validate()
   }
-  get coords() :AbstractCoordinates { return AbstractCoordinates.fromJSON(this.coordinates) }
-  override toJSON(_key: string): ISamplingLocation {
-    const rv :ISamplingLocation = {
-      id: this.id, name: this.name, coordinates: this.coordinates, startTime: this.startTime, endTime: this.endTime,
+  override validate() {
+    if (!isValidName(this.name)) throw new Error('Invalid name: '+this.name)
+    if (!isValidTimestamp(this.startTime)) throw new Error('Invalid start timestamp: '+String(this.startTime))
+    if (!isValidTimestamp(this.endTime)) throw new Error('Invalid end timestamp: '+String(this.endTime))
+  }
+  override warningsCheck() {
+    const rv :string[] = []
+    if (!isTimestampSet(this.startTime)) rv.push('No start time set')
+    if (!isTimestampSet(this.endTime)) rv.push('No end time set')
+    if (this.samples.length) rv.push('No samples')
+    //TODO: Check the distance between nominal and actual location
+    return rv.concat( this.samples.flatMap(s => s.warningsCheck()) )
+  }
+  override summaryDisplay() {
+    return this.name }
+  override equals(o :unknown) {
+    return isISamplingLocation(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+      && this.nomCoords.equals(o.nominalCoords) && this.actCoords.equals(o.actualCoords)
+      && this.startTime===o.startTime && this.endTime===o.endTime && this.notes===o.notes
+      && dataSetsEqual(this.samples, o.samples.map(s => new Sample(s, null)))
+  }
+  override toJSON(_key :string) :ISamplingLocation {
+    const rv :ISamplingLocation = { name: this.name,
+      nominalCoords: this.nominalCoords, actualCoords: this.actualCoords,
+      startTime: this.startTime, endTime: this.endTime,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())) }
     if (this.description.trim().length) rv.description = this.description
     if (this.notes.trim().length) rv.notes = this.notes
     if (this.photos.length) rv.photos = this.photos
     return rv
   }
-  static override fromJSON(obj: object): SamplingLocation {
-    assert(isISamplingLocation(obj))
-    return new SamplingLocation(obj)
-  }
-  sanityCheck() :string[] {
-    const rv :string[] = []
-    if (!isTimestampSet(this.startTime)) rv.push(`No start time set for location ${this.id}`)
-    if (!isTimestampSet(this.endTime)) rv.push(`No end time set for location ${this.id}`)
-    if (this.samples.length) rv.push(`No samples at location ${this.id}`)
-    return rv.concat( this.samples.flatMap(s => s.sanityCheck()) )
-  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
 
 export interface ISamplingLocationTemplate {
-  id :Identifier
   name :string
   description ?:string|null
-  coordinates :ICoordinates
+  nominalCoords :IWgs84Coordinates
   samples :ISampleTemplate[]
 }
-const samplingLocationTemplateKeys = ['id','name','description','coordinates','samples'] as const
+const samplingLocationTemplateKeys = ['name','description','nominalCoords','samples'] as const
 type SamplingLocationTemplateKey = typeof samplingLocationTemplateKeys[number] & keyof ISamplingLocationTemplate
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   if (!o || typeof o !== 'object') return false
-  if (!('id' in o && 'name' in o && 'coordinates' in o && 'samples' in o)) return false  // required keys
+  if (!('name' in o && 'nominalCoords' in o && 'samples' in o)) return false  // required keys
   for (const k of Object.keys(o)) if (!samplingLocationTemplateKeys.includes(k as SamplingLocationTemplateKey)) return false  // extra keys
   // type checks
-  if (!isIdentifier(o.id) || typeof o.name !== 'string' || !isICoordinates(o.coordinates) || !Array.isArray(o.samples)) return false
+  if (typeof o.name !== 'string' || !isIWgs84Coordinates(o.nominalCoords) || !Array.isArray(o.samples)) return false
   for (const s of o.samples) if (!isISampleTemplate(s)) return false
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
 
-export class SamplingLocationTemplate extends JsonSerializable implements ISamplingLocationTemplate {
-  id :Identifier
+export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocation> implements ISamplingLocationTemplate {
   name :string
   description :string
-  coordinates :ICoordinates
+  nominalCoords :IWgs84Coordinates
+  get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
   samples :SampleTemplate[]
   constructor(o :ISamplingLocationTemplate) {
     super()
-    assert(isIdentifier(o.id))
-    this.id = o.id
     this.name = o.name
     this.description = 'description' in o && o.description!==null ? o.description : ''
-    this.coordinates = o.coordinates
+    this.nominalCoords = o.nominalCoords
     this.samples = o.samples.map(s => new SampleTemplate(s))
+    this.validate()
   }
-  get coords() :AbstractCoordinates { return AbstractCoordinates.fromJSON(this.coordinates) }
+  override validate() {
+    if (!isValidName(this.name)) throw new Error('Invalid name: '+this.name)
+  }
+  override warningsCheck() { return [] }
+  override summaryDisplay() {
+    return this.name }
+  override equals(o: unknown) {
+    return isISamplingLocationTemplate(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+      && this.nomCoords.equals(o.nominalCoords)
+      && dataSetsEqual(this.samples, o.samples.map(s => new SampleTemplate(s)))
+  }
   override toJSON(_key: string): ISamplingLocationTemplate {
     const rv :ISamplingLocationTemplate = {
-      id: this.id, name: this.name, coordinates: this.coordinates,
+      name: this.name, nominalCoords: this.nominalCoords,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())) }
-    if (this.description.trim().length) rv.description = this.description
+    if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
-  static override fromJSON(obj: object): SamplingLocationTemplate {
-    assert(isISamplingLocationTemplate(obj))
-    return new SamplingLocationTemplate(obj)
-  }
-  toSamplingLocation(actualCoords :AbstractCoordinates|ICoordinates|null, startNow :boolean) :SamplingLocation {
-    const rv :ISamplingLocation = { id: this.id, name: this.name,
-      coordinates: actualCoords===null ? this.coordinates : actualCoords instanceof AbstractCoordinates ? actualCoords.toWgs84Coords() : actualCoords,
-      startTime: startNow?timestampNow():NO_TIMESTAMP, endTime: NO_TIMESTAMP, samples: [] }
-    if (this.description.trim().length) rv.description = this.description
-    return new SamplingLocation(rv)
+  toDataObject(actualCoords :IWgs84Coordinates|null, startNow :boolean) :SamplingLocation {
+    const rv :ISamplingLocation = { name: this.name,
+      nominalCoords: this.nominalCoords, actualCoords: actualCoords ?? this.nominalCoords,
+      startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, samples: [] }
+    if (this.description.trim().length) rv.description = this.description.trim()
+    return new SamplingLocation(rv, this)
   }
 }

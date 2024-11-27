@@ -16,11 +16,10 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
-import { Identifier, isIdentifier, isTimestamp, isTimestampSet, JsonSerializable, NO_TIMESTAMP, SanityCheckable, Timestamp, timestampNow } from './common'
-import { assert } from '../utils'
+import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, isValidName, isValidTimestamp, dataSetsEqual } from './common'
+import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
 
 interface ISamplingTrip {
-  id :Identifier
   name :string
   description ?:string|null
   startTime :Timestamp
@@ -38,7 +37,7 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if (!('id' in o && 'name' in o && 'startTime' in o && 'endTime' in o && 'locations' in o)) return false  // required keys
   for (const k of Object.keys(o)) if (!samplingTripKeys.includes(k as SamplingTripKey)) return false  // extra keys
   // type checks
-  if (!isIdentifier(o.id) || typeof o.name !== 'string' || !isTimestamp(o.startTime) || !isTimestamp(o.endTime)
+  if (typeof o.name !== 'string' || !isTimestamp(o.startTime) || !isTimestamp(o.endTime)
     || !Array.isArray(o.locations)) return false
   for (const l of o.locations) if (!isISamplingLocation(l)) return false
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
@@ -50,8 +49,7 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
 }
 
 /** Records an entire sampling trip. */
-export class SamplingTrip extends JsonSerializable implements ISamplingTrip, SanityCheckable {
-  id :Identifier
+export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
   name :string
   description :string
   startTime :Timestamp
@@ -62,42 +60,51 @@ export class SamplingTrip extends JsonSerializable implements ISamplingTrip, San
   weather :string
   notes :string
   locations :SamplingLocation[]
-  constructor(o :ISamplingTrip) {
+  template :SamplingTripTemplate|null
+  constructor(o :ISamplingTrip, template :SamplingTripTemplate|null) {
     super()
-    assert(isIdentifier(o.id) && isTimestamp(o.startTime) && isTimestamp(o.endTime))
-    this.id = o.id
     this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description : ''
+    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
     this.startTime = o.startTime
     this.endTime = o.endTime
-    this.lastModified = 'lastModified' in o && o.lastModified!==null ? o.lastModified : timestampNow()
-    assert(isTimestamp(this.lastModified))
-    this.persons = 'persons' in o && o.persons!==null ? o.persons : ''
-    this.weather = 'weather' in o && o.weather!==null ? o.weather : ''
-    this.notes = 'notes' in o && o.notes!==null ? o.notes : ''
-    this.locations = o.locations.map(l => new SamplingLocation(l))
+    this.lastModified = 'lastModified' in o && o.lastModified!==null && isTimestampSet(o.lastModified) ? o.lastModified : timestampNow()
+    this.persons = 'persons' in o && o.persons!==null ? o.persons.trim() : ''
+    this.weather = 'weather' in o && o.weather!==null ? o.weather.trim() : ''
+    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.locations = o.locations.map(l => new SamplingLocation(l, null))
+    this.template = template
+    this.validate()
+  }
+  override validate() {
+    if (!isValidName(this.name)) throw new Error(`Invalid name ${this.name}`)
+    if (!isValidTimestamp(this.startTime)) throw new Error(`Invalid start timestamp ${this.startTime}`)
+    if (!isValidTimestamp(this.endTime)) throw new Error(`Invalid end timestamp ${this.endTime}`)
+    if (!isValidTimestamp(this.lastModified)) throw new Error(`Invalid timestamp ${this.lastModified}`)
+  }
+  override summaryDisplay() { return this.name }
+  override equals(o: unknown) {
+    return isISamplingTrip(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+      && this.startTime===o.startTime && this.endTime===o.endTime && this.persons.trim()===o.persons?.trim()
+      && this.weather.trim()===o.weather?.trim() && this.notes.trim()===o.notes?.trim()
+      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l, null)))
   }
   override toJSON(_key: string): ISamplingTrip {
     const rv :ISamplingTrip = {
-      id: this.id, name: this.name, startTime: this.startTime, endTime: this.endTime,
+      name: this.name, startTime: this.startTime, endTime: this.endTime,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())) }
-    if (this.description.trim().length) rv.description = this.description
+    if (this.description.trim().length) rv.description = this.description.trim()
     if (isTimestampSet(this.lastModified)) rv.lastModified = this.lastModified
-    if (this.persons.trim().length) rv.persons = this.persons
-    if (this.weather.trim().length) rv.weather = this.weather
-    if (this.notes.trim().length) rv.notes = this.notes
+    if (this.persons.trim().length) rv.persons = this.persons.trim()
+    if (this.weather.trim().length) rv.weather = this.weather.trim()
+    if (this.notes.trim().length) rv.notes = this.notes.trim()
     return rv
   }
-  static override fromJSON(obj: object): SamplingTrip {
-    assert(isISamplingTrip(obj))
-    return new SamplingTrip(obj)
-  }
-  sanityCheck() :string[] {
+  override warningsCheck() {
     const rv :string[] = []
-    if (!isTimestampSet(this.startTime)) rv.push(`No start time set for location ${this.id}`)
-    if (!isTimestampSet(this.endTime)) rv.push(`No end time set for location ${this.id}`)
-    if (this.locations.length) rv.push(`No locations for trip ${this.id}`)
-    return rv.concat( this.locations.flatMap(l => l.sanityCheck()) )
+    if (!isTimestampSet(this.startTime)) rv.push('No start time')
+    if (!isTimestampSet(this.endTime)) rv.push('No end time')
+    if (this.locations.length) rv.push('No locations')
+    return rv.concat( this.locations.flatMap(l => l.warningsCheck()) )
   }
 }
 
@@ -107,50 +114,60 @@ interface ISamplingTripTemplate {
   name :string
   description ?:string|null
   locations :ISamplingLocationTemplate[]
-  //TODO: A "commonSamples" field that is used when the location's samples array is empty
-  // (can the locations just reference this array or is that too complicated? in either cade, it's more deduplication for fromJSON)
+  commonSamples :ISampleTemplate[]
 }
 function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
   if (!o || typeof o !== 'object') return false
-  if (!( 'name' in o && 'locations' in o && ( Object.keys(o).length===2 || Object.keys(o).length===3 && 'description' in o ) )) return false // keys
+  if (!( 'name' in o && 'locations' in o && 'commonSamples' in o
+    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'description' in o ) )) return false // keys
   // type checks
-  if ( typeof o.name !== 'string' || !Array.isArray(o.locations) ) return false
+  if ( typeof o.name !== 'string' || !Array.isArray(o.locations) || !Array.isArray(o.commonSamples) ) return false
   for (const l of o.locations) if (!isISamplingLocationTemplate(l)) return false
+  for (const s of o.commonSamples) if (!isISampleTemplate(s)) return false
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
 
-export class SamplingTripTemplate extends JsonSerializable implements ISamplingTripTemplate, SanityCheckable {
+export class SamplingTripTemplate extends DataObjectTemplate<SamplingTrip> implements ISamplingTripTemplate {
   name :string
   description :string
   /** The typical sampling locations on this trip. */
   locations :SamplingLocationTemplate[]
+  /** This array is used when the location template's samples array is empty. */
+  commonSamples :SampleTemplate[]
   constructor(o :ISamplingTripTemplate) {
     super()
     this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description : ''
+    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
     this.locations = o.locations.map(l => new SamplingLocationTemplate(l))
+    this.commonSamples = o.commonSamples.map(s => new SampleTemplate(s))
+    this.validate()
+  }
+  override validate() {
+    if (!isValidName(this.name)) throw new Error(`Invalid name ${this.name}`) }
+  override summaryDisplay() { return this.name }
+  override equals(o: unknown) {
+    return isISamplingTripTemplate(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
   }
   override toJSON(_key: string): ISamplingTripTemplate {
     const rv :ISamplingTripTemplate = { name: this.name,
-      locations: this.locations.map((l,li) => l.toJSON(li.toString())) }
-    if (this.description.trim().length) rv.description = this.description
+      locations: this.locations.map((l,li) => l.toJSON(li.toString())),
+      commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
+    }
+    if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
-  static override fromJSON(obj: object): SamplingTripTemplate {
-    assert(isISamplingTripTemplate(obj))
-    return new SamplingTripTemplate(obj)
-  }
-  toSamplingTrip(id :Identifier, startNow :boolean) :SamplingTrip {
-    const rv :ISamplingTrip = { id: id, name: this.name, locations: [],
-      startTime: startNow?timestampNow():NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
-    if (this.description.trim().length) rv.description = this.description
-    return new SamplingTrip(rv)
-  }
-  sanityCheck() :string[] {
+  override warningsCheck() {
     const rv :string[] = []
     if (!this.locations.length) rv.push(`No locations for sampling trip template ${this.name}`)
-    this.locations.forEach(l => l.samples.forEach(s => s.measurementTypes.forEach( t => rv.push(...t.sanityCheck()) )))
+    this.locations.forEach(l => l.samples.forEach(s => s.measurementTypes.forEach( t => rv.push(...t.warningsCheck()) )))
     return rv
+  }
+  toDataObject(startNow :boolean) :SamplingTrip {
+    const rv :ISamplingTrip = { name: this.name, locations: [],
+      startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
+    if (this.description.trim().length) rv.description = this.description.trim()
+    return new SamplingTrip(rv, this)
   }
 }

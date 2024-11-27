@@ -15,83 +15,46 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { JsonSerializable } from './common'
-import { assert } from '../utils'
+import { DataObjectBase } from './common'
 
-interface IWgs84Coordinates {
-  type :'WGS84'
-  lat :number
-  lon :number
+export interface IWgs84Coordinates {
+  wgs84lat :number
+  wgs84lon :number
 }
-function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
+export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
   if (!o || typeof o !== 'object') return false
-  if (Object.keys(o).length!==3 || !('type' in o && 'lat' in o && 'lon' in o)) return false  // keys
-  if (!Number.isFinite(o.lat) || !Number.isFinite(o.lon)) return false  // types
-  if (o.type!=='WGS84') return false
+  if (Object.keys(o).length!==2 || !('wgs84lat' in o && 'wgs84lon' in o)) return false  // keys
+  if (!Number.isFinite(o.wgs84lat) || !Number.isFinite(o.wgs84lon)) return false  // types
   return true
 }
-function tryWgs84Import(o :unknown) :IWgs84Coordinates|null {
-  if (!o || typeof o !== 'object') return null
-  if ('wgs84lat' in o && Number.isFinite(o.wgs84lat) && 'wgs84lon' in o && Number.isFinite(o.wgs84lon))
-    return { type: 'WGS84', lat: o.wgs84lat as number, lon: o.wgs84lon as number }
-  return null
-}
 
-export type ICoordinates = IWgs84Coordinates
-export function isICoordinates(o :unknown) :o is ICoordinates {
-  return isIWgs84Coordinates(o)
-}
-
-/** Abstract coordinate representation.
+/** EPSG:4326 Coordinates ("WGS 84")
  *
- * Currently the only implementation is:
- * - EPSG:4326 Coordinates ("WGS 84");
- *   Used by many GPS devices and the API of many online maps, like OSM and Google Maps.
- *   Note KML requires "Lon,Lat" while many others (like Google Maps) require "Lat,Lon".
- *   For reference, Berlin's Lat,Lon is roughly 52.5,13.4.
- *   Precision: <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm
+ * Used by many GPS devices and the API of many online maps, like OSM and Google Maps.
+ * Note KML requires "Lon,Lat" while many others (like Google Maps) require "Lat,Lon".
+ * For reference, Berlin's Lat,Lon is roughly 52.5,13.4.
+ *
+ * Precision: <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm
  */
-export abstract class AbstractCoordinates extends JsonSerializable {
-  abstract get wgs84lat() :number
-  abstract get wgs84lon() :number
-  static override fromJSON(obj :object) :AbstractCoordinates {
-    if (isIWgs84Coordinates(obj)) return new Wgs84Coordinates(obj)
-    const c = tryWgs84Import(obj)
-    if (c) return new Wgs84Coordinates(c)
-    throw new Error(`not coordinates: ${JSON.stringify(obj)}`)
-  }
-  override toJSON(_key :string) :object {  /* Implementations should override! */
-    return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon }
-  }
-  toWgs84Coords() :IWgs84Coordinates {
-    return { type: 'WGS84', lat: this.wgs84lat, lon: this.wgs84lon }
-  }
-}
-
-class Wgs84Coordinates extends AbstractCoordinates implements IWgs84Coordinates {
-  type = 'WGS84' as const
-  lat :number
-  lon :number
+export class Wgs84Coordinates extends DataObjectBase implements IWgs84Coordinates {
+  wgs84lat :number
+  wgs84lon :number
   constructor(o :IWgs84Coordinates) {
     super()
-    /* TODO: The following checks probably belong in a validate() method that is required by the abstract base class.
-     * This is true on all of these classes; should validate after editing.
-     * Also note lat and lon have known ranges that should be validated.
-     * Btw, can probably drop ICoordinates and just use WGS84.
-     * Other general thoughts: If Measurement Types and Sampling Location Templates are going in a dict for easier cross-referencing,
-     * then I need to rethink whether toJSON on each object is necessary...? Probably is, but at least fromJSON will have to do a
-     * lot of deduplication and so the abstract base class will have to require an equals() method too.
-     * Probably don't need a fromJSON on every class.
-     * So I'll probably redo the abstract base class, and merge in the two interfaces that are currently separate
-     * (classes that don't need sanity checks can just return []).
-     */
-    assert(Number.isFinite(o.lat) && Number.isFinite(o.lon))
-    this.lat = o.lat
-    this.lon = o.lon
+    this.wgs84lat = o.wgs84lat
+    this.wgs84lon = o.wgs84lon
+    this.validate()
   }
-  get wgs84lat() { return this.lat }
-  get wgs84lon() { return this.lon }
+  override validate() {
+    if (!( Number.isFinite(this.wgs84lat) && this.wgs84lat >=  -90 && this.wgs84lat <=  90 ))
+      throw new Error('Invalid latitude, required is a number between -90 and +90: '+String(this.wgs84lat))
+    if (!( Number.isFinite(this.wgs84lon) && this.wgs84lon >= -180 && this.wgs84lon <= 180 ))
+      throw new Error('Invalid longitude, required is a number between -180 and +180: '+String(this.wgs84lon))
+  }
+  override warningsCheck() { return [] }
+  override summaryDisplay() { return this.wgs84lat.toFixed(6)+','+this.wgs84lon.toFixed(6) }
+  override equals(o: unknown) {
+    return isIWgs84Coordinates(o) && this.wgs84lat===o.wgs84lat && this.wgs84lon===o.wgs84lon }
   override toJSON(_key :string) :IWgs84Coordinates {
-    return { type: 'WGS84', lat: this.lat, lon: this.lon }
-  }
+    return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
 }

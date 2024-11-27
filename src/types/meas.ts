@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, JsonSerializable, SanityCheckable, Timestamp } from './common'
+import { isTimestamp, isTimestampSet, DataObjectBase, Timestamp, isValidTimestamp } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
-import { assert } from '../utils'
 
 export interface IMeasurement {
   type :IMeasurementType
@@ -32,27 +31,31 @@ export function isIMeasurement(o :unknown) :o is IMeasurement {
 }
 
 /** Records an actual recorded measurement. */
-export class Measurement extends JsonSerializable implements IMeasurement, SanityCheckable {
+export class Measurement extends DataObjectBase implements IMeasurement {
   type :MeasurementType
   time :Timestamp
   /** The actual measurement value. May be NaN when the measurement is first created. */
   value :number
   constructor(o :IMeasurement) {
     super()
-    assert(isTimestamp(o.time))
     this.type = new MeasurementType(o.type)
     this.time = o.time
     this.value = o.value
+    this.validate()
   }
+  formattedValue() {
+    return Number.isFinite(this.type.precision) ? this.value.toFixed(this.type.precision) : this.value.toString() }
+  override validate() {
+    if (!isValidTimestamp(this.time)) throw new Error(`Invalid timestamp: ${String(this.time)}`) }
+  override summaryDisplay() {
+    return `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`.trim() }
+  override equals(o: unknown) {
+    return isIMeasurement(o) && this.type.equals(o.type) && this.time===o.time && this.value===o.value }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value }
   }
-  static override fromJSON(obj :object) :Measurement {
-    assert(isIMeasurement(obj))
-    return new Measurement(obj)
-  }
-  sanityCheck() :string[] {
-    const rv = []  // this.type is sanityChecked as part of the templates check
+  override warningsCheck() {
+    const rv = []  // this.type should be checked as part of the templates check
     if (!isTimestampSet(this.time)) rv.push('No timestamp set on this measurement')
     if (Number.isFinite(this.value)) {
       if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`This value is below the minimum (${this.value} < ${this.type.min})`)

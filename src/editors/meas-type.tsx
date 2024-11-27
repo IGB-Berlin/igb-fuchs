@@ -16,37 +16,37 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { IDENTIFIER_RE, isIdentifier } from '../types/common'
+import { isValidName, VALID_NAME_RE } from '../types/common'
 import { MeasurementType } from '../types/meas-type'
 import { DoneCallback, Editor } from './base'
 import { assert } from '../utils'
 
 export class MeasTypeEditor extends Editor<MeasurementType> {
   readonly el :HTMLElement
-  protected readonly inpId :HTMLInputElement
+  protected readonly inpName :HTMLInputElement
   protected readonly inpUnit :HTMLInputElement
   constructor(obj :MeasurementType|null, doneCb :DoneCallback) {
     super(obj, doneCb)
-    this.inpId = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={IDENTIFIER_RE.source} value={this.obj?.id||''} />)
+    this.inpName = safeCastElement(HTMLInputElement,
+      <input type="text" required pattern={VALID_NAME_RE.source} value={this.obj?.name??''} />)
     this.inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" value={this.obj?.unit||''} />)
+      <input type="text" value={this.obj?.unit??''} />)
     this.el = this.makeForm('Measurement Type', [
-      this.makeRow(this.inpId, 'ID', <><i>Required.</i> An identifier.</>, 'Invalid identifier'),
+      this.makeRow(this.inpName, 'Name', <><i>Required.</i> An identifier.</>, 'Invalid identifier'),
       this.makeRow(this.inpUnit, 'Unit', <><i>Recommended.</i> Units</>, null),
     ])
   }
   get isDirty() {
-    return (this.obj?.id ?? '') !== this.inpId.value
+    return (this.obj?.name ?? '') !== this.inpName.value
       || (this.obj?.unit ?? '') !== this.inpUnit.value
   }
   protected formSubmit() {
     if (this.obj) {
-      assert(isIdentifier(this.inpId.value))  //TODO: Is there a cleaner way to handle this?
-      this.obj.id = this.inpId.value
+      assert(isValidName(this.inpName.value))  //TODO: Is there a cleaner way to handle this?
+      this.obj.name = this.inpName.value
       this.obj.unit = this.inpUnit.value.trim()
     } else
-      this.obj = new MeasurementType({ id: this.inpId.value, unit: this.inpUnit.value.trim() })
+      this.obj = new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value.trim() })
   }
 }
 
