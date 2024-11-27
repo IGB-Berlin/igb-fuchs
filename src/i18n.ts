@@ -27,6 +27,17 @@ const translations = {
   'Delete': ['Löschen'],
   'New': ['Neu'],
   'Save & Close': ['Speichern & Schließen'],
+  'Save': ['Speichern'],
+  'Discard': ['Verwerfen'],
+
+  'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
+  'unsaved-changes': [
+    'Die Eingaben wurden noch nicht gespeichert.',
+    'The changes were not yet saved.'],
+  'Confirm Deletion': ['Löschen Bestätigen'],
+  'confirm-delete': [
+    'Diese Daten wirklich löschen?',
+    'Really delete this data?' ],
 
   'Error: No Storage Available': ['Fehler: Kein Speicher verfügbar'],
   'alert-no-storage-text': [

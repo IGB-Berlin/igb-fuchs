@@ -38,3 +38,76 @@ export function noStorageAlert() {
   const modal = new bootstrap.Modal(dialog)
   modal.show()
 }
+
+type UnsavedChangesResponse = 'save'|'discard'|'cancel'
+export function unsavedChangesQuestion(saveBtnLabel :string = tr('Save')) :Promise<UnsavedChangesResponse> {
+  let result :UnsavedChangesResponse = 'cancel'
+  const dialog = <div
+    className="modal fade" tabindex="-1" aria-labelledby="unsavedChangesAlertLabel" aria-hidden="true">
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content">
+        <div className="modal-header text-warning">
+          <h1 className="modal-title fs-5" id="unsavedChangesAlertLabel">
+            <i className="bi-exclamation-triangle-fill"/> {tr('Unsaved Changes')}</h1>
+        </div>
+        <div className="modal-body">
+          <p><strong>{tr('unsaved-changes')}</strong></p>
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='discard'}>
+            <i className="bi-trash3-fill"/> {tr('Discard')}</button>
+          <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+            <i className="bi-x-lg"/> {tr('Cancel')}</button>
+          <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onclick={()=>result='save'}>
+            <i className="bi-floppy-fill"/> {saveBtnLabel}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  document.body.appendChild(dialog)
+  return new Promise<UnsavedChangesResponse>(resolve => {
+    const modal = new bootstrap.Modal(dialog)
+    dialog.addEventListener('hidden.bs.modal', () => {
+      modal.dispose()
+      document.body.removeChild(dialog)
+      resolve(result)
+    })
+    modal.show()
+  })
+}
+
+type DeletionConfirmation = 'delete'|'cancel'
+export function deleteConfirmation(desc :string|HTMLElement) :Promise<DeletionConfirmation> {
+  let result :DeletionConfirmation = 'cancel'
+  const dialog = <div
+    className="modal fade" tabindex="-1" aria-labelledby="unsavedChangesAlertLabel" aria-hidden="true">
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content">
+        <div className="modal-header text-warning">
+          <h1 className="modal-title fs-5" id="unsavedChangesAlertLabel">
+            <i className="bi-exclamation-triangle-fill"/> {tr('Confirm Deletion')}</h1>
+        </div>
+        <div className="modal-body">
+          <p><strong>{tr('confirm-delete')}</strong></p>
+          { desc ? <p>{desc}</p> : '' }
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='delete'}>
+            <i className="bi-trash3-fill"/> {tr('Delete')}</button>
+          <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+            <i className="bi-x-lg"/> {tr('Cancel')}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  document.body.appendChild(dialog)
+  return new Promise<DeletionConfirmation>(resolve => {
+    const modal = new bootstrap.Modal(dialog)
+    dialog.addEventListener('hidden.bs.modal', () => {
+      modal.dispose()
+      document.body.removeChild(dialog)
+      resolve(result)
+    })
+    modal.show()
+  })
+}
