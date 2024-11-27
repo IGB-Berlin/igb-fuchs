@@ -29,7 +29,55 @@ const translations = {
   'Save & Close': ['Speichern & Schließen'],
   'Save': ['Speichern'],
   'Discard': ['Verwerfen'],
+  'Warnings': ['Warnungen'],
+  'Error': ['Fehler'],
 
+  // editors
+  'Required': ['Eingabe erforderlich'],
+  'Recommended': ['Eingabe empfohlen'],
+  'editor-warn-info': [
+    'Bitte die Warnungen korrigieren, oder nochmals auf "Speichern" klicken, um trotzdem zu speichern.',
+    'Please either correct these warnings, or click "Save" again to save despite the warnings.' ],
+  'editor-err-info': [
+    'Bitte den Fehler beheben, um Speichern zu ermöglichen.',
+    'Please correct the error to allow saving.' ],
+  'Name': ['Name'],
+  'name-help': [
+    'Namen müssen mit einem Buchstaben oder einer Zahl beginnen, dürfen nur ausgewählte Sonderzeichen enthalten (.,-_ und Klammern),'
+    +' und dürfen nicht auf einem Leerzeichen enden. Namen werden nicht übersetzt, daher wird empfohlen englische Namen zu verwenden.',
+    'Names must begin with a letter or number, may contain only selected special characters (.,-_ and parentheses), and may not end on a space.'
+    +' Names are not translated, so English is recommended.' ],
+  'Notes': ['Notizen'],
+  'notes-help': [
+    'Etwaige Notizen.',
+    'Optional notes.' ],
+  'Description': ['Beschreibung'],
+  'desc-help': [
+    'Etwaige Beschreibung.',
+    'Optional description.' ],
+
+  // editor: meas-type
+  'meas-name-help': [
+    'Beispiele: "Temperature", "ph", "Leitfähigkeit" bzw. "Conductivity", "O2 relative", usw.',
+    'Examples: "Temperature", "pH", "Conductivity", "O2 relative", etc.' ],
+  'Unit': ['Messeinheit'],
+  'unit-help': [
+    'Einheit des gemessenen Werts.',
+    'The unit of the measurement value.' ],
+  'Minimum': ['Minimalwert'],
+  'min-help': [
+    'Messwerte sollten diesen Wert nicht unterschreiten.',
+    'Measurement values should not be below this value.' ],
+  'Maximum': ['Maximalwert'],
+  'max-help': [
+    'Messwerte sollten diesen Wert nicht überschreiten.',
+    'Measurement values should not be above this value.' ],
+  'Precision': ['Nachkommastellen'],
+  'precision-help': [
+    'Die Anzahl der Nachkommastellen des Messwerts.',
+    'The number of decimal places after the digit in the measurement value.' ],
+
+  // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
   'unsaved-changes': [
     'Die Eingaben wurden noch nicht gespeichert.',
@@ -39,6 +87,7 @@ const translations = {
     'Diese Daten wirklich löschen?',
     'Really delete this data?' ],
 
+  // other
   'Error: No Storage Available': ['Fehler: Kein Speicher verfügbar'],
   'alert-no-storage-text': [
     'Dein Browser hat keinen lokalen Speicher zur Verfügung gestellt. Diese App kann nicht im "privaten" modus'
@@ -48,6 +97,7 @@ const translations = {
     +' and make sure you don\'t have any browser plugins enabled that may block content (ad blockers etc.).'
     +' If you do, you need to disable them for this app.' ],
 
+  // types
   'sampling-locations': [
     { zero: 'keine Messpunkte', one: 'ein Messpunkt', other: '%{count} Messpunkte' },
     { zero: 'no sampling locations', one: 'one sampling location', other: '%{count} sampling locations' } ],
@@ -55,7 +105,7 @@ const translations = {
     { zero: 'keine Messungen', one: 'eine Messung', other: '%{count} Messungen' },
     { zero: 'no measurements', one: 'one measurement', other: '%{count} measurements' } ],
 
-  // types
+  // types problems
   'No start time': ['Keine Anfangs-Zeit'],
   'No end time': ['Keine End-Zeit'],
   'No sampling locations': ['Keine Messpunkte'],
@@ -71,6 +121,8 @@ const translations = {
   'Invalid name': ['Ungültiger Name'],
   'Invalid timestamp': ['Ungültiger Zeitstempel'],
   'Invalid unit': ['Ungültige Messeinheit'],
+  'Invalid minimum value': ['Ungültiger Minimalwert'],
+  'Invalid maximum value': ['Ungültiger Maximalwert'],
   'Invalid min/max value': ['Ungültiger Minimal-/Maximalwert'],
   'Invalid precision': ['Ungültige Anzahl der Nachkommastellen'],
   'Invalid sample type': ['Ungültiger Probentyp'],

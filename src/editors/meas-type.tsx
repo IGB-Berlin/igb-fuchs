@@ -15,64 +15,63 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { VALID_NAME_RE } from '../types/common'
-import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { DoneCallback, Editor } from './base'
+import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasurementType> {
   readonly el :HTMLElement
   protected readonly inpName :HTMLInputElement
   protected readonly inpUnit :HTMLInputElement
-  constructor(obj :MeasurementType|null, doneCb :DoneCallback) {
+  protected readonly inpMin :HTMLInputElement
+  protected readonly inpMax :HTMLInputElement
+  protected readonly inpPrc :HTMLInputElement
+  protected readonly inpNotes :HTMLTextAreaElement
+  constructor(obj :MeasurementType|null, doneCb :DoneCallback<MeasurementType>) {
     super(obj, doneCb)
     this.inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={this.obj?.name??''} />)
     this.inpUnit = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_UNIT_RE.source} value={this.obj?.unit??''} />)
+    this.inpMin = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.obj?.min??''} />)
+    this.inpMax = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.obj?.max??''} />)
+    this.inpPrc = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.obj?.precision??''} min="0" />)
+    this.inpNotes = safeCastElement(HTMLTextAreaElement,
+      <textarea rows="3">{this.obj?.notes.trim()??''}</textarea>)
     this.el = this.makeForm('Measurement Type', [
-      this.makeRow(this.inpName, 'Name', <><i>Required.</i> An identifier.</>, 'Invalid name'),
-      this.makeRow(this.inpUnit, 'Unit', <><i>Recommended.</i> Units</>, 'Invalid unit'),
+      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
+      this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
+      this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
+      this.makeRow(this.inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
+      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
+      this.makeRow(this.inpNotes, tr('Notes'), tr('notes-help'), null)
     ])
   }
+
+  protected get inMin() { return Number.isFinite(this.inpMin.valueAsNumber) ? this.inpMin.valueAsNumber : -Infinity }
+  protected get inMax() { return Number.isFinite(this.inpMax.valueAsNumber) ? this.inpMax.valueAsNumber : +Infinity }
+  protected get inPrc() { return Number.isFinite(this.inpPrc.valueAsNumber) ? this.inpPrc.valueAsNumber : NaN }
+  protected get inNot() { return this.inpNotes.value.trim() }
+
   get isDirty() {
+    const oPrc = this.obj?.precision ?? NaN
     return (this.obj?.name ?? '') !== this.inpName.value
-      || (this.obj?.unit ?? '') !== this.inpUnit.value
+        || (this.obj?.unit ?? '') !== this.inpUnit.value
+        || (this.obj?.min ?? -Infinity) !== this.inMin
+        || (this.obj?.max ?? +Infinity) !== this.inMax
+        || !(Number.isNaN(oPrc) && Number.isNaN(this.inPrc) || oPrc === this.inPrc)
+        || (this.obj?.notes.trim() ?? '') !== this.inNot
   }
-  protected formSubmit() {
-    if (this.obj) {
-      this.obj.name = this.inpName.value
-      this.obj.unit = this.inpUnit.value.trim()
-    } else
-      this.obj = new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value.trim() })
+
+  protected from2obj() {
+    const n = new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
+      min: this.inMin, max: this.inMax, precision: this.inPrc, notes: this.inNot })
+    if (this.obj) Object.assign(this.obj, n)
+    else this.obj = n
   }
 }
-
-/*export function makeMeasurementTypeEditor(mt :MeasurementType, done :()=>void) :HTMLElement {
-  const inpId = safeCastElement(HTMLInputElement,
-    <input type="text" class="form-control" id="inpMeasTypeId" aria-describedby="inpMeasTypeIdHelp"
-      required pattern={IDENTIFIER_RE.source} value={mt.id} />)
-  const form = safeCastElement(HTMLFormElement,
-    <form novalidate>
-      <legend class="mb-3">Measurement Type</legend>
-      <div class="row mb-3">
-        <label for="inpMeasTypeId" class="col-sm-2 col-form-label">ID</label>
-        <div class="col-sm-10">
-          {inpId}
-          <div id="inpMeasTypeIdHelp" class="form-text">An identifier</div>
-          <div class="invalid-feedback">Not a valid id</div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-success"><i class="bi-check-lg"/> Finish</button>
-    </form>)
-  form.addEventListener('submit', event => {
-    if (form.checkValidity()) {
-      mt.id = inpId.value
-      done()
-    }
-    form.classList.add('was-validated')
-    event.preventDefault()
-    event.stopPropagation()
-  })
-  return form
-}*/

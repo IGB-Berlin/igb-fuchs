@@ -64,3 +64,9 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
 .cursor-pointer {
   cursor: pointer;
 }
+
+@include bs.media-breakpoint-up(sm) {
+  .text-end-sm {
+    text-align: right;
+  }
+}

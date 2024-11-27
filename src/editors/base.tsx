@@ -15,64 +15,112 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
+import { unsavedChangesQuestion } from '../misc'
+import { DataObjectBase } from '../types/common'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type DoneCallback = () => void
+export type DoneCallback<T extends DataObjectBase> = (obj :T|null) => void
 
 export abstract class Editor<T extends DataObjectBase> {
-  protected readonly initObj :Readonly<T>|null  //TODO: remove if unused
-  protected obj :T|null
-  protected readonly doneCb :DoneCallback
+  /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
-  constructor(initObj :T|null, doneCb :DoneCallback) {
-    this.initObj = initObj
-    this.obj = initObj
-    this.doneCb = doneCb  //TODO: call this
+  /** The object being edited. */
+  protected obj :T|null
+  /** The callback to be called when the editor is done and should be closed. */
+  protected readonly doneCb :DoneCallback<T>
+  constructor(obj :T|null, doneCb :DoneCallback<T>) {
+    this.obj = obj
+    this.doneCb = doneCb
   }
   /** Have changes been made to the form that haven't been saved to the object yet? */
   abstract get isDirty() :boolean
-  protected abstract formSubmit() :void
+  /** Transfer all input fields to the object being edited; the result should be that `isDirty` is then `false`. */
+  protected abstract from2obj() :void
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
-    const btnSubmit = <button type="submit" class="btn btn-success"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
-    const btnCancel = <button type="button" class="btn btn-danger me-3"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
+    const btnSubmit = <button type="submit" class="btn btn-success text-nowrap"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
+    const btnCancel = <button type="button" class="btn btn-danger me-3 text-nowrap"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
     const warnList = <ul></ul>
-    //TODO: Translations
     const warnAlert = <div class="d-none alert alert-warning" role="alert">
-      <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> Warnings</h4>
+      <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
       {warnList}
       <hr />
-      <p class="mb-0">You can either correct these warnings or save anyway.</p>
+      <p class="mb-0">{tr('editor-warn-info')}</p>
+    </div>
+    const errDetail = <p></p>
+    const errAlert = <div class="d-none alert alert-danger" role="alert">
+      <h4 class="alert-heading"><i class="bi-x-octagon"/> {tr('Error')}</h4>
+      {errDetail}
+      <hr />
+      <p class="mb-0">{tr('editor-err-info')}</p>
     </div>
     const form = safeCastElement(HTMLFormElement,
       <form novalidate>
         <legend class="mb-3">{title}</legend>
         {contents}
         {warnAlert}
-        {btnCancel}
-        {btnSubmit}
+        {errAlert}
+        <div class="d-flex flex-row justify-content-end flex-wrap">
+          {btnCancel}
+          {btnSubmit}
+        </div>
       </form>)
-    btnCancel.addEventListener('click', () => {
-      console.log('Cancel')  //TODO: if dirty, an "are you sure?" modal (options Cancel, Discard, Save)
+    btnCancel.addEventListener('click', async () => {
+      switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
+      case 'save':
+        btnSubmit.click()
+        break
+      case 'cancel':
+        return
+      case 'discard':
+        this.doneCb(null)
+      }
     })
     form.addEventListener('submit', event => {
       form.classList.add('was-validated')
       event.preventDefault()
       event.stopPropagation()
       if (form.checkValidity()) {
-        this.formSubmit()  //TODO: rename to something like `form2obj`
-        assert(this.obj)
-        try { this.obj.validate() }
-        catch (_ex) { /* TODO: Show error and don't allow submission */ }
+        const wasDirty = this.isDirty
+        this.from2obj()  // is expected to update the object and thereby clear isDirty
+        assert(this.obj, 'Object wasn\'t set after form2obj')
+        assert(!this.isDirty, 'Dirty wasn\'t cleared after form2obj')
+        btnSubmit.classList.remove('btn-success', 'btn-warning')
+        try {
+          /* Optimally, this is covered by input field validation, but there are a few cases where
+           * it can't be, e.g. when the MeasurementType's `max` is smaller than the `min`. */
+          this.obj.validate()
+        }
+        catch (ex) {
+          btnSubmit.classList.add('btn-warning')
+          warnAlert.classList.add('d-none')
+          errDetail.innerText = String(ex)
+          errAlert.classList.remove('d-none')
+          return
+        }
+        errAlert.classList.add('d-none')
         const warnings = this.obj.warningsCheck()
-        warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
-        warnAlert.classList.toggle('d-none', !warnings.length)
-        btnSubmit.classList.toggle('btn-success', !warnings.length)
-        btnSubmit.classList.toggle('btn-warning', !!warnings.length)
-        //TODO: If the user changed something, re-run the sanity check, otherwise, the next "submit" click finishes the form
+        if (warnings.length) {
+          btnSubmit.classList.add('btn-warning')
+          warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
+          warnAlert.classList.remove('d-none')
+          if (!wasDirty)
+            /* If the dirty flag wasn't set before, this means the user clicked the button a second
+             * time without making changes, thereby saying they want to ignore the warnings. */
+            this.doneCb(this.obj)
+          else {
+            // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
+            btnSubmit.setAttribute('disabled','disabled')
+            setTimeout(() => btnSubmit.removeAttribute('disabled'), 1000)
+          }
+        }
+        else {
+          btnSubmit.classList.add('btn-success')
+          warnAlert.classList.add('d-none')
+          this.doneCb(this.obj)
+        }
       }
     })
     return form
@@ -85,12 +133,12 @@ export abstract class Editor<T extends DataObjectBase> {
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
     const helpId = inpId+'_Help'
     input.setAttribute('id', inpId)
-    input.setAttribute('placeholder', label)
+    //input.setAttribute('placeholder', label)  // they're actually kind of distracting
     if (helpText)
       input.setAttribute('aria-describedby', helpId)
     input.classList.add('form-control')
     return <div class="row mb-3">
-      <label for={inpId} class="col-sm-2 col-form-label">{label}</label>
+      <label for={inpId} class="col-sm-2 col-form-label text-end-sm">{label}</label>
       <div class="col-sm-10">
         {input}
         {helpText ? <div id={helpId} class="form-text">{helpText}</div> : '' }
