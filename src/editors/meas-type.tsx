@@ -17,7 +17,7 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { isValidName, VALID_NAME_RE } from '../types/common'
-import { MeasurementType } from '../types/meas-type'
+import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { DoneCallback, Editor } from './base'
 import { assert } from '../utils'
 
@@ -30,10 +30,10 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     this.inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={this.obj?.name??''} />)
     this.inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" value={this.obj?.unit??''} />)
+      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.obj?.unit??''} />)
     this.el = this.makeForm('Measurement Type', [
-      this.makeRow(this.inpName, 'Name', <><i>Required.</i> An identifier.</>, 'Invalid identifier'),
-      this.makeRow(this.inpUnit, 'Unit', <><i>Recommended.</i> Units</>, null),
+      this.makeRow(this.inpName, 'Name', <><i>Required.</i> An identifier.</>, 'Invalid name'),
+      this.makeRow(this.inpUnit, 'Unit', <><i>Recommended.</i> Units</>, 'Invalid unit'),
     ])
   }
   get isDirty() {
@@ -42,7 +42,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
   }
   protected formSubmit() {
     if (this.obj) {
-      assert(isValidName(this.inpName.value))  //TODO: Is there a cleaner way to handle this?
+      assert(isValidName(this.inpName.value))  //TODO: There's now a cleaner way to handle this, .validate(), which our caller should use
       this.obj.name = this.inpName.value
       this.obj.unit = this.inpUnit.value.trim()
     } else
