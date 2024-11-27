@@ -20,7 +20,7 @@ import { DataObjectBase, dataSetsEqual } from '../common'
 
 test('dataSetsEqual', () => {
 
-  class X extends DataObjectBase {
+  class X extends DataObjectBase<X> {
     readonly x :string
     constructor(x :string) { super(); this.x = x }
     override equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
@@ -28,6 +28,7 @@ test('dataSetsEqual', () => {
     override warningsCheck() { return [] }
     override toJSON(_key: string) { return { x: this.x } }
     override validate() { }
+    override deepClone() { return new X(this.x) }
   }
 
   expect( dataSetsEqual([],[]) ).toStrictEqual( true )
