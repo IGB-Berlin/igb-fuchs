@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateName, validateTimestamp } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateName, validateTimestamp, DataObjectWithTemplate } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
@@ -54,7 +54,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 }
 
 /** Records and actual sampling point. */
-export class SamplingLocation extends DataObjectBase implements ISamplingLocation {
+export class SamplingLocation extends DataObjectWithTemplate<SamplingLocationTemplate> implements ISamplingLocation {
   name :string
   description :string
   nominalCoords :IWgs84Coordinates
@@ -68,7 +68,7 @@ export class SamplingLocation extends DataObjectBase implements ISamplingLocatio
   notes :string
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
   photos :string[]
-  template :SamplingLocationTemplate|null
+  readonly template :SamplingLocationTemplate|null
   constructor(o :ISamplingLocation, template :SamplingLocationTemplate|null) {
     super()
     this.name = o.name
@@ -116,6 +116,11 @@ export class SamplingLocation extends DataObjectBase implements ISamplingLocatio
     if (this.photos.length) rv.photos = this.photos
     return rv
   }
+  override extractTemplate() :SamplingLocationTemplate {
+    return new SamplingLocationTemplate({
+      name: this.name, description: this.description.trim(), nominalCoords: this.nominalCoords,
+      samples: this.samples.map(s => s.extractTemplate()) })
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -139,7 +144,7 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
   return true
 }
 
-export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocation> implements ISamplingLocationTemplate {
+export class SamplingLocationTemplate extends DataObjectTemplate implements ISamplingLocationTemplate {
   name :string
   description :string
   nominalCoords :IWgs84Coordinates

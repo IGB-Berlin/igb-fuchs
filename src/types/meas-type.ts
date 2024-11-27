@@ -45,7 +45,7 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
 }
 
 /** Describes a type of measurement (not a specific measurement value). */
-export class MeasurementType extends DataObjectTemplate<Measurement> implements IMeasurementType {
+export class MeasurementType extends DataObjectTemplate implements IMeasurementType {
   name :string
   unit :string
   /** Minimum value, for input validation. (Optional but recommended.) */

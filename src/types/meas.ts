@@ -16,7 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { tr } from '../i18n'
-import { isTimestamp, isTimestampSet, DataObjectBase, Timestamp, validateTimestamp } from './common'
+import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
 
 export interface IMeasurement {
@@ -32,11 +32,12 @@ export function isIMeasurement(o :unknown) :o is IMeasurement {
 }
 
 /** Records an actual recorded measurement. */
-export class Measurement extends DataObjectBase implements IMeasurement {
+export class Measurement extends DataObjectWithTemplate<MeasurementType> implements IMeasurement {
   type :MeasurementType
   time :Timestamp
   /** The actual measurement value. May be NaN when the measurement is first created. */
   value :number
+  get template() { return this.type }
   constructor(o :IMeasurement) {
     super()
     this.type = new MeasurementType(o.type)
@@ -64,4 +65,5 @@ export class Measurement extends DataObjectBase implements IMeasurement {
     } else rv.push(tr('No measurement value'))
     return rv
   }
+  override extractTemplate() :MeasurementType { return this.type }
 }

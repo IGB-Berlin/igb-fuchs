@@ -17,7 +17,7 @@
  */
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
-import { DataObjectBase, dataSetsEqual, DataObjectTemplate } from './common'
+import { dataSetsEqual, DataObjectTemplate, DataObjectWithTemplate } from './common'
 import { i18n, tr } from '../i18n'
 
 const sampleTypes = ['undefined',
@@ -45,11 +45,11 @@ export function isISample(o :unknown) :o is ISample {
 }
 
 /** Records an actual sample taken. */
-export class Sample extends DataObjectBase implements ISample {
+export class Sample extends DataObjectWithTemplate<SampleTemplate> implements ISample {
   type :SampleType
   measurements :Measurement[]
   notes :string
-  template :SampleTemplate|null
+  readonly template :SampleTemplate|null
   constructor(o :ISample, template :SampleTemplate|null) {
     super()
     this.type = o.type
@@ -76,6 +76,9 @@ export class Sample extends DataObjectBase implements ISample {
     if (!this.measurements.length) rv.push(tr('No measurements'))
     return rv.concat( this.measurements.flatMap(m => m.warningsCheck()) )
   }
+  override extractTemplate() :SampleTemplate {
+    return new SampleTemplate({ type: this.type, measurementTypes: this.measurements.map(m => m.extractTemplate()) })
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -92,7 +95,7 @@ export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
   return true
 }
 
-export class SampleTemplate extends DataObjectTemplate<Sample> implements ISampleTemplate {
+export class SampleTemplate extends DataObjectTemplate implements ISampleTemplate {
   type :SampleType
   /** The typical measurement types performed on this sample. */
   measurementTypes :MeasurementType[]

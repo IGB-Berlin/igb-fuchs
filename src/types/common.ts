@@ -45,11 +45,15 @@ export abstract class DataObjectBase {
   }
 }
 
-interface TemplateFor<T extends DataObjectBase> {
-  templateToObject(...args :unknown[]) :T
+export abstract class DataObjectTemplate extends DataObjectBase {
+  /** Generate a new data object based on this template. */
+  abstract templateToObject(...args :unknown[]) :DataObjectBase
 }
-export abstract class DataObjectTemplate<T extends DataObjectBase> extends DataObjectBase implements TemplateFor<T> {
-  abstract templateToObject(...args :unknown[]) :T
+export abstract class DataObjectWithTemplate<T extends DataObjectTemplate> extends DataObjectBase {
+  /** The template on which this object was based. */
+  abstract get template() :T|null
+  /** Generate a new template based on this object. */
+  abstract extractTemplate() :T
 }
 
 /** Compares to arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same. */

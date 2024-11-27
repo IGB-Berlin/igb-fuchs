@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateTimestamp, validateName } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateTimestamp, validateName, DataObjectWithTemplate } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
 import { i18n, tr } from '../i18n'
@@ -50,7 +50,7 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
 }
 
 /** Records an entire sampling trip. */
-export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
+export class SamplingTrip extends DataObjectWithTemplate<SamplingTripTemplate> implements ISamplingTrip {
   name :string
   description :string
   startTime :Timestamp
@@ -61,7 +61,7 @@ export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
   weather :string
   notes :string
   locations :SamplingLocation[]
-  template :SamplingTripTemplate|null
+  readonly template :SamplingTripTemplate|null
   constructor(o :ISamplingTrip, template :SamplingTripTemplate|null) {
     super()
     this.name = o.name
@@ -83,7 +83,7 @@ export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
     validateTimestamp(this.lastModified)
   }
   override summaryDisplay() :[string,string] {
-    const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toDateString()+'; ' : ''
+    const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
   }
   override equals(o: unknown) {
@@ -110,6 +110,18 @@ export class SamplingTrip extends DataObjectBase implements ISamplingTrip {
     if (this.locations.length) rv.push(tr('No sampling locations'))
     return rv.concat( this.locations.flatMap(l => l.warningsCheck()) )
   }
+  override extractTemplate() :SamplingTripTemplate {
+    /* If all location templates have the same set of samples, then we
+     * can deduplicate them into the trip template's `commonSamples`. */
+    const locs = this.locations.map(l => l.extractTemplate())
+    const l0 = locs[0]
+    const allLocsHaveSameSamples =
+      l0 && locs.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
+    if (allLocsHaveSameSamples) locs.forEach(l => l.samples.length = 0)
+    const common = allLocsHaveSameSamples ? l0.samples : []
+    return new SamplingTripTemplate({ name: this.name, description: this.description.trim(),
+      locations: locs, commonSamples: common })
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -120,7 +132,7 @@ export interface ISamplingTripTemplate {
   locations :ISamplingLocationTemplate[]
   commonSamples :ISampleTemplate[]
 }
-function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
+export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
   if (!o || typeof o !== 'object') return false
   if (!( 'name' in o && 'locations' in o && 'commonSamples' in o
     && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'description' in o ) )) return false // keys
@@ -132,7 +144,7 @@ function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
   return true
 }
 
-export class SamplingTripTemplate extends DataObjectTemplate<SamplingTrip> implements ISamplingTripTemplate {
+export class SamplingTripTemplate extends DataObjectTemplate implements ISamplingTripTemplate {
   name :string
   description :string
   /** The typical sampling locations on this trip. */
