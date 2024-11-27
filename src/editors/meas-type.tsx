@@ -43,7 +43,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
       <input type="number" value={this.obj?.precision??''} min="0" />)
     this.inpNotes = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{this.obj?.notes.trim()??''}</textarea>)
-    this.el = this.makeForm('Measurement Type', [
+    this.el = this.makeForm(tr('Measurement Type'), [
       this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
       this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),

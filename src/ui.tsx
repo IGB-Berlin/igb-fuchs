@@ -44,8 +44,6 @@ export async function init() {
   </div>)
   //navProjects.addEventListener('click', openProj)
 
-  const testEd = new MeasTypeEditor(null, obj=>console.log('Editor done!',obj))
-  htmlMain.appendChild( <div class="border rounded m-3 p-3">{testEd.el}</div>) //TODO: Debug, remove
   htmlMain.appendChild( new ListEditor([
     new MeasurementType({ name:'Hello', unit:'cm' }), new MeasurementType({ name:'World', unit:'ml' })
   ], MeasTypeEditor).el )

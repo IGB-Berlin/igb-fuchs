@@ -20,7 +20,7 @@ import { IMeasurement, isIMeasurement, Measurement } from './meas'
 import { dataSetsEqual, DataObjectTemplate, DataObjectWithTemplate } from './common'
 import { i18n, tr } from '../i18n'
 
-const sampleTypes = ['undefined',
+const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',  //TODO Later: should this be freeform instead?
 ] as const

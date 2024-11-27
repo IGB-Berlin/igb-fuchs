@@ -23,6 +23,8 @@ import { tr } from '../i18n'
 
 export type DoneCallback<T extends DataObjectBase> = (obj :T|null) => void
 
+export type EditorClass<T extends DataObjectBase> = { new (obj :T|null, doneCb :DoneCallback<T>): Editor<T> }
+
 export abstract class Editor<T extends DataObjectBase> {
   /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
@@ -40,8 +42,8 @@ export abstract class Editor<T extends DataObjectBase> {
   protected abstract from2obj() :void
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
-    const btnSubmit = <button type="submit" class="btn btn-success text-nowrap"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
-    const btnCancel = <button type="button" class="btn btn-danger me-3 text-nowrap"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
+    const btnSubmit = <button type="submit" class="btn btn-success ms-3 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
+    const btnCancel = <button type="button" class="btn btn-danger text-nowrap"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
     const warnList = <ul></ul>
     const warnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
@@ -68,15 +70,17 @@ export abstract class Editor<T extends DataObjectBase> {
         </div>
       </form>)
     btnCancel.addEventListener('click', async () => {
-      switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
-      case 'save':
-        btnSubmit.click()
-        break
-      case 'cancel':
-        return
-      case 'discard':
-        this.doneCb(null)
-      }
+      if (this.isDirty)
+        switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
+        case 'save':
+          btnSubmit.click()
+          break
+        case 'cancel':
+          return
+        case 'discard':
+          this.doneCb(null)
+        }
+      else this.doneCb(this.obj)
     })
     form.addEventListener('submit', event => {
       form.classList.add('was-validated')

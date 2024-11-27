@@ -31,6 +31,7 @@ const translations = {
   'Discard': ['Verwerfen'],
   'Warnings': ['Warnungen'],
   'Error': ['Fehler'],
+  'No items': ['Keine Einträge'],
 
   // editors
   'Required': ['Eingabe erforderlich'],
@@ -98,6 +99,15 @@ const translations = {
     +' If you do, you need to disable them for this app.' ],
 
   // types
+  'Sampling Trip': ['Messfahrt'],
+  'Sampling Trip Template': ['Messfahrt-Vorlage'],
+  'Sampling Location': ['Messpunkt'],
+  'Sampling Location Template': ['Messpunkt-Vorlage'],
+  'Sample': ['Probe'],
+  'Template Sample': ['Vorlage für Probe'],
+  'Measurement': ['Messung'],
+  'Measurement Type': ['Messtyp'],
+  'Coordinates': ['Koordinaten'],
   'sampling-locations': [
     { zero: 'keine Messpunkte', one: 'ein Messpunkt', other: '%{count} Messpunkte' },
     { zero: 'no sampling locations', one: 'one sampling location', other: '%{count} sampling locations' } ],
@@ -142,7 +152,7 @@ const translations = {
     'Der Messwert liegt unter dem Minimalwert',
     'The measurement value is below the minimum' ],
 
-  // sample types
+  // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Nicht aufgezeichnet', 'Not recorded'],
   'st-surface-water-stream': ['Oberflächenwasser (Strom)', 'Surface Water (Stream)'],
   'st-surface-water-pond': ['Oberflächenwasser (Teich)', 'Surface Water (Pond)'],

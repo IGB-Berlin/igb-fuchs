@@ -15,32 +15,86 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { tr } from '../i18n'
-import { jsx } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
-import { DoneCallback, Editor } from './base'
-
-type EditorClass<T extends DataObjectBase> = { new (initObj :T|null, doneCb :DoneCallback): Editor<T> }
+import { deleteConfirmation } from '../misc'
+import { EditorClass } from './base'
+import { assert } from '../utils'
+import { jsx } from '../jsx-dom'
+import { tr } from '../i18n'
 
 export class ListEditor<T extends DataObjectBase> {
   readonly el :HTMLElement
-  constructor(theList :Array<T>, _editorClass :EditorClass<T>) {
-    const btnNew = <button class="btn btn-info"><i class="bi-plus-circle"/> {tr('New')}</button>
-    this.el = <div>
-      <ul class="list-group mb-2">
-        {theList.map(item => {
-          const btnEdit = <button class="ms-2 btn btn-primary"><i
-            class="bi-pencil-fill"/><span class="d-none d-sm-inline"> {tr('Edit')}</span></button>
-          const btnDel = <button class="ms-2 btn btn-danger"><i
-            class="bi-trash3-fill"/><span class="d-none d-sm-inline"> {tr('Delete')}</span></button>
-          return <li class="list-group-item d-flex">
-            <div class="me-auto">{item.summaryAsHtml()}</div>
-            {btnDel}
-            {btnEdit}
-          </li>
-        })}
-      </ul>
-      {btnNew}
-    </div>
+  constructor(theList :Array<T>, editorClass :EditorClass<T>) {
+    const btnDel = <button class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
+    const btnNew = <button class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
+    const btnEdit = <button class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
+    const els :HTMLElement[] = []
+    let selIdx :number = -1
+    const selectItem = (idx :number) => {
+      els.forEach((e,i) => {
+        if (i===idx) {
+          e.classList.add('active')
+          e.setAttribute('aria-current', 'true')
+        }
+        else {
+          e.classList.remove('active')
+          e.removeAttribute('aria-current')
+        }
+      })
+      selIdx = idx
+      btnDel.removeAttribute('disabled')
+      btnEdit.removeAttribute('disabled')
+    }
+    const theUl = <ul class="list-group mb-2"></ul>
+    const redrawList = (sel :number = -1) => {
+      els.length = theList.length
+      if (els.length)
+        theList.forEach((item,i) => els[i]=<li class="list-group-item" onclick={() => selectItem(i)}>{item.summaryAsHtml()}</li> )
+      else {
+        els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
+        btnDel.setAttribute('disabled', 'disabled')
+        btnEdit.setAttribute('disabled', 'disabled')
+      }
+      theUl.replaceChildren(...els)
+      if (sel>=0) selectItem(sel)
+    }
+    redrawList()
+    this.el = <div> {theUl} <div class="d-flex flex-row justify-content-end flex-wrap">{btnDel}{btnNew}{btnEdit}</div> </div>
+    btnDel.addEventListener('click', async () => {
+      if (selIdx<0) return  // shouldn't happen
+      const selItem = theList[selIdx]
+      assert(selItem)
+      switch ( await deleteConfirmation(selItem.summaryAsHtml()) ) {
+      case 'cancel':
+        break
+      case 'delete':
+        theList.splice(selIdx, 1)
+        redrawList()
+        break
+      }
+    })
+    btnEdit.addEventListener('click', () => {
+      if (selIdx<0) return  // shouldn't happen
+      const selItem = theList[selIdx]
+      assert(selItem)
+      const editor = new editorClass(selItem, obj => {
+        console.log('Done Editing', obj)
+        document.body.removeChild(editor.el)
+        if (obj)
+          theList[selIdx] = obj
+        redrawList(selIdx)
+      })
+      document.body.appendChild(editor.el)
+    })
+    btnNew.addEventListener('click', () => {
+      const editor = new editorClass(null, obj => {
+        console.log('Done Editing', obj)
+        document.body.removeChild(editor.el)
+        if (obj)
+          theList.push(obj)
+        redrawList(theList.length-1)
+      })
+      document.body.appendChild(editor.el)  //TODO: just for debugging - implement editor stack
+    })
   }
 }
