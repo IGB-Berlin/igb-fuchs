@@ -18,7 +18,7 @@
 import { DataObjectBase } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { assert } from '../utils'
-import { i18n } from '../i18n'
+import { tr } from '../i18n'
 
 export type DoneCallback = () => void
 
@@ -37,8 +37,8 @@ export abstract class Editor<T extends DataObjectBase> {
   protected abstract formSubmit() :void
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
-    const btnSubmit = <button type="submit" class="btn btn-success"><i class="bi-floppy-fill"/> {i18n.t('save-and-close')}</button>
-    const btnCancel = <button type="button" class="btn btn-danger me-3"><i class="bi-trash3-fill"/> {i18n.t('cancel')}</button>
+    const btnSubmit = <button type="submit" class="btn btn-success"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
+    const btnCancel = <button type="button" class="btn btn-danger me-3"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
     const warnList = <ul></ul>
     //TODO: Translations
     const warnAlert = <div class="d-none alert alert-warning" role="alert">

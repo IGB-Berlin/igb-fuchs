@@ -17,7 +17,7 @@
  */
 import * as bootstrap from 'bootstrap'
 import { jsx } from './jsx-dom'
-import { i18n } from './i18n'
+import { tr } from './i18n'
 
 export function noStorageAlert() {
   const dialog = <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
@@ -27,10 +27,10 @@ export function noStorageAlert() {
         <div class="modal-header text-bg-danger">
           <h1 class="modal-title fs-5" id="noStorageAlert">
             <i className="bi-exclamation-triangle-fill me-2"/>
-            {i18n.t('alert-no-storage-title')}</h1>
+            {tr('Error: No Storage Available')}</h1>
         </div>
         <div class="modal-body">
-          {i18n.t('alert-no-storage-text')}
+          {tr('alert-no-storage-text')}
         </div>
       </div>
     </div>

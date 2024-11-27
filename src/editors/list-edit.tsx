@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { i18n } from '../i18n'
+import { tr } from '../i18n'
 import { jsx } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { DoneCallback, Editor } from './base'
@@ -25,14 +25,14 @@ type EditorClass<T extends DataObjectBase> = { new (initObj :T|null, doneCb :Don
 export class ListEditor<T extends DataObjectBase> {
   readonly el :HTMLElement
   constructor(theList :Array<T>, _editorClass :EditorClass<T>) {
-    const btnNew = <button class="btn btn-info"><i class="bi-plus-circle"/> {i18n.t('new')}</button>
+    const btnNew = <button class="btn btn-info"><i class="bi-plus-circle"/> {tr('New')}</button>
     this.el = <div>
       <ul class="list-group mb-2">
         {theList.map(item => {
           const btnEdit = <button class="ms-2 btn btn-primary"><i
-            class="bi-pencil-fill"/><span class="d-none d-sm-inline"> {i18n.t('edit')}</span></button>
+            class="bi-pencil-fill"/><span class="d-none d-sm-inline"> {tr('Edit')}</span></button>
           const btnDel = <button class="ms-2 btn btn-danger"><i
-            class="bi-trash3-fill"/><span class="d-none d-sm-inline"> {i18n.t('delete')}</span></button>
+            class="bi-trash3-fill"/><span class="d-none d-sm-inline"> {tr('Delete')}</span></button>
           return <li class="list-group-item d-flex">
             <div class="me-auto">{item.summaryDisplay()}</div>
             {btnDel}

@@ -18,7 +18,6 @@
 import { jsx, safeCastElement } from './jsx-dom'
 import * as bootstrap from 'bootstrap'
 import { assert } from './utils'
-import { i18n } from './i18n'
 
 /* TODO:
  * https://developer.mozilla.org/en-US/docs/Web/API/ImageCapture
@@ -28,7 +27,7 @@ import { i18n } from './i18n'
 export function takePicture() :Promise<Blob|null> {
   const errMsg = <p className="mb-0">Unknown error</p>
   const videoAlert = <div className="alert alert-warning d-none" role="alert">
-    <h4 className="alert-heading">{i18n.t('failed-camera')}</h4>
+    <h4 className="alert-heading">Failed to start camera</h4>
     <hr/> {errMsg}
   </div>
   const video = safeCastElement(HTMLVideoElement, <video className="w-100 object-fit-scale"></video>)
@@ -36,17 +35,17 @@ export function takePicture() :Promise<Blob|null> {
   const canvas = safeCastElement(HTMLCanvasElement, <canvas className="d-none"></canvas>)
   const fileInp = safeCastElement(HTMLInputElement,
     <input className="form-control mt-1" type="file" accept="image/*" capture="environment" />)
-  const btnCancel = <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi-x-lg"/> {i18n.t('cancel')}</button>
-  const btnRetry = <button className="btn btn-primary" disabled><i className="bi-arrow-counterclockwise"/> {i18n.t('retry')}</button>
-  const btnTake = <button className="btn btn-primary" disabled><i className="bi-camera-fill"/> {i18n.t('take-picture')}</button>
-  const btnAccept = <button className="btn btn-success d-none" data-bs-dismiss="modal"><i className="bi-check-lg"/> {i18n.t('accept')}</button>
+  const btnCancel = <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi-x-lg"/> Cancel</button>
+  const btnRetry = <button className="btn btn-primary" disabled><i className="bi-arrow-counterclockwise"/> Retry</button>
+  const btnTake = <button className="btn btn-primary" disabled><i className="bi-camera-fill"/> Take Picture</button>
+  const btnAccept = <button className="btn btn-success d-none" data-bs-dismiss="modal"><i className="bi-check-lg"/> Accept</button>
   const dialog = <div
     className="modal fade" tabindex="-1" aria-labelledby="cameraModalLabel"
     data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
     <div className="modal-dialog modal-lg modal-fullscreen-lg-down">
       <div className="modal-content">
         <div className="modal-header">
-          <h1 className="modal-title fs-5" id="cameraModalLabel">{i18n.t('take-picture')}</h1>
+          <h1 className="modal-title fs-5" id="cameraModalLabel">Take Picture</h1>
         </div>
         <div className="modal-body"> {videoAlert} {video} {photo} {canvas} {fileInp} </div>
         <div className="modal-footer"> {btnCancel} {btnRetry} {btnTake} {btnAccept} </div>

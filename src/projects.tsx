@@ -19,7 +19,6 @@ import { jsx, safeCastElement } from './jsx-dom'
 import { VALID_KEY_RE } from './storage'
 import * as bootstrap from 'bootstrap'
 import * as storage from './storage'
-import { i18n } from './i18n'
 
 const PROJECTS_KEY = 'projects'
 
@@ -37,9 +36,9 @@ export async function openOrNewProject() {
     let openClicked = false
     let newClicked = false
     const btnNew = <button type="button" class="btn btn-info me-3" data-bs-dismiss="modal" onclick={()=>newClicked=true}>
-      <i class="bi-journal-plus" /> {i18n.t('new-project')}</button>
+      <i class="bi-journal-plus" /> New Project</button>
     const btnOpen = <button type="button" class="btn btn-primary" data-bs-dismiss="modal" disabled onclick={()=>openClicked=true}>
-      <i class="bi-folder2-open" /> {i18n.t('open')}</button>
+      <i class="bi-folder2-open" /> Open</button>
     const clickProj = (event :MouseEvent) => {
       dialog.querySelectorAll('li.list-group-item[data-project]').forEach(el => {
         if (event.target === el) {
@@ -54,20 +53,20 @@ export async function openOrNewProject() {
       <div class="modal-dialog modal-fullscreen-sm-down">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="projectModalLabel">{i18n.t('projects')}</h1>
+            <h1 class="modal-title fs-5" id="projectModalLabel">Projects</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <ul class="list-group">
               { projects.length ? projects.map(p =>
                 <li class="list-group-item cursor-pointer" data-project={p.at(-1)} onclick={clickProj}>{p.at(-1)}</li> )
-                : <li class="list-group-item list-group-item-secondary">{i18n.t('no-projects')}</li> }
+                : <li class="list-group-item list-group-item-secondary">No projects</li> }
             </ul>
           </div>
           <div class="modal-footer">
             {btnNew}
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              <i class="bi-x-lg"/> {i18n.t('cancel')}</button>
+              <i class="bi-x-lg"/> Cancel</button>
             {btnOpen}
           </div>
         </div>
@@ -99,25 +98,25 @@ async function newProjectDialog() {
   let newProjId :string|null = null
   let createClicked = false
   const btnCreate = <button type="submit" class="btn btn-info" onclick={()=>createClicked=true}>
-    <i class="bi-journal-plus" /> {i18n.t('create')}</button>
+    <i class="bi-journal-plus" /> Create</button>
   const inpProjId = safeCastElement(HTMLInputElement,
-    <input class="form-control" type="text" placeholder={i18n.t('project-id')} pattern={VALID_KEY_RE.source}
-      id="newProjectId" aria-label={i18n.t('project-id')} required />)
+    <input class="form-control" type="text" pattern={VALID_KEY_RE.source}
+      id="newProjectId" required />)
   const formNewProj = safeCastElement(HTMLFormElement, <form novalidate>
     <div class="modal-header">
-      <h1 class="modal-title fs-5" id="projectModalLabel">{i18n.t('new-project')}</h1>
+      <h1 class="modal-title fs-5" id="projectModalLabel">New Project</h1>
       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
       <div>
-        <label for="newProjectId" class="form-label">{i18n.t('project-id')}</label>
+        <label for="newProjectId" class="form-label">Project ID</label>
         {inpProjId}
-        <div class="invalid-feedback">{i18n.t('valid-ident-explain')}</div>
+        <div class="invalid-feedback">Invalid ID</div>
       </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-        <i class="bi-x-lg"/> {i18n.t('cancel')}</button>
+        <i class="bi-x-lg"/> Cancel</button>
       {btnCreate}
     </div>
   </form>)
