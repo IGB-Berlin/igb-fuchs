@@ -18,6 +18,9 @@
 import { isTimestamp, isTimestampSet, DataObjectBase, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, isValidName, isValidTimestamp, dataSetsEqual } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
+import { distanceBearing } from '../geo-func'
+
+const MAX_NOM_ACT_DIST_M = 200
 
 export interface ISamplingLocation {
   name :string
@@ -89,7 +92,9 @@ export class SamplingLocation extends DataObjectBase implements ISamplingLocatio
     if (!isTimestampSet(this.startTime)) rv.push('No start time set')
     if (!isTimestampSet(this.endTime)) rv.push('No end time set')
     if (this.samples.length) rv.push('No samples')
-    //TODO: Check the distance between nominal and actual location
+    const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
+    if (distM > MAX_NOM_ACT_DIST_M)
+      rv.push(`Actual and nominal coordinates are far apart (${distM.toFixed(0)}m>${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
     return rv.concat( this.samples.flatMap(s => s.warningsCheck()) )
   }
   override summaryDisplay() {

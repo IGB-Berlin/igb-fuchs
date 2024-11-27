@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { describe, expect, test } from '@jest/globals'
+import { expect, test } from '@jest/globals'
 import { DataObjectBase, dataSetsEqual } from '../common'
 
-describe('dataSetsEqual', () => {
+test('dataSetsEqual', () => {
 
   class X extends DataObjectBase {
     readonly x :string
@@ -30,17 +30,15 @@ describe('dataSetsEqual', () => {
     override validate() { }
   }
 
-  test('foo', () => {
-    expect( dataSetsEqual([],[]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x')],[]) ).toStrictEqual( false )
-    expect( dataSetsEqual([new X('x')],[new X('y')]) ).toStrictEqual( false )
-    expect( dataSetsEqual([new X('x')],[new X('x')]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x'), new X('y')],[new X('x'), new X('y')]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x'), new X('y')],[new X('y'), new X('x')]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x'), new X('y')],[new X('z'), new X('y')]) ).toStrictEqual( false )
-    expect( dataSetsEqual([new X('x'), new X('x'), new X('x')],[new X('x'), new X('x'), new X('x')]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x'), new X('x'), new X('y')],[new X('y'), new X('y'), new X('x')]) ).toStrictEqual( false )
-    expect( dataSetsEqual([new X('y'), new X('x'), new X('y')],[new X('x'), new X('y'), new X('y')]) ).toStrictEqual( true )
-    expect( dataSetsEqual([new X('x'), new X('y'), new X('z')],[new X('z'), new X('x'), new X('y')]) ).toStrictEqual( true )
-  })
+  expect( dataSetsEqual([],[]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x')],[]) ).toStrictEqual( false )
+  expect( dataSetsEqual([new X('x')],[new X('y')]) ).toStrictEqual( false )
+  expect( dataSetsEqual([new X('x')],[new X('x')]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x'), new X('y')],[new X('x'), new X('y')]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x'), new X('y')],[new X('y'), new X('x')]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x'), new X('y')],[new X('z'), new X('y')]) ).toStrictEqual( false )
+  expect( dataSetsEqual([new X('x'), new X('x'), new X('x')],[new X('x'), new X('x'), new X('x')]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x'), new X('x'), new X('y')],[new X('y'), new X('y'), new X('x')]) ).toStrictEqual( false )
+  expect( dataSetsEqual([new X('y'), new X('x'), new X('y')],[new X('x'), new X('y'), new X('y')]) ).toStrictEqual( true )
+  expect( dataSetsEqual([new X('x'), new X('y'), new X('z')],[new X('z'), new X('x'), new X('y')]) ).toStrictEqual( true )
 })
