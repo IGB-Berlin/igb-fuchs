@@ -37,7 +37,7 @@ export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
  *
  * Precision: <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm
  */
-export class Wgs84Coordinates extends DataObjectBase implements IWgs84Coordinates {
+export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implements IWgs84Coordinates {
   wgs84lat :number
   wgs84lon :number
   constructor(o :IWgs84Coordinates) {
@@ -60,4 +60,5 @@ export class Wgs84Coordinates extends DataObjectBase implements IWgs84Coordinate
     return isIWgs84Coordinates(o) && this.wgs84lat===o.wgs84lat && this.wgs84lon===o.wgs84lon }
   override toJSON(_key :string) :IWgs84Coordinates {
     return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
+  override deepClone() { return new Wgs84Coordinates(this.toJSON('')) }
 }

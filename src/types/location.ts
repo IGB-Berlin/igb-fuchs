@@ -19,6 +19,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
+import { assert } from '../utils'
 import { tr } from '../i18n'
 
 const MAX_NOM_ACT_DIST_M = 200
@@ -54,7 +55,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 }
 
 /** Records and actual sampling point. */
-export class SamplingLocation extends DataObjectWithTemplate<SamplingLocationTemplate> implements ISamplingLocation {
+export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
   name :string
   description :string
   nominalCoords :IWgs84Coordinates
@@ -121,6 +122,11 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocationTem
       name: this.name, description: this.description.trim(), nominalCoords: this.nominalCoords,
       samples: this.samples.map(s => s.extractTemplate()) })
   }
+  override deepClone() :SamplingLocation {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISamplingLocation(clone))
+    return new SamplingLocation(clone, this.template)
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -144,7 +150,7 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
   return true
 }
 
-export class SamplingLocationTemplate extends DataObjectTemplate implements ISamplingLocationTemplate {
+export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {
   name :string
   description :string
   nominalCoords :IWgs84Coordinates
@@ -175,11 +181,16 @@ export class SamplingLocationTemplate extends DataObjectTemplate implements ISam
     if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
-  templateToObject(actualCoords :IWgs84Coordinates|null, startNow :boolean) :SamplingLocation {
+  override templateToObject(actualCoords :IWgs84Coordinates|null, startNow :boolean) :SamplingLocation {
     const rv :ISamplingLocation = { name: this.name,
       nominalCoords: this.nominalCoords, actualCoords: actualCoords ?? this.nominalCoords,
       startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, samples: [] }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingLocation(rv, this)
+  }
+  override deepClone() :SamplingLocationTemplate {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISamplingLocationTemplate(clone))
+    return new SamplingLocationTemplate(clone)
   }
 }

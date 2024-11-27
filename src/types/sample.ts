@@ -19,6 +19,7 @@ import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-ty
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
 import { dataSetsEqual, DataObjectTemplate, DataObjectWithTemplate } from './common'
 import { i18n, tr } from '../i18n'
+import { assert } from '../utils'
 
 const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
@@ -45,7 +46,7 @@ export function isISample(o :unknown) :o is ISample {
 }
 
 /** Records an actual sample taken. */
-export class Sample extends DataObjectWithTemplate<SampleTemplate> implements ISample {
+export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> implements ISample {
   type :SampleType
   measurements :Measurement[]
   notes :string
@@ -79,6 +80,11 @@ export class Sample extends DataObjectWithTemplate<SampleTemplate> implements IS
   override extractTemplate() :SampleTemplate {
     return new SampleTemplate({ type: this.type, measurementTypes: this.measurements.map(m => m.extractTemplate()) })
   }
+  override deepClone() :Sample {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISample(clone))
+    return new Sample(clone, this.template)
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -95,7 +101,7 @@ export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
   return true
 }
 
-export class SampleTemplate extends DataObjectTemplate implements ISampleTemplate {
+export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> implements ISampleTemplate {
   type :SampleType
   /** The typical measurement types performed on this sample. */
   measurementTypes :MeasurementType[]
@@ -116,6 +122,11 @@ export class SampleTemplate extends DataObjectTemplate implements ISampleTemplat
   override warningsCheck() { return [] }
   override toJSON(_key: string): ISampleTemplate {
     return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) } }
-  templateToObject() :Sample {
+  override templateToObject() :Sample {
     return new Sample({ type: this.type, measurements: [] }, this) }
+  override deepClone() :SampleTemplate {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISampleTemplate(clone))
+    return new SampleTemplate(clone)
+  }
 }

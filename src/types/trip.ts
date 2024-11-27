@@ -19,6 +19,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
 import { i18n, tr } from '../i18n'
+import { assert } from '../utils'
 
 export interface ISamplingTrip {
   name :string
@@ -50,7 +51,7 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
 }
 
 /** Records an entire sampling trip. */
-export class SamplingTrip extends DataObjectWithTemplate<SamplingTripTemplate> implements ISamplingTrip {
+export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {
   name :string
   description :string
   startTime :Timestamp
@@ -122,6 +123,11 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTripTemplate> i
     return new SamplingTripTemplate({ name: this.name, description: this.description.trim(),
       locations: locs, commonSamples: common })
   }
+  override deepClone() :SamplingTrip {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISamplingTrip(clone))
+    return new SamplingTrip(clone, this.template)
+  }
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -144,7 +150,7 @@ export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate 
   return true
 }
 
-export class SamplingTripTemplate extends DataObjectTemplate implements ISamplingTripTemplate {
+export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplate, SamplingTrip> implements ISamplingTripTemplate {
   name :string
   description :string
   /** The typical sampling locations on this trip. */
@@ -180,10 +186,15 @@ export class SamplingTripTemplate extends DataObjectTemplate implements ISamplin
     this.locations.forEach(l => l.samples.forEach(s => s.measurementTypes.forEach( t => rv.push(...t.warningsCheck()) )))
     return rv
   }
-  templateToObject(startNow :boolean) :SamplingTrip {
+  override templateToObject(startNow :boolean) :SamplingTrip {
     const rv :ISamplingTrip = { name: this.name, locations: [],
       startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingTrip(rv, this)
+  }
+  override deepClone() :SamplingTripTemplate {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISamplingTripTemplate(clone))
+    return new SamplingTripTemplate(clone)
   }
 }

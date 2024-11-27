@@ -114,6 +114,14 @@ const translations = {
   'measurements': [
     { zero: 'keine Messungen', one: 'eine Messung', other: '%{count} Messungen' },
     { zero: 'no measurements', one: 'one measurement', other: '%{count} measurements' } ],
+  // partially abbrev. for breadcrumbs
+  'Templates': ['Vorlagen'],
+  'Trips': ['Fahrten'],
+  'Trip': ['Messfahrt'],
+  'Locations': ['Messpunkte'],
+  'Location': ['Messpunkt'],
+  'Meas.': ['Messung'],
+  'Meas. Type': ['Messtyp'],
 
   // types problems
   'No start time': ['Keine Anfangs-Zeit'],

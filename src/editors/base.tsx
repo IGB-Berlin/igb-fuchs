@@ -21,25 +21,40 @@ import { DataObjectBase } from '../types/common'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type DoneCallback<T extends DataObjectBase> = (obj :T|null) => void
+export type DoneCallback<B extends DataObjectBase<B>> = (obj :B|null) => void
 
-export type EditorClass<T extends DataObjectBase> = { new (obj :T|null, doneCb :DoneCallback<T>): Editor<T> }
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (obj :B|null, doneCb :DoneCallback<B>): E }
 
-export abstract class Editor<T extends DataObjectBase> {
+export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
+  /** The HTML form (may or may not be the same as `el`). */
+  protected abstract readonly form :HTMLFormElement
+  /** The original object. */
+  protected readonly origObj :B|null
   /** The object being edited. */
-  protected obj :T|null
+  protected obj :B|null
   /** The callback to be called when the editor is done and should be closed. */
-  protected readonly doneCb :DoneCallback<T>
-  constructor(obj :T|null, doneCb :DoneCallback<T>) {
-    this.obj = obj
+  protected readonly doneCb :DoneCallback<B>
+  constructor(obj :B|null, doneCb :DoneCallback<B>) {
+    this.origObj = obj
+    this.obj = obj ? obj.deepClone() : null
     this.doneCb = doneCb
   }
-  /** Have changes been made to the form that haven't been saved to the object yet? */
-  abstract get isDirty() :boolean
-  /** Transfer all input fields to the object being edited; the result should be that `isDirty` is then `false`. */
-  protected abstract from2obj() :void
+  /** Return an object with its fields populated from the current form state. */
+  protected abstract form2obj() :B
+  /** Whether the current state of the form differs from the current object. */
+  protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
+  /** Requests to cancel the current edit in progress. */
+  async requestCancel() {
+    if (this.isDirty(false) || this.isDirty(true))
+      switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
+      case 'save': this.form.requestSubmit(); return
+      case 'cancel': return
+      case 'discard': this.doneCb(null); return
+      }
+    else this.doneCb(null)
+  }
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
     const btnSubmit = <button type="submit" class="btn btn-success ms-3 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
@@ -69,28 +84,15 @@ export abstract class Editor<T extends DataObjectBase> {
           {btnSubmit}
         </div>
       </form>)
-    btnCancel.addEventListener('click', async () => {
-      if (this.isDirty)
-        switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
-        case 'save':
-          btnSubmit.click()
-          break
-        case 'cancel':
-          return
-        case 'discard':
-          this.doneCb(null)
-        }
-      else this.doneCb(this.obj)
-    })
+    btnCancel.addEventListener('click', () => this.requestCancel())
     form.addEventListener('submit', event => {
       form.classList.add('was-validated')
       event.preventDefault()
       event.stopPropagation()
       if (form.checkValidity()) {
-        const wasDirty = this.isDirty
-        this.from2obj()  // is expected to update the object and thereby clear isDirty
-        assert(this.obj, 'Object wasn\'t set after form2obj')
-        assert(!this.isDirty, 'Dirty wasn\'t cleared after form2obj')
+        const wasDirty = this.isDirty(false)
+        this.obj = this.form2obj()
+        assert(!this.isDirty(false), 'Dirty wasn\'t cleared after form2obj')
         btnSubmit.classList.remove('btn-success', 'btn-warning')
         try {
           /* Optimally, this is covered by input field validation, but there are a few cases where

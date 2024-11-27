@@ -32,7 +32,7 @@ export function isIMeasurement(o :unknown) :o is IMeasurement {
 }
 
 /** Records an actual recorded measurement. */
-export class Measurement extends DataObjectWithTemplate<MeasurementType> implements IMeasurement {
+export class Measurement extends DataObjectWithTemplate<Measurement, MeasurementType> implements IMeasurement {
   type :MeasurementType
   time :Timestamp
   /** The actual measurement value. May be NaN when the measurement is first created. */
@@ -53,8 +53,7 @@ export class Measurement extends DataObjectWithTemplate<MeasurementType> impleme
   override equals(o: unknown) {
     return isIMeasurement(o) && this.type.equals(o.type) && this.time===o.time && this.value===o.value }
   override toJSON(_key: string): IMeasurement {
-    return { type: this.type.toJSON('type'), time: this.time, value: this.value }
-  }
+    return { type: this.type.toJSON('type'), time: this.time, value: this.value } }
   override warningsCheck() {
     const rv = []  // this.type should be checked as part of the templates check
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
@@ -66,4 +65,6 @@ export class Measurement extends DataObjectWithTemplate<MeasurementType> impleme
     return rv
   }
   override extractTemplate() :MeasurementType { return this.type }
+  override deepClone() :Measurement {
+    return new Measurement({ type: this.type.deepClone(), time: this.time, value: this.value }) }
 }

@@ -40,12 +40,12 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   if ('min' in o && !( o.min===null || typeof o.min === 'number' )) return false
   if ('max' in o && !( o.max===null || typeof o.max === 'number' )) return false
   if ('precision' in o && !( o.precision===null || typeof o.precision === 'number' )) return false
-  if ('notes' in o && !( o.notes===null || typeof o.notes !== 'string' )) return false
+  if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
   return true
 }
 
 /** Describes a type of measurement (not a specific measurement value). */
-export class MeasurementType extends DataObjectTemplate implements IMeasurementType {
+export class MeasurementType extends DataObjectTemplate<MeasurementType, Measurement> implements IMeasurementType {
   name :string
   unit :string
   /** Minimum value, for input validation. (Optional but recommended.) */
@@ -94,7 +94,7 @@ export class MeasurementType extends DataObjectTemplate implements IMeasurementT
     if (!Number.isFinite(this.precision)) rv.push(tr('No precision'))
     return rv
   }
-  templateToObject(value :number, timeNow :boolean) :Measurement {
+  override templateToObject(value :number, timeNow :boolean) :Measurement {
     return new Measurement({ type: this.toJSON('type'), time: timeNow ? timestampNow() : NO_TIMESTAMP, value: value }) }
   /** Regular expression that can be used to validate measurement value inputs of this type. */
   get validPattern() {
@@ -105,4 +105,5 @@ export class MeasurementType extends DataObjectTemplate implements IMeasurementT
           : `[0-9]{1,${this.precision}}`
     return after.length ? `^[\\-\\+]?(?:[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?[0-9]+$'
   }
+  override deepClone() :MeasurementType { return new MeasurementType(this.toJSON('')) }
 }

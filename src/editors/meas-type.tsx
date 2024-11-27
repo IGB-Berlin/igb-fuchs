@@ -21,8 +21,10 @@ import { VALID_NAME_RE } from '../types/common'
 import { DoneCallback, Editor } from './base'
 import { tr } from '../i18n'
 
-export class MeasTypeEditor extends Editor<MeasurementType> {
-  readonly el :HTMLElement
+export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
+  override readonly el :HTMLElement
+  protected override readonly form :HTMLFormElement
+
   protected readonly inpName :HTMLInputElement
   protected readonly inpUnit :HTMLInputElement
   protected readonly inpMin :HTMLInputElement
@@ -43,7 +45,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
       <input type="number" value={this.obj?.precision??''} min="0" />)
     this.inpNotes = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{this.obj?.notes.trim()??''}</textarea>)
-    this.el = this.makeForm(tr('Measurement Type'), [
+    this.el = this.form = this.makeForm(tr('Measurement Type'), [
       this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
       this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
@@ -53,25 +55,11 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     ])
   }
 
-  protected get inMin() { return Number.isFinite(this.inpMin.valueAsNumber) ? this.inpMin.valueAsNumber : -Infinity }
-  protected get inMax() { return Number.isFinite(this.inpMax.valueAsNumber) ? this.inpMax.valueAsNumber : +Infinity }
-  protected get inPrc() { return Number.isFinite(this.inpPrc.valueAsNumber) ? this.inpPrc.valueAsNumber : NaN }
-  protected get inNot() { return this.inpNotes.value.trim() }
-
-  get isDirty() {
-    const oPrc = this.obj?.precision ?? NaN
-    return (this.obj?.name ?? '') !== this.inpName.value
-        || (this.obj?.unit ?? '') !== this.inpUnit.value
-        || (this.obj?.min ?? -Infinity) !== this.inMin
-        || (this.obj?.max ?? +Infinity) !== this.inMax
-        || !(Number.isNaN(oPrc) && Number.isNaN(this.inPrc) || oPrc === this.inPrc)
-        || (this.obj?.notes.trim() ?? '') !== this.inNot
-  }
-
-  protected from2obj() {
-    const n = new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
-      min: this.inMin, max: this.inMax, precision: this.inPrc, notes: this.inNot })
-    if (this.obj) Object.assign(this.obj, n)
-    else this.obj = n
+  protected override form2obj() {
+    return new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
+      min: Number.isFinite(this.inpMin.valueAsNumber) ? this.inpMin.valueAsNumber : -Infinity,
+      max: Number.isFinite(this.inpMax.valueAsNumber) ? this.inpMax.valueAsNumber : +Infinity,
+      precision: Number.isFinite(this.inpPrc.valueAsNumber) ? this.inpPrc.valueAsNumber : NaN,
+      notes: this.inpNotes.value.trim() })
   }
 }

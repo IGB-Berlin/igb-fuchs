@@ -17,14 +17,14 @@
  */
 import { DataObjectBase } from '../types/common'
 import { deleteConfirmation } from '../misc'
-import { EditorClass } from './base'
+import { Editor, EditorClass } from './base'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-export class ListEditor<T extends DataObjectBase> {
+export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
-  constructor(theList :Array<T>, editorClass :EditorClass<T>) {
+  constructor(theList :Array<B>, editorClass :EditorClass<E, B>) {
     const btnDel = <button class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
