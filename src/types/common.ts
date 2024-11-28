@@ -62,7 +62,7 @@ export abstract class DataObjectWithTemplate<D extends DataObjectWithTemplate<D,
   abstract extractTemplate() :T
 }
 
-/** Compares to arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same. */
+/** Compares two arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same. */
 export function dataSetsEqual<T extends DataObjectBase<T>>(a :T[], b :T[]) :boolean {
   if (a.length!==b.length) return false
   const x = Array.from(a)

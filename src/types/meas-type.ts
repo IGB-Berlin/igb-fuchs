@@ -57,15 +57,14 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
   /** Number of places after the decimal point, both for input validation and for display rounding. (Optional but recommended.) */
   precision :number
   notes :string
-  constructor(o :IMeasurementType) {
+  constructor(o :IMeasurementType|null) {
     super()
-    this.name = o.name
-    this.unit = o.unit
-    this.min = 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
-    this.max = 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
-    this.precision = 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
-    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.validate()
+    this.name = o?.name ?? ''
+    this.unit = o?.unit ?? ''
+    this.min = o && 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
+    this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
+    this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
+    this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
   }
   override validate() {
     validateName(this.name)

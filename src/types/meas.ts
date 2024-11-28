@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { tr } from '../i18n'
-import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate } from './common'
+import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate, NO_TIMESTAMP } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
+import { tr } from '../i18n'
 
 export interface IMeasurement {
   type :IMeasurementType
@@ -38,12 +38,11 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   /** The actual measurement value. May be NaN when the measurement is first created. */
   value :number
   get template() { return this.type }
-  constructor(o :IMeasurement) {
+  constructor(o :IMeasurement|null) {
     super()
-    this.type = new MeasurementType(o.type)
-    this.time = o.time
-    this.value = o.value
-    this.validate()
+    this.type = new MeasurementType(o?.type??null)
+    this.time = o?.time ?? NO_TIMESTAMP
+    this.value = o?.value ?? NaN
   }
   formattedValue() {
     return Number.isFinite(this.type.precision) ? this.value.toFixed(this.type.precision) : this.value.toString() }

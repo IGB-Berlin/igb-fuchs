@@ -40,11 +40,10 @@ export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
 export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implements IWgs84Coordinates {
   wgs84lat :number
   wgs84lon :number
-  constructor(o :IWgs84Coordinates) {
+  constructor(o :IWgs84Coordinates|null) {
     super()
-    this.wgs84lat = o.wgs84lat
-    this.wgs84lon = o.wgs84lon
-    this.validate()
+    this.wgs84lat = o?.wgs84lat ?? NaN
+    this.wgs84lon = o?.wgs84lon ?? NaN
   }
   override validate() {
     if (!( Number.isFinite(this.wgs84lat) && this.wgs84lat >=  -90 && this.wgs84lat <=  90 ))

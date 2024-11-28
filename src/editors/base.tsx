@@ -51,13 +51,15 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
   protected doneCallbacks :DoneCallback[] = []
   addDoneCallback(c :DoneCallback) { this.doneCallbacks.push(c) }
-  protected done(obj :B|null) {
-    if (obj) {
+  protected done(success :boolean) {
+    // Did the user *not* cancel this editor, and if so, is this a new object or has the user actually made changes?
+    if (success && ( !this.origObj || !this.origObj.equals(this.obj) )) {
+      assert(this.obj)
       if (this.targetIdx<0)
-        this.targetArray.push(obj)
+        this.targetArray.push(this.obj)
       else {
         assert(this.targetIdx<this.targetArray.length)
-        this.targetArray[this.targetIdx] = obj
+        this.targetArray[this.targetIdx] = this.obj
       }
       this.doneCallbacks.forEach(c => c(true))
     } else
@@ -66,18 +68,18 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
   /** Return an object with its fields populated from the current form state. */
   protected abstract form2obj() :B
-  //TODO: Now that isDirty invokes form2obj, this may throw an error if the object doesn't validate!
-  /** Whether the current state of the form differs from the current object. */
+  /** Whether the current state of the form differs from the current or original object. */
   protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
   /** Requests to cancel the current edit in progress. */
   async requestCancel() {
-    if (this.isDirty(false) || this.isDirty(true))
+    // Does the form contain unsaved changes, or, if this isn't a new object, is it different from the original?
+    if (this.isDirty(false) || this.origObj && this.isDirty(true))
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
-      case 'discard': this.done(null); return
+      case 'discard': this.done(false); return
       }
-    else this.done(null)
+    else this.done(false)
   }
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
@@ -141,7 +143,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
           if (!wasDirty)
             /* If the dirty flag wasn't set before, this means the user clicked the button a second
              * time without making changes, thereby saying they want to ignore the warnings. */
-            this.done(this.obj)
+            this.done(true)
           else {
             // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
             btnSubmit.setAttribute('disabled','disabled')
@@ -151,7 +153,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         else {
           btnSubmit.classList.add('btn-success')
           warnAlert.classList.add('d-none')
-          this.done(this.obj)
+          this.done(true)
         }
       }
     })
@@ -170,8 +172,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       input.setAttribute('aria-describedby', helpId)
     input.classList.add('form-control')
     return <div class="row mb-3">
-      <label for={inpId} class="col-sm-2 col-form-label text-end-sm">{label}</label>
-      <div class="col-sm-10">
+      <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
+      <div class="col-sm-9">
         {input}
         {helpText ? <div id={helpId} class="form-text">{helpText}</div> : '' }
         {invalidText ? <div class="invalid-feedback">{invalidText}</div> : ''}

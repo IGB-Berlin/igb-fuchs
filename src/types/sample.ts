@@ -51,13 +51,12 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   measurements :Measurement[]
   notes :string
   readonly template :SampleTemplate|null
-  constructor(o :ISample, template :SampleTemplate|null) {
+  constructor(o :ISample|null, template :SampleTemplate|null) {
     super()
-    this.type = o.type
-    this.measurements = o.measurements.map(m => new Measurement(m))
-    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.type = o?.type ?? 'undefined'
+    this.measurements = o ? o.measurements.map(m => new Measurement(m)) : []
+    this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.template = template
-    this.validate()
   }
   override validate() {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
@@ -105,11 +104,10 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   type :SampleType
   /** The typical measurement types performed on this sample. */
   measurementTypes :MeasurementType[]
-  constructor(o :ISampleTemplate) {
+  constructor(o :ISampleTemplate|null) {
     super()
-    this.type = o.type
-    this.measurementTypes = o.measurementTypes.map(m => new MeasurementType(m))
-    this.validate()
+    this.type = o?.type ?? 'undefined'
+    this.measurementTypes = o ? o.measurementTypes.map(m => new MeasurementType(m)) : []
   }
   override validate() {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }

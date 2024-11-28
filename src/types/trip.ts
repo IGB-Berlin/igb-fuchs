@@ -65,19 +65,18 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   notes :string
   locations :SamplingLocation[]
   readonly template :SamplingTripTemplate|null
-  constructor(o :ISamplingTrip, template :SamplingTripTemplate|null) {
+  constructor(o :ISamplingTrip|null, template :SamplingTripTemplate|null) {
     super()
-    this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.startTime = o.startTime
-    this.endTime = o.endTime
-    this.lastModified = 'lastModified' in o && o.lastModified!==null && isTimestampSet(o.lastModified) ? o.lastModified : timestampNow()
-    this.persons = 'persons' in o && o.persons!==null ? o.persons.trim() : ''
-    this.weather = 'weather' in o && o.weather!==null ? o.weather.trim() : ''
-    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.locations = o.locations.map(l => new SamplingLocation(l, null))
+    this.name = o?.name ?? ''
+    this.description = o &&'description' in o && o.description!==null ? o.description.trim() : ''
+    this.startTime = o?.startTime ?? NO_TIMESTAMP
+    this.endTime = o?.endTime ?? NO_TIMESTAMP
+    this.lastModified = o && 'lastModified' in o && o.lastModified!==null && isTimestampSet(o.lastModified) ? o.lastModified : timestampNow()
+    this.persons = o && 'persons' in o && o.persons!==null ? o.persons.trim() : ''
+    this.weather = o && 'weather' in o && o.weather!==null ? o.weather.trim() : ''
+    this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.locations = o ? o.locations.map(l => new SamplingLocation(l, null)) : []
     this.template = template
-    this.validate()
   }
   get tripId() :string {
     if (isTimestampSet(this.startTime)) {
@@ -167,13 +166,12 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */
   commonSamples :SampleTemplate[]
-  constructor(o :ISamplingTripTemplate) {
+  constructor(o :ISamplingTripTemplate|null) {
     super()
-    this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.locations = o.locations.map(l => new SamplingLocationTemplate(l))
-    this.commonSamples = o.commonSamples.map(s => new SampleTemplate(s))
-    this.validate()
+    this.name = o?.name ?? ''
+    this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
+    this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
+    this.commonSamples = o ? o.commonSamples.map(s => new SampleTemplate(s)) : []
   }
   override validate() { validateName(this.name) }
   override summaryDisplay() :[string,string] {

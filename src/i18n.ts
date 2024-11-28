@@ -46,7 +46,7 @@ const translations = {
   'Name': ['Name'],
   'name-help': [
     'Namen müssen mit einem Buchstaben oder einer Zahl beginnen, dürfen nur ausgewählte Sonderzeichen enthalten (.,-_ und Klammern),'
-    +' und dürfen nicht auf einem Leerzeichen enden. Namen werden nicht übersetzt, daher wird empfohlen englische Namen zu verwenden.',
+    +' und dürfen nicht auf einem Leerzeichen enden. Namen werden nicht übersetzt, daher wird empfohlen, englische Namen zu verwenden.',
     'Names must begin with a letter or number, may contain only selected special characters (.,-_ and parentheses), and may not end on a space.'
     +' Names are not translated, so English is recommended.' ],
   'Notes': ['Notizen'],
@@ -68,16 +68,16 @@ const translations = {
     'The unit of the measurement value.' ],
   'Minimum': ['Minimalwert'],
   'min-help': [
-    'Messwerte sollten diesen Wert nicht unterschreiten.',
-    'Measurement values should not be below this value.' ],
+    'Messwerte dieses Typs sollten diesen Wert nicht unterschreiten. (Die Einstellung "Nachkommastellen" wirkt sich auf dieses Eingabefeld aus.)',
+    'Measurement values of this type should not be below this value. (The setting "Precision" influences this input field.)' ],
   'Maximum': ['Maximalwert'],
   'max-help': [
-    'Messwerte sollten diesen Wert nicht überschreiten.',
-    'Measurement values should not be above this value.' ],
+    'Messwerte dieses Typs sollten diesen Wert nicht überschreiten. (Die Einstellung "Nachkommastellen" wirkt sich auf dieses Eingabefeld aus.)',
+    'Measurement values of this type should not be above this value. (The setting "Precision" influences this input field.)' ],
   'Precision': ['Nachkommastellen'],
   'precision-help': [
-    'Die Anzahl der Nachkommastellen des Messwerts.',
-    'The number of decimal places after the digit in the measurement value.' ],
+    'Die Anzahl der Nachkommastellen, die im Messwert erlaubt sind.',
+    'The number of decimal places allowed after the decimal point in the measurement value.' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

@@ -70,24 +70,25 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
   photos :string[]
   readonly template :SamplingLocationTemplate|null
-  constructor(o :ISamplingLocation, template :SamplingLocationTemplate|null) {
+  constructor(o :ISamplingLocation|null, template :SamplingLocationTemplate|null) {
     super()
-    this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.nominalCoords = o.nominalCoords
-    this.actualCoords = o.actualCoords
-    this.startTime = o.startTime
-    this.endTime = o.endTime
-    this.samples = o.samples.map(s => new Sample(s, null))
-    this.notes = 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.photos = 'photos' in o ? o.photos : []
+    this.name = o?.name ?? ''
+    this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
+    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
+    this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null).toJSON('actualCoords')
+    this.startTime = o?.startTime ?? NO_TIMESTAMP
+    this.endTime = o?.endTime ?? NO_TIMESTAMP
+    this.samples = o ? o.samples.map(s => new Sample(s, null)) : []
+    this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.photos = o && 'photos' in o ? o.photos : []
     this.template = template
-    this.validate()
   }
   override validate() {
     validateName(this.name)
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
+    this.nomCoords.validate()  // b/c the coords don't have their own Editor
+    this.actCoords.validate()
   }
   override warningsCheck() {
     const rv :string[] = []
@@ -159,15 +160,17 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
   samples :SampleTemplate[]
-  constructor(o :ISamplingLocationTemplate) {
+  constructor(o :ISamplingLocationTemplate|null) {
     super()
-    this.name = o.name
-    this.description = 'description' in o && o.description!==null ? o.description : ''
-    this.nominalCoords = o.nominalCoords
-    this.samples = o.samples.map(s => new SampleTemplate(s))
-    this.validate()
+    this.name = o?.name ?? ''
+    this.description = o && 'description' in o && o.description!==null ? o.description : ''
+    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
+    this.samples = o ? o.samples.map(s => new SampleTemplate(s)) : []
   }
-  override validate() { validateName(this.name) }
+  override validate() {
+    validateName(this.name)
+    this.nomCoords.validate()
+  }
   override warningsCheck() { return [] }
   override summaryDisplay() :[string,string] {
     return [ this.name, this.nomCoords.summaryDisplay()[0] ] }
