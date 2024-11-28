@@ -43,6 +43,8 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
   return true
 }
+export function isIMeasurementTypeArray(a :unknown) :a is IMeasurementType[] {
+  return Array.isArray(a) && a.every(o => isIMeasurementType(o)) }
 
 /** Describes a type of measurement (not a specific measurement value). */
 export class MeasurementType extends DataObjectTemplate<MeasurementType, Measurement> implements IMeasurementType {

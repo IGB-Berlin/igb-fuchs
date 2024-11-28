@@ -38,11 +38,21 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     this.inpUnit = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_UNIT_RE.source} value={this.obj?.unit??''} />)
     this.inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj?.min??''} />)
+      <input type="number" value={this.obj?.min??''} step="1" />)
     this.inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj?.max??''} />)
+      <input type="number" value={this.obj?.max??''} step="1" />)
     this.inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj?.precision??''} min="0" />)
+      <input type="number" value={this.obj?.precision??'0'} min="0" step="1" />)
+    const prcToStep = () => {
+      const p = this.inpPrc.valueAsNumber
+      if (Number.isFinite(p) && p>=0) {
+        const s = p ? '0.'+('1'.padStart(p,'0')) : '1'
+        this.inpMin.step = s
+        this.inpMax.step = s
+      }
+    }
+    this.inpPrc.addEventListener('change', prcToStep)
+    prcToStep()
     this.inpNotes = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{this.obj?.notes.trim()??''}</textarea>)
     this.el = this.form = this.makeForm(tr('Measurement Type'), [

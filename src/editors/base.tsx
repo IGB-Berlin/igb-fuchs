@@ -21,7 +21,7 @@ import { DataObjectBase } from '../types/common'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type DoneCallback<B extends DataObjectBase<B>> = (obj :B|null) => void
+export type DoneCallback = (changeMade :boolean) => void
 
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E }
 
@@ -38,33 +38,33 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected obj :B|null
   /** The callback to be called when the editor is done and should be closed. */
   constructor(targetArray :B[], idx :number) {
+    assert(idx<targetArray.length)
     this.targetArray = targetArray
     this.targetIdx = idx
-    const obj = idx>=0 && idx<targetArray.length ? targetArray[idx] : null
+    const obj = idx<0 ? null : targetArray[idx]
     assert(obj!==undefined)
     this.origObj = obj
     this.obj = obj ? obj.deepClone() : null
   }
-  /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript. */
-  protected doneCallbacks :DoneCallback<B>[] = []
-  addDoneCallback(c :DoneCallback<B>) { this.doneCallbacks.push(c) }
-  removeDoneCallback(c :DoneCallback<B>) {
-    const idx = this.doneCallbacks.indexOf(c)
-    if (idx>=0) this.doneCallbacks.splice(idx,1)
-  }
+  /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
+  protected doneCallbacks :DoneCallback[] = []
+  addDoneCallback(c :DoneCallback) { this.doneCallbacks.push(c) }
   protected done(obj :B|null) {
-    console.log('Done Editing', obj)
     if (obj) {
-      if (this.targetIdx>=0 && this.targetIdx<this.targetArray.length)
-        this.targetArray[this.targetIdx] = obj
-      else
+      if (this.targetIdx<0)
         this.targetArray.push(obj)
-    }
-    this.doneCallbacks.forEach(c => c(obj))
+      else {
+        assert(this.targetIdx<this.targetArray.length)
+        this.targetArray[this.targetIdx] = obj
+      }
+      this.doneCallbacks.forEach(c => c(true))
+    } else
+      this.doneCallbacks.forEach(c => c(false))
     this.doneCallbacks.length = 0  // free references
   }
   /** Return an object with its fields populated from the current form state. */
   protected abstract form2obj() :B
+  //TODO: Now that isDirty invokes form2obj, this may throw an error if the object doesn't validate!
   /** Whether the current state of the form differs from the current object. */
   protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
   /** Requests to cancel the current edit in progress. */

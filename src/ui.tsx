@@ -21,32 +21,26 @@ import { assert } from './utils'
 //import * as share from './share'
 import { jsx } from './jsx-dom'
 import { tr } from './i18n'
-import { MeasTypeEditor } from './editors/meas-type'
+/*import { MeasTypeEditor } from './editors/meas-type'
 import { ListEditor } from './editors/list-edit'
-import { MeasurementType } from './types/meas-type'
+import { MeasurementType } from './types/meas-type'*/
+import { HomePage } from './editors/home'
 
 export async function init() {
   const htmlMain = document.querySelector('main')
   const navbarMain = document.getElementById('navbarMain')
   assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
 
-  /*const openProj = async (event: MouseEvent): Promise<void> => {
-    event.preventDefault()
-    const selProj = await openOrNewProject()
-    if (selProj)
-      htmlMain.replaceChildren(await projectWin(selProj))
-  }*/
-
-  //const navProjects = <a class="nav-link active" aria-current="page" href="#">Projects</a>
-  /*{navProjects}*/
   navbarMain.appendChild(<div class="navbar-nav">
     <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#aboutDialog" onclick={(e:Event)=>e.preventDefault()}>{tr('About')}</a>
   </div>)
-  //navProjects.addEventListener('click', openProj)
 
-  htmlMain.appendChild( new ListEditor([
+  const home = new HomePage()
+  htmlMain.appendChild(home.el)
+
+  /*htmlMain.appendChild( new ListEditor([
     new MeasurementType({ name:'Hello', unit:'cm' }), new MeasurementType({ name:'World', unit:'ml' })
-  ], MeasTypeEditor).el )
+  ], MeasTypeEditor).el )*/
 }
 
 /*export async function test() {

@@ -100,13 +100,16 @@ const translations = {
 
   // types
   'Sampling Trip': ['Messfahrt'],
+  'Sampling Trips': ['Messfahrten'],
   'Sampling Trip Template': ['Messfahrt-Vorlage'],
   'Sampling Location': ['Messpunkt'],
+  'Sampling Locations': ['Messpunkte'],
   'Sampling Location Template': ['Messpunkt-Vorlage'],
   'Sample': ['Probe'],
   'Template Sample': ['Vorlage für Probe'],
   'Measurement': ['Messung'],
   'Measurement Type': ['Messtyp'],
+  'Measurement Types': ['Messtypen'],
   'Coordinates': ['Koordinaten'],
   'sampling-locations': [
     { zero: 'keine Messpunkte', one: 'ein Messpunkt', other: '%{count} Messpunkte' },

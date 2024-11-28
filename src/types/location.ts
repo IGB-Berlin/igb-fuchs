@@ -149,6 +149,8 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
+export function isISamplingLocationTemplateArray(a :unknown) :a is ISamplingLocationTemplate[] {
+  return Array.isArray(a) && a.every(o => isISamplingLocationTemplate(o)) }
 
 export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {
   name :string

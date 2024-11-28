@@ -49,6 +49,8 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
   return true
 }
+export function isISamplingTripArray(a :unknown) :a is ISamplingTrip[] {
+  return Array.isArray(a) && a.every(o => isISamplingTrip(o)) }
 
 /** Records an entire sampling trip. */
 export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {
@@ -155,6 +157,8 @@ export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate 
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
+export function isISamplingTripTemplateArray(a :unknown) :a is ISamplingTripTemplate[] {
+  return Array.isArray(a) && a.every(o => isISamplingTripTemplate(o)) }
 
 export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplate, SamplingTrip> implements ISamplingTripTemplate {
   name :string

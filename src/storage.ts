@@ -17,25 +17,28 @@
  */
 import { assert } from './utils'
 
-// VALID_KEY_RE.source is used as <input type="text" pattern={VALID_KEY_RE.source} /> where the backslash is required
-// eslint-disable-next-line no-useless-escape
-export const VALID_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/
 const PREFIX = 'IGB-Field'
+export const MEAS_TYPES = 'measurement-types'
+export const SAMP_TRIPS = 'sampling-trips'
+export const TRIP_TEMPLATES = 'trip-templates'
+export const LOC_TEMPLATES = 'location-templates'
 
-function path2key(path :string[]) {
-  path.forEach(p => { if (!p.match(VALID_KEY_RE)) throw new Error(`invalid path element "${p}"`) })
-  return PREFIX+'/'+path.join('/')
+function path2key(path :string|string[]) {
+  const paths = Array.isArray(path) ? path : [path]
+  paths.forEach(p => { if (p.includes('/')) throw new Error(`invalid path element "${p}"`) })
+  return PREFIX+'/'+paths.join('/')
 }
 
-export function get(path :string[]) :string|null {
+export function get(path :string|string[]) :string|null {
   return localStorage.getItem(path2key(path))
 }
 
-export function set(path :string[], value :string) :void {
+export function set(path :string|string[], value :string) :void {
   localStorage.setItem(path2key(path), value)
 }
 
-export function list(path :string[]) :string[][] {
+export function list(path :string|string[]) :string[][] {
+  //TODO: the following is likely to break now that we allow almost every key, better to just split on / and match the arrays
   const re = new RegExp(`^(${path2key(path)}/[^/]+)(?:/.+)?$`)
   const s :Set<string> = new Set()
   for (let i=0; i<localStorage.length; i++) {
