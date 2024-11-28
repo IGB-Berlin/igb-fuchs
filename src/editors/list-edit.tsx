@@ -23,6 +23,9 @@ import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
+type ChangeKind = 'edit'|'delete'|'new'
+export type ChangeCallback = (kind :ChangeKind, idx :number) => void
+
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
   constructor(stack :EditorStack, theList :Array<B>, editorClass :EditorClass<E, B>) {
@@ -71,10 +74,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       switch ( await deleteConfirmation(selItem.summaryAsHtml()) ) {
       case 'cancel': break
       case 'delete': {
-        const rv = theList.splice(selIdx, 1)
+        const delIdx = selIdx
+        const rv = theList.splice(delIdx, 1)
         assert(rv.length===1 && Object.is(selItem, rv[0]))
         redrawList()
-        this.fireChange()
+        this.fireChange('delete', delIdx)
         break }
       }
     })
@@ -85,7 +89,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         stack.pop(editor)
         if (changeMade) {
           redrawList(selIdx)
-          this.fireChange()
+          this.fireChange('edit', selIdx)
         }
       })
       stack.push(editor)
@@ -96,7 +100,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         stack.pop(editor)
         if (changeMade) {
           redrawList(theList.length-1)
-          this.fireChange()
+          this.fireChange('new', theList.length-1)
         }
       })
       stack.push(editor)
@@ -104,11 +108,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   }
   /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
   //TODO Later: Could use MutationObserver to automatically remove change callbacks when we're removed from the DOM?
-  protected changeCallbacks :(()=>void)[] = []
-  addChangeCallback(c :()=>void) { this.changeCallbacks.push(c) }
-  removeChangeCallback(c :()=>void) {
+  protected changeCallbacks :ChangeCallback[] = []
+  addChangeCallback(c :ChangeCallback) { this.changeCallbacks.push(c) }
+  removeChangeCallback(c :ChangeCallback) {
     for(let i=this.changeCallbacks.length-1;i>=0;i--)
       if (this.changeCallbacks[i]===c)
         this.changeCallbacks.splice(i,1) }
-  fireChange() { this.changeCallbacks.forEach(c => c()) }
+  fireChange(kind :ChangeKind, idx :number) { this.changeCallbacks.forEach(c => c(kind,idx)) }
 }
