@@ -77,6 +77,12 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     this.template = template
     this.validate()
   }
+  get tripId() :string {
+    if (isTimestampSet(this.startTime)) {
+      const dt = new Date(this.startTime)
+      return `${this.name} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
+    } else return this.name
+  }
   override validate() {
     validateName(this.name)
     validateTimestamp(this.startTime)

@@ -16,8 +16,8 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase } from '../types/common'
-import { deleteConfirmation } from '../misc'
 import { Editor, EditorClass } from './base'
+import { deleteConfirmation } from '../misc'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
@@ -75,23 +75,17 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     })
     btnEdit.addEventListener('click', () => {
       if (selIdx<0) return  // shouldn't happen
-      const selItem = theList[selIdx]
-      assert(selItem)
-      const editor = new editorClass(selItem, obj => {
-        console.log('Done Editing', obj)
+      const editor = new editorClass(theList, selIdx)
+      editor.addDoneCallback(() => {
         document.body.removeChild(editor.el)
-        if (obj)
-          theList[selIdx] = obj
         redrawList(selIdx)
       })
       document.body.appendChild(editor.el)
     })
     btnNew.addEventListener('click', () => {
-      const editor = new editorClass(null, obj => {
-        console.log('Done Editing', obj)
+      const editor = new editorClass(theList, -1)
+      editor.addDoneCallback(() => {
         document.body.removeChild(editor.el)
-        if (obj)
-          theList.push(obj)
         redrawList(theList.length-1)
       })
       document.body.appendChild(editor.el)  //TODO: just for debugging - implement editor stack

@@ -18,7 +18,7 @@
 import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { VALID_NAME_RE } from '../types/common'
-import { DoneCallback, Editor } from './base'
+import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
@@ -31,8 +31,8 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   protected readonly inpMax :HTMLInputElement
   protected readonly inpPrc :HTMLInputElement
   protected readonly inpNotes :HTMLTextAreaElement
-  constructor(obj :MeasurementType|null, doneCb :DoneCallback<MeasurementType>) {
-    super(obj, doneCb)
+  constructor(targetArray :MeasurementType[], idx :number) {
+    super(targetArray, idx)
     this.inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={this.obj?.name??''} />)
     this.inpUnit = safeCastElement(HTMLInputElement,

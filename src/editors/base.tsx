@@ -23,7 +23,7 @@ import { tr } from '../i18n'
 
 export type DoneCallback<B extends DataObjectBase<B>> = (obj :B|null) => void
 
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (obj :B|null, doneCb :DoneCallback<B>): E }
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E }
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   /** The HTML element holding the editor UI. */
@@ -32,14 +32,36 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract readonly form :HTMLFormElement
   /** The original object. */
   protected readonly origObj :B|null
+  protected readonly targetArray :B[]
+  protected readonly targetIdx :number
   /** The object being edited. */
   protected obj :B|null
   /** The callback to be called when the editor is done and should be closed. */
-  protected readonly doneCb :DoneCallback<B>
-  constructor(obj :B|null, doneCb :DoneCallback<B>) {
+  constructor(targetArray :B[], idx :number) {
+    this.targetArray = targetArray
+    this.targetIdx = idx
+    const obj = idx>=0 && idx<targetArray.length ? targetArray[idx] : null
+    assert(obj!==undefined)
     this.origObj = obj
     this.obj = obj ? obj.deepClone() : null
-    this.doneCb = doneCb
+  }
+  /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript. */
+  protected doneCallbacks :DoneCallback<B>[] = []
+  addDoneCallback(c :DoneCallback<B>) { this.doneCallbacks.push(c) }
+  removeDoneCallback(c :DoneCallback<B>) {
+    const idx = this.doneCallbacks.indexOf(c)
+    if (idx>=0) this.doneCallbacks.splice(idx,1)
+  }
+  protected done(obj :B|null) {
+    console.log('Done Editing', obj)
+    if (obj) {
+      if (this.targetIdx>=0 && this.targetIdx<this.targetArray.length)
+        this.targetArray[this.targetIdx] = obj
+      else
+        this.targetArray.push(obj)
+    }
+    this.doneCallbacks.forEach(c => c(obj))
+    this.doneCallbacks.length = 0  // free references
   }
   /** Return an object with its fields populated from the current form state. */
   protected abstract form2obj() :B
@@ -51,9 +73,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
-      case 'discard': this.doneCb(null); return
+      case 'discard': this.done(null); return
       }
-    else this.doneCb(null)
+    else this.done(null)
   }
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
@@ -115,7 +137,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
           if (!wasDirty)
             /* If the dirty flag wasn't set before, this means the user clicked the button a second
              * time without making changes, thereby saying they want to ignore the warnings. */
-            this.doneCb(this.obj)
+            this.done(this.obj)
           else {
             // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
             btnSubmit.setAttribute('disabled','disabled')
@@ -125,7 +147,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         else {
           btnSubmit.classList.add('btn-success')
           warnAlert.classList.add('d-none')
-          this.doneCb(this.obj)
+          this.done(this.obj)
         }
       }
     })

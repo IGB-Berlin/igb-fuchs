@@ -17,6 +17,8 @@
  */
 /*import { jsx } from '../jsx-dom'
 
+//TODO: Remember the whole stack needs to be serializable in order to restore state in case the page is closed
+
 export class EditorStack {
 
 }*/
