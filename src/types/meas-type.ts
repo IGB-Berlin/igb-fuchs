@@ -99,7 +99,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
   override templateToObject(value :number, timeNow :boolean) :Measurement {
     return new Measurement({ type: this.toJSON('type'), time: timeNow ? timestampNow() : NO_TIMESTAMP, value: value }) }
   /** Regular expression that can be used to validate measurement value inputs of this type. */
-  get validPattern() {
+  get validPattern() {  //TODO Later: see prcToStep in the meas-type editor for a potential alternative?
     const after = !Number.isFinite(this.precision)
       ? '[0-9]+'
       : this.precision===0 ? ''

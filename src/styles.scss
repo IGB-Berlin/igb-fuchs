@@ -70,3 +70,12 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
     text-align: right;
   }
 }
+
+// Inject arrows between nav-links
+.navbar-expand-sm .navbar-nav .nav-link + .nav-link {
+  padding-left: 0;
+  &::before {
+    content: '»';
+    padding-right: var(--bs-navbar-nav-link-padding-x);
+    }
+}

@@ -28,6 +28,8 @@ export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
+  /** A brief title of this editor (for navigation) */
+  abstract readonly briefTitle :string
   /** The HTML form (may or may not be the same as `el`). */
   protected abstract readonly form :HTMLFormElement
   /** The original object. */
@@ -96,7 +98,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       <p class="mb-0">{tr('editor-err-info')}</p>
     </div>
     const form = safeCastElement(HTMLFormElement,
-      <form novalidate>
+      <form novalidate class="p-3">
         <legend class="mb-3">{title}</legend>
         {contents}
         {warnAlert}
@@ -126,6 +128,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
           warnAlert.classList.add('d-none')
           errDetail.innerText = String(ex)
           errAlert.classList.remove('d-none')
+          errAlert.scrollIntoView({ behavior: 'smooth' })
           return
         }
         errAlert.classList.add('d-none')
@@ -134,6 +137,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
           btnSubmit.classList.add('btn-warning')
           warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
           warnAlert.classList.remove('d-none')
+          warnAlert.scrollIntoView({ behavior: 'smooth' })
           if (!wasDirty)
             /* If the dirty flag wasn't set before, this means the user clicked the button a second
              * time without making changes, thereby saying they want to ignore the warnings. */

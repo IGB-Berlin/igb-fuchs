@@ -18,13 +18,14 @@
 import { isIMeasurementTypeArray, MeasurementType } from '../types/meas-type'
 import { MeasTypeEditor } from './meas-type'
 import { ListEditor } from './list-edit'
+import { EditorStack } from './stack'
 import * as storage from '../storage'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 export class HomePage {
   readonly el :HTMLElement
-  constructor() {
+  constructor(stack :EditorStack) {
     let _accId = 0
     const makeAcc = (title :string, body :HTMLElement|string) =>
       <div class="accordion-item">
@@ -43,7 +44,7 @@ export class HomePage {
 
     const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
     const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
-    const mtEdit = new ListEditor(mt, MeasTypeEditor)
+    const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
     mtEdit.addChangeCallback(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)) )
 
     this.el = <div class="p-3">

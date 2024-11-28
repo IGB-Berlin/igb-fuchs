@@ -18,8 +18,9 @@
 import { I18n } from 'i18n-js'
 
 const translations = {
-  //     'English (en-US)': ['Deutsch (de-DE)'],
+  //     'English (en-US)': ['Deutsch (de-DE)'],   (but key can't contain dots!)
   // For long texts: 'key': ['Deutsch (de-DE)', 'English (en-US)'],
+  'Home': ['Hauptseite'],
   'About': ['Über'],
 
   'Cancel': ['Abbrechen'],
@@ -123,8 +124,8 @@ const translations = {
   'Trip': ['Messfahrt'],
   'Locations': ['Messpunkte'],
   'Location': ['Messpunkt'],
-  'Meas.': ['Messung'],
-  'Meas. Type': ['Messtyp'],
+  'meas': ['Messung', 'Meas.'],
+  'meas-type': ['Messtyp', 'Meas. Type'],
 
   // types problems
   'No start time': ['Keine Anfangs-Zeit'],

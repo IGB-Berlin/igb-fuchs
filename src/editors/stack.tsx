@@ -15,10 +15,54 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-/*import { jsx } from '../jsx-dom'
+import { DataObjectBase } from '../types/common'
+import { HomePage } from './home'
+import { assert } from '../utils'
+import { jsx } from '../jsx-dom'
+import { Editor } from './base'
+import { tr } from '../i18n'
 
-//TODO: Remember the whole stack needs to be serializable in order to restore state in case the page is closed
+//TODO: The whole stack with all editors needs to be serializable in order to restore state in case the page is closed
 
 export class EditorStack {
-
-}*/
+  readonly el :HTMLElement
+  protected readonly navList :HTMLElement
+  protected readonly stack :[string, HTMLElement][]
+  constructor(navbarMain :HTMLElement) {
+    const home = new HomePage(this)
+    this.el = <div>{home.el}</div>
+    this.stack = [[tr('Home'),home.el]]
+    this.navList = <div class="navbar-nav"></div>
+    navbarMain.replaceChildren(this.navList)
+    this.redrawNavbar()
+  }
+  protected redrawNavbar() {
+    this.navList.replaceChildren(
+      ...this.stack.map(([t,_e],i) => {
+        return i<this.stack.length-1
+          //TODO: Clicking on a previous item should cancel all editors up to this point (?)
+          ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
+          : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
+      }) )
+  }
+  push<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+    assert(this.stack.length)
+    const top = this.stack.at(-1)
+    assert(top)
+    top[1].classList.add('d-none')
+    this.stack.push([e.briefTitle, e.el])
+    this.el.appendChild(e.el)
+    this.redrawNavbar()
+  }
+  pop<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+    assert(this.stack.length>1)
+    const del = this.stack.pop()
+    assert(del)
+    assert(del[1]===e.el)
+    this.el.removeChild(del[1])
+    const top = this.stack.at(-1)
+    assert(top)
+    top[1].classList.remove('d-none')
+    this.redrawNavbar()
+  }
+}

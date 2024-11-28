@@ -23,6 +23,7 @@ import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   override readonly el :HTMLElement
+  override readonly briefTitle = tr('meas-type')
   protected override readonly form :HTMLFormElement
 
   protected readonly inpName :HTMLInputElement

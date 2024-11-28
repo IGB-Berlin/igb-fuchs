@@ -19,7 +19,7 @@ import { assert } from './utils'
 
 const PREFIX = 'IGB-Field'
 export const MEAS_TYPES = 'measurement-types'
-export const SAMP_TRIPS = 'sampling-trips'
+export const SAMP_TRIPS = 'sampling-trips'  //TODO: think about whether to use sub-keys, or just one big array...
 export const TRIP_TEMPLATES = 'trip-templates'
 export const LOC_TEMPLATES = 'location-templates'
 
