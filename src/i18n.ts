@@ -129,10 +129,13 @@ const translations = {
   'Templates': ['Vorlagen'],
   'Trips': ['Fahrten'],
   'Trip': ['Messfahrt'],
-  'Locations': ['Messpunkte'],
+  'trip-temp': ['Fahrt-Vorl.', 'Trip Templ.'],
   'Location': ['Messpunkt'],
+  'loc-temp': ['Messpunkt-Vorl.', 'Location Templ.'],
   'meas': ['Messung', 'Meas.'],
   'meas-type': ['Messtyp', 'Meas. Type'],
+  'Coords': ['Koord.'],
+  'samp-temp': ['Messpunkt-Vorl.', 'Sample Templ.'],
 
   // types problems
   'No start time': ['Keine Anfangs-Zeit'],

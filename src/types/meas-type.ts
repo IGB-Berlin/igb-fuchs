@@ -66,6 +66,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
   override validate(others :MeasurementType[]) {
     validateName(this.name)
     if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`${tr('Invalid unit')}: ${this.unit}`)

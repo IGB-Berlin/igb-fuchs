@@ -22,76 +22,103 @@ import { SimpleEventHub } from '../events'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E }
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E, briefTitle :string }
 
 interface DoneEvent {
   changeMade :boolean
 }
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
+
+  /** A brief title of this editor (for navigation). */
+  static readonly briefTitle :string
   /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
-  /** A brief title of this editor (for navigation) */
-  abstract readonly briefTitle :string
   /** The HTML form (may or may not be the same as `el`). */
   protected abstract readonly form :HTMLFormElement
-  /** The original object. */
-  protected readonly origObj :B|null
-  protected readonly targetArray :B[]
-  protected targetIdx :number
-  protected changeMade :boolean = false
-  /** The object being edited. */
-  protected obj :B|null
+  /** The initial object being edited: either `savedObj` (or its clone), or a newly created object. */
+  protected abstract readonly initObj :Readonly<B>
+  /** Returns an object with its fields populated from the current form state. */
+  protected abstract form2obj() :Readonly<B>
+
+  /** The array in which the object being edited resides, at `targetIdx`. */
+  private readonly targetArray :Readonly<B>[]
+  /** The index at which the object being edited resides, in `targetArray`. */
+  private targetIdx :number
+  /** Whether or not this editor has made a change to the target array.
+   *
+   * NOTE we should only set this flag, and never clear it. */
+  private changeMade :boolean = false
+  /** A reference to the object being edited in `targetArray` and `targetIdx`, or `null` if creating a new object. */
+  protected get savedObj() :Readonly<B>|null {
+    if (this.targetIdx<0) return null
+    else {
+      const obj = this.targetArray[this.targetIdx]
+      assert(obj)
+      return obj
+    }
+  }
+
+  /** The event dispatcher for this editor. */
   readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub()
-  /** The callback to be called when the editor is done and should be closed. */
+
+  /** Just a copy of the static property, so it can be accessed on both the class and instances.
+   *
+   * I should probably eventually figure out how to directly access the static property from an instance, if possible. */
+  readonly briefTitle :string
+  /** Construct a new editor.
+   *
+   * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them.
+   *
+   * @param targetArray The array in which the object to be edited lives or is to be added to.
+   * @param idx If less than zero, create a new object and push it onto the array; otherwise point to the object in the array to edit.
+   */
   constructor(targetArray :B[], idx :number) {
     assert(idx<targetArray.length)
     this.targetArray = targetArray
     this.targetIdx = idx
-    const obj = idx<0 ? null : targetArray[idx]
-    assert(obj!==undefined)
-    this.origObj = obj
-    this.obj = obj ? obj.deepClone() : null
+    this.briefTitle = Editor.briefTitle
   }
-  protected maybeFinish(action :'save'|'save-close'|'back') {
-    switch(action) {
-    case 'save':
-    case 'save-close':
-      // Is this a new object, or if not, has the user actually made changes?
-      if ( !this.origObj || !this.origObj.equals(this.obj) ) {
-        assert(this.obj)
-        if (this.targetIdx<0)
-          this.targetIdx = this.targetArray.push(this.obj) - 1
-        else {
-          assert(this.targetIdx<this.targetArray.length)
-          this.targetArray[this.targetIdx] = this.obj
-        }
-        this.changeMade = true
-      }
-      if (action==='save') return
-      break
-    case 'back':
-      break
-    }
-    this.events.fire({ changeMade: this.changeMade })
-    this.events.clear()
-  }
-  /** Return an object with its fields populated from the current form state. */
-  protected abstract form2obj() :B
-  /** Whether the current state of the form differs from the current or original object. */
-  protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
-  //TODO: this sequence doesn't ask about unsaved changes: New -> enter valid input but with warnings -> Back -> (in Dialog) Save & Close -> Back
-  /** Requests to cancel the current edit in progress; but may not actually cancel if the user aborts. */
+
+  /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
   async requestBack() {
-    // Does the form contain unsaved changes, or, if this isn't a new object, is it different from the original?
-    if (this.isDirty(false) || this.origObj && this.isDirty(true))
+    // Has the user made any changes?
+    if ( !( this.savedObj ?? this.initObj ).equals(this.form2obj()) )
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
       case 'discard': break
       }
-    this.maybeFinish('back')
+    this.doClose()
   }
+
+  /** Close out this editor.
+   *
+   * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
+  private doClose() {
+    this.events.fire({ changeMade: this.changeMade })
+    this.events.clear()
+  }
+
+  /** Save the current form to the target array, optionally closing the editor after. */
+  private doSave(andClose :boolean) {
+    const curObj = this.form2obj()
+    // Are there actually any changes to save?
+    if ( !this.savedObj ) {  // Yes, this is a new object.
+      assert(this.targetIdx<0)
+      console.debug('Pushing', curObj)
+      this.targetIdx = this.targetArray.push(curObj) - 1
+      this.changeMade = true
+    }
+    else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
+      assert( this.targetIdx>=0 && this.targetIdx<this.targetArray.length )
+      console.debug(`Saving to [${this.targetIdx}]`, curObj)
+      this.targetArray[this.targetIdx] = curObj
+      this.changeMade = true
+    }
+    if (andClose) this.doClose()
+  }
+
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
     const btnSaveClose = <button type="submit" class="btn btn-success ms-2 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
@@ -100,78 +127,72 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     const warnList = <ul></ul>
     const warnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
-      {warnList}
-      <hr />
+      {warnList} <hr />
       <p class="mb-0">{tr('editor-warn-info')}</p>
     </div>
     const errDetail = <p></p>
     const errAlert = <div class="d-none alert alert-danger" role="alert">
       <h4 class="alert-heading"><i class="bi-x-octagon"/> {tr('Error')}</h4>
-      {errDetail}
-      <hr />
+      {errDetail} <hr />
       <p class="mb-0">{tr('editor-err-info')}</p>
     </div>
     const form = safeCastElement(HTMLFormElement,
       <form novalidate class="p-3">
         <legend class="mb-3">{title}</legend>
-        {contents}
-        {warnAlert}
-        {errAlert}
-        <div class="d-flex flex-row justify-content-end flex-wrap">
-          {btnBack}
-          {btnSave}
-          {btnSaveClose}
-        </div>
+        {contents} {warnAlert} {errAlert}
+        <div class="d-flex flex-row justify-content-end flex-wrap"> {btnBack} {btnSave} {btnSaveClose} </div>
       </form>)
     btnBack.addEventListener('click', () => this.requestBack())
-    let firstSave = true
+
+    let prevSaveClickObjState :Readonly<B>|null = null
     const doSave = (andClose :boolean) => {
       form.classList.add('was-validated')
-      if (form.checkValidity()) {
-        const wasDirty = firstSave || this.isDirty(false)
-        firstSave = false
-        this.obj = this.form2obj()
-        assert(!this.isDirty(false), 'Dirty wasn\'t cleared after form2obj')
-        btnSaveClose.classList.remove('btn-success', 'btn-warning')
-        try {
-          /* Optimally, this is covered by input field validation, but there are a few cases where
-           * it can't be, e.g. when the MeasurementType's `max` is smaller than the `min`. */
-          this.obj.validate(this.targetArray.filter((_,i) => i!==this.targetIdx))
-        }
-        catch (ex) {
-          btnSaveClose.classList.add('btn-warning')
-          warnAlert.classList.add('d-none')
-          errDetail.innerText = String(ex)
-          errAlert.classList.remove('d-none')
-          errAlert.scrollIntoView({ behavior: 'smooth' })
-          return
-        }
-        errAlert.classList.add('d-none')
-        const warnings = this.obj.warningsCheck()
-        if (warnings.length) {
-          btnSaveClose.classList.add('btn-warning')
-          warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
-          warnAlert.classList.remove('d-none')
-          warnAlert.scrollIntoView({ behavior: 'smooth' })
-          if (andClose) {
-            if (!wasDirty)
-              /* If the dirty flag wasn't set before, this means the user clicked the button a second
-              * time without making changes, thereby saying they want to ignore the warnings. */
-              this.maybeFinish('save-close')
-            else {
-              // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
-              btnSaveClose.setAttribute('disabled','disabled')
-              setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
-            }
-          } else this.maybeFinish('save')
-        }
-        else {
-          btnSaveClose.classList.add('btn-success')
-          warnAlert.classList.add('d-none')
-          this.maybeFinish( andClose ? 'save-close' : 'save' )
-        }
+      if (!form.checkValidity()) return
+      const curObj = this.form2obj()
+      btnSaveClose.classList.remove('btn-success', 'btn-warning')
+      try {
+        /* There are a few cases that aren't covered by the form validation, for example:
+          * - when the MeasurementType's `max` is smaller than the `min`
+          * - duplicate `name` properties */
+        curObj.validate( this.targetArray.filter((_,i) => i!==this.targetIdx) )
       }
-    }
+      catch (ex) {
+        btnSaveClose.classList.add('btn-warning')
+        warnAlert.classList.add('d-none')
+        errDetail.innerText = String(ex)
+        errAlert.classList.remove('d-none')
+        errAlert.scrollIntoView({ behavior: 'smooth' })
+        prevSaveClickObjState = null
+        return
+      }  // else, there were no validation errors
+      errAlert.classList.add('d-none')
+      // so next, check warnings
+      const warnings = curObj.warningsCheck()
+      if (warnings.length) {
+        btnSaveClose.classList.add('btn-warning')
+        warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
+        warnAlert.classList.remove('d-none')
+        warnAlert.scrollIntoView({ behavior: 'smooth' })
+        if (andClose) {  // Button "Save & Close"
+          // Did the user click the "Save & Close" button a second time without making changes?
+          if (curObj.equals(prevSaveClickObjState))
+            this.doSave(true)
+          else { // otherwise, "Save & Close" wasn't clicked before, or there were changes made since the last click
+            // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
+            btnSaveClose.setAttribute('disabled','disabled')
+            setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
+          }
+        } else  // Button "Save"
+          this.doSave(false)
+      }
+      else {  // no warnings
+        btnSaveClose.classList.add('btn-success')
+        warnAlert.classList.add('d-none')
+        this.doSave(andClose)
+      }
+      prevSaveClickObjState = curObj
+    } // end of doSave
+
     btnSave.addEventListener('click', () => doSave(false))
     form.addEventListener('submit', event => {
       event.preventDefault()
@@ -180,6 +201,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     })
     return form
   }
+
   /** Helper function to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
   protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement,

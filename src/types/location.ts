@@ -83,6 +83,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.photos = o && 'photos' in o ? o.photos : []
     this.template = template
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
   override validate(others :SamplingLocation[]) {
     validateName(this.name)
     validateTimestamp(this.startTime)
@@ -169,6 +170,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
     this.samples = o ? o.samples.map(s => new SampleTemplate(s)) : []
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
   override validate(others :SamplingLocationTemplate[]) {
     validateName(this.name)
     this.nomCoords.validate([])

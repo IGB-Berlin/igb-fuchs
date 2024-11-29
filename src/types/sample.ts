@@ -58,6 +58,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.template = template
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample':'Sample') }
   override validate(_others :Sample[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
   override summaryDisplay() :[string,string] {
@@ -109,6 +110,7 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
     this.type = o?.type ?? 'undefined'
     this.measurementTypes = o ? o.measurementTypes.map(m => new MeasurementType(m)) : []
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Template Sample':'samp-temp') }
   override validate(_others :SampleTemplate[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
   override summaryDisplay() :[string,string] {

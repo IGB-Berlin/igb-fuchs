@@ -18,6 +18,8 @@
 import { tr } from '../i18n'
 
 export abstract class DataObjectBase<B extends DataObjectBase<B>> {
+  /** Return the display name of this type. */
+  abstract typeName(kind :'full'|'short') :string
   /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description */
   abstract toJSON(_key :string) :object
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
@@ -34,19 +36,24 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> {
    */
   abstract deepClone() :B
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
-  summaryAsHtml() :HTMLElement {
-    const div = document.createElement('div')
+  summaryAsHtml(withTypeName :boolean) :HTMLElement {
     const [pri,sub] = this.summaryDisplay()
+    const div = document.createElement('div')
+    div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
+    if (withTypeName) {
+      const n = document.createElement('div')
+      n.innerText = this.typeName('full')+':'
+      div.appendChild(n)
+    }
+    const one = document.createElement('div')
+    one.innerText = pri
+    div.appendChild(one)
     if (sub) {
-      div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
-      const one = document.createElement('div')
-      one.innerText = pri
-      div.appendChild(one)
       const two = document.createElement('div')
       two.classList.add('text-body-secondary')
       two.innerText = sub
       div.appendChild(two)
-    } else div.innerText = pri
+    }
     return div
   }
 }

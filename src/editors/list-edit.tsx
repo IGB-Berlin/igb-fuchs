@@ -62,7 +62,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       btnEdit.setAttribute('disabled', 'disabled')
       els.length = theList.length
       if (theList.length)
-        theList.forEach((item,i) => els[i]=<li class="list-group-item" onclick={() => selectItem(i)}>{item.summaryAsHtml()}</li> )
+        theList.forEach((item,i) => els[i]=<li class="list-group-item" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
       else
         els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
@@ -75,12 +75,12 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       if (selIdx<0) return  // shouldn't happen
       const selItem = theList[selIdx]
       assert(selItem)
-      switch ( await deleteConfirmation(selItem.summaryAsHtml()) ) {
+      switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
         const delIdx = selIdx
         const rv = theList.splice(delIdx, 1)
-        assert(rv.length===1 && Object.is(selItem, rv[0]))
+        assert(rv.length===1 && selItem === rv[0])
         redrawList()
         this.events.fire({ kind: 'delete', idx: delIdx })
         break }

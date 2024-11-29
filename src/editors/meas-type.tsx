@@ -22,9 +22,10 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
+  static override readonly briefTitle = tr('meas-type')
   override readonly el :HTMLElement
-  override readonly briefTitle = tr('meas-type')
   protected override readonly form :HTMLFormElement
+  protected override readonly initObj :Readonly<MeasurementType>
 
   protected readonly inpName :HTMLInputElement
   protected readonly inpUnit :HTMLInputElement
@@ -34,17 +35,17 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   protected readonly inpNotes :HTMLTextAreaElement
   constructor(targetArray :MeasurementType[], idx :number) {
     super(targetArray, idx)
-    if (!this.obj) this.obj = new MeasurementType(null)
+    this.initObj = this.savedObj ? this.savedObj.deepClone() : new MeasurementType(null)
     this.inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.obj.name} />)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.obj.unit} />)
+      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
     this.inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj.min} step="1" />)
+      <input type="number" value={this.initObj.min} step="1" />)
     this.inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj.max} step="1" />)
+      <input type="number" value={this.initObj.max} step="1" />)
     this.inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.obj.precision} min="0" step="1" />)
+      <input type="number" value={this.initObj.precision} min="0" step="1" />)
     const prcToStep = () => {
       const p = this.inpPrc.valueAsNumber
       if (Number.isFinite(p) && p>=0) {
@@ -56,7 +57,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     this.inpPrc.addEventListener('change', prcToStep)
     prcToStep()
     this.inpNotes = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.obj.notes.trim()}</textarea>)
+      <textarea rows="3">{this.initObj.notes.trim()}</textarea>)
     this.el = this.form = this.makeForm(tr('Measurement Type'), [
       this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),

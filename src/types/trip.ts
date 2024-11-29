@@ -78,6 +78,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     this.locations = o ? o.locations.map(l => new SamplingLocation(l, null)) : []
     this.template = template
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
   get tripId() :string {
     if (isTimestampSet(this.startTime)) {
       const dt = new Date(this.startTime)
@@ -175,6 +176,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
     this.commonSamples = o ? o.commonSamples.map(s => new SampleTemplate(s)) : []
   }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
   override validate(others :SamplingTripTemplate[]) {
     validateName(this.name)
     if (others.some(o => o.name === this.name))
