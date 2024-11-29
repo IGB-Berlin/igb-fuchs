@@ -120,10 +120,16 @@ const translations = {
   'unsaved-changes': [
     'Die Eingaben wurden noch nicht gespeichert.',
     'The changes were not yet saved.'],
+  'cannot-undo-discard': [
+    'Verworfene Änderungen können nicht wiederhergestellt werden!',
+    'Discarded changes cannot be recovered!' ],
   'Confirm Deletion': ['Löschen Bestätigen'],
   'confirm-delete': [
     'Diese Daten wirklich löschen?',
     'Really delete this data?' ],
+  'cannot-undo-delete': [
+    'Gelöschte Daten können nicht wiederhergestellt werden!',
+    'Deleted data cannot be recovered!' ],
 
   // other
   'Error: No Storage Available': ['Fehler: Kein Speicher verfügbar'],

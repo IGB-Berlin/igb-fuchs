@@ -52,6 +52,7 @@ export function unsavedChangesQuestion(saveBtnLabel :string = tr('Save')) :Promi
         </div>
         <div class="modal-body">
           <p><strong>{tr('unsaved-changes')}</strong></p>
+          <p class="mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='discard'}>
@@ -90,6 +91,7 @@ export function deleteConfirmation(desc :string|HTMLElement) :Promise<DeletionCo
         <div class="modal-body">
           <p><strong>{tr('confirm-delete')}</strong></p>
           { desc ? <p>{desc}</p> : '' }
+          <p class="mb-0 fw-bold text-warning">{tr('cannot-undo-delete')}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='delete'}>
