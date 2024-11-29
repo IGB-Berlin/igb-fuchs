@@ -110,14 +110,10 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
   }
   override templateToObject(value :number, timeNow :boolean) :Measurement {
     return new Measurement({ type: this.toJSON('type'), time: timeNow ? timestampNow() : NO_TIMESTAMP, value: value }) }
-  /** Regular expression that can be used to validate measurement value inputs of this type. */
-  get validPattern() {  //TODO Later: see prcToStep in the meas-type editor for a potential alternative?
-    const after = !Number.isFinite(this.precision)
-      ? '[0-9]+'
-      : this.precision===0 ? ''
-        : this.precision===1 ? '[0-9]'
-          : `[0-9]{1,${this.precision}}`
-    return after.length ? `^[\\-\\+]?(?:[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?[0-9]+$'
+  /** Return a step value ("1", "0.1", "0.01", etc.) either for the precision specified in the argument, or using this object's precision. */
+  precisionAsStep(pr ?:number) :string|undefined {
+    const p = pr===undefined ? this.precision : pr
+    return Number.isFinite(p) && p>=0 ? ( p ? '0.'+('1'.padStart(p,'0')) : '1' ) : undefined
   }
   override deepClone() :MeasurementType { return new MeasurementType(this.toJSON('')) }
 }

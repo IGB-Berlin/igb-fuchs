@@ -19,11 +19,6 @@ import { jsx, safeCastElement } from './jsx-dom'
 import * as bootstrap from 'bootstrap'
 import { assert } from './utils'
 
-/* TODO:
- * https://developer.mozilla.org/en-US/docs/Web/API/ImageCapture
- * https://www.dynamsoft.com/codepool/take-high-resolution-photo-in-the-browser.html
- */
-
 export function takePicture() :Promise<Blob|null> {
   const errMsg = <p className="mb-0">Unknown error</p>
   const videoAlert = <div className="alert alert-warning d-none" role="alert">
@@ -79,7 +74,7 @@ export function takePicture() :Promise<Blob|null> {
   }
   const playVideo = async () => {
     try {
-      //TODO: need to do navigator.mediaDevices.getSupportedConstraints() ?
+      // need to do navigator.mediaDevices.getSupportedConstraints() ?
       video.srcObject = await navigator.mediaDevices.getUserMedia(
         { video: { facingMode: 'environment' }, audio: false })
       await video.play()

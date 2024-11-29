@@ -47,12 +47,8 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     this.inpPrc = safeCastElement(HTMLInputElement,
       <input type="number" value={this.initObj.precision} min="0" step="1" />)
     const prcToStep = () => {
-      const p = this.inpPrc.valueAsNumber
-      if (Number.isFinite(p) && p>=0) {
-        const s = p ? '0.'+('1'.padStart(p,'0')) : '1'
-        this.inpMin.step = s
-        this.inpMax.step = s
-      }
+      const s = this.initObj.precisionAsStep(this.inpPrc.valueAsNumber)
+      if (s) { this.inpMin.step = s; this.inpMax.step = s }
     }
     this.inpPrc.addEventListener('change', prcToStep)
     prcToStep()
@@ -61,9 +57,9 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     this.el = this.form = this.makeForm(tr('Measurement Type'), [
       this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
+      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
       this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
       this.makeRow(this.inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
-      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
       this.makeRow(this.inpNotes, tr('Notes'), tr('notes-help'), null)
     ])
   }

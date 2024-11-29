@@ -23,7 +23,7 @@ import { assert } from '../utils'
 
 const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
-  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',  //TODO Later: should this be freeform instead?
+  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',
 ] as const
 
 type SampleType = typeof sampleTypes[number]

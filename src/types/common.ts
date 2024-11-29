@@ -90,7 +90,6 @@ export function dataSetsEqual<T extends DataObjectBase<T>>(a :T[], b :T[]) :bool
 // The backslash is required when RE.source is used as <input type="text" pattern={...} />
 // eslint-disable-next-line no-useless-escape
 export const VALID_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9\.,\-_\(\)\u0020ÄäÜüÖöß]*[a-zA-Z0-9\.,\-_\(\)ÄäÜüÖöß]$/u
-//TODO Later: how to ensure that names have translations? (same goes for Sample.type)
 export function validateName(s :string) {
   if (!s.match(VALID_NAME_RE)) throw new Error(`${tr('Invalid name')}: ${s}`) }
 
