@@ -23,9 +23,9 @@ import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-interface DoneEvent {
-  changeMade :boolean
-}
+type EditorEvent =
+    { type: 'save' }
+  | { type: 'close' }
 
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
   new (stack :EditorStack, targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
@@ -41,7 +41,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   abstract readonly el :HTMLElement
   /** The HTML form (may or may not be the same as `el`). */
   protected abstract readonly form :HTMLFormElement
-  /** The initial object being edited: either `savedObj` (or its clone), or a newly created object. */
+  /** The initial object being edited: either `savedObj`, or a newly created object.
+   *
+   * This exists because when creating a new object, this base class cannot create new objects,
+   * so this base class has to leave it up to the actual implementations to do so. */
   protected abstract readonly initObj :Readonly<B>
   /** Returns an object with its fields populated from the current form state. */
   protected abstract form2obj :()=>Readonly<B>
@@ -51,10 +54,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   private readonly targetArray :Readonly<B>[]
   /** The index at which the object being edited resides, in `targetArray`. */
   private targetIdx :number
-  /** Whether or not this editor has made a change to the target array.
-   *
-   * NOTE we should only set this flag, and never clear it. */
-  private changeMade :boolean = false
   /** A reference to the object being edited in `targetArray` and `targetIdx`, or `null` if creating a new object. */
   protected get savedObj() :Readonly<B>|null {
     if (this.targetIdx<0) return null
@@ -66,7 +65,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** The event dispatcher for this editor. */
-  readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub(true)
+  readonly events :SimpleEventHub<EditorEvent> = new SimpleEventHub(true)
 
   /** Helper to get the static property from an instance. */
   get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
@@ -112,7 +111,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *
    * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
   private doClose() {
-    this.events.fire({ changeMade: this.changeMade })
+    this.events.fire({ type: 'close' })
     this.stack.pop(this)
     this.events.clear()
   }
@@ -125,13 +124,13 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       assert(this.targetIdx<0)
       console.debug('Appending', curObj)
       this.targetIdx = this.targetArray.push(curObj) - 1
-      this.changeMade = true
+      this.events.fire({ type: 'save' })
     }
     else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
       assert( this.targetIdx>=0 && this.targetIdx<this.targetArray.length )
       console.debug(`Saving to [${this.targetIdx}]`, curObj)
       this.targetArray[this.targetIdx] = curObj
-      this.changeMade = true
+      this.events.fire({ type: 'save' })
     }
     else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     if (andClose) this.doClose()
@@ -185,6 +184,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       }  // else, there were no validation errors
       errAlert.classList.add('d-none')
       // so next, check warnings
+      console.debug('Warnings check on object, is it new?', !this.savedObj)  //TODO: pass to warningsCheck?
       const warnings = curObj.warningsCheck()
       if (warnings.length) {
         btnSaveClose.classList.add('btn-warning')

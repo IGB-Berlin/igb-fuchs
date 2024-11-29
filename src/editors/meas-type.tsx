@@ -31,23 +31,23 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
 
   constructor(stack :EditorStack, targetArray :MeasurementType[], idx :number) {
     super(stack, targetArray, idx)
-    this.initObj = this.savedObj ? this.savedObj.deepClone() : new MeasurementType(null)
+    const obj = this.initObj = this.savedObj ? this.savedObj : new MeasurementType(null)
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
+      <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
     const inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.min} step="1" />)
+      <input type="number" value={obj.min} step="1" />)
     const inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.max} step="1" />)
+      <input type="number" value={obj.max} step="1" />)
     const inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.precision} min="0" step="1" />)
+      <input type="number" value={obj.precision} min="0" step="1" />)
     const inpNotes = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.initObj.notes.trim()}</textarea>)
+      <textarea rows="3">{obj.notes.trim()}</textarea>)
 
     const prcToStep = () => {
-      const s = this.initObj.precisionAsStep(inpPrc.valueAsNumber)
+      const s = obj.precisionAsStep(inpPrc.valueAsNumber)
       if (s) { inpMin.step = s; inpMax.step = s }
     }
     inpPrc.addEventListener('change', prcToStep)

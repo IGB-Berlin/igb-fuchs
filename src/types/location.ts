@@ -97,10 +97,10 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
-    if (this.samples.length) rv.push(tr('No samples'))
+    if (!this.samples.length) rv.push(tr('No samples'))
     const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
     if (distM > MAX_NOM_ACT_DIST_M)
-      rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m>${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+      rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
     return rv.concat( this.samples.flatMap(s => s.warningsCheck()) )
   }
   override summaryDisplay() :[string,string] {

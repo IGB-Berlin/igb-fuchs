@@ -65,6 +65,11 @@ const translations = {
     'Dieser Name wird bereits verwendet',
     'This name is already being used' ],
 
+  // list editor
+  'list-editor-disabled-new': [
+    'Bitte zunächst speichern, um hier Änderungen zu ermöglichen.',
+    'Please first save to allow changes here.' ],
+
   // editor: meas-type
   'meas-name-help': [
     'Beispiele: "Temperature", "ph", "Leitfähigkeit" bzw. "Conductivity", "O2 relative", usw.',

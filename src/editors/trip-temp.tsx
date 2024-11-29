@@ -33,22 +33,30 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
   constructor(stack :EditorStack, targetArray :SamplingTripTemplate[], idx :number) {
     super(stack, targetArray, idx)
-    this.initObj = this.savedObj ? this.savedObj.deepClone() : new SamplingTripTemplate(null)
+    const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.initObj.description.trim()}</textarea>)
+      <textarea rows="3">{obj.description.trim()}</textarea>)
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    /* TODO: How to cause list edit events to be propagated to parent and saved?
-     * We want changes made in the ListEditor to be saved immediately, and since those
-     * edits require the user to click a "Save" button, that makes sense too.
-     * However, currently, almost every editor works with object deepClone()s.
+    const locEdit = new ListEditor(stack, obj.locations, LocationTemplateEditor, locArgs)
+    // Propagate change events to parents (important so save is triggered!)
+    locEdit.events.add(event => {
+      console.debug('TripTemplateEditor got ListEditor<LocationTemplateEditor> event', event.kind)
+      this.events.fire({ type: 'save' })
+    })
+    /* If this is a new object we are currently editing, it won't have been saved to its
+     * target array, so any changes to any arrays it holds (like in this case the .locations[])
+     * won't be saved either. So, to prevent users from being able to build large object
+     * trees without them ever being saved, we require this current object to be saved
+     * before allowing edits to its arrays.
+     *
+     * TODO Later: The warning "No sampling locations in this template" should be suppressed for the first save.
      */
-    const locations = Array.from(this.initObj.locations)
-    const locEdit = new ListEditor(stack, locations, LocationTemplateEditor, locArgs)
-    //locEdit.events.add(() => ...)
+    locEdit.updateEnable(!!this.savedObj)
+    this.events.add(event => { if (event.type==='save') locEdit.updateEnable(!!this.savedObj) })
     //TODO: "New from template" button
 
     //TODO: commonSamples[]
@@ -60,7 +68,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     ])
 
     this.form2obj = () => new SamplingTripTemplate({ name: inpName.value, description: inpDesc.value.trim(),
-      locations: locations, commonSamples: [] })
+      locations: obj.locations, commonSamples: [] })
 
     this.open()
   }

@@ -51,12 +51,14 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
     const c = new Wgs84Coordinates(coord)
     try {
       c.validate([])
+      // No error thrown: These are valid coords, so enable the maps link:
       //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       // https://developers.google.com/maps/documentation/urls/get-started#search-action
       mapLink.href = `https://www.google.com/maps/search/?api=1&query=${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       mapLink.removeEventListener('click', preventClick)
     }
-    catch (_) {
+    catch (_) {  // These are not valid coords, disable the maps link
+      mapLink.href = '#'
       mapLink.addEventListener('click', preventClick)
       return
     }

@@ -124,7 +124,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
-    if (this.locations.length) rv.push(tr('No sampling locations'))
+    if (!this.locations.length) rv.push(tr('No sampling locations'))
     return rv.concat( this.locations.flatMap(l => l.warningsCheck()) )
   }
   override extractTemplate() :SamplingTripTemplate {

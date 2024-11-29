@@ -64,7 +64,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     if (Number.isFinite(this.value)) {
       if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
       if (Number.isFinite(this.type.max) && this.value > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)
-      if (Number.isFinite(this.type.precision)) { /* can't check this here since it applies to `string` inputs - check via input box pattern */ }
+      if (Number.isFinite(this.type.precision)) { /* can't check this here since it applies to `string` inputs - rely on form validation */ }
     } else rv.push(tr('No measurement value'))
     return rv
   }

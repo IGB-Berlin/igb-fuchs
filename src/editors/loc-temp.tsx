@@ -39,15 +39,15 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
   constructor(stack :EditorStack, targetArray :SamplingLocationTemplate[], idx :number, args_ ?:object) {
     super(stack, targetArray, idx)
-    this.initObj = this.savedObj ? this.savedObj.deepClone() : new SamplingLocationTemplate(null)
+    const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingLocationTemplate(null)
     const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    const nomCoords = this.initObj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.initObj.description.trim()}</textarea>)
+      <textarea rows="3">{obj.description.trim()}</textarea>)
     if (args.showSampleList) {
       //TODO: samples[]
     }

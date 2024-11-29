@@ -31,7 +31,10 @@ function makeTripTempListEditor(stack :EditorStack) {
   const _tt :unknown = JSON.parse( storage.get(storage.TRIP_TEMPLATES) ?? '[]' )
   const tt :SamplingTripTemplate[] = isISamplingTripTemplateArray(_tt) ? _tt.map(t => new SamplingTripTemplate(t)) : []
   const ttEdit = new ListEditor(stack, tt, TripTemplateEditor)
-  ttEdit.events.add(() => storage.set(storage.TRIP_TEMPLATES, JSON.stringify(tt)))
+  ttEdit.events.add(event => {
+    console.log(`SAVING Sampling Trip Templates (from ListEditor<TripTemplateEditor> event ${event.kind})`)
+    storage.set(storage.TRIP_TEMPLATES, JSON.stringify(tt))
+  })
   return ttEdit
 }
 
@@ -40,7 +43,10 @@ function makeLocTempListEditor(stack :EditorStack) {
   const lt :SamplingLocationTemplate[] = isISamplingLocationTemplateArray(_lt) ? _lt.map(l => new SamplingLocationTemplate(l)) : []
   const args :LocationTemplateEditorArgs = { showSampleList: false }
   const ltEdit = new ListEditor(stack, lt, LocationTemplateEditor, args)
-  ltEdit.events.add(() => storage.set(storage.LOC_TEMPLATES, JSON.stringify(lt)))
+  ltEdit.events.add(event => {
+    console.log(`SAVING Sampling Location Templates (from ListEditor<LocationTemplateEditor> event ${event.kind})`)
+    storage.set(storage.LOC_TEMPLATES, JSON.stringify(lt))
+  })
   return ltEdit
 }
 
@@ -48,7 +54,10 @@ function makeMeasTypeListEditor(stack :EditorStack) {
   const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
   const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
   const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
-  mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
+  mtEdit.events.add(event => {
+    console.log(`SAVING Measurement Types (from ListEditor<MeasTypeEditor> event ${event.kind})`)
+    storage.set(storage.MEAS_TYPES, JSON.stringify(mt))
+  })
   return mtEdit
 }
 
