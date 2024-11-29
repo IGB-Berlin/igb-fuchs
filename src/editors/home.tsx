@@ -23,10 +23,19 @@ import * as storage from '../storage'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
+function makeMeasTypeListEditor(stack :EditorStack) {
+  const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
+  const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
+  const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
+  mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
+  return mtEdit
+}
+
+let _accId = 0
+
 export class HomePage {
   readonly el :HTMLElement
   constructor(stack :EditorStack) {
-    let _accId = 0
     const makeAcc = (title :string, body :HTMLElement|string) =>
       <div class="accordion-item">
         <h2 class="accordion-header">
@@ -42,10 +51,7 @@ export class HomePage {
         </div>
       </div>
 
-    const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
-    const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
-    const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
-    mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
+    const mtEdit = makeMeasTypeListEditor(stack)
 
     this.el = <div class="p-3">
       <div class="accordion" id="homeAccordion">
