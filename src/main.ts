@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { CAN_LOCAL_STORAGE } from './utils'
+import { CAN_LOCAL_STORAGE } from './storage'
 import * as misc from './misc'
 import * as ui from './ui'
 

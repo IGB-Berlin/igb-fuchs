@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { assert } from './utils'
 
 const PREFIX = 'IGB-Field'
 export const MEAS_TYPES = 'measurement-types'
@@ -23,11 +22,13 @@ export const SAMP_TRIPS = 'sampling-trips'  //TODO: think about whether to use s
 export const TRIP_TEMPLATES = 'trip-templates'
 export const LOC_TEMPLATES = 'location-templates'
 
-function path2key(path :string|string[]) {
-  const paths = Array.isArray(path) ? path : [path]
+function path2keys(path :string|string[]) {
+  const paths = Array.isArray(path) ? [PREFIX].concat(path) : [PREFIX, path]
   paths.forEach(p => { if (p.includes('/')) throw new Error(`invalid path element "${p}"`) })
-  return PREFIX+'/'+paths.join('/')
+  return paths
 }
+const path2key = (path :string|string[]) => path2keys(path).join('/')
+const key2paths = (key :string|null) => key ? key.split('/') : []
 
 export function get(path :string|string[]) :string|null {
   return localStorage.getItem(path2key(path))
@@ -38,18 +39,28 @@ export function set(path :string|string[], value :string) :void {
 }
 
 export function list(path :string|string[]) :string[][] {
-  //TODO: the following is likely to break now that we allow almost every key, better to just split on / and match the arrays
-  const re = new RegExp(`^(${path2key(path)}/[^/]+)(?:/.+)?$`)
-  const s :Set<string> = new Set()
+  const sp = path2keys(path)
+  const rv :string[][] = []
   for (let i=0; i<localStorage.length; i++) {
-    const key = localStorage.key(i)
-    assert(key)
-    const m = key.match(re)
-    if (m) {
-      const k = m[1]
-      assert(k)
-      s.add(k)
+    const p = key2paths(localStorage.key(i))
+    if (p.length===sp.length+1) {
+      if (sp.every((s,i) => s===p[i]))
+        rv.push(p)
     }
   }
-  return Array.from(s.values()).sort().map(k => k.split('/'))
+  return rv
 }
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API#testing_for_availability
+export const CAN_LOCAL_STORAGE :boolean = (() => {
+  let storage :Storage|undefined
+  try {
+    storage = window['localStorage']
+    const x = '__storage_test__'
+    storage.setItem(x, x)
+    storage.removeItem(x)
+    return true
+  } catch (e) {
+    return !!( e instanceof DOMException && e.name === 'QuotaExceededError' && storage && storage.length>0 )
+  }
+})()
