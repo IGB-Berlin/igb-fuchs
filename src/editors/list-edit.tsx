@@ -16,8 +16,8 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase } from '../types/common'
+import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
-import { deleteConfirmation } from '../misc'
 import { SimpleEventHub } from '../events'
 import { EditorStack } from './stack'
 import { assert } from '../utils'

@@ -16,7 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CAN_LOCAL_STORAGE } from './storage'
-import * as misc from './misc'
+import * as misc from './dialogs'
 import * as ui from './ui'
 
 if (module.hot) module.hot.accept()  // for the parcel development environment

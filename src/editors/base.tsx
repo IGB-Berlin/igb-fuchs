@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { unsavedChangesQuestion } from '../dialogs'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { unsavedChangesQuestion } from '../misc'
 import { DataObjectBase } from '../types/common'
 import { SimpleEventHub } from '../events'
 import { EditorStack } from './stack'
