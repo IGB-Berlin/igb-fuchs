@@ -45,7 +45,7 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
     this.wgs84lat = o?.wgs84lat ?? NaN
     this.wgs84lon = o?.wgs84lon ?? NaN
   }
-  override validate() {
+  override validate(_others :Wgs84Coordinates[]) {
     if (!( Number.isFinite(this.wgs84lat) && this.wgs84lat >=  -90 && this.wgs84lat <=  90 ))
       throw new Error(`${tr('invalid-latitude')}: ${this.wgs84lat}`)
     if (!( Number.isFinite(this.wgs84lon) && this.wgs84lon >= -180 && this.wgs84lon <= 180 ))

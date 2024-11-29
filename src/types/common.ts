@@ -21,7 +21,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> {
   /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description */
   abstract toJSON(_key :string) :object
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
-  abstract validate() :void
+  abstract validate(others :B[]) :void
   /** Returns a list of warnings on the object. */
   abstract warningsCheck() :string[]
   /** Returns a summary of this object, e.g. for display in a list. */

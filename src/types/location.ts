@@ -83,12 +83,14 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.photos = o && 'photos' in o ? o.photos : []
     this.template = template
   }
-  override validate() {
+  override validate(others :SamplingLocation[]) {
     validateName(this.name)
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
-    this.nomCoords.validate()  // b/c the coords don't have their own Editor
-    this.actCoords.validate()
+    this.nomCoords.validate([])  // b/c the coords don't have their own Editor
+    this.actCoords.validate([])
+    if (others.some(o => o.name === this.name))
+      throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override warningsCheck() {
     const rv :string[] = []
@@ -167,9 +169,11 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
     this.samples = o ? o.samples.map(s => new SampleTemplate(s)) : []
   }
-  override validate() {
+  override validate(others :SamplingLocationTemplate[]) {
     validateName(this.name)
-    this.nomCoords.validate()
+    this.nomCoords.validate([])
+    if (others.some(o => o.name === this.name))
+      throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override warningsCheck() { return [] }
   override summaryDisplay() :[string,string] {

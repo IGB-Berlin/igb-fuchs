@@ -24,6 +24,7 @@ const translations = {
   'About': ['Über'],
 
   'Cancel': ['Abbrechen'],
+  'Back': ['Zurück'],
   'Edit': ['Bearbeiten'],
   'Delete': ['Löschen'],
   'New': ['Neu'],
@@ -169,6 +170,9 @@ const translations = {
   'meas-below-min': [
     'Der Messwert liegt unter dem Minimalwert',
     'The measurement value is below the minimum' ],
+  'duplicate-trip-id': [
+    'Es existiert bereits eine Messfahrt mit diesem Namen an demselben Anfangs-Datum. Bitte den Messfahrt-Namen ergänzen, um diese zwei Messfahrten zu unterscheiden.',
+    'There is already a sampling trip with this name on the same start date. Please modify the sampling trip\'s name to differentiate these two sampling trips.' ],
 
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Nicht aufgezeichnet', 'Not recorded'],

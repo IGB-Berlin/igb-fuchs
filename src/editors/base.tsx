@@ -53,7 +53,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.origObj = obj
     this.obj = obj ? obj.deepClone() : null
   }
-  protected maybeFinish(action :'save'|'save-close'|'cancel') {
+  protected maybeFinish(action :'save'|'save-close'|'back') {
     switch(action) {
     case 'save':
     case 'save-close':
@@ -70,7 +70,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       }
       if (action==='save') return
       break
-    case 'cancel':
+    case 'back':
       break
     }
     this.events.fire({ changeMade: this.changeMade })
@@ -80,8 +80,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract form2obj() :B
   /** Whether the current state of the form differs from the current or original object. */
   protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
+  //TODO: this sequence doesn't ask about unsaved changes: New -> enter valid input but with warnings -> Back -> (in Dialog) Save & Close -> Back
   /** Requests to cancel the current edit in progress; but may not actually cancel if the user aborts. */
-  async requestCancel() {
+  async requestBack() {
     // Does the form contain unsaved changes, or, if this isn't a new object, is it different from the original?
     if (this.isDirty(false) || this.origObj && this.isDirty(true))
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
@@ -89,13 +90,13 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       case 'cancel': return
       case 'discard': break
       }
-    this.maybeFinish('cancel')
+    this.maybeFinish('back')
   }
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
     const btnSaveClose = <button type="submit" class="btn btn-success ms-2 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
     const btnSave = <button type="button" class="btn btn-primary ms-2 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
-    const btnCancel = <button type="button" class="btn btn-danger text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Cancel')}</button>
+    const btnBack = <button type="button" class="btn btn-secondary text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
     const warnList = <ul></ul>
     const warnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
@@ -117,12 +118,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         {warnAlert}
         {errAlert}
         <div class="d-flex flex-row justify-content-end flex-wrap">
-          {btnCancel}
+          {btnBack}
           {btnSave}
           {btnSaveClose}
         </div>
       </form>)
-    btnCancel.addEventListener('click', () => this.requestCancel())
+    btnBack.addEventListener('click', () => this.requestBack())
     let firstSave = true
     const doSave = (andClose :boolean) => {
       form.classList.add('was-validated')
@@ -135,17 +136,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         try {
           /* Optimally, this is covered by input field validation, but there are a few cases where
            * it can't be, e.g. when the MeasurementType's `max` is smaller than the `min`. */
-          this.obj.validate()
-          // check for duplicate names
-          if ('name' in this.obj && typeof this.obj.name === 'string') {
-            this.targetArray.forEach((o,oi) => {
-              assert(this.obj && 'name' in this.obj && typeof this.obj.name === 'string')  // Typescript "forgets" this?
-              assert('name' in o && typeof o.name === 'string')
-              console.debug(this.obj.name, o.name)
-              if (oi!==this.targetIdx && o.name == this.obj.name)
-                throw new Error(`${tr('duplicate-name')}: ${String(this.obj.name)}`)
-            })
-          }
+          this.obj.validate(this.targetArray.filter((_,i) => i!==this.targetIdx))
         }
         catch (ex) {
           btnSaveClose.classList.add('btn-warning')

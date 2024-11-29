@@ -84,11 +84,13 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       return `${this.name} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
     } else return this.name
   }
-  override validate() {
+  override validate(others :SamplingTrip[]) {
     validateName(this.name)
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
     validateTimestamp(this.lastModified)
+    if (others.some(o => o.tripId === this.tripId))
+      throw new Error(tr('duplicate-trip-id'))
   }
   override summaryDisplay() :[string,string] {
     const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
@@ -173,7 +175,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
     this.commonSamples = o ? o.commonSamples.map(s => new SampleTemplate(s)) : []
   }
-  override validate() { validateName(this.name) }
+  override validate(others :SamplingTripTemplate[]) {
+    validateName(this.name)
+    if (others.some(o => o.name === this.name))
+      throw new Error(`${tr('duplicate-name')}: ${this.name}`)
+  }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ] }
   override equals(o: unknown) {

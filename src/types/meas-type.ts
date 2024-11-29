@@ -66,11 +66,13 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
   }
-  override validate() {
+  override validate(others :MeasurementType[]) {
     validateName(this.name)
     if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`${tr('Invalid unit')}: ${this.unit}`)
     if (this.min>this.max) throw new Error(`${tr('Invalid min/max value')}: ${this.min}>${this.max}`)
     if (this.precision<0) throw new Error(`${tr('Invalid precision')}: ${this.precision}<0`)
+    if (others.some(o => o.name === this.name))
+      throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override equals(o: unknown) {
     return isIMeasurementType(o) && this.name===o.name && this.unit===o.unit && this.min===o.min && this.max===o.max
