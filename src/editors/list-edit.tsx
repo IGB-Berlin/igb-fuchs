@@ -64,7 +64,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     const els :HTMLElement[] = []
     let selIdx :number = -1
     const selectItem = (idx :number, scroll :boolean = false) => {
-      assert(idx>=0 && idx<theList.length)
+      assert(els.length===theList.length && idx>=0 && idx<theList.length)
       els.forEach((e,i) => {
         if (i===idx) {
           e.classList.add('active')

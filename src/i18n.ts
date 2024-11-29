@@ -37,6 +37,8 @@ const translations = {
   'Error': ['Fehler'],
   'No items': ['Keine Einträge'],
   'Understood': ['Verstanden'],
+  'Select': ['Auswählen'],
+  'From Template': ['Aus Vorlage'],
 
   // editors
   'Required': ['Eingabe erforderlich'],
@@ -119,6 +121,11 @@ const translations = {
   'Please wait': ['Bitte warten'],
   'Use current location': ['Aktuellen Standort verwenden'],
   'Show on map': ['Auf Karte zeigen'],
+
+  // editor: trip template
+  'new-loc-from-temp': [
+    'Neuer Messpunkt aus Vorlage',
+    'New Sampling Location from Template' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

@@ -90,6 +90,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     validateTimestamp(this.endTime)
     this.nomCoords.validate([])  // b/c the coords don't have their own Editor
     this.actCoords.validate([])
+    //TODO Later: all duplicates checks shouldn't just be run on their parents, but on the global templates too
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
