@@ -38,7 +38,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> {
     const div = document.createElement('div')
     const [pri,sub] = this.summaryDisplay()
     if (sub) {
-      div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap')
+      div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
       const one = document.createElement('div')
       one.innerText = pri
       div.appendChild(one)

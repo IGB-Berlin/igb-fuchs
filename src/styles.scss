@@ -56,15 +56,6 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   background-color: var(--leibniz-blue-bg);
 }
 
-.navbar-brand {
-  font-family: Roboto, Tahoma, sans-serif;
-  font-weight: bolder;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
 @include bs.media-breakpoint-up(sm) {
   .text-end-sm {
     text-align: right;
@@ -76,6 +67,6 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   padding-left: 0;
   &::before {
     content: '»';
-    padding-right: var(--bs-navbar-nav-link-padding-x);
+    padding-right: bs.$navbar-nav-link-padding-x;
     }
 }

@@ -87,8 +87,18 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     if (this.notes.trim().length) rv.notes = this.notes.trim()
     return rv
   }
-  override summaryDisplay() :[string,null] {
-    return [ `${this.name} [${this.unit}]`, null ] }
+  override summaryDisplay() :[string,string] {
+    const mn = Number.isFinite(this.precision) ? this.min.toFixed(this.precision) : this.min.toString()
+    const mx = Number.isFinite(this.precision) ? this.max.toFixed(this.precision) : this.max.toString()
+    const detail = Number.isFinite(this.min) && Number.isFinite(this.max)
+      ? `${mn} - ${mx}`
+      : Number.isFinite(this.min)
+        ? `>= ${mn}`
+        : Number.isFinite(this.max)
+          ? `<= ${mx}`
+          : ''
+    return [ this.name, detail+' '+this.unit ]
+  }
   override warningsCheck() {
     const rv :string[] = []
     if (!this.unit.length) rv.push(tr('No units'))
