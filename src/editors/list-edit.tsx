@@ -91,25 +91,21 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       //TODO Later: Now that Editors have access to the stack, should they push/pop themselves?
       const editor = new editorClass(stack, theList, selIdx, editorArgs)
       editor.events.add(event => {
-        stack.pop(editor)
         if (event.changeMade) {
           redrawList(selIdx)
           this.events.fire({ kind: 'edit', idx: selIdx })
         }
       })
-      stack.push(editor)
     })
     btnNew.addEventListener('click', () => {
       const editor = new editorClass(stack, theList, -1, editorArgs)
       editor.events.add(event => {
-        stack.pop(editor)
         if (event.changeMade) {
           redrawList(theList.length-1)
           this.events.fire({ kind: 'new', idx: theList.length-1 })
         }
       })
-      stack.push(editor)
     })
-    this.events = new SimpleEventHub([this.el, theUl])
+    this.events = new SimpleEventHub(false, [this.el, theUl])
   }
 }

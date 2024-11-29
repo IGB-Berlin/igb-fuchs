@@ -66,14 +66,15 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** The event dispatcher for this editor. */
-  readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub()
+  readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub(true)
 
   /** Helper to get the static property from an instance. */
   get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
 
   /** Construct a new editor.
    *
-   * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them.
+   * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them,
+   * and they should call `this.open()` when they're initialized and ready to be shown.
    *
    * @param targetArray The array in which the object to be edited lives or is to be added to.
    * @param idx If less than zero, create a new object and push it onto the array; otherwise point to the object in the array to edit.
@@ -83,6 +84,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.stack = stack
     this.targetArray = targetArray
     this.targetIdx = idx
+  }
+
+  /** To be called by subclasses when they're ready to be shown. */
+  protected open() {
+    this.stack.push(this)
+    this.events.unhold()
   }
 
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
@@ -106,6 +113,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
   private doClose() {
     this.events.fire({ changeMade: this.changeMade })
+    this.stack.pop(this)
     this.events.clear()
   }
 

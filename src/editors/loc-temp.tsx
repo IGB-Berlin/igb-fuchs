@@ -62,5 +62,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       new SamplingLocationTemplate({ name: inpName.value,
         description: inpDesc.value.trim(), nominalCoords: nomCoords,
         samples: [] })
+
+    this.open()
   }
 }

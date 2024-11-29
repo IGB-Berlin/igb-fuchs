@@ -41,12 +41,15 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       <textarea rows="3">{this.initObj.description.trim()}</textarea>)
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    //TODO: How to report changes that need to be saved to the parent(s)?
+    /* TODO: How to cause list edit events to be propagated to parent and saved?
+     * We want changes made in the ListEditor to be saved immediately, and since those
+     * edits require the user to click a "Save" button, that makes sense too.
+     * However, currently, almost every editor works with object deepClone()s.
+     */
     const locations = Array.from(this.initObj.locations)
     const locEdit = new ListEditor(stack, locations, LocationTemplateEditor, locArgs)
-    locEdit.events.add(() => {/* TODO: when the list is changed, ...? */})
+    //locEdit.events.add(() => ...)
     //TODO: "New from template" button
-    //TODO: Returning from the ListEditor triggers form validation here?
 
     //TODO: commonSamples[]
 
@@ -58,6 +61,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
     this.form2obj = () => new SamplingTripTemplate({ name: inpName.value, description: inpDesc.value.trim(),
       locations: locations, commonSamples: [] })
+
+    this.open()
   }
 
 }

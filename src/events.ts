@@ -20,7 +20,10 @@ type EventHandler<T extends object> = (event :T) => void
 
 export class SimpleEventHub<T extends object> {
   protected readonly listeners :EventHandler<T>[] = []
-  constructor([watchParent, watchTarget]: [Node,Node]|[null,null] = [null,null]) {
+  protected holding :boolean = false
+  protected queue :T[] = []
+  constructor(initialHold :boolean, [watchParent, watchTarget]: [Node,Node]|[null,null] = [null,null]) {
+    this.holding = initialHold
     if (watchParent)
       // Watch for the target node being removed from somewhere below the parent; if that happens, clear the listener list.
       new MutationObserver((mutations, observer) => {
@@ -39,11 +42,24 @@ export class SimpleEventHub<T extends object> {
       if (this.listeners[i]===handler)
         this.listeners.splice(i, 1)
   }
-  fire(event :T) {
+  hold() { this.holding = true }
+  unhold() {
+    if (this.holding) {
+      this.holding = false
+      const toFire = Array.from(this.queue)
+      this.queue.length = 0
+      toFire.forEach(e => this._fire(e))
+    }
+  }
+  protected _fire(event :T) {
     this.listeners.forEach(l => {
       try { l(event) }
       catch (ex) { console.error('Error in SimpleEventHub listener', ex) }
     })
+  }
+  fire(event :T) {
+    if (this.holding) this.queue.push(event)
+    else this._fire(event)
   }
   clear() {
     this.listeners.length = 0

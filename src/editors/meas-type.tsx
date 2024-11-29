@@ -67,5 +67,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
       precision: Number.isFinite(inpPrc.valueAsNumber) ? inpPrc.valueAsNumber : NaN,
       notes: inpNotes.value.trim() })
+
+    this.open()
   }
 }
