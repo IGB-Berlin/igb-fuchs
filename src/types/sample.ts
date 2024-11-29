@@ -74,10 +74,10 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     if (this.notes.trim().length) rv.notes = this.notes.trim()
     return rv
   }
-  override warningsCheck() {
+  override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
-    if (!this.measurements.length) rv.push(tr('No measurements'))
-    return rv.concat( this.measurements.flatMap(m => m.warningsCheck()) )
+    if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))
+    return rv.concat( this.measurements.flatMap(m => m.warningsCheck(isBrandNew)) )
   }
   override extractTemplate() :SampleTemplate {
     return new SampleTemplate({ type: this.type, measurementTypes: this.measurements.map(m => m.extractTemplate()) })

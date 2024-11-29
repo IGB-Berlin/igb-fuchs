@@ -54,7 +54,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   private readonly targetArray :Readonly<B>[]
   /** The index at which the object being edited resides, in `targetArray`. */
   private targetIdx :number
-  /** A reference to the object being edited in `targetArray` and `targetIdx`, or `null` if creating a new object. */
+  /** A reference to the object being edited in `targetArray` and `targetIdx`, or `null` if creating a new object.
+   *
+   * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
+   */
   protected get savedObj() :Readonly<B>|null {
     if (this.targetIdx<0) return null
     else {
@@ -184,8 +187,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       }  // else, there were no validation errors
       errAlert.classList.add('d-none')
       // so next, check warnings
-      console.debug('Warnings check on object, is it new?', !this.savedObj)  //TODO: pass to warningsCheck?
-      const warnings = curObj.warningsCheck()
+      const warnings = curObj.warningsCheck(!this.savedObj)
       if (warnings.length) {
         btnSaveClose.classList.add('btn-warning')
         warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
@@ -199,6 +201,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
             // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
             btnSaveClose.setAttribute('disabled','disabled')
             setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
+            // However, we don't actually want to prevent the save, we just want the user to see the warnings.
+            this.doSave(false)
           }
         } else  // Button "Save"
           this.doSave(false)

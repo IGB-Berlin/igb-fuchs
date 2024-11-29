@@ -52,8 +52,6 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      * won't be saved either. So, to prevent users from being able to build large object
      * trees without them ever being saved, we require this current object to be saved
      * before allowing edits to its arrays.
-     *
-     * TODO Later: The warning "No sampling locations in this template" should be suppressed for the first save.
      */
     locEdit.updateEnable(!!this.savedObj)
     this.events.add(event => { if (event.type==='save') locEdit.updateEnable(!!this.savedObj) })

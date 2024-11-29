@@ -103,9 +103,8 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
           : ''
     return [ this.name, detail+' '+this.unit ]
   }
-  override warningsCheck() {
+  override warningsCheck(_isBrandNew :boolean) {
     const rv :string[] = []
-    if (!this.unit.length) rv.push(tr('No units'))
     if (!Number.isFinite(this.min)) rv.push(tr('No minimum value'))
     if (!Number.isFinite(this.max)) rv.push(tr('No maximum value'))
     if (!Number.isFinite(this.precision)) rv.push(tr('No precision'))

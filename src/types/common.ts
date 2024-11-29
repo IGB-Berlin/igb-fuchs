@@ -24,8 +24,13 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> {
   abstract toJSON(_key :string) :object
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
   abstract validate(others :B[]) :void
-  /** Returns a list of warnings on the object. */
-  abstract warningsCheck() :string[]
+  /** Returns a list of warnings on the object.
+   *
+   * @param isBrandNew Whether this object is brand new, in which case some warnings may be disabled.
+   *  (This is because it is generally recommended to save brand new objects once, and if this object
+   *  is supposed to have sub-objects but doesn't yet, that is acceptable on the very first save.)
+   */
+  abstract warningsCheck(isBrandNew :boolean) :string[]
   /** Returns a summary of this object, e.g. for display in a list. */
   abstract summaryDisplay() :[string,string|null]
   /** Whether this object holds the same value as another. */
