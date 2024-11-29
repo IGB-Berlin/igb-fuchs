@@ -62,6 +62,10 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   }
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 // Inject arrows between nav-links
 .navbar-expand-sm .navbar-nav .nav-link + .nav-link {
   padding-left: 0;

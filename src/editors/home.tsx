@@ -15,7 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { isISamplingLocationTemplateArray, SamplingLocationTemplate } from '../types/location'
 import { isIMeasurementTypeArray, MeasurementType } from '../types/meas-type'
+import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { MeasTypeEditor } from './meas-type'
 import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
@@ -29,6 +31,15 @@ function makeMeasTypeListEditor(stack :EditorStack) {
   const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
   mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
   return mtEdit
+}
+
+function makeLocTempListEditor(stack :EditorStack) {
+  const _lt :unknown = JSON.parse( storage.get(storage.LOC_TEMPLATES) ?? '[]' )
+  const lt :SamplingLocationTemplate[] = isISamplingLocationTemplateArray(_lt) ? _lt.map(l => new SamplingLocationTemplate(l)) : []
+  const args :LocationTemplateEditorArgs = { showSampleList: false }
+  const ltEdit = new ListEditor(stack, lt, LocationTemplateEditor, args)
+  ltEdit.events.add(() => storage.set(storage.LOC_TEMPLATES, JSON.stringify(lt)))
+  return ltEdit
 }
 
 let _accId = 0
@@ -51,13 +62,14 @@ export class HomePage {
         </div>
       </div>
 
+    const ltEdit = makeLocTempListEditor(stack)
     const mtEdit = makeMeasTypeListEditor(stack)
 
     this.el = <div class="p-3">
       <div class="accordion" id="homeAccordion">
         {makeAcc(tr('Sampling Trips'), 'TODO')}
         {makeAcc(`${tr('Templates')}: ${tr('Sampling Trips')}`, 'TODO')}
-        {makeAcc(`${tr('Templates')}: ${tr('Sampling Locations')}`, 'TODO')}
+        {makeAcc(`${tr('Templates')}: ${tr('Sampling Locations')}`, ltEdit.el)}
         {makeAcc(`${tr('Templates')}: ${tr('Measurement Types')}`, mtEdit.el)}
       </div>
     </div>

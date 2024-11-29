@@ -64,7 +64,9 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override summaryDisplay() :[string,string] {
     return [ this.type, i18n.t('measurements', {count: this.measurements.length}) ] }
   override equals(o: unknown) {
-    return isISample(o) && this.type===o.type && this.notes.trim()===o.notes?.trim()
+    return isISample(o)
+      && this.type === o.type
+      && this.notes.trim() === ( o.notes?.trim() ?? '' )
       && dataSetsEqual(this.measurements, o.measurements.map(m => new Measurement(m)))
   }
   override toJSON(_key: string): ISample {
@@ -116,7 +118,8 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   override summaryDisplay() :[string,string] {
     return [ this.type, i18n.t('measurements', {count: this.measurementTypes.length}) ] }
   override equals(o: unknown) {
-    return isISampleTemplate(o) && this.type===o.type
+    return isISampleTemplate(o)
+      && this.type === o.type
       && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
   }
   override warningsCheck() { return [] }

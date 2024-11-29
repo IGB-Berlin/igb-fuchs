@@ -26,49 +26,45 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<MeasurementType>
+  protected override form2obj: ()=>Readonly<MeasurementType>
 
-  protected readonly inpName :HTMLInputElement
-  protected readonly inpUnit :HTMLInputElement
-  protected readonly inpMin :HTMLInputElement
-  protected readonly inpMax :HTMLInputElement
-  protected readonly inpPrc :HTMLInputElement
-  protected readonly inpNotes :HTMLTextAreaElement
   constructor(targetArray :MeasurementType[], idx :number) {
     super(targetArray, idx)
     this.initObj = this.savedObj ? this.savedObj.deepClone() : new MeasurementType(null)
-    this.inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    this.inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
-    this.inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.min} step="1" />)
-    this.inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.max} step="1" />)
-    this.inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.initObj.precision} min="0" step="1" />)
-    const prcToStep = () => {
-      const s = this.initObj.precisionAsStep(this.inpPrc.valueAsNumber)
-      if (s) { this.inpMin.step = s; this.inpMax.step = s }
-    }
-    this.inpPrc.addEventListener('change', prcToStep)
-    prcToStep()
-    this.inpNotes = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.initObj.notes.trim()}</textarea>)
-    this.el = this.form = this.makeForm(tr('Measurement Type'), [
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
-      this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
-      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
-      this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
-      this.makeRow(this.inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
-      this.makeRow(this.inpNotes, tr('Notes'), tr('notes-help'), null)
-    ])
-  }
 
-  protected override form2obj() {
-    return new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
-      min: Number.isFinite(this.inpMin.valueAsNumber) ? this.inpMin.valueAsNumber : -Infinity,
-      max: Number.isFinite(this.inpMax.valueAsNumber) ? this.inpMax.valueAsNumber : +Infinity,
-      precision: Number.isFinite(this.inpPrc.valueAsNumber) ? this.inpPrc.valueAsNumber : NaN,
-      notes: this.inpNotes.value.trim() })
+    const inpName = safeCastElement(HTMLInputElement,
+      <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    const inpUnit = safeCastElement(HTMLInputElement,
+      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
+    const inpMin = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.initObj.min} step="1" />)
+    const inpMax = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.initObj.max} step="1" />)
+    const inpPrc = safeCastElement(HTMLInputElement,
+      <input type="number" value={this.initObj.precision} min="0" step="1" />)
+    const inpNotes = safeCastElement(HTMLTextAreaElement,
+      <textarea rows="3">{this.initObj.notes.trim()}</textarea>)
+
+    const prcToStep = () => {
+      const s = this.initObj.precisionAsStep(inpPrc.valueAsNumber)
+      if (s) { inpMin.step = s; inpMax.step = s }
+    }
+    inpPrc.addEventListener('change', prcToStep)
+    prcToStep()
+
+    this.el = this.form = this.makeForm(tr('Measurement Type'), [
+      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')} {tr('meas-name-help')}</>, tr('Invalid name')),
+      this.makeRow(inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
+      this.makeRow(inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
+      this.makeRow(inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
+      this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
+      this.makeRow(inpNotes, tr('Notes'), tr('notes-help'), null),
+    ])
+
+    this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
+      min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
+      max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
+      precision: Number.isFinite(inpPrc.valueAsNumber) ? inpPrc.valueAsNumber : NaN,
+      notes: inpNotes.value.trim() })
   }
 }

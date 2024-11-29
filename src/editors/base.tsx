@@ -22,7 +22,7 @@ import { SimpleEventHub } from '../events'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E, briefTitle :string }
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
 
 interface DoneEvent {
   changeMade :boolean
@@ -39,7 +39,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** The initial object being edited: either `savedObj` (or its clone), or a newly created object. */
   protected abstract readonly initObj :Readonly<B>
   /** Returns an object with its fields populated from the current form state. */
-  protected abstract form2obj() :Readonly<B>
+  protected abstract form2obj :()=>Readonly<B>
 
   /** The array in which the object being edited resides, at `targetIdx`. */
   private readonly targetArray :Readonly<B>[]
@@ -62,10 +62,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** The event dispatcher for this editor. */
   readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub()
 
-  /** Just a copy of the static property, so it can be accessed on both the class and instances.
-   *
-   * I should probably eventually figure out how to directly access the static property from an instance, if possible. */
-  readonly briefTitle :string
+  /** Helper to get the static property from an instance. */
+  get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
+
   /** Construct a new editor.
    *
    * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them.
@@ -73,22 +72,25 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @param targetArray The array in which the object to be edited lives or is to be added to.
    * @param idx If less than zero, create a new object and push it onto the array; otherwise point to the object in the array to edit.
    */
-  constructor(targetArray :B[], idx :number) {
+  constructor(targetArray :B[], idx :number, _args ?:object) {
     assert(idx<targetArray.length)
     this.targetArray = targetArray
     this.targetIdx = idx
-    this.briefTitle = Editor.briefTitle
   }
 
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
   async requestBack() {
     // Has the user made any changes?
-    if ( !( this.savedObj ?? this.initObj ).equals(this.form2obj()) )
+    const prevObj = this.savedObj ?? this.initObj
+    const curObj = this.form2obj()
+    if ( !prevObj.equals(curObj) ) {
+      console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
       case 'discard': break
       }
+    }
     this.doClose()
   }
 
@@ -116,6 +118,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.targetArray[this.targetIdx] = curObj
       this.changeMade = true
     }
+    else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     if (andClose) this.doClose()
   }
 
@@ -204,7 +207,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   /** Helper function to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
-  protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement,
+  protected makeRow(input :HTMLElement,
     label :string, helpText :HTMLElement|string|null, invalidText :HTMLElement|string|null) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
@@ -213,7 +216,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting
     if (helpText)
       input.setAttribute('aria-describedby', helpId)
-    input.classList.add('form-control')
+    if (!(input instanceof HTMLDivElement))
+      input.classList.add('form-control')
     return <div class="row mb-3">
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
       <div class="col-sm-9">

@@ -106,9 +106,15 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   override summaryDisplay() :[string,string] {
     return [ this.name, this.actCoords.summaryDisplay()[0] ] }
   override equals(o :unknown) {
-    return isISamplingLocation(o) && this.name===o.name && this.description.trim()===o.description?.trim()
-      && this.nomCoords.equals(o.nominalCoords) && this.actCoords.equals(o.actualCoords)
-      && this.startTime===o.startTime && this.endTime===o.endTime && this.notes===o.notes
+    return isISamplingLocation(o)
+      && this.name === o.name
+      && this.description.trim() === ( o.description?.trim() ?? '' )
+      && this.nomCoords.equals(o.nominalCoords)
+      && this.actCoords.equals(o.actualCoords)
+      && this.startTime === o.startTime
+      && this.endTime === o.endTime
+      && this.notes.trim() === ( o.notes?.trim() ?? '' )
+      // not comparing photos (?)
       && dataSetsEqual(this.samples, o.samples.map(s => new Sample(s, null)))
   }
   override toJSON(_key :string) :ISamplingLocation {
@@ -181,7 +187,9 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override summaryDisplay() :[string,string] {
     return [ this.name, this.nomCoords.summaryDisplay()[0] ] }
   override equals(o: unknown) {
-    return isISamplingLocationTemplate(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+    return isISamplingLocationTemplate(o)
+      && this.name===o.name
+      && this.description.trim() === (o.description?.trim() ?? '')
       && this.nomCoords.equals(o.nominalCoords)
       && dataSetsEqual(this.samples, o.samples.map(s => new SampleTemplate(s)))
   }

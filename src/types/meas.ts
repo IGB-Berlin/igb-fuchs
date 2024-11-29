@@ -51,7 +51,11 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   override summaryDisplay() :[string,null] {
     return [ `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`, null ] }
   override equals(o: unknown) {
-    return isIMeasurement(o) && this.type.equals(o.type) && this.time===o.time && this.value===o.value }
+    return isIMeasurement(o)
+    && this.type.equals(o.type)
+    && this.time === o.time
+    && ( Number.isNaN(this.value) && Number.isNaN(o.value) || this.value === o.value )
+  }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value } }
   override warningsCheck() {

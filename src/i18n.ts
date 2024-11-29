@@ -86,6 +86,35 @@ const translations = {
     'Die Anzahl der Nachkommastellen, die im Messwert erlaubt sind.',
     'The number of decimal places allowed after the decimal point in the measurement value.' ],
 
+  // editor: coords
+  'Lat': ['Lat'],
+  'Lon': ['Lon'],
+  'Latitude': ['Breitengrad'],
+  'Longitude': ['Längengrad'],
+  'geo-permission-denied': [
+    'Standortzugriff wurde abgelehnt. Bitte erlauben Sie dieser Seite/App den Zugriff auf den aktuellen Standort.',
+    'Geolocation permission denied. Please allow this page/app to access your current position.' ],
+  'geo-unavailable': [
+    'Standort nicht verfügbar.',
+    'Geolocation not available.' ],
+  'geo-timeout': [
+    'Zeitüberschreitung bei der Ermittlung des Standorts. Bitte nochmal versuchen.',
+    'Timed out trying to get current position. Please try again.' ],
+  'geo-unknown-error': [
+    'Unerwarteter / unbekannter Fehler beim Standortzugriff.',
+    'Unexpected / unknown error when trying to access position.' ],
+  'nom-coord': ['Soll-Koord.', 'Nominal Coord.'],
+  'act-coord': ['Ist-Koord.', 'Actual Coord.'],
+  'nom-coord-help': [
+    'Die Soll-Koordinaten geben den Ort an, an dem eine Probe im Normalfall genommen wird. (Referenzsystem EPSG:4326, "WGS84")',
+    'The nominal coordinates specify the place where a sample is normally taken. (Reference system EPSG:4326, "WGS84")' ],
+  'invalid-coords': [
+    'Ungültige Koordinaten.',
+    'Invalid coordinates.' ],
+  'Please wait': ['Bitte warten'],
+  'Use current location': ['Aktuellen Standort verwenden'],
+  'Show on map': ['Auf Karte zeigen'],
+
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
   'unsaved-changes': [

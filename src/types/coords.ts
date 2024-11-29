@@ -25,17 +25,19 @@ export interface IWgs84Coordinates {
 export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
   if (!o || typeof o !== 'object') return false
   if (Object.keys(o).length!==2 || !('wgs84lat' in o && 'wgs84lon' in o)) return false  // keys
-  if (!Number.isFinite(o.wgs84lat) || !Number.isFinite(o.wgs84lon)) return false  // types
+  if (typeof o.wgs84lat !== 'number' || typeof o.wgs84lon !== 'number') return false  // types
   return true
 }
+
+/** <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm */
+export const WGS84_PRECISION = 6
+export const WGS84_PRC_STEP = '0.000001'
 
 /** EPSG:4326 Coordinates ("WGS 84")
  *
  * Used by many GPS devices and the API of many online maps, like OSM and Google Maps.
  * Note KML requires "Lon,Lat" while many others (like Google Maps) require "Lat,Lon".
  * For reference, Berlin's Lat,Lon is roughly 52.5,13.4.
- *
- * Precision: <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm
  */
 export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implements IWgs84Coordinates {
   wgs84lat :number
@@ -55,9 +57,12 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
   override warningsCheck() { return [] }
   /** Note display should include the hint "Lat,Lon" somewhere. */
   override summaryDisplay() :[string,null] {
-    return [ this.wgs84lat.toFixed(6)+','+this.wgs84lon.toFixed(6), null ] }
+    return [ this.wgs84lat.toFixed(WGS84_PRECISION)+','+this.wgs84lon.toFixed(WGS84_PRECISION), null ] }
   override equals(o: unknown) {
-    return isIWgs84Coordinates(o) && this.wgs84lat===o.wgs84lat && this.wgs84lon===o.wgs84lon }
+    return isIWgs84Coordinates(o)
+      && ( Number.isNaN(this.wgs84lat) && Number.isNaN(o.wgs84lat) || this.wgs84lat===o.wgs84lat )
+      && ( Number.isNaN(this.wgs84lon) && Number.isNaN(o.wgs84lon) || this.wgs84lon===o.wgs84lon )
+  }
   override toJSON(_key :string) :IWgs84Coordinates {
     return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
   override deepClone() { return new Wgs84Coordinates(this.toJSON('')) }

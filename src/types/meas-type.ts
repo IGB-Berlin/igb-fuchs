@@ -76,9 +76,12 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override equals(o: unknown) {
-    return isIMeasurementType(o) && this.name===o.name && this.unit===o.unit && this.min===o.min && this.max===o.max
-      && ( Number.isNaN(this.precision) && Number.isNaN(o.precision) || this.precision===o.precision )
-      && this.notes.trim() === o.notes?.trim()
+    return isIMeasurementType(o)
+      && this.name===o.name && this.unit===o.unit
+      && ( Number.isNaN(this.min) && Number.isNaN(o.min) || this.min === o.min )
+      && ( Number.isNaN(this.max) && Number.isNaN(o.max) || this.max === o.max )
+      && ( Number.isNaN(this.precision) && Number.isNaN(o.precision) || this.precision === o.precision )
+      && this.notes.trim() === ( o.notes?.trim() ?? '' )
   }
   override toJSON(_key :string) :IMeasurementType {
     const rv :IMeasurementType = { name: this.name, unit: this.unit }

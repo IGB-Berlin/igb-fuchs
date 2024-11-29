@@ -33,7 +33,7 @@ interface ListChange {
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
   readonly events :SimpleEventHub<ListChange>
-  constructor(stack :EditorStack, theList :Array<B>, editorClass :EditorClass<E, B>) {
+  constructor(stack :EditorStack, theList :Array<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
     const btnDel = <button class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
@@ -62,7 +62,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       btnEdit.setAttribute('disabled', 'disabled')
       els.length = theList.length
       if (theList.length)
-        theList.forEach((item,i) => els[i]=<li class="list-group-item" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
+        theList.forEach((item,i) => els[i]=<li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
       else
         els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
@@ -88,7 +88,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     })
     btnEdit.addEventListener('click', () => {
       if (selIdx<0) return  // shouldn't happen
-      const editor = new editorClass(theList, selIdx)
+      const editor = new editorClass(theList, selIdx, editorArgs)
       editor.events.add(event => {
         stack.pop(editor)
         if (event.changeMade) {
@@ -99,7 +99,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       stack.push(editor)
     })
     btnNew.addEventListener('click', () => {
-      const editor = new editorClass(theList, -1)
+      const editor = new editorClass(theList, -1, editorArgs)
       editor.events.add(event => {
         stack.pop(editor)
         if (event.changeMade) {

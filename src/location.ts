@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { WGS84_PRECISION } from './types/coords'
 
 export async function query() {
   const state = await navigator.permissions.query({ name: 'geolocation' })
@@ -27,7 +28,7 @@ export function start() {
   navigator.geolocation.watchPosition(pos => {
     console.log(pos)
     const ageMs = Math.max(0, pos.timestamp - Date.now())
-    console.log(`${ageMs}ms ${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`)
+    console.log(`${ageMs}ms ${pos.coords.latitude.toFixed(WGS84_PRECISION)},${pos.coords.longitude.toFixed(WGS84_PRECISION)}`)
   }, err => {
     console.warn(err)
   }, { enableHighAccuracy: true, maximumAge: MAX_AGE_MS })

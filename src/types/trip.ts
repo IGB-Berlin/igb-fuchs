@@ -98,9 +98,15 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
   }
   override equals(o: unknown) {
-    return isISamplingTrip(o) && this.name===o.name && this.description.trim()===o.description?.trim()
-      && this.startTime===o.startTime && this.endTime===o.endTime && this.persons.trim()===o.persons?.trim()
-      && this.weather.trim()===o.weather?.trim() && this.notes.trim()===o.notes?.trim()
+    return isISamplingTrip(o)
+      && this.name === o.name
+      && this.description.trim() === ( o.description?.trim() ?? '' )
+      && this.startTime === o.startTime
+      && this.endTime === o.endTime
+      // not comparing lastModified
+      && this.persons.trim() === ( o.persons?.trim() ?? '' )
+      && this.weather.trim() === ( o.weather?.trim() ?? '' )
+      && this.notes.trim() === ( o.notes?.trim() ?? '' )
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l, null)))
   }
   override toJSON(_key: string): ISamplingTrip {
@@ -185,8 +191,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ] }
   override equals(o: unknown) {
-    return isISamplingTripTemplate(o) && this.name===o.name && this.description.trim()===o.description?.trim()
+    return isISamplingTripTemplate(o)
+      && this.name === o.name
+      && this.description.trim() === ( o.description?.trim() ?? '' )
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
+      && dataSetsEqual(this.commonSamples, o.commonSamples.map(s => new SampleTemplate(s)))
   }
   override toJSON(_key: string): ISamplingTripTemplate {
     const rv :ISamplingTripTemplate = { name: this.name,
