@@ -58,14 +58,13 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     }
     const theUl = <ul class="list-group mb-2"></ul>
     const redrawList = (selAfter :number = -1) => {
+      btnDel.setAttribute('disabled', 'disabled')
+      btnEdit.setAttribute('disabled', 'disabled')
       els.length = theList.length
       if (theList.length)
         theList.forEach((item,i) => els[i]=<li class="list-group-item" onclick={() => selectItem(i)}>{item.summaryAsHtml()}</li> )
-      else {
+      else
         els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
-        btnDel.setAttribute('disabled', 'disabled')
-        btnEdit.setAttribute('disabled', 'disabled')
-      }
       theUl.replaceChildren(...els)
       if (selAfter>=0) selectItem(selAfter, true)
       else selIdx = -1

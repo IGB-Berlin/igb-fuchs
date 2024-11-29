@@ -29,17 +29,20 @@ const translations = {
   'New': ['Neu'],
   'Save & Close': ['Speichern & Schließen'],
   'Save': ['Speichern'],
+  'Yes': ['Ja'],
+  'No': ['Nein'],
   'Discard': ['Verwerfen'],
   'Warnings': ['Warnungen'],
   'Error': ['Fehler'],
   'No items': ['Keine Einträge'],
+  'Understood': ['Verstanden'],
 
   // editors
   'Required': ['Eingabe erforderlich'],
   'Recommended': ['Eingabe empfohlen'],
   'editor-warn-info': [
-    'Bitte die Warnungen korrigieren, oder nochmals auf "Speichern" klicken, um trotzdem zu speichern.',
-    'Please either correct these warnings, or click "Save" again to save despite the warnings.' ],
+    'Bitte die Warnungen korrigieren, oder auf "Speichern & Schließen" klicken, um die Bearbeitung trotzdem abzuschließen.',
+    'Please correct these warnings, or click "Save & Close" to finish editing despite the warnings.' ],
   'editor-err-info': [
     'Bitte den Fehler beheben, um Speichern zu ermöglichen.',
     'Please correct the error to allow saving.' ],
@@ -57,6 +60,9 @@ const translations = {
   'desc-help': [
     'Etwaige Beschreibung.',
     'Optional description.' ],
+  'duplicate-name': [
+    'Dieser Name wird bereits verwendet',
+    'This name is already being used' ],
 
   // editor: meas-type
   'meas-name-help': [

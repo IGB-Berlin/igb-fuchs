@@ -38,7 +38,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** The original object. */
   protected readonly origObj :B|null
   protected readonly targetArray :B[]
-  protected readonly targetIdx :number
+  protected targetIdx :number
+  protected changeMade :boolean = false
   /** The object being edited. */
   protected obj :B|null
   readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub()
@@ -52,41 +53,49 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.origObj = obj
     this.obj = obj ? obj.deepClone() : null
   }
-  /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
-  protected done(success :boolean) {
-    // Did the user *not* cancel this editor, and if so, is this a new object or has the user actually made changes?
-    if (success && ( !this.origObj || !this.origObj.equals(this.obj) )) {
-      assert(this.obj)
-      if (this.targetIdx<0)
-        this.targetArray.push(this.obj)
-      else {
-        assert(this.targetIdx<this.targetArray.length)
-        this.targetArray[this.targetIdx] = this.obj
+  protected maybeFinish(action :'save'|'save-close'|'cancel') {
+    switch(action) {
+    case 'save':
+    case 'save-close':
+      // Is this a new object, or if not, has the user actually made changes?
+      if ( !this.origObj || !this.origObj.equals(this.obj) ) {
+        assert(this.obj)
+        if (this.targetIdx<0)
+          this.targetIdx = this.targetArray.push(this.obj) - 1
+        else {
+          assert(this.targetIdx<this.targetArray.length)
+          this.targetArray[this.targetIdx] = this.obj
+        }
+        this.changeMade = true
       }
-      this.events.fire({ changeMade: true })
-    } else
-      this.events.fire({ changeMade: false })
+      if (action==='save') return
+      break
+    case 'cancel':
+      break
+    }
+    this.events.fire({ changeMade: this.changeMade })
     this.events.clear()
   }
   /** Return an object with its fields populated from the current form state. */
   protected abstract form2obj() :B
   /** Whether the current state of the form differs from the current or original object. */
   protected isDirty(orig :boolean) { return !this.form2obj().equals(orig ? this.origObj : this.obj) }
-  /** Requests to cancel the current edit in progress. */
+  /** Requests to cancel the current edit in progress; but may not actually cancel if the user aborts. */
   async requestCancel() {
     // Does the form contain unsaved changes, or, if this isn't a new object, is it different from the original?
     if (this.isDirty(false) || this.origObj && this.isDirty(true))
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
-      case 'discard': this.done(false); return
+      case 'discard': break
       }
-    else this.done(false)
+    this.maybeFinish('cancel')
   }
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
-    const btnSubmit = <button type="submit" class="btn btn-success ms-3 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save & Close')}</button>
-    const btnCancel = <button type="button" class="btn btn-danger text-nowrap"><i class="bi-trash3-fill"/> {tr('Cancel')}</button>
+    const btnSaveClose = <button type="submit" class="btn btn-success ms-2 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
+    const btnSave = <button type="button" class="btn btn-primary ms-2 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
+    const btnCancel = <button type="button" class="btn btn-danger text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Cancel')}</button>
     const warnList = <ul></ul>
     const warnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
@@ -109,26 +118,37 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         {errAlert}
         <div class="d-flex flex-row justify-content-end flex-wrap">
           {btnCancel}
-          {btnSubmit}
+          {btnSave}
+          {btnSaveClose}
         </div>
       </form>)
     btnCancel.addEventListener('click', () => this.requestCancel())
-    form.addEventListener('submit', event => {
+    let firstSave = true
+    const doSave = (andClose :boolean) => {
       form.classList.add('was-validated')
-      event.preventDefault()
-      event.stopPropagation()
       if (form.checkValidity()) {
-        const wasDirty = this.isDirty(false)
+        const wasDirty = firstSave || this.isDirty(false)
+        firstSave = false
         this.obj = this.form2obj()
         assert(!this.isDirty(false), 'Dirty wasn\'t cleared after form2obj')
-        btnSubmit.classList.remove('btn-success', 'btn-warning')
+        btnSaveClose.classList.remove('btn-success', 'btn-warning')
         try {
           /* Optimally, this is covered by input field validation, but there are a few cases where
            * it can't be, e.g. when the MeasurementType's `max` is smaller than the `min`. */
           this.obj.validate()
+          // check for duplicate names
+          if ('name' in this.obj && typeof this.obj.name === 'string') {
+            this.targetArray.forEach((o,oi) => {
+              assert(this.obj && 'name' in this.obj && typeof this.obj.name === 'string')  // Typescript "forgets" this?
+              assert('name' in o && typeof o.name === 'string')
+              console.debug(this.obj.name, o.name)
+              if (oi!==this.targetIdx && o.name == this.obj.name)
+                throw new Error(`${tr('duplicate-name')}: ${String(this.obj.name)}`)
+            })
+          }
         }
         catch (ex) {
-          btnSubmit.classList.add('btn-warning')
+          btnSaveClose.classList.add('btn-warning')
           warnAlert.classList.add('d-none')
           errDetail.innerText = String(ex)
           errAlert.classList.remove('d-none')
@@ -138,26 +158,34 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         errAlert.classList.add('d-none')
         const warnings = this.obj.warningsCheck()
         if (warnings.length) {
-          btnSubmit.classList.add('btn-warning')
+          btnSaveClose.classList.add('btn-warning')
           warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
           warnAlert.classList.remove('d-none')
           warnAlert.scrollIntoView({ behavior: 'smooth' })
-          if (!wasDirty)
-            /* If the dirty flag wasn't set before, this means the user clicked the button a second
-             * time without making changes, thereby saying they want to ignore the warnings. */
-            this.done(true)
-          else {
-            // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
-            btnSubmit.setAttribute('disabled','disabled')
-            setTimeout(() => btnSubmit.removeAttribute('disabled'), 1000)
-          }
+          if (andClose) {
+            if (!wasDirty)
+              /* If the dirty flag wasn't set before, this means the user clicked the button a second
+              * time without making changes, thereby saying they want to ignore the warnings. */
+              this.maybeFinish('save-close')
+            else {
+              // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
+              btnSaveClose.setAttribute('disabled','disabled')
+              setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
+            }
+          } else this.maybeFinish('save')
         }
         else {
-          btnSubmit.classList.add('btn-success')
+          btnSaveClose.classList.add('btn-success')
           warnAlert.classList.add('d-none')
-          this.done(true)
+          this.maybeFinish( andClose ? 'save-close' : 'save' )
         }
       }
+    }
+    btnSave.addEventListener('click', () => doSave(false))
+    form.addEventListener('submit', event => {
+      event.preventDefault()
+      event.stopPropagation()
+      doSave(true)
     })
     return form
   }
