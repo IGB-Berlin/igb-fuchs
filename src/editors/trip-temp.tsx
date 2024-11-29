@@ -41,7 +41,6 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       <textarea rows="3">{this.initObj.description.trim()}</textarea>)
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    //TODO: stack.pop was throwing errors on assert(del[1]===e.el)
     //TODO: How to report changes that need to be saved to the parent(s)?
     const locations = Array.from(this.initObj.locations)
     const locEdit = new ListEditor(stack, locations, LocationTemplateEditor, locArgs)

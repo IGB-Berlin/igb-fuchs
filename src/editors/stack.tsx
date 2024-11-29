@@ -46,6 +46,7 @@ export class EditorStack {
       }) )
   }
   push<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+    console.debug('Stack push', e.briefTitle)
     assert(this.stack.length)
     const top = this.stack.at(-1)
     assert(top)
@@ -55,10 +56,11 @@ export class EditorStack {
     this.redrawNavbar()
   }
   pop<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+    console.debug('Stack pop', e.briefTitle)
     assert(this.stack.length>1)
     const del = this.stack.pop()
     assert(del)
-    assert(del[1]===e.el)
+    assert(del[1]===e.el, `Should have popped ${e.briefTitle} but TOS was ${del[0]}`)
     this.el.removeChild(del[1])
     const top = this.stack.at(-1)
     assert(top)

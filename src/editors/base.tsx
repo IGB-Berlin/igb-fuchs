@@ -30,6 +30,9 @@ interface DoneEvent {
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
   new (stack :EditorStack, targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
 
+/* WARNING: All <button>s inside the <form> that don't have a `type="button"`
+ * act as submit buttons, so always remember to add `type="button"`!! */
+
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
   /** A brief title of this editor (for navigation). */
@@ -112,7 +115,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     // Are there actually any changes to save?
     if ( !this.savedObj ) {  // Yes, this is a new object.
       assert(this.targetIdx<0)
-      console.debug('Pushing', curObj)
+      console.debug('Appending', curObj)
       this.targetIdx = this.targetArray.push(curObj) - 1
       this.changeMade = true
     }
