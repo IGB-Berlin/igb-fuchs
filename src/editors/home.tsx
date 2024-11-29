@@ -45,7 +45,7 @@ export class HomePage {
     const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
     const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
     const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
-    mtEdit.addChangeCallback(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)) )
+    mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
 
     this.el = <div class="p-3">
       <div class="accordion" id="homeAccordion">

@@ -18,16 +18,21 @@
 import { DataObjectBase } from '../types/common'
 import { Editor, EditorClass } from './base'
 import { deleteConfirmation } from '../misc'
+import { SimpleEventHub } from '../events'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 type ChangeKind = 'edit'|'delete'|'new'
-export type ChangeCallback = (kind :ChangeKind, idx :number) => void
+interface ListChange {
+  kind :ChangeKind
+  idx :number
+}
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
+  readonly events :SimpleEventHub<ListChange>
   constructor(stack :EditorStack, theList :Array<B>, editorClass :EditorClass<E, B>) {
     const btnDel = <button class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
@@ -78,41 +83,33 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         const rv = theList.splice(delIdx, 1)
         assert(rv.length===1 && Object.is(selItem, rv[0]))
         redrawList()
-        this.fireChange('delete', delIdx)
+        this.events.fire({ kind: 'delete', idx: delIdx })
         break }
       }
     })
     btnEdit.addEventListener('click', () => {
       if (selIdx<0) return  // shouldn't happen
       const editor = new editorClass(theList, selIdx)
-      editor.addDoneCallback(changeMade => {
+      editor.events.add(event => {
         stack.pop(editor)
-        if (changeMade) {
+        if (event.changeMade) {
           redrawList(selIdx)
-          this.fireChange('edit', selIdx)
+          this.events.fire({ kind: 'edit', idx: selIdx })
         }
       })
       stack.push(editor)
     })
     btnNew.addEventListener('click', () => {
       const editor = new editorClass(theList, -1)
-      editor.addDoneCallback(changeMade => {
+      editor.events.add(event => {
         stack.pop(editor)
-        if (changeMade) {
+        if (event.changeMade) {
           redrawList(theList.length-1)
-          this.fireChange('new', theList.length-1)
+          this.events.fire({ kind: 'new', idx: theList.length-1 })
         }
       })
       stack.push(editor)
     })
+    this.events = new SimpleEventHub([this.el, theUl])
   }
-  /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
-  //TODO Later: Could use MutationObserver to automatically remove change callbacks when we're removed from the DOM?
-  protected changeCallbacks :ChangeCallback[] = []
-  addChangeCallback(c :ChangeCallback) { this.changeCallbacks.push(c) }
-  removeChangeCallback(c :ChangeCallback) {
-    for(let i=this.changeCallbacks.length-1;i>=0;i--)
-      if (this.changeCallbacks[i]===c)
-        this.changeCallbacks.splice(i,1) }
-  fireChange(kind :ChangeKind, idx :number) { this.changeCallbacks.forEach(c => c(kind,idx)) }
 }

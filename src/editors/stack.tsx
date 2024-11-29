@@ -22,7 +22,7 @@ import { jsx } from '../jsx-dom'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
-//TODO: The whole stack with all editors needs to be serializable in order to restore state in case the page is closed
+//TODO: History support (browser back button)
 
 export class EditorStack {
   readonly el :HTMLElement

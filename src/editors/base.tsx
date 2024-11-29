@@ -18,12 +18,15 @@
 import { jsx, safeCastElement } from '../jsx-dom'
 import { unsavedChangesQuestion } from '../misc'
 import { DataObjectBase } from '../types/common'
+import { SimpleEventHub } from '../events'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type DoneCallback = (changeMade :boolean) => void
-
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number): E }
+
+interface DoneEvent {
+  changeMade :boolean
+}
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   /** The HTML element holding the editor UI. */
@@ -38,6 +41,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected readonly targetIdx :number
   /** The object being edited. */
   protected obj :B|null
+  readonly events :SimpleEventHub<DoneEvent> = new SimpleEventHub()
   /** The callback to be called when the editor is done and should be closed. */
   constructor(targetArray :B[], idx :number) {
     assert(idx<targetArray.length)
@@ -49,8 +53,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.obj = obj ? obj.deepClone() : null
   }
   /* Simple event listener mechanism b/c EventTarget is a little complex to deal with in TypeScript for this simple case. */
-  protected doneCallbacks :DoneCallback[] = []
-  addDoneCallback(c :DoneCallback) { this.doneCallbacks.push(c) }
   protected done(success :boolean) {
     // Did the user *not* cancel this editor, and if so, is this a new object or has the user actually made changes?
     if (success && ( !this.origObj || !this.origObj.equals(this.obj) )) {
@@ -61,10 +63,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         assert(this.targetIdx<this.targetArray.length)
         this.targetArray[this.targetIdx] = this.obj
       }
-      this.doneCallbacks.forEach(c => c(true))
+      this.events.fire({ changeMade: true })
     } else
-      this.doneCallbacks.forEach(c => c(false))
-    this.doneCallbacks.length = 0  // free references
+      this.events.fire({ changeMade: false })
+    this.events.clear()
   }
   /** Return an object with its fields populated from the current form state. */
   protected abstract form2obj() :B
