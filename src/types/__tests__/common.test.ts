@@ -23,6 +23,7 @@ test('dataSetsEqual', () => {
   class X extends DataObjectBase<X> {
     readonly x :string
     constructor(x :string) { super(); this.x = x }
+    override typeName(_kind :'full'|'short') { return 'X' }
     override equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
     override summaryDisplay() :[string,null] { return [this.x,null] }
     override warningsCheck() { return [] }

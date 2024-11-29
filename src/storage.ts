@@ -43,9 +43,9 @@ export function list(path :string|string[]) :string[][] {
   const rv :string[][] = []
   for (let i=0; i<localStorage.length; i++) {
     const p = key2paths(localStorage.key(i))
-    if (p.length===sp.length+1) {
-      if (sp.every((s,i) => s===p[i]))
-        rv.push(p)
+    if ( p[0]===PREFIX && p.length===sp.length+1 ) {
+      if ( sp.every((s,i) => s===p[i]) )
+        rv.push(p.slice(1))
     }
   }
   return rv
