@@ -18,6 +18,7 @@
 import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { VALID_NAME_RE } from '../types/common'
+import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
@@ -26,10 +27,10 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<MeasurementType>
-  protected override form2obj: ()=>Readonly<MeasurementType>
+  protected override form2obj :()=>Readonly<MeasurementType>
 
-  constructor(targetArray :MeasurementType[], idx :number) {
-    super(targetArray, idx)
+  constructor(stack :EditorStack, targetArray :MeasurementType[], idx :number) {
+    super(stack, targetArray, idx)
     this.initObj = this.savedObj ? this.savedObj.deepClone() : new MeasurementType(null)
 
     const inpName = safeCastElement(HTMLInputElement,

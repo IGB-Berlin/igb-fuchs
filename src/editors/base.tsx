@@ -19,14 +19,16 @@ import { jsx, safeCastElement } from '../jsx-dom'
 import { unsavedChangesQuestion } from '../misc'
 import { DataObjectBase } from '../types/common'
 import { SimpleEventHub } from '../events'
+import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { tr } from '../i18n'
-
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { new (targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
 
 interface DoneEvent {
   changeMade :boolean
 }
+
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
+  new (stack :EditorStack, targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
@@ -41,6 +43,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** Returns an object with its fields populated from the current form state. */
   protected abstract form2obj :()=>Readonly<B>
 
+  protected stack :EditorStack
   /** The array in which the object being edited resides, at `targetIdx`. */
   private readonly targetArray :Readonly<B>[]
   /** The index at which the object being edited resides, in `targetArray`. */
@@ -72,8 +75,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @param targetArray The array in which the object to be edited lives or is to be added to.
    * @param idx If less than zero, create a new object and push it onto the array; otherwise point to the object in the array to edit.
    */
-  constructor(targetArray :B[], idx :number, _args ?:object) {
+  constructor(stack :EditorStack, targetArray :B[], idx :number, _args ?:object) {
     assert(idx<targetArray.length)
+    this.stack = stack
     this.targetArray = targetArray
     this.targetIdx = idx
   }

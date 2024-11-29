@@ -15,52 +15,50 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { SamplingLocationTemplate } from '../types/location'
-import { makeCoordinateEditor } from './coords'
+import { SamplingTripTemplate } from '../types/trip'
 import { VALID_NAME_RE } from '../types/common'
+import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
-export interface LocationTemplateEditorArgs {
-  showSampleList :boolean
-}
-function isLocationTemplateEditorArgs(o :unknown) :o is LocationTemplateEditorArgs {
-  return !!( o && typeof o === 'object' && 'showSampleList' in o && typeof o.showSampleList === 'boolean' )
-}
-
-export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  static override readonly briefTitle = tr('loc-temp')
+export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
+  static override readonly briefTitle: string = tr('trip-temp')
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
-  protected override readonly initObj :Readonly<SamplingLocationTemplate>
-  protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
+  protected override readonly initObj :Readonly<SamplingTripTemplate>
+  protected override form2obj :()=>Readonly<SamplingTripTemplate>
 
-  constructor(stack :EditorStack, targetArray :SamplingLocationTemplate[], idx :number, args_ ?:object) {
+  constructor(stack :EditorStack, targetArray :SamplingTripTemplate[], idx :number) {
     super(stack, targetArray, idx)
-    this.initObj = this.savedObj ? this.savedObj.deepClone() : new SamplingLocationTemplate(null)
-    const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
+    this.initObj = this.savedObj ? this.savedObj.deepClone() : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    const nomCoords = this.initObj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{this.initObj.description.trim()}</textarea>)
-    if (args.showSampleList) {
-      //TODO: samples[]
-    }
+    const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
+    //TODO: stack.pop was throwing errors on assert(del[1]===e.el)
+    //TODO: How to report changes that need to be saved to the parent(s)?
+    const locations = Array.from(this.initObj.locations)
+    const locEdit = new ListEditor(stack, locations, LocationTemplateEditor, locArgs)
+    locEdit.events.add(() => {/* TODO: when the list is changed, ...? */})
+    //TODO: "New from template" button
+    //TODO: Returning from the ListEditor triggers form validation here?
+
+    //TODO: commonSamples[]
+
+    this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null)
+      <div class="border rounded my-3 p-3"> <div class="mb-3 fs-5">{tr('Sampling Location Templates')}</div> {locEdit.el} </div>,
     ])
 
-    this.form2obj = () =>
-      new SamplingLocationTemplate({ name: inpName.value,
-        description: inpDesc.value.trim(), nominalCoords: nomCoords,
-        samples: [] })
+    this.form2obj = () => new SamplingTripTemplate({ name: inpName.value, description: inpDesc.value.trim(),
+      locations: locations, commonSamples: [] })
   }
+
 }

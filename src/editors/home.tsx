@@ -16,8 +16,10 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isISamplingLocationTemplateArray, SamplingLocationTemplate } from '../types/location'
-import { isIMeasurementTypeArray, MeasurementType } from '../types/meas-type'
+import { isISamplingTripTemplateArray, SamplingTripTemplate } from '../types/trip'
 import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
+import { isIMeasurementTypeArray, MeasurementType } from '../types/meas-type'
+import { TripTemplateEditor } from './trip-temp'
 import { MeasTypeEditor } from './meas-type'
 import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
@@ -25,12 +27,12 @@ import * as storage from '../storage'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-function makeMeasTypeListEditor(stack :EditorStack) {
-  const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
-  const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
-  const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
-  mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
-  return mtEdit
+function makeTripTempListEditor(stack :EditorStack) {
+  const _tt :unknown = JSON.parse( storage.get(storage.TRIP_TEMPLATES) ?? '[]' )
+  const tt :SamplingTripTemplate[] = isISamplingTripTemplateArray(_tt) ? _tt.map(t => new SamplingTripTemplate(t)) : []
+  const ttEdit = new ListEditor(stack, tt, TripTemplateEditor)
+  ttEdit.events.add(() => storage.set(storage.TRIP_TEMPLATES, JSON.stringify(tt)))
+  return ttEdit
 }
 
 function makeLocTempListEditor(stack :EditorStack) {
@@ -42,8 +44,15 @@ function makeLocTempListEditor(stack :EditorStack) {
   return ltEdit
 }
 
-let _accId = 0
+function makeMeasTypeListEditor(stack :EditorStack) {
+  const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
+  const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
+  const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
+  mtEdit.events.add(() => storage.set(storage.MEAS_TYPES, JSON.stringify(mt)))
+  return mtEdit
+}
 
+let _accId = 0
 export class HomePage {
   readonly el :HTMLElement
   constructor(stack :EditorStack) {
@@ -62,15 +71,16 @@ export class HomePage {
         </div>
       </div>
 
+    const ttEdit = makeTripTempListEditor(stack)
     const ltEdit = makeLocTempListEditor(stack)
     const mtEdit = makeMeasTypeListEditor(stack)
 
     this.el = <div class="p-3">
       <div class="accordion" id="homeAccordion">
         {makeAcc(tr('Sampling Trips'), 'TODO')}
-        {makeAcc(`${tr('Templates')}: ${tr('Sampling Trips')}`, 'TODO')}
-        {makeAcc(`${tr('Templates')}: ${tr('Sampling Locations')}`, ltEdit.el)}
-        {makeAcc(`${tr('Templates')}: ${tr('Measurement Types')}`, mtEdit.el)}
+        {makeAcc(tr('Sampling Trip Templates'), ttEdit.el)}
+        {makeAcc(tr('Sampling Location Templates'), ltEdit.el)}
+        {makeAcc(tr('Measurement Types'), mtEdit.el)}
       </div>
     </div>
   }
