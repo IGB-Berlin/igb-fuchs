@@ -54,17 +54,19 @@ const translations = {
     'Zeige alle Regeln für gültige Namen',
     'Show all rules for valid names' ],
   'name-help-title': ['Regeln für gültige Namen', 'Rules for Valid Names'],
-  'name-help-full': [
+  'name-help-full': [ // will be split on \n and turned into <li>s
     'Namen müssen mit einem Buchstaben oder einer Zahl beginnen und müssen insgesamt mindestens zwei Zeichen lang sein.\n'
     +'Namen dürfen nicht beginnen mit: "CON", "PRN", "AUX", "NUL", oder "COM" bzw. "LPT" gefolgt von einer Zahl.\n'
     +'Namen dürfen nur Buchstaben (inkl. deutsche Umlaute und ß), Zahlen, sowie Leerzeichen und die Sonderzeichen Punkt (.), '
     +'Komma (,), Bindestrich (-), Unterstrich (_), und Klammern "()" enthalten.\nNamen dürfen nicht auf Leerzeichen oder einem Punkt enden.\n'
-    +'Namen werden nicht übersetzt, daher wird empfohlen, englische Namen zu verwenden.',
+    +'Namen werden nicht übersetzt, daher wird empfohlen, englische Namen zu verwenden.\n'
+    +'Namen dürfen nur einmal pro Datentyp (Messpunkt, Messtyp, usw.) verwendet werden.',
     'Names must begin with a letter or number and must be at least two characters long in total.\n'
     +'Names may not begin with: "CON", "PRN", "AUX", "NUL", or "COM" or "LPT" followed by a number.\n'
     +'Names may include letters (incl. German umlauts and ß), numbers, and spaces as well as the special characters period (.), '
     +'comma (,), minus (-), underscore (_), and parentheses "()".\nNames may not end on a space or period.\n'
-    +'Names are not translated, so English is recommended.'
+    +'Names are not translated, so English is recommended.\n'
+    +'Names must be unique across all entries of the same kind (sampling location, measurement type, etc.).'
   ],
   'Notes': ['Notizen'],
   'notes-help': [
