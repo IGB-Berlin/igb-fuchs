@@ -149,12 +149,10 @@ export interface ISamplingLocationTemplate {
   nominalCoords :IWgs84Coordinates
   samples :ISampleTemplate[]
 }
-const samplingLocationTemplateKeys = ['name','description','nominalCoords','samples'] as const
-type SamplingLocationTemplateKey = typeof samplingLocationTemplateKeys[number] & keyof ISamplingLocationTemplate
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   if (!o || typeof o !== 'object') return false
-  if (!('name' in o && 'nominalCoords' in o && 'samples' in o)) return false  // required keys
-  for (const k of Object.keys(o)) if (!samplingLocationTemplateKeys.includes(k as SamplingLocationTemplateKey)) return false  // extra keys
+  if (!( 'name' in o && 'nominalCoords' in o && 'samples' in o
+    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'description' in o ) )) return false // keys
   // type checks
   if (typeof o.name !== 'string' || !isIWgs84Coordinates(o.nominalCoords) || !Array.isArray(o.samples)) return false
   for (const s of o.samples) if (!isISampleTemplate(s)) return false

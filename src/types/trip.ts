@@ -23,6 +23,7 @@ import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
 export interface ISamplingTrip {
+  readonly tripId ?:string|null
   name :string
   description ?:string|null
   startTime :Timestamp
@@ -33,7 +34,7 @@ export interface ISamplingTrip {
   notes ?:string|null
   locations :ISamplingLocation[]
 }
-const samplingTripKeys = ['name','description','startTime','endTime','lastModified','persons','weather','notes','locations'] as const
+const samplingTripKeys = ['tripId','name','description','startTime','endTime','lastModified','persons','weather','notes','locations'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
 function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if (!o || typeof o !== 'object') return false
@@ -43,6 +44,7 @@ function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if (typeof o.name !== 'string' || !isTimestamp(o.startTime) || !isTimestamp(o.endTime)
     || !Array.isArray(o.locations)) return false
   for (const l of o.locations) if (!isISamplingLocation(l)) return false
+  if ('tripId' in o && !( o.tripId===null || typeof o.tripId === 'string' )) return false
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   if ('lastModified' in o && !( o.lastModified===null || isTimestamp(o.lastModified) )) return false
   if ('persons' in o && !( o.persons===null || typeof o.persons === 'string' )) return false
@@ -111,7 +113,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l, null)))
   }
   override toJSON(_key: string): ISamplingTrip {
-    const rv :ISamplingTrip = {
+    const rv :ISamplingTrip = { tripId: this.tripId,
       name: this.name, startTime: this.startTime, endTime: this.endTime,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())) }
     if (this.description.trim().length) rv.description = this.description.trim()
