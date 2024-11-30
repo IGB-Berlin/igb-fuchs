@@ -22,13 +22,14 @@ import { SimpleEventHub } from '../events'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { tr } from '../i18n'
+import { AbstractList } from '../types/list'
 
 type EditorEvent =
     { type: 'save' }
   | { type: 'close' }
 
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
-  new (stack :EditorStack, targetArray :B[], idx :number, args ?:object): E, briefTitle :string }
+  new (stack :EditorStack, targetList :AbstractList<B>, idx :number, args ?:object): E, briefTitle :string }
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
@@ -50,22 +51,16 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract form2obj :()=>Readonly<B>
 
   protected stack :EditorStack
-  /** The array in which the object being edited resides, at `targetIdx`. */
-  private readonly targetArray :Readonly<B>[]
-  /** The index at which the object being edited resides, in `targetArray`. */
+  /** The list in which the object being edited resides, at `targetIdx`. */
+  private readonly targetList :AbstractList<B>
+  /** The index at which the object being edited resides, in `targetList`. */
   private targetIdx :number
-  /** A reference to the object being edited in `targetArray` and `targetIdx`, or `null` if creating a new object.
+  /** A reference to the object being edited in `targetList` and `targetIdx`, or `null` if creating a new object.
    *
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
   protected get savedObj() :Readonly<B>|null {
-    if (this.targetIdx<0) return null
-    else {
-      const obj = this.targetArray[this.targetIdx]
-      assert(obj)
-      return obj
-    }
-  }
+    return this.targetIdx<0 ? null : this.targetList.get(this.targetIdx) }
 
   /** The event dispatcher for this editor. */
   readonly events :SimpleEventHub<EditorEvent> = new SimpleEventHub(true)
@@ -78,13 +73,13 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them,
    * and they should call `this.open()` when they're initialized and ready to be shown.
    *
-   * @param targetArray The array in which the object to be edited lives or is to be added to.
-   * @param idx If less than zero, create a new object and push it onto the array; otherwise point to the object in the array to edit.
+   * @param targetList The list in which the object to be edited lives or is to be added to.
+   * @param idx If less than zero, create a new object and push it onto the list; otherwise point to the object in the list to edit.
    */
-  constructor(stack :EditorStack, targetArray :B[], idx :number, _args ?:object) {
-    assert(idx<targetArray.length)
+  constructor(stack :EditorStack, targetList :AbstractList<B>, idx :number, _args ?:object) {
+    assert(idx<targetList.length)
     this.stack = stack
-    this.targetArray = targetArray
+    this.targetList = targetList
     this.targetIdx = idx
   }
 
@@ -119,20 +114,20 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.events.clear()
   }
 
-  /** Save the current form to the target array, optionally closing the editor after. */
+  /** Save the current form to the target list, optionally closing the editor after. */
   private doSave(andClose :boolean) {
     const curObj = this.form2obj()
     // Are there actually any changes to save?
     if ( !this.savedObj ) {  // Yes, this is a new object.
       assert(this.targetIdx<0)
       console.debug('Appending', curObj)
-      this.targetIdx = this.targetArray.push(curObj) - 1
+      this.targetIdx = this.targetList.add(curObj)
       this.events.fire({ type: 'save' })
     }
     else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
-      assert( this.targetIdx>=0 && this.targetIdx<this.targetArray.length )
+      assert( this.targetIdx>=0 && this.targetIdx<this.targetList.length )
       console.debug(`Saving to [${this.targetIdx}]`, curObj)
-      this.targetArray[this.targetIdx] = curObj
+      this.targetList.set(this.targetIdx, curObj)
       this.events.fire({ type: 'save' })
     }
     else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
@@ -174,7 +169,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         /* There are a few cases that aren't covered by the form validation, for example:
           * - when the MeasurementType's `max` is smaller than the `min`
           * - duplicate `name` properties */
-        curObj.validate( this.targetArray.filter((_,i) => i!==this.targetIdx) )
+        curObj.validate( Array.from(this.targetList).filter((_,i) => i!==this.targetIdx) )
       }
       catch (ex) {
         btnSaveClose.classList.add('btn-warning')

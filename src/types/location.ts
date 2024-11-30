@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateName, validateTimestamp, DataObjectWithTemplate } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp, DataObjectWithTemplate } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
+import { dataSetsEqual } from './list'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 

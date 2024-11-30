@@ -23,6 +23,7 @@ import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
+import { AbstractList } from '../types/list'
 
 interface ListEditorEvent {
   kind :'edit'|'delete'|'new'
@@ -33,7 +34,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
   readonly events :SimpleEventHub<ListEditorEvent>
   readonly updateEnable :(enable ?:boolean) => void
-  constructor(stack :EditorStack, theList :Array<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
+  constructor(stack :EditorStack, theList :AbstractList<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
     const btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
@@ -83,7 +84,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     const redrawList = (selAfter :number = -1) => {
       els.length = theList.length
       if (theList.length)
-        theList.forEach((item,i) => els[i]=<li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
+        Array.from(theList).forEach((item,i) => els[i]=<li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
       else
         els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
@@ -99,14 +100,13 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     </div>
     btnDel.addEventListener('click', async () => {
       if (selIdx<0) return  // shouldn't happen
-      const selItem = theList[selIdx]
-      assert(selItem)
+      const selItem = theList.get(selIdx)
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
         const delIdx = selIdx
-        const rv = theList.splice(delIdx, 1)
-        assert(rv.length===1 && selItem === rv[0])
+        const rv = theList.del(delIdx)
+        assert(selItem === rv)  // paranoia
         redrawList()
         this.events.fire({ kind: 'delete', idx: delIdx })
         break }

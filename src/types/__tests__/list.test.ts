@@ -16,22 +16,14 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { expect, test } from '@jest/globals'
-import { DataObjectBase, dataSetsEqual } from '../common'
+import { dataSetsEqual } from '../list'
 
 test('dataSetsEqual', () => {
-
-  class X extends DataObjectBase<X> {
+  class X {
     readonly x :string
-    constructor(x :string) { super(); this.x = x }
-    override typeName(_kind :'full'|'short') { return 'X' }
-    override equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
-    override summaryDisplay() :[string,null] { return [this.x,null] }
-    override warningsCheck() { return [] }
-    override toJSON(_key: string) { return { x: this.x } }
-    override validate() { }
-    override deepClone() { return new X(this.x) }
+    constructor(x :string) { this.x = x }
+    equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
   }
-
   expect( dataSetsEqual([],[]) ).toStrictEqual( true )
   expect( dataSetsEqual([new X('x')],[]) ).toStrictEqual( false )
   expect( dataSetsEqual([new X('x')],[new X('y')]) ).toStrictEqual( false )

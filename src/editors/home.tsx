@@ -21,6 +21,7 @@ import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { isIMeasurementTypeArray, MeasurementType } from '../types/meas-type'
 import { TripTemplateEditor } from './trip-temp'
 import { MeasTypeEditor } from './meas-type'
+import { ArrayList } from '../types/list'
 import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
 import * as storage from '../storage'
@@ -30,7 +31,7 @@ import { tr } from '../i18n'
 function makeTripTempListEditor(stack :EditorStack) {
   const _tt :unknown = JSON.parse( storage.get(storage.TRIP_TEMPLATES) ?? '[]' )
   const tt :SamplingTripTemplate[] = isISamplingTripTemplateArray(_tt) ? _tt.map(t => new SamplingTripTemplate(t)) : []
-  const ttEdit = new ListEditor(stack, tt, TripTemplateEditor)
+  const ttEdit = new ListEditor(stack, new ArrayList(tt), TripTemplateEditor)
   ttEdit.events.add(event => {
     console.log(`SAVING Sampling Trip Templates (from ListEditor<TripTemplateEditor> event ${event.kind})`)
     storage.set(storage.TRIP_TEMPLATES, JSON.stringify(tt))
@@ -42,7 +43,7 @@ function makeLocTempListEditor(stack :EditorStack) {
   const _lt :unknown = JSON.parse( storage.get(storage.LOC_TEMPLATES) ?? '[]' )
   const lt :SamplingLocationTemplate[] = isISamplingLocationTemplateArray(_lt) ? _lt.map(l => new SamplingLocationTemplate(l)) : []
   const args :LocationTemplateEditorArgs = { showSampleList: false }
-  const ltEdit = new ListEditor(stack, lt, LocationTemplateEditor, args)
+  const ltEdit = new ListEditor(stack, new ArrayList(lt), LocationTemplateEditor, args)
   ltEdit.events.add(event => {
     console.log(`SAVING Sampling Location Templates (from ListEditor<LocationTemplateEditor> event ${event.kind})`)
     storage.set(storage.LOC_TEMPLATES, JSON.stringify(lt))
@@ -53,7 +54,7 @@ function makeLocTempListEditor(stack :EditorStack) {
 function makeMeasTypeListEditor(stack :EditorStack) {
   const _mt :unknown = JSON.parse( storage.get(storage.MEAS_TYPES) ?? '[]' )
   const mt :MeasurementType[] = isIMeasurementTypeArray(_mt) ? _mt.map(m => new MeasurementType(m)) : []
-  const mtEdit = new ListEditor(stack, mt, MeasTypeEditor)
+  const mtEdit = new ListEditor(stack, new ArrayList(mt), MeasTypeEditor)
   mtEdit.events.add(event => {
     console.log(`SAVING Measurement Types (from ListEditor<MeasTypeEditor> event ${event.kind})`)
     storage.set(storage.MEAS_TYPES, JSON.stringify(mt))

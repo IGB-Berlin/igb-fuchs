@@ -15,9 +15,10 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, dataSetsEqual, validateTimestamp, validateName, DataObjectWithTemplate } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateTimestamp, validateName, DataObjectWithTemplate } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
+import { dataSetsEqual } from './list'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 

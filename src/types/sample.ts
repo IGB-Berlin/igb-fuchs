@@ -16,8 +16,9 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
+import { DataObjectTemplate, DataObjectWithTemplate } from './common'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
-import { dataSetsEqual, DataObjectTemplate, DataObjectWithTemplate } from './common'
+import { dataSetsEqual } from './list'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 

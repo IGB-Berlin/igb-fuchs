@@ -17,13 +17,14 @@
  */
 import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { AbstractList, ArrayList } from '../types/list'
 import { SamplingTripTemplate } from '../types/trip'
+import { listSelectDialog } from './list-dialog'
 import { VALID_NAME_RE } from '../types/common'
 import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
-import { listSelectDialog } from './list-dialog'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
   static override readonly briefTitle: string = tr('trip-temp')
@@ -32,8 +33,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
   protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override form2obj :()=>Readonly<SamplingTripTemplate>
 
-  constructor(stack :EditorStack, targetArray :SamplingTripTemplate[], idx :number) {
-    super(stack, targetArray, idx)
+  constructor(stack :EditorStack, targetList :AbstractList<SamplingTripTemplate>, idx :number) {
+    super(stack, targetList, idx)
     const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
@@ -42,7 +43,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       <textarea rows="3">{obj.description.trim()}</textarea>)
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    const locEdit = new ListEditor(stack, obj.locations, LocationTemplateEditor, locArgs)
+    const locEdit = new ListEditor(stack, new ArrayList(obj.locations), LocationTemplateEditor, locArgs)
     // Propagate change events to parents - important because we need to trigger a save!
     locEdit.events.add(event => {
       console.debug('TripTemplateEditor got ListEditor<LocationTemplateEditor> event', event.kind)
