@@ -52,7 +52,7 @@ export function list(path :string|string[]) :string[][] {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API#testing_for_availability
-export const CAN_LOCAL_STORAGE :boolean = (() => {
+export const CAN_STORAGE :boolean = (() => {
   let storage :Storage|undefined
   try {
     storage = window['localStorage']

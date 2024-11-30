@@ -157,10 +157,10 @@ const translations = {
   // other
   'Error: No Storage Available': ['Fehler: Kein Speicher verfügbar'],
   'alert-no-storage-text': [
-    'Dein Browser hat keinen lokalen Speicher zur Verfügung gestellt. Diese App kann nicht im "privaten" modus'
+    'Dein Browser hat keinen Speicher zur Verfügung gestellt. Diese App kann nicht im "privaten" modus'
     +' verwendet werden. Stelle außerdem sicher, dass du keine Browser-Plugins hast, die Inhalt sperren könnten'
     +' (z.B. Werbungs-Blocker); falls du solche Plugins hast, müssen sie für diese App deaktiviert werden.',
-    'Your browser has not made any local storage available. This app cannot be used in "private browsing" mode,'
+    'Your browser has not made any storage available. This app cannot be used in "private browsing" mode,'
     +' and make sure you don\'t have any browser plugins enabled that may block content (ad blockers etc.).'
     +' If you do, you need to disable them for this app.' ],
 

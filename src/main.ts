@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { CAN_LOCAL_STORAGE } from './storage'
+import { CAN_STORAGE } from './storage'
 import * as misc from './dialogs'
 import * as ui from './ui'
 
@@ -37,9 +37,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
 
 window.addEventListener('DOMContentLoaded', async () => {
   setTheme()
-  if (!CAN_LOCAL_STORAGE) {
+  if (!CAN_STORAGE) {
     misc.noStorageAlert()
-    throw new Error('localStorage not available, can\'t continue')
+    throw new Error('Storage not available, can\'t continue')
   }
   await ui.init()
 })
