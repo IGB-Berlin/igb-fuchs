@@ -18,11 +18,66 @@
 import { SimpleEventHub } from '../events'
 import { assert } from '../utils'
 
+interface StoreEvent {
+  action :'add'|'set'|'del'|'mod'
+  id :string
+}
+
+export type HasId = { readonly id :string }
+
+export abstract class AbstractStore<T extends HasId> {
+  readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
+  abstract getAll() :Promise<T[]>
+  abstract get(id :string) :Promise<T>
+  protected abstract _add(obj :T) :Promise<void>
+  protected abstract _set(obj :T) :Promise<void>
+  protected abstract _del(obj :T) :Promise<void>
+  async add(obj :T) :Promise<void> {
+    await this._add(obj)
+    this.events.fire({ action: 'add', id: obj.id })
+  }
+  async set(obj :T) :Promise<void> {
+    await this._set(obj)
+    this.events.fire({ action: 'set', id: obj.id })
+  }
+  async del(obj :T) :Promise<void> {
+    await this._del(obj)
+    this.events.fire({ action: 'del', id: obj.id })
+  }
+  /** Fire an event reporting that an item already stored has been modified. */
+  reportChange(id :string) { this.events.fire({ action: 'mod', id: id }) }
+}
+
+export class MapStore<T extends HasId> extends AbstractStore<T> {  //TODO: test and use this
+  protected map :Map<string, T> = new Map()
+  override getAll() { return Promise.resolve(Array.from(this.map.values())) }
+  override get(id :string) {
+    const rv = this.map.get(id)
+    if (!rv) return Promise.reject(new Error(`Id "${id}" not found`))
+    return Promise.resolve(rv)
+  }
+  protected override _add(obj :T) {
+    if (this.map.has(obj.id)) return Promise.reject(new Error(`Id "${obj.id}" already in store`))
+    this.map.set(obj.id, obj)
+    return Promise.resolve()
+  }
+  protected override _set(obj :T) {
+    if (!this.map.has(obj.id)) return Promise.reject(new Error(`Id "${obj.id}" not found`))
+    this.map.set(obj.id, obj)
+    return Promise.resolve()
+  }
+  protected override _del(obj :T) {
+    const rv = this.map.delete(obj.id)
+    assert(rv, `Id "${obj.id}" not found`)
+    return Promise.resolve()
+  }
+}
+
 /** Abstraction for arrays, allowing different backing implementations to be used.
  *
  * All functions accept negative indices.
  */
-export abstract class AbstractList<T> {
+abstract class AbstractList<T> {
   /** This list's length. */
   abstract get length() :number
   /** Get an item. */

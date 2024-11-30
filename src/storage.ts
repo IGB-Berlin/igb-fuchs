@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { HasId } from './types/list'
 
 const PREFIX = 'IGB-Field'
 export const MEAS_TYPES = 'measurement-types'
@@ -72,10 +73,10 @@ export class IndexedStorage {  //TODO: test and use this
       req.onerror = () => reject(req.error)
       req.onsuccess = () => resolve(new IndexedStorage(req.result))
       req.onupgradeneeded = () => {
-        req.result.createObjectStore(MEAS_TYPES, { keyPath: 'name' })
-        //req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'name' })
-        //req.result.createObjectStore(LOC_TEMPLATES, { keyPath: 'name' })
-        //req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'name' })  //TODO: tripId should be key
+        req.result.createObjectStore(MEAS_TYPES, { keyPath: 'id' })
+        req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'id' })
+        req.result.createObjectStore(LOC_TEMPLATES, { keyPath: 'id' })
+        req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'id' })
       }
     })
   }
@@ -83,7 +84,7 @@ export class IndexedStorage {  //TODO: test and use this
   protected constructor(db :IDBDatabase) {
     this.db = db
   }
-  list(storeName :string) {
+  protected getAll(storeName :string) {
     return new Promise<unknown[]>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readonly')
       trans.onerror = () => reject(trans.error)
@@ -92,22 +93,61 @@ export class IndexedStorage {  //TODO: test and use this
       req.onsuccess = () => resolve(req.result)
     })
   }
-  get(storeName :string, key :string) {
+  protected get(storeName :string, key :string) {
     return new Promise<unknown>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readonly')
       trans.onerror = () => reject(trans.error)
-      const req = trans.objectStore(storeName).get(key)
+      // Prefer .openCursor() over .get() b/c the former tells us when there was no such key
+      const req = trans.objectStore(storeName).openCursor(key)
       req.onerror = () => reject(req.error)
-      req.onsuccess = () => resolve(req.result)
+      req.onsuccess = () => {
+        if (req.result) resolve(req.result.value)
+        else reject(new Error(`Key ${key} not found`))
+      }
     })
   }
-  put(storeName :string, data :object) {
+  protected add(storeName :string, data :HasId) {
     return new Promise<void>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
       trans.oncomplete = () => resolve()
-      const req = trans.objectStore(storeName).put(data)
+      // .add() already throws an error if the Id already exists
+      const req = trans.objectStore(storeName).add(data)
       req.onerror = () => reject(req.error)
+    })
+  }
+  protected set(storeName :string, data :HasId) {
+    return new Promise<void>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readwrite')
+      trans.onerror = () => reject(trans.error)
+      trans.oncomplete = () => resolve()
+      const store = trans.objectStore(storeName)
+      const req1 = store.openCursor(data.id)
+      req1.onerror = () => reject(req1.error)
+      req1.onsuccess = () => {
+        if (req1.result) {  // was found
+          const req2 = req1.result.update(data)
+          req2.onerror = () => reject(req2.error)
+        }
+        else reject(new Error(`Key ${data.id} not found`))
+      }
+    })
+  }
+  protected del(storeName :string, data :HasId) {
+    return new Promise<void>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readwrite')
+      trans.onerror = () => reject(trans.error)
+      trans.oncomplete = () => resolve()
+      const store = trans.objectStore(storeName)
+      const req1 = store.openCursor(data.id)
+      req1.onerror = () => reject(req1.error)
+      req1.onsuccess = () => {
+        if (req1.result) {  // was found
+          const req2 = req1.result.delete()
+          req2.onerror = () => reject(req2.error)
+        }
+        else reject(new Error(`Key ${data.id} not found`))
+      }
     })
   }
 }
