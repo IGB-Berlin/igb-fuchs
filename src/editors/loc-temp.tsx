@@ -19,7 +19,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
-import { AbstractList } from '../types/list'
+import { EventList } from '../types/list'
 import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -38,8 +38,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
 
-  constructor(stack :EditorStack, targetList :AbstractList<SamplingLocationTemplate>, idx :number, args_ ?:object) {
-    super(stack, targetList, idx)
+  constructor(stack :EditorStack, targetList :EventList<SamplingLocationTemplate>, targetIdx :number, args_ ?:object) {
+    super(stack, targetList, targetIdx)
     const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingLocationTemplate(null)
     const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
 

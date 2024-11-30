@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { SimpleEventHub } from '../events'
 import { assert } from '../utils'
 
 type HasEquals = { equals(other :unknown) :boolean }
@@ -43,7 +44,7 @@ export abstract class AbstractList<T> {
   abstract add(value :T) :number
   /** Delete an item from the list, shifting remaining items down. */
   abstract del(index :number) :T
-  abstract [Symbol.iterator]() :Iterator<T>
+  abstract [Symbol.iterator]() :Iterator<Readonly<T>>
 
   /** Check whether the value is contained in this list, using one of several criteria:
    * - If the object has an `equals` method, use that.
@@ -63,10 +64,43 @@ export abstract class AbstractList<T> {
       for(const v of this) if (cmp(v)) return true }
     return false
   }
-
 }
 
-export class ArrayList<T> extends AbstractList<T> {
+interface ListEvent {
+  action :'set'|'add'|'del'|'mod'
+  index :number
+}
+
+/** An abstract class that provides a `SimpleEventHub` for changes made to the list.
+ *
+ * Implementations should *not* override `set`, `add`, and `del`. */
+export abstract class EventList<T> extends AbstractList<T> {
+  readonly events :SimpleEventHub<ListEvent> = new SimpleEventHub()
+  protected abstract _set(index :number, value :T) :void
+  protected abstract _add(value :T) :number
+  protected abstract _del(index :number) :T
+  set(index :number, value :T) :void {
+    this._set(index, value)
+    this.events.fire({ action: 'set', index: index })
+  }
+  add(value :T) :number {
+    const index = this._add(value)
+    this.events.fire({ action: 'add', index: index })
+    return index
+  }
+  del(index :number) :T {
+    const value = this._del(index)
+    this.events.fire({ action: 'del', index: index })
+    return value
+  }
+  /** Fire an event reporting that an item already stored in this list has been modified. */
+  reportChange(index :number) :void {
+    this.events.fire({ action: 'mod', index: index })
+  }
+}
+
+/** A list backed by an array, with events. */
+export class ArrayEventList<T> extends EventList<T> {
   protected readonly array :T[]
   constructor(array ?:T[]) {
     super()
@@ -79,14 +113,14 @@ export class ArrayList<T> extends AbstractList<T> {
     assert(item)
     return item
   }
-  override set(index :number, value :T) {
+  protected override _set(index :number, value :T) {
     assert(index>=-this.array.length && index<this.array.length)
     this.array[index<0 ? index + this.array.length : index] = value
   }
-  override add(value :T) :number { return this.array.push(value) - 1 }
-  override del(index :number) :T {
+  protected override _add(value :T) :number { return this.array.push(value) - 1 }
+  protected override _del(index :number) :T {
     const item = this.get(index)  // also checks index
-    this.array.splice(index, 1)
+    this.array.splice(index, 1)  // supports negative indices
     return item
   }
   [Symbol.iterator]() { return this.array.values() }

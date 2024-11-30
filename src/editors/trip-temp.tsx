@@ -17,7 +17,7 @@
  */
 import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { AbstractList, ArrayList } from '../types/list'
+import { EventList, ArrayEventList } from '../types/list'
 import { SamplingTripTemplate } from '../types/trip'
 import { listSelectDialog } from './list-dialog'
 import { VALID_NAME_RE } from '../types/common'
@@ -33,22 +33,24 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
   protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override form2obj :()=>Readonly<SamplingTripTemplate>
 
-  constructor(stack :EditorStack, targetList :AbstractList<SamplingTripTemplate>, idx :number) {
-    super(stack, targetList, idx)
+  constructor(stack :EditorStack, targetList :EventList<SamplingTripTemplate>, targetIdx :number) {
+    super(stack, targetList, targetIdx)
     const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{obj.description.trim()}</textarea>)
-    const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
-    const locEdit = new ListEditor(stack, new ArrayList(obj.locations), LocationTemplateEditor, locArgs)
-    // Propagate change events to parents - important because we need to trigger a save!
-    locEdit.events.add(event => {
-      console.debug('TripTemplateEditor got ListEditor<LocationTemplateEditor> event', event.kind)
-      this.events.fire({ type: 'save' })
-    })
+    /* We want to edit the original object's locations array directly, because
+     * we want changes there to be saved immediately, for that we propagate
+     * the change event to the parent via `reportSelfChange` below.
+     */
+    const locList = new ArrayEventList(obj.locations)
+    const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
+    const locEdit = new ListEditor(stack, locList, LocationTemplateEditor, locArgs)
+    locList.events.add(() => this.reportSelfChange())
+
     // "New from Template" - TODO: add button to list editor?
     const btnLocFromTemp = <button type="button" class="btn btn-info" disabled><i class="bi-journal-plus"/> {tr('From Template')}</button>
     btnLocFromTemp.addEventListener('click', async () => {
@@ -56,21 +58,19 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       const idx = await listSelectDialog(tr('new-loc-from-temp'), obj.locations)
       console.debug('selected', idx)  //TODO: debug, remove
     })
+
     /* If this is a new object we are currently editing, it won't have been saved to its
      * target array, so any changes to any arrays it holds (like in this case the .locations[])
      * won't be saved either. So, to prevent users from being able to build large object
      * trees without them ever being saved, we require this current object to be saved
-     * before allowing edits to its arrays.
-     */
+     * before allowing edits to its arrays. */
     const updState = () => {
       locEdit.updateEnable(!!this.savedObj)
-      if (this.savedObj)
-        btnLocFromTemp.removeAttribute('disabled')
-      else
-        btnLocFromTemp.setAttribute('disabled', 'disabled')
+      if (this.savedObj) btnLocFromTemp.removeAttribute('disabled')
+      else btnLocFromTemp.setAttribute('disabled', 'disabled')
     }
     updState()
-    this.events.add(event => { if (event.type==='save') updState() })
+    targetList.events.add(() => updState())
 
     //TODO: commonSamples[]
 

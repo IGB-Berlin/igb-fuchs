@@ -18,18 +18,13 @@
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
-import { SimpleEventHub } from '../events'
+import { EventList } from '../types/list'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { tr } from '../i18n'
-import { AbstractList } from '../types/list'
-
-type EditorEvent =
-    { type: 'save' }
-  | { type: 'close' }
 
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
-  new (stack :EditorStack, targetList :AbstractList<B>, idx :number, args ?:object): E, briefTitle :string }
+  new (stack :EditorStack, targetList :EventList<B>, idx :number, args ?:object): E, briefTitle :string }
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
@@ -52,7 +47,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   protected stack :EditorStack
   /** The list in which the object being edited resides, at `targetIdx`. */
-  private readonly targetList :AbstractList<B>
+  private readonly targetList :EventList<B>
   /** The index at which the object being edited resides, in `targetList`. */
   private targetIdx :number
   /** A reference to the object being edited in `targetList` and `targetIdx`, or `null` if creating a new object.
@@ -61,9 +56,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    */
   protected get savedObj() :Readonly<B>|null {
     return this.targetIdx<0 ? null : this.targetList.get(this.targetIdx) }
-
-  /** The event dispatcher for this editor. */
-  readonly events :SimpleEventHub<EditorEvent> = new SimpleEventHub(true)
 
   /** Helper to get the static property from an instance. */
   get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
@@ -74,19 +66,18 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * and they should call `this.open()` when they're initialized and ready to be shown.
    *
    * @param targetList The list in which the object to be edited lives or is to be added to.
-   * @param idx If less than zero, create a new object and push it onto the list; otherwise point to the object in the list to edit.
+   * @param targetIdx If less than zero, create a new object and push it onto the list; otherwise point to the object in the list to edit.
    */
-  constructor(stack :EditorStack, targetList :AbstractList<B>, idx :number, _args ?:object) {
-    assert(idx<targetList.length)
+  constructor(stack :EditorStack, targetList :EventList<B>, targetIdx :number, _args ?:object) {
+    assert(targetIdx<targetList.length)
     this.stack = stack
     this.targetList = targetList
-    this.targetIdx = idx
+    this.targetIdx = targetIdx
   }
 
   /** To be called by subclasses when they're ready to be shown. */
   protected open() {
     this.stack.push(this)
-    this.events.unhold()
   }
 
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
@@ -109,9 +100,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *
    * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
   private doClose() {
-    this.events.fire({ type: 'close' })
     this.stack.pop(this)
-    this.events.clear()
   }
 
   /** Save the current form to the target list, optionally closing the editor after. */
@@ -122,17 +111,19 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       assert(this.targetIdx<0)
       console.debug('Appending', curObj)
       this.targetIdx = this.targetList.add(curObj)
-      this.events.fire({ type: 'save' })
     }
     else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
       assert( this.targetIdx>=0 && this.targetIdx<this.targetList.length )
       console.debug(`Saving to [${this.targetIdx}]`, curObj)
       this.targetList.set(this.targetIdx, curObj)
-      this.events.fire({ type: 'save' })
     }
     else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     if (andClose) this.doClose()
   }
+
+  /** To be called by subclasses, to report when any of the lists they're editing have changed */
+  protected reportSelfChange() {
+    if (this.targetIdx>=0) this.targetList.reportChange(this.targetIdx) }
 
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {

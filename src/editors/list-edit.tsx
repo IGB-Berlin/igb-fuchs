@@ -18,23 +18,16 @@
 import { DataObjectBase } from '../types/common'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
-import { SimpleEventHub } from '../events'
+import { EventList } from '../types/list'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
-import { AbstractList } from '../types/list'
-
-interface ListEditorEvent {
-  kind :'edit'|'delete'|'new'
-  idx :number
-}
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
-  readonly events :SimpleEventHub<ListEditorEvent>
   readonly updateEnable :(enable ?:boolean) => void
-  constructor(stack :EditorStack, theList :AbstractList<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
+  constructor(stack :EditorStack, theList :EventList<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
     const btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
@@ -104,35 +97,20 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
-        const delIdx = selIdx
-        const rv = theList.del(delIdx)
-        assert(selItem === rv)  // paranoia
-        redrawList()
-        this.events.fire({ kind: 'delete', idx: delIdx })
+        const del = theList.del(selIdx)
+        assert(selItem === del)  // paranoia
         break }
       }
     })
     btnEdit.addEventListener('click', () => {
       if (selIdx<0) return  // shouldn't happen
-      const editor = new editorClass(stack, theList, selIdx, editorArgs)
-      editor.events.add(event => {
-        console.debug(`ListEditor<${editorClass.name}> got EditorEvent`, event.type)
-        if (event.type==='save') {
-          redrawList(selIdx)
-          this.events.fire({ kind: 'edit', idx: selIdx })
-        }
-      })
+      new editorClass(stack, theList, selIdx, editorArgs)  // adds and removes itself from the stack
     })
     btnNew.addEventListener('click', () => {
-      const editor = new editorClass(stack, theList, -1, editorArgs)
-      editor.events.add(event => {
-        console.debug(`ListEditor<${editorClass.name}> got EditorEvent`, event.type)
-        if (event.type==='save') {
-          redrawList(theList.length-1)
-          this.events.fire({ kind: 'new', idx: theList.length-1 })
-        }
-      })
+      new editorClass(stack, theList, -1, editorArgs)  // adds and removes itself from the stack
     })
-    this.events = new SimpleEventHub(false, [this.el, theUl])
+    theList.events.add(event => {
+      redrawList(event.action === 'del' ? undefined : event.index)
+    })
   }
 }
