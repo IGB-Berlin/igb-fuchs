@@ -128,20 +128,20 @@ export class IndexedStorage {  //TODO: test and use this
     })
   }
   protected add(storeName :string, data :HasId) {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => resolve()
+      trans.oncomplete = () => resolve(data.id)
       // .add() already throws an error if the Id already exists
       const req = trans.objectStore(storeName).add(data)
       req.onerror = () => reject(req.error)
     })
   }
   protected set(storeName :string, data :HasId) {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => resolve()
+      trans.oncomplete = () => resolve(data.id)
       const store = trans.objectStore(storeName)
       const req1 = store.openCursor(data.id)
       req1.onerror = () => reject(req1.error)
@@ -155,10 +155,10 @@ export class IndexedStorage {  //TODO: test and use this
     })
   }
   protected del(storeName :string, data :HasId) {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => resolve()
+      trans.oncomplete = () => resolve(data.id)
       const store = trans.objectStore(storeName)
       const req1 = store.openCursor(data.id)
       req1.onerror = () => reject(req1.error)
@@ -172,37 +172,31 @@ export class IndexedStorage {  //TODO: test and use this
     })
   }
   tripTemplates() :AbstractStore<SamplingTripTemplate> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const store = this
     class TripTempStore extends AbstractStore<SamplingTripTemplate> {
+      protected readonly store :IndexedStorage
+      constructor(store :IndexedStorage) { super(); this.store = store }
       override async getAll() :Promise<SamplingTripTemplate[]> {
-        return (await store.getAll(TRIP_TEMPLATES, isISamplingTripTemplate)).map(o => new SamplingTripTemplate(o)) }
-      override async get(id: string): Promise<SamplingTripTemplate> {
-        return new SamplingTripTemplate(await store.get(TRIP_TEMPLATES, id, isISamplingTripTemplate)) }
-      protected override _add(obj: SamplingTripTemplate): Promise<void> {
-        return store.add(TRIP_TEMPLATES, obj) }
-      protected override _set(obj: SamplingTripTemplate): Promise<void> {
-        return store.set(TRIP_TEMPLATES, obj) }
-      protected override _del(obj: SamplingTripTemplate): Promise<void> {
-        return store.del(TRIP_TEMPLATES, obj) }
+        return (await this.store.getAll(TRIP_TEMPLATES, isISamplingTripTemplate)).map(o => new SamplingTripTemplate(o)) }
+      override async get(id: string) :Promise<SamplingTripTemplate> {
+        return new SamplingTripTemplate(await this.store.get(TRIP_TEMPLATES, id, isISamplingTripTemplate)) }
+      protected override _add(obj: SamplingTripTemplate) { return this.store.add(TRIP_TEMPLATES, obj) }
+      protected override _set(obj: SamplingTripTemplate) { return this.store.set(TRIP_TEMPLATES, obj) }
+      protected override _del(obj: SamplingTripTemplate) { return this.store.del(TRIP_TEMPLATES, obj) }
     }
-    return new TripTempStore()
+    return new TripTempStore(this)
   }
   samplingTrips() :AbstractStore<SamplingTrip> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const store = this
     class SampTripStore extends AbstractStore<SamplingTrip> {
+      protected readonly store :IndexedStorage
+      constructor(store :IndexedStorage) { super(); this.store = store }
       override async getAll() :Promise<SamplingTrip[]> {
-        return (await store.getAll(TRIP_TEMPLATES, isISamplingTrip)).map(o => new SamplingTrip(o, null)) }
-      override async get(id: string): Promise<SamplingTrip> {
-        return new SamplingTrip(await store.get(TRIP_TEMPLATES, id, isISamplingTrip), null) }
-      protected override _add(obj: SamplingTrip): Promise<void> {
-        return store.add(TRIP_TEMPLATES, obj) }
-      protected override _set(obj: SamplingTrip): Promise<void> {
-        return store.set(TRIP_TEMPLATES, obj) }
-      protected override _del(obj: SamplingTrip): Promise<void> {
-        return store.del(TRIP_TEMPLATES, obj) }
+        return (await this.store.getAll(SAMP_TRIPS, isISamplingTrip)).map(o => new SamplingTrip(o, null)) }
+      override async get(id: string) :Promise<SamplingTrip> {
+        return new SamplingTrip(await this.store.get(SAMP_TRIPS, id, isISamplingTrip), null) }
+      protected override _add(obj :SamplingTrip) { return this.store.add(SAMP_TRIPS, obj) }
+      protected override _set(obj :SamplingTrip) { return this.store.set(SAMP_TRIPS, obj) }
+      protected override _del(obj :SamplingTrip) { return this.store.del(SAMP_TRIPS, obj) }
     }
-    return new SampTripStore()
+    return new SampTripStore(this)
   }
 }

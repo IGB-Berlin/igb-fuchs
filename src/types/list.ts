@@ -27,51 +27,56 @@ export type HasId = { readonly id :string }
 export function hasId(o :unknown) :o is HasId {
   return !!( o && typeof o === 'object' && 'id' in o && typeof o.id === 'string' ) }
 
-export abstract class AbstractStore<T extends HasId> {
+export abstract class AbstractStore<T> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
   abstract getAll() :Promise<T[]>
   abstract get(id :string) :Promise<T>
-  protected abstract _add(obj :T) :Promise<void>
-  protected abstract _set(obj :T) :Promise<void>
-  protected abstract _del(obj :T) :Promise<void>
+  protected abstract _add(obj :T) :Promise<string>
+  protected abstract _set(obj :T) :Promise<string>
+  protected abstract _del(obj :T) :Promise<string>
   async add(obj :T) :Promise<void> {
-    await this._add(obj)
-    this.events.fire({ action: 'add', id: obj.id })
+    this.events.fire({ action: 'add', id: await this._add(obj) })
   }
   async set(obj :T) :Promise<void> {
-    await this._set(obj)
-    this.events.fire({ action: 'set', id: obj.id })
+    this.events.fire({ action: 'set', id: await this._set(obj) })
   }
+  /** **WARNING:** Deletion will change *other* object's IDs! */
   async del(obj :T) :Promise<void> {
-    await this._del(obj)
-    this.events.fire({ action: 'del', id: obj.id })
+    this.events.fire({ action: 'del', id: await this._del(obj) })
   }
   /** Fire an event reporting that an item already stored has been modified. */
   reportChange(id :string) { this.events.fire({ action: 'mod', id: id }) }
 }
 
-export class MapStore<T extends HasId> extends AbstractStore<T> {  //TODO: test and use this
-  protected map :Map<string, T> = new Map()
-  override getAll() { return Promise.resolve(Array.from(this.map.values())) }
+export class ArrayStore<T> extends AbstractStore<T> {
+  protected array :T[]
+  constructor(array :T[]) { super(); this.array = array }
+  override getAll() { return Promise.resolve(this.array) }
   override get(id :string) {
-    const rv = this.map.get(id)
-    if (!rv) return Promise.reject(new Error(`Id "${id}" not found`))
+    const idx = Number.parseInt(id,10)
+    if (!Number.isFinite(idx) || idx<0 || idx>=this.array.length)
+      return Promise.reject(new Error(`Id "${id}" not found`))
+    const rv = this.array[idx]
+    assert(rv)
     return Promise.resolve(rv)
   }
   protected override _add(obj :T) {
-    if (this.map.has(obj.id)) return Promise.reject(new Error(`Id "${obj.id}" already in store`))
-    this.map.set(obj.id, obj)
-    return Promise.resolve()
+    if (this.array.some(o => Object.is(o,obj))) return Promise.reject(new Error('Object already in store'))
+    return Promise.resolve( (this.array.push(obj)-1).toString() )
   }
   protected override _set(obj :T) {
-    if (!this.map.has(obj.id)) return Promise.reject(new Error(`Id "${obj.id}" not found`))
-    this.map.set(obj.id, obj)
-    return Promise.resolve()
+    const idx = this.array.findIndex(o => Object.is(o,obj))
+    if (idx<0) return Promise.reject(new Error('Object not found in store'))
+    assert(idx<this.array.length)
+    this.array[idx] = obj
+    return Promise.resolve(idx.toString())
   }
   protected override _del(obj :T) {
-    const rv = this.map.delete(obj.id)
-    assert(rv, `Id "${obj.id}" not found`)
-    return Promise.resolve()
+    const idx = this.array.findIndex(o => Object.is(o,obj))
+    if (idx<0) return Promise.reject(new Error('Object not found in store'))
+    assert(idx<this.array.length)
+    this.array.splice(idx,1)
+    return Promise.resolve(idx.toString())
   }
 }
 
