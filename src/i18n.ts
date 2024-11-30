@@ -212,6 +212,7 @@ const translations = {
   'No measurement value': ['Kein Messwert'],
   'No measurements': ['Keine Messungen'],
   'no-trip-loc': ['Keine Messpunkte in der Vorlage', 'No sampling locations in this template'],
+  'invalid-id': ['Ungültiger Identifikator', 'Invalid identifier'],
   'Invalid name': ['Ungültiger Name'],
   'Invalid timestamp': ['Ungültiger Zeitstempel'],
   'Invalid unit': ['Ungültige Messeinheit'],

@@ -24,6 +24,8 @@ interface StoreEvent {
 }
 
 export type HasId = { readonly id :string }
+export function hasId(o :unknown) :o is HasId {
+  return !!( o && typeof o === 'object' && 'id' in o && typeof o.id === 'string' ) }
 
 export abstract class AbstractStore<T extends HasId> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
