@@ -37,6 +37,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
+  protected override onClose :()=>void = ()=>{}
 
   constructor(stack :EditorStack, targetList :EventList<SamplingLocationTemplate>, targetIdx :number, args_ ?:object) {
     super(stack, targetList, targetIdx)

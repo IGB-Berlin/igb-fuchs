@@ -32,6 +32,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override form2obj :()=>Readonly<SamplingTripTemplate>
+  protected override onClose :()=>void
 
   constructor(stack :EditorStack, targetList :EventList<SamplingTripTemplate>, targetIdx :number) {
     super(stack, targetList, targetIdx)
@@ -70,7 +71,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       else btnLocFromTemp.setAttribute('disabled', 'disabled')
     }
     updState()
-    targetList.events.add(() => updState())
+    targetList.events.add(updState)
+    this.onClose = () => targetList.events.remove(updState)
 
     //TODO: commonSamples[]
 

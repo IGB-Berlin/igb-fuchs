@@ -29,6 +29,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<MeasurementType>
   protected override form2obj :()=>Readonly<MeasurementType>
+  protected override onClose :()=>void = ()=>{}
 
   constructor(stack :EditorStack, targetList :EventList<MeasurementType>, targetIdx :number) {
     super(stack, targetList, targetIdx)

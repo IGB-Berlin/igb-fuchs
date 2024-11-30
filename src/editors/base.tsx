@@ -44,6 +44,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract readonly initObj :Readonly<B>
   /** Returns an object with its fields populated from the current form state. */
   protected abstract form2obj :()=>Readonly<B>
+  /** Perform any cleanup the subclass might need to do. */
+  protected abstract onClose :()=>void
 
   protected stack :EditorStack
   /** The list in which the object being edited resides, at `targetIdx`. */
@@ -100,6 +102,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *
    * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
   private doClose() {
+    this.onClose()
     this.stack.pop(this)
   }
 
@@ -110,7 +113,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     if ( !this.savedObj ) {  // Yes, this is a new object.
       assert(this.targetIdx<0)
       console.debug('Appending', curObj)
-      this.targetIdx = this.targetList.add(curObj)
+      // add() will fire event listeners, some of which need to access this.savedObj and thereby this.targetIdx, so set that first.
+      const nextIdx = this.targetList.length
+      this.targetIdx = nextIdx
+      const rv = this.targetList.add(curObj)
+      assert(rv==nextIdx)  // paranoia
     }
     else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
       assert( this.targetIdx>=0 && this.targetIdx<this.targetList.length )
