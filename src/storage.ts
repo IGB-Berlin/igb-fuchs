@@ -34,7 +34,7 @@ export abstract class AbstractStore<T> {
   abstract getAll(except :T|null) :Promise<[string,T][]>
   abstract get(id :string) :Promise<T>
   /** If this object is added to the store immediately after this call, this call returns the id the object will have. */
-  abstract addId(obj :T) :string
+  abstract addId(obj :T) :string  //TODO: Remove if unused
   protected abstract _add(obj :T) :Promise<string>
   protected abstract _mod(obj :T) :Promise<string>
   protected abstract _upd(prevObj :T, newObj :T) :Promise<string>
@@ -125,7 +125,7 @@ export const CAN_STORAGE :boolean = (() => {
   }
 })()
 
-export class IndexedStorage {  //TODO: test and use this
+export class IndexedStorage {
   static open() {
     return new Promise<IndexedStorage>((resolve, reject) => {
       const req = indexedDB.open(IDB_NAME, 1)
