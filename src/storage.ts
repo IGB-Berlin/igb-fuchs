@@ -64,3 +64,50 @@ export const CAN_STORAGE :boolean = (() => {
     return !!( e instanceof DOMException && e.name === 'QuotaExceededError' && storage && storage.length>0 )
   }
 })()
+
+export class IndexedStorage {  //TODO: test and use this
+  static open() {
+    return new Promise<IndexedStorage>((resolve, reject) => {
+      const req = indexedDB.open(PREFIX, 0)
+      req.onerror = () => reject(req.error)
+      req.onsuccess = () => resolve(new IndexedStorage(req.result))
+      req.onupgradeneeded = () => {
+        req.result.createObjectStore(MEAS_TYPES, { keyPath: 'name' })
+        //req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'name' })
+        //req.result.createObjectStore(LOC_TEMPLATES, { keyPath: 'name' })
+        //req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'name' })  //TODO: tripId should be key
+      }
+    })
+  }
+  protected readonly db :IDBDatabase
+  protected constructor(db :IDBDatabase) {
+    this.db = db
+  }
+  list(storeName :string) {
+    return new Promise<unknown[]>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readonly')
+      trans.onerror = () => reject(trans.error)
+      const req = trans.objectStore(storeName).getAll()
+      req.onerror = () => reject(req.error)
+      req.onsuccess = () => resolve(req.result)
+    })
+  }
+  get(storeName :string, key :string) {
+    return new Promise<unknown>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readonly')
+      trans.onerror = () => reject(trans.error)
+      const req = trans.objectStore(storeName).get(key)
+      req.onerror = () => reject(req.error)
+      req.onsuccess = () => resolve(req.result)
+    })
+  }
+  put(storeName :string, data :object) {
+    return new Promise<void>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readwrite')
+      trans.onerror = () => reject(trans.error)
+      trans.oncomplete = () => resolve()
+      const req = trans.objectStore(storeName).put(data)
+      req.onerror = () => reject(req.error)
+    })
+  }
+}

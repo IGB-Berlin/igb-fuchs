@@ -33,7 +33,7 @@ export interface ISamplingTrip {
   notes ?:string|null
   locations :ISamplingLocation[]
 }
-const samplingTripKeys = ['id','name','description','startTime','endTime','lastModified','persons','weather','notes','locations'] as const
+const samplingTripKeys = ['name','description','startTime','endTime','lastModified','persons','weather','notes','locations'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
 function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if (!o || typeof o !== 'object') return false
