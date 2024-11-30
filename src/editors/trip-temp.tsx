@@ -43,7 +43,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
 
     const locEdit = new ListEditor(stack, obj.locations, LocationTemplateEditor, locArgs)
-    // Propagate change events to parents (important so save is triggered!)
+    // Propagate change events to parents - important because we need to trigger a save!
     locEdit.events.add(event => {
       console.debug('TripTemplateEditor got ListEditor<LocationTemplateEditor> event', event.kind)
       this.events.fire({ type: 'save' })
@@ -74,7 +74,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     //TODO: commonSamples[]
 
     this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {tr('name-help')}</>, tr('Invalid name')),
+      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
       <div class="border rounded my-3 p-3">
         <div class="mb-3 fs-5">{tr('Sampling Location Templates')}</div>

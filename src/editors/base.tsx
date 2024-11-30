@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { unsavedChangesQuestion } from '../dialogs'
+import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { SimpleEventHub } from '../events'
@@ -245,5 +245,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         {invalidText ? <div class="invalid-feedback">{invalidText}</div> : ''}
       </div>
     </div>
+  }
+
+  protected makeNameHelp() {
+    const el = <a href="#">{tr('name-help-show')}.</a>
+    el.addEventListener('click', async event => {
+      event.preventDefault()
+      await infoDialog('info', tr('name-help-title'), <ul>{tr('name-help-full').split('\n').map(t => <li>{t}</li>)}</ul>)
+    })
+    return el
   }
 }

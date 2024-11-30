@@ -92,9 +92,10 @@ export function dataSetsEqual<T extends DataObjectBase<T>>(a :T[], b :T[]) :bool
   return x.length===0 && y.length===0
 }
 
+// Also https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // The backslash is required when RE.source is used as <input type="text" pattern={...} />
 // eslint-disable-next-line no-useless-escape
-export const VALID_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9\.,\-_\(\)\u0020ÄäÜüÖöß]*[a-zA-Z0-9\.,\-_\(\)ÄäÜüÖöß]$/u
+export const VALID_NAME_RE = /^(?!CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])[a-zA-Z0-9][a-zA-Z0-9\.,\-_\(\)\u0020ÄäÜüÖöß]+(?<![\.\u0020])$/u
 export function validateName(s :string) {
   if (!s.match(VALID_NAME_RE)) throw new Error(`${tr('Invalid name')}: ${s}`) }
 
