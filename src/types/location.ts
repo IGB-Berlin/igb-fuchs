@@ -19,7 +19,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
-import { dataSetsEqual } from './list'
+import { dataSetsEqual } from './set'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 

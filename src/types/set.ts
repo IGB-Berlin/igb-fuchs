@@ -15,22 +15,24 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { expect, test } from '@jest/globals'
-import * as storage from '../storage'
 
-test('storage', () => {
-  expect( storage.get('test') ).toBeNull()
-  storage.set('test','x')
-  expect( storage.get('test') ).toStrictEqual('x')
+type HasEquals = { equals(other :unknown) :boolean }
 
-  expect( storage.get(['test','foo']) ).toBeNull()
-  storage.set(['test','foo'], 'y')
-  expect( storage.get(['test','foo']) ).toStrictEqual('y')
-
-  storage.set(['test','bar'], 'z')
-  storage.set(['test','foo','quz'], 'a')
-  expect( storage.list(['test']) ).toStrictEqual( [['test','foo'], ['test','bar']] )
-
-  expect( () => storage.get('x/y') ).toThrowError()
-  expect( () => storage.get(['abc','x/y']) ).toThrowError()
-})
+/** Compares two arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same;
+ * the objects must provide an `equals` method. */
+export function dataSetsEqual<T extends HasEquals>(a :T[], b :T[]) :boolean {
+  const x :T[] = Array.from(a)
+  const y :T[] = Array.from(b)
+  if (x.length!==y.length) return false
+  for (let i = x.length-1; i>=0; i--) {
+    if (!y.length) return false
+    for (let j = y.length-1; j>=0; j--) {
+      if (x[i]?.equals(y[j])) {
+        x.splice(i,1)
+        y.splice(j,1)
+        break
+      }
+    }
+  }
+  return x.length===0 && y.length===0
+}

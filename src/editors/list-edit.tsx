@@ -18,7 +18,7 @@
 import { DataObjectBase } from '../types/common'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
-import { EventList } from '../types/list'
+import { AbstractStore } from '../storage'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
@@ -26,17 +26,18 @@ import { tr } from '../i18n'
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
-  readonly updateEnable :(enable ?:boolean) => void
-  constructor(stack :EditorStack, theList :EventList<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
+  readonly enable :(enable :boolean) => void
+  constructor(stack :EditorStack, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
     const btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
     const disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
-    let enabled :boolean = true
-    this.updateEnable = (enable ?:boolean) => {
-      if (enable===undefined) enable = enabled
-      if (enable) {
-        if (selIdx>=0 && selIdx<theList.length) {
+    let selId :string|null = null
+    let globalEnabled :boolean = false
+    this.enable = (newGlobalEnable :boolean) => {
+      globalEnabled = newGlobalEnable
+      if (globalEnabled) {
+        if (selId!==null) {
           btnDel.removeAttribute('disabled')
           btnEdit.removeAttribute('disabled')
         }
@@ -53,14 +54,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         btnNew.setAttribute('disabled', 'disabled')
         disableNotice.classList.remove('d-none')
       }
-      enabled = enable
     }
     const els :HTMLElement[] = []
-    let selIdx :number = -1
-    const selectItem = (idx :number, scroll :boolean = false) => {
-      assert(els.length===theList.length && idx>=0 && idx<theList.length)
-      els.forEach((e,i) => {
-        if (i===idx) {
+    const selectItem = (id :string|null, scroll :boolean = false) => {
+      els.forEach(e => {
+        if (id!==null && id===e.getAttribute('data-id')) {
           e.classList.add('active')
           e.setAttribute('aria-current', 'true')
           if (scroll) e.scrollIntoView({ behavior: 'smooth' })
@@ -70,47 +68,47 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
           e.removeAttribute('aria-current')
         }
       })
-      selIdx = idx
-      this.updateEnable()
+      selId = id
+      this.enable(globalEnabled)
     }
     const theUl = <ul class="list-group mb-2"></ul>
-    const redrawList = (selAfter :number = -1) => {
+    const redrawList = async (selAfter :string|null = null) => {
+      const theList = await theStore.getAll(null)
       els.length = theList.length
-      if (theList.length)
-        Array.from(theList).forEach((item,i) => els[i]=<li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{item.summaryAsHtml(false)}</li> )
-      else
-        els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
+      if (theList.length) {
+        Array.from(theList).forEach(([id,item],i) =>
+          els[i]=<li class="list-group-item cursor-pointer" data-id={id} onclick={()=>selectItem(id)}>{item.summaryAsHtml(false)}</li> )
+      } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
-      if (selAfter>=0) selectItem(selAfter, true)
-      else selIdx = -1
-      this.updateEnable()
+      selectItem(selAfter, true)
+      this.enable(globalEnabled)
     }
-    redrawList()
+    setTimeout(redrawList)
     this.el = <div>
       {theUl}
       <div class="d-flex flex-row justify-content-end flex-wrap">{btnDel}{btnNew}{btnEdit}</div>
       {disableNotice}
     </div>
     btnDel.addEventListener('click', async () => {
-      if (selIdx<0) return  // shouldn't happen
-      const selItem = theList.get(selIdx)
+      if (selId===null) return  // shouldn't happen
+      const selItem = await theStore.get(selId)
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
-        const del = theList.del(selIdx)
-        assert(selItem === del)  // paranoia
+        // REMEMBER deletion may change some object's ids!
+        const del = await theStore.del(selItem)
+        assert(selId === del)  // paranoia
         break }
       }
     })
-    btnEdit.addEventListener('click', () => {
-      if (selIdx<0) return  // shouldn't happen
-      new editorClass(stack, theList, selIdx, editorArgs)  // adds and removes itself from the stack
+    btnEdit.addEventListener('click', async () => {
+      if (selId===null) return  // shouldn't happen
+      const selItem = await theStore.get(selId)
+      new editorClass(stack, theStore, selItem, editorArgs)  // adds and removes itself from the stack
     })
     btnNew.addEventListener('click', () => {
-      new editorClass(stack, theList, -1, editorArgs)  // adds and removes itself from the stack
+      new editorClass(stack, theStore, null, editorArgs)  // adds and removes itself from the stack
     })
-    theList.events.add(event => {
-      redrawList(event.action === 'del' ? undefined : event.index)
-    })
+    theStore.events.add(event => redrawList(event.action === 'del' ? undefined : event.id))
   }
 }

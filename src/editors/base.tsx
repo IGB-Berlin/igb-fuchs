@@ -16,15 +16,15 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
-import { jsx, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
-import { EventList } from '../types/list'
+import { AbstractStore } from '../storage'
 import { EditorStack } from './stack'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
-  new (stack :EditorStack, targetList :EventList<B>, idx :number, args ?:object): E, briefTitle :string }
+export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { briefTitle :string,
+  new (stack :EditorStack, targetStore :AbstractStore<B>, savedObj :B|null, _args ?:object): E }
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
@@ -42,22 +42,20 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * This exists because when creating a new object, this base class cannot create new objects,
    * so this base class has to leave it up to the actual implementations to do so. */
   protected abstract readonly initObj :Readonly<B>
-  /** Returns an object with its fields populated from the current form state. */
-  protected abstract form2obj :()=>Readonly<B>
+  /** The object being edited. */
+  protected abstract readonly liveObj :B
   /** Perform any cleanup the subclass might need to do. */
   protected abstract onClose :()=>void
 
   protected stack :EditorStack
-  /** The list in which the object being edited resides, at `targetIdx`. */
-  private readonly targetList :EventList<B>
-  /** The index at which the object being edited resides, in `targetList`. */
-  private targetIdx :number
-  /** A reference to the object being edited in `targetList` and `targetIdx`, or `null` if creating a new object.
+  /** The store in which the object with being edited resides. */
+  private readonly targetStore :AbstractStore<B>
+  /** The object being edited, if it is stored in `targetStore`, or `null` if creating a new object.
    *
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
-  protected get savedObj() :Readonly<B>|null {
-    return this.targetIdx<0 ? null : this.targetList.get(this.targetIdx) }
+  private _savedObj :Readonly<B>|null = null
+  protected get savedObj() { return this._savedObj }
 
   /** Helper to get the static property from an instance. */
   get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
@@ -67,14 +65,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them,
    * and they should call `this.open()` when they're initialized and ready to be shown.
    *
-   * @param targetList The list in which the object to be edited lives or is to be added to.
-   * @param targetIdx If less than zero, create a new object and push it onto the list; otherwise point to the object in the list to edit.
+   * @param targetStore The store in which the object to be edited lives or is to be added to.
+   * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
+   * @param _args For optional use by subclasses.
    */
-  constructor(stack :EditorStack, targetList :EventList<B>, targetIdx :number, _args ?:object) {
-    assert(targetIdx<targetList.length)
+  constructor(stack :EditorStack, targetStore :AbstractStore<B>, targetObj :B|null, _args ?:object) {
     this.stack = stack
-    this.targetList = targetList
-    this.targetIdx = targetIdx
+    this.targetStore = targetStore
+    this._savedObj = targetObj
   }
 
   /** To be called by subclasses when they're ready to be shown. */
@@ -86,9 +84,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   async requestBack() {
     // Has the user made any changes?
     const prevObj = this.savedObj ?? this.initObj
-    const curObj = this.form2obj()
-    if ( !prevObj.equals(curObj) ) {
-      console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
+    if ( !prevObj.equals(this.liveObj) ) {
+      console.debug('Unsaved changes, prev', prevObj, 'vs. cur', this.liveObj)
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
@@ -107,30 +104,34 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** Save the current form to the target list, optionally closing the editor after. */
-  private doSave(andClose :boolean) {
-    const curObj = this.form2obj()
-    // Are there actually any changes to save?
-    if ( !this.savedObj ) {  // Yes, this is a new object.
-      assert(this.targetIdx<0)
-      console.debug('Appending', curObj)
-      // add() will fire event listeners, some of which need to access this.savedObj and thereby this.targetIdx, so set that first.
-      const nextIdx = this.targetList.length
-      this.targetIdx = nextIdx
-      const rv = this.targetList.add(curObj)
-      assert(rv==nextIdx)  // paranoia
+  private async doSave(andClose :boolean) {
+    try {
+      // Are there actually any changes to save?
+      if ( !this.savedObj ) {  // Yes, this is a new object.
+        // add() will fire event listeners, some of which need to access this.savedObj and thereby this.savedObj, so set that first.
+        const nextId = this.targetStore.addId(this.liveObj)  // (not really needed anymore but also doesn't hurt)
+        this._savedObj = this.liveObj
+        const rv = await this.targetStore.add(this.liveObj)
+        assert(rv===nextId, `${rv}!==${nextId}`)
+        console.debug('Added',this.liveObj,'with id',rv)
+      }
+      else if ( !this.savedObj.equals(this.liveObj) ) {  // Yes, the saved object differs from the current form.
+        const prevObj = this.savedObj
+        this._savedObj = this.liveObj
+        const rv = await this.targetStore.upd(prevObj, this.liveObj)
+        console.debug('Saved',this.liveObj,'with id',rv)
+      }
+      else console.debug('No save needed, saved', this.savedObj, 'vs. cur', this.liveObj)
     }
-    else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
-      assert( this.targetIdx>=0 && this.targetIdx<this.targetList.length )
-      console.debug(`Saving to [${this.targetIdx}]`, curObj)
-      this.targetList.set(this.targetIdx, curObj)
+    catch (ex) {
+      console.log(ex)
+      await infoDialog('error', tr('Error Saving'), <><p>{tr('save-error-txt')}</p><p class="mb-0">{ex}</p></>)
     }
-    else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     if (andClose) this.doClose()
   }
 
   /** To be called by subclasses, to report when any of the lists they're editing have changed */
-  protected reportSelfChange() {
-    if (this.targetIdx>=0) this.targetList.reportChange(this.targetIdx) }
+  protected reportSelfChange() { if (this.savedObj!==null) this.targetStore.reportChange(this.savedObj) }
 
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
@@ -158,16 +159,16 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     btnBack.addEventListener('click', () => this.requestBack())
 
     let prevSaveClickObjState :Readonly<B>|null = null
-    const doSave = (andClose :boolean) => {
+    const doSave = async (andClose :boolean) => {
       form.classList.add('was-validated')
       if (!form.checkValidity()) return
-      const curObj = this.form2obj()
       btnSaveClose.classList.remove('btn-success', 'btn-warning')
+      const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
       try {
         /* There are a few cases that aren't covered by the form validation, for example:
           * - when the MeasurementType's `max` is smaller than the `min`
           * - duplicate `name` properties */
-        curObj.validate( Array.from(this.targetList).filter((_,i) => i!==this.targetIdx) )
+        this.liveObj.validate(otherObjs)
       }
       catch (ex) {
         btnSaveClose.classList.add('btn-warning')
@@ -180,7 +181,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       }  // else, there were no validation errors
       errAlert.classList.add('d-none')
       // so next, check warnings
-      const warnings = curObj.warningsCheck(!this.savedObj)
+      const warnings = this.liveObj.warningsCheck(!this.savedObj && !andClose)
       if (warnings.length) {
         btnSaveClose.classList.add('btn-warning')
         warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
@@ -188,31 +189,31 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         warnAlert.scrollIntoView({ behavior: 'smooth' })
         if (andClose) {  // Button "Save & Close"
           // Did the user click the "Save & Close" button a second time without making changes?
-          if (curObj.equals(prevSaveClickObjState))
-            this.doSave(true)
+          if (this.liveObj.equals(prevSaveClickObjState))
+            await this.doSave(true)
           else { // otherwise, "Save & Close" wasn't clicked before, or there were changes made since the last click
             // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
             btnSaveClose.setAttribute('disabled','disabled')
             setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
             // However, we don't actually want to prevent the save, we just want the user to see the warnings.
-            this.doSave(false)
+            await this.doSave(false)
           }
         } else  // Button "Save"
-          this.doSave(false)
+          await this.doSave(false)
       }
       else {  // no warnings
         btnSaveClose.classList.add('btn-success')
         warnAlert.classList.add('d-none')
-        this.doSave(andClose)
+        await this.doSave(andClose)
       }
-      prevSaveClickObjState = curObj
+      prevSaveClickObjState = this.liveObj
     } // end of doSave
 
     btnSave.addEventListener('click', () => doSave(false))
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
       event.preventDefault()
       event.stopPropagation()
-      doSave(true)
+      await doSave(true)
     })
     return form
   }

@@ -24,7 +24,7 @@ export async function init() {
   const igbLogo = document.getElementById('igbLogo')
   assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement && igbLogo instanceof HTMLElement)
   igbLogo.addEventListener('click', event => event.preventDefault())
-  const editorStack = new EditorStack(navbarMain)
+  const editorStack = await EditorStack.makeStack(navbarMain)
   htmlMain.appendChild(editorStack.el)
 }
 

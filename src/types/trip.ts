@@ -18,8 +18,9 @@
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateTimestamp, validateName, DataObjectWithTemplate, validateId } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
-import { dataSetsEqual, HasId } from './list'
+import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
+import { HasId } from '../storage'
 import { assert } from '../utils'
 
 export interface ISamplingTrip extends HasId {

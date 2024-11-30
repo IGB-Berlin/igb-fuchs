@@ -16,7 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase } from '../types/common'
-import { HomePage } from './home'
+import { makeHomePage } from './home'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { Editor } from './base'
@@ -25,17 +25,19 @@ import { tr } from '../i18n'
 //TODO: History support (browser back button)
 
 export class EditorStack {
-  readonly el :HTMLElement
-  protected readonly navList :HTMLElement
-  protected readonly stack :[string, HTMLElement][]
-  constructor(navbarMain :HTMLElement) {
-    const home = new HomePage(this)
-    this.el = <div>{home.el}</div>
-    this.stack = [[tr('Home'),home.el]]
-    this.navList = <div class="navbar-nav"></div>
-    navbarMain.replaceChildren(this.navList)
-    this.redrawNavbar()
+  static async makeStack(navbarMain :HTMLElement) {
+    const stack = new EditorStack()
+    const home = await makeHomePage(stack)
+    stack.stack.push([tr('Home'), home])
+    stack.el.appendChild(home)
+    navbarMain.replaceChildren(stack.navList)
+    stack.redrawNavbar()
+    return stack
   }
+  readonly el :HTMLElement = <div></div>
+  protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
+  protected readonly stack :[string, HTMLElement][] = []
+  protected constructor() {}
   protected redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map(([t,_e],i) => {

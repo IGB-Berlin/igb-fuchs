@@ -16,7 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { expect, test } from '@jest/globals'
-import { dataSetsEqual } from '../list'
+import { dataSetsEqual } from '../set'
 
 test('dataSetsEqual', () => {
   class X {

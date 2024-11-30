@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { tr } from '../i18n'
 import { validateName, NO_TIMESTAMP, DataObjectTemplate, timestampNow } from './common'
 import { Measurement } from './meas'
+import { tr } from '../i18n'
 
 export const VALID_UNIT_RE = /^[^\s](?:.*[^\s])?$/u
 

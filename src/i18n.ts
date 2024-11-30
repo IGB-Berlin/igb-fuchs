@@ -79,6 +79,10 @@ const translations = {
   'duplicate-name': [
     'Dieser Name wird bereits verwendet',
     'This name is already being used' ],
+  'Error Saving': ['Fehler beim Speichern'],
+  'save-error-txt': [
+    'Es ist beim Speichern ein Fehler aufgetreten, die Daten wurden möglicherweise nicht gespeichert. Wahrscheinlich muss die Applikation neu geladen werden.',
+    'There was an error while saving the data. Your data may not be saved. It is likely you will have to reload the application.' ],
 
   // list editor
   'list-editor-disabled-new': [

@@ -19,7 +19,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
-import { EventList } from '../types/list'
+import { AbstractStore } from '../storage'
 import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -36,20 +36,25 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
-  protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
+  protected override readonly liveObj :SamplingLocationTemplate
   protected override onClose :()=>void = ()=>{}
 
-  constructor(stack :EditorStack, targetList :EventList<SamplingLocationTemplate>, targetIdx :number, args_ ?:object) {
-    super(stack, targetList, targetIdx)
-    const obj = this.initObj = this.savedObj ? this.savedObj : new SamplingLocationTemplate(null)
+  constructor(stack :EditorStack, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, args_ ?:object) {
+    super(stack, targetStore, targetObj)
     const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
+    this.initObj = this.savedObj ? this.savedObj : new SamplingLocationTemplate(null)
+    this.liveObj = new SamplingLocationTemplate({
+      name: this.initObj.name, description: this.initObj.description,
+      nominalCoords: this.initObj.nomCoords.deepClone(),
+      samples: this.initObj.samples })
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={this.liveObj.name} />)
+    inpName.addEventListener('change', () => this.liveObj.name = inpName.value )
+    const inpNomCoords = makeCoordinateEditor(this.liveObj.nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{obj.description.trim()}</textarea>)
+      <textarea rows="3">{this.liveObj.description.trim()}</textarea>)
+    inpDesc.addEventListener('change', () => this.liveObj.description = inpDesc.value.trim())
     if (args.showSampleList) {
       //TODO: samples[]
     }
@@ -59,11 +64,6 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null)
     ])
-
-    this.form2obj = () =>
-      new SamplingLocationTemplate({ name: inpName.value,
-        description: inpDesc.value.trim(), nominalCoords: nomCoords,
-        samples: [] })
 
     this.open()
   }
