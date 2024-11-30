@@ -23,6 +23,7 @@ import { AbstractStore } from '../storage'
 import { EditorStack } from './stack'
 import { Editor } from './base'
 import { tr } from '../i18n'
+import { Wgs84Coordinates } from '../types/coords'
 
 export interface LocationTemplateEditorArgs {
   showSampleList :boolean
@@ -36,25 +37,20 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
-  protected override readonly liveObj :SamplingLocationTemplate
+  protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
   protected override onClose :()=>void = ()=>{}
 
   constructor(stack :EditorStack, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, args_ ?:object) {
     super(stack, targetStore, targetObj)
     const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
-    this.initObj = this.savedObj ? this.savedObj : new SamplingLocationTemplate(null)
-    this.liveObj = new SamplingLocationTemplate({
-      name: this.initObj.name, description: this.initObj.description,
-      nominalCoords: this.initObj.nomCoords.deepClone(),
-      samples: this.initObj.samples })
+    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocationTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.liveObj.name} />)
-    inpName.addEventListener('change', () => this.liveObj.name = inpName.value )
-    const inpNomCoords = makeCoordinateEditor(this.liveObj.nomCoords)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const inpNomCoords = makeCoordinateEditor(nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.liveObj.description.trim()}</textarea>)
-    inpDesc.addEventListener('change', () => this.liveObj.description = inpDesc.value.trim())
+      <textarea rows="3">{obj.description.trim()}</textarea>)
     if (args.showSampleList) {
       //TODO: samples[]
     }
@@ -64,6 +60,12 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null)
     ])
+
+    this.form2obj = () =>
+      new SamplingLocationTemplate({ name: inpName.value,
+        description: inpDesc.value.trim(),
+        nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
+        samples: [] })
 
     this.open()
   }

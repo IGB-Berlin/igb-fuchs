@@ -42,8 +42,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * This exists because when creating a new object, this base class cannot create new objects,
    * so this base class has to leave it up to the actual implementations to do so. */
   protected abstract readonly initObj :Readonly<B>
-  /** The object being edited. */
-  protected abstract readonly liveObj :B
+  /** Returns an object with its fields populated from the current form state. */
+  protected abstract form2obj :()=>Readonly<B>
   /** Perform any cleanup the subclass might need to do. */
   protected abstract onClose :()=>void
 
@@ -54,8 +54,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
-  private _savedObj :Readonly<B>|null = null
   protected get savedObj() { return this._savedObj }
+  private _savedObj :Readonly<B>|null = null
 
   /** Helper to get the static property from an instance. */
   get briefTitle() { return (this.constructor as typeof Editor).briefTitle }
@@ -84,8 +84,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   async requestBack() {
     // Has the user made any changes?
     const prevObj = this.savedObj ?? this.initObj
-    if ( !prevObj.equals(this.liveObj) ) {
-      console.debug('Unsaved changes, prev', prevObj, 'vs. cur', this.liveObj)
+    const curObj = this.form2obj()
+    if ( !prevObj.equals(curObj) ) {
+      console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
       case 'cancel': return
@@ -104,24 +105,24 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** Save the current form to the target list, optionally closing the editor after. */
-  private async doSave(andClose :boolean) {
+  private async doSave(curObj :B, andClose :boolean) {
     try {
       // Are there actually any changes to save?
       if ( !this.savedObj ) {  // Yes, this is a new object.
-        // add() will fire event listeners, some of which need to access this.savedObj and thereby this.savedObj, so set that first.
-        const nextId = this.targetStore.addId(this.liveObj)  // (not really needed anymore but also doesn't hurt)
-        this._savedObj = this.liveObj
-        const rv = await this.targetStore.add(this.liveObj)
-        assert(rv===nextId, `${rv}!==${nextId}`)
-        console.debug('Added',this.liveObj,'with id',rv)
+        // add() will fire event listeners, some of which need to access this.savedObj, so set that first.
+        console.debug('Adding',curObj,'...')
+        this._savedObj = curObj
+        const rv = await this.targetStore.add(curObj)
+        console.debug('... added with id',rv)
       }
-      else if ( !this.savedObj.equals(this.liveObj) ) {  // Yes, the saved object differs from the current form.
+      else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
+        console.debug('Saving',curObj,'...')
         const prevObj = this.savedObj
-        this._savedObj = this.liveObj
-        const rv = await this.targetStore.upd(prevObj, this.liveObj)
-        console.debug('Saved',this.liveObj,'with id',rv)
+        this._savedObj = curObj
+        const rv = await this.targetStore.upd(prevObj, curObj)
+        console.debug('... saved with id',rv)
       }
-      else console.debug('No save needed, saved', this.savedObj, 'vs. cur', this.liveObj)
+      else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     }
     catch (ex) {
       console.log(ex)
@@ -131,7 +132,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** To be called by subclasses, to report when any of the lists they're editing have changed */
-  protected reportSelfChange() { if (this.savedObj!==null) this.targetStore.reportChange(this.savedObj) }
+  protected async reportMod() {
+    if (this.savedObj!==null) await this.targetStore.mod(this.savedObj)
+    else console.warn('reportSelfChange ignored because savedObj is null')
+  }
 
   /** Helper function to make the <form> */
   protected makeForm(title :string, contents :HTMLElement[]) :HTMLFormElement {
@@ -162,13 +166,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     const doSave = async (andClose :boolean) => {
       form.classList.add('was-validated')
       if (!form.checkValidity()) return
+      const curObj = this.form2obj()
       btnSaveClose.classList.remove('btn-success', 'btn-warning')
       const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
       try {
         /* There are a few cases that aren't covered by the form validation, for example:
           * - when the MeasurementType's `max` is smaller than the `min`
           * - duplicate `name` properties */
-        this.liveObj.validate(otherObjs)
+        curObj.validate(otherObjs)
       }
       catch (ex) {
         btnSaveClose.classList.add('btn-warning')
@@ -181,7 +186,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       }  // else, there were no validation errors
       errAlert.classList.add('d-none')
       // so next, check warnings
-      const warnings = this.liveObj.warningsCheck(!this.savedObj && !andClose)
+      const warnings = curObj.warningsCheck(!this.savedObj && !andClose)
       if (warnings.length) {
         btnSaveClose.classList.add('btn-warning')
         warnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
@@ -189,24 +194,24 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         warnAlert.scrollIntoView({ behavior: 'smooth' })
         if (andClose) {  // Button "Save & Close"
           // Did the user click the "Save & Close" button a second time without making changes?
-          if (this.liveObj.equals(prevSaveClickObjState))
-            await this.doSave(true)
+          if (curObj.equals(prevSaveClickObjState))
+            await this.doSave(curObj, true)
           else { // otherwise, "Save & Close" wasn't clicked before, or there were changes made since the last click
             // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
             btnSaveClose.setAttribute('disabled','disabled')
             setTimeout(() => btnSaveClose.removeAttribute('disabled'), 700)
             // However, we don't actually want to prevent the save, we just want the user to see the warnings.
-            await this.doSave(false)
+            await this.doSave(curObj, false)
           }
         } else  // Button "Save"
-          await this.doSave(false)
+          await this.doSave(curObj, false)
       }
       else {  // no warnings
         btnSaveClose.classList.add('btn-success')
         warnAlert.classList.add('d-none')
-        await this.doSave(andClose)
+        await this.doSave(curObj, andClose)
       }
-      prevSaveClickObjState = this.liveObj
+      prevSaveClickObjState = curObj
     } // end of doSave
 
     btnSave.addEventListener('click', () => doSave(false))

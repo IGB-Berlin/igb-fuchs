@@ -36,6 +36,7 @@ export abstract class AbstractStore<T> {
   /** If this object is added to the store immediately after this call, this call returns the id the object will have. */
   abstract addId(obj :T) :string
   protected abstract _add(obj :T) :Promise<string>
+  protected abstract _mod(obj :T) :Promise<string>
   protected abstract _upd(prevObj :T, newObj :T) :Promise<string>
   protected abstract _del(obj :T) :Promise<string>
   async add(obj :T) :Promise<string> {
@@ -54,8 +55,14 @@ export abstract class AbstractStore<T> {
     this.events.fire({ action: 'del', id: id })
     return id
   }
-  /** Fire an event reporting that an item already stored has been modified. */
-  reportChange(obj :T) { this.events.fire({ action: 'mod', id: this.id(obj) }) }
+  /** Report that an item already stored has been modified, for example if a nested object/array has changed.
+   *
+   * The implementation may need to write the object to storage (or it may have already updated, in which case no store is needed). */
+  async mod(obj :T) :Promise<string> {
+    const id = await this._mod(obj)
+    this.events.fire({ action: 'mod', id: id })
+    return id
+  }
 }
 
 export class ArrayStore<T> extends AbstractStore<T> {
@@ -96,6 +103,8 @@ export class ArrayStore<T> extends AbstractStore<T> {
     this.array.splice(idx,1)
     return Promise.resolve(idx.toString())
   }
+  protected override _mod(obj :T) {
+    return Promise.resolve(this.idx(obj).toString()) }  // nothing else needed here
 }
 
 const IDB_NAME = 'IGB-Field'
@@ -250,6 +259,7 @@ export class IndexedStorage {  //TODO: test and use this
       protected override _add(obj :SamplingTripTemplate) { return this.store.add(TRIP_TEMPLATES, obj) }
       protected override _upd(prevObj :SamplingTripTemplate, newObj :SamplingTripTemplate) {
         return this.store.upd(TRIP_TEMPLATES, prevObj, newObj) }
+      protected override _mod(obj :SamplingTripTemplate) { return this.store.upd(TRIP_TEMPLATES, obj, obj) }
       protected override _del(obj :SamplingTripTemplate) { return this.store.del(TRIP_TEMPLATES, obj) }
     }
     return new TripTempStore(this)
@@ -267,6 +277,7 @@ export class IndexedStorage {  //TODO: test and use this
       protected override _add(obj :SamplingTrip) { return this.store.add(SAMP_TRIPS, obj) }
       protected override _upd(prevObj :SamplingTrip, newObj :SamplingTrip) {
         return this.store.upd(SAMP_TRIPS, prevObj, newObj) }
+      protected override _mod(obj :SamplingTrip) { return this.store.upd(SAMP_TRIPS, obj, obj) }
       protected override _del(obj :SamplingTrip) { return this.store.del(SAMP_TRIPS, obj) }
     }
     return new SampTripStore(this)

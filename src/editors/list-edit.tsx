@@ -83,7 +83,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       selectItem(selAfter, true)
       this.enable(globalEnabled)
     }
-    setTimeout(redrawList)
+    setTimeout(redrawList)  // work around that we can't call the async function from the constructor
     this.el = <div>
       {theUl}
       <div class="d-flex flex-row justify-content-end flex-wrap">{btnDel}{btnNew}{btnEdit}</div>
@@ -95,9 +95,12 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
-        // REMEMBER deletion may change some object's ids!
+        console.debug('Deleting',selItem,'...')
+        /* REMEMBER deletion may change some object's ids!
+         * Redrawing the list is handled via the event listener below. */
         const del = await theStore.del(selItem)
         assert(selId === del)  // paranoia
+        console.debug('... deleted id',del)
         break }
       }
     })

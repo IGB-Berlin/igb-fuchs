@@ -31,36 +31,31 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingTripTemplate>
-  protected override readonly liveObj :SamplingTripTemplate
+  protected override form2obj :()=>Readonly<SamplingTripTemplate>
   protected override onClose :()=>void
 
   constructor(stack :EditorStack, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
     super(stack, targetStore, targetObj)
-    this.initObj = this.savedObj ? this.savedObj : new SamplingTripTemplate(null)
-    this.liveObj = new SamplingTripTemplate({
-      id: this.initObj.id, name: this.initObj.name, description: this.initObj.description,
-      locations: this.initObj.locations, commonSamples: this.initObj.commonSamples })
+    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.liveObj.name} />)
-    inpName.addEventListener('change', () => this.liveObj.name = inpName.value)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.liveObj.description.trim()}</textarea>)
-    inpDesc.addEventListener('change', () => this.liveObj.description = inpDesc.value.trim())
+      <textarea rows="3">{obj.description.trim()}</textarea>)
 
     /* We want to edit the original object's locations array directly, because
      * we want changes there to be saved immediately, for that we propagate
      * the change event to the parent via `reportSelfChange` below. */
-    const locList = new ArrayStore(this.liveObj.locations)
+    const locList = new ArrayStore(obj.locations)
     const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
     const locEdit = new ListEditor(stack, locList, LocationTemplateEditor, locArgs)
-    locList.events.add(() => this.reportSelfChange())
+    locList.events.add(() => this.reportMod())
 
     // "New from Template" - TODO: add button to list editor?
     const btnLocFromTemp = <button type="button" class="btn btn-info" disabled><i class="bi-journal-plus"/> {tr('From Template')}</button>
     btnLocFromTemp.addEventListener('click', async () => {
       //TODO: fetch the list of templates and use it here (and filter locations already in our list)
-      const idx = await listSelectDialog(tr('new-loc-from-temp'), this.liveObj.locations)
+      const idx = await listSelectDialog(tr('new-loc-from-temp'), obj.locations)
       console.debug('selected', idx)  //TODO: debug, remove
     })
 
@@ -89,6 +84,10 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
         {locEdit.el}
       </div>,
     ])
+
+    this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
+      name: inpName.value, description: inpDesc.value.trim(),
+      locations: obj.locations, commonSamples: [] })
 
     this.open()
   }

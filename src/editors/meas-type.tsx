@@ -28,36 +28,28 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   override readonly el :HTMLElement
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<MeasurementType>
-  protected override readonly liveObj :MeasurementType
+  protected override form2obj :()=>Readonly<MeasurementType>
   protected override onClose :()=>void = ()=>{}
 
   constructor(stack :EditorStack, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {
     super(stack, targetStore, targetObj)
-    this.initObj = this.savedObj ? this.savedObj : new MeasurementType(null)
-    this.liveObj = new MeasurementType({ name: this.initObj.name, unit: this.initObj.unit, min: this.initObj.min,
-      max: this.initObj.max, precision: this.initObj.precision, notes: this.initObj.notes })
+    const obj = this.initObj = targetObj!==null ? targetObj : new MeasurementType(null)
 
     const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={this.liveObj.name} />)
-    inpName.addEventListener('click', () => this.liveObj.name = inpName.value)
+      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_UNIT_RE.source} value={this.liveObj.unit} />)
-    inpUnit.addEventListener('click', () => this.liveObj.unit = inpUnit.value)
+      <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
     const inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.liveObj.min} step="1" />)
-    inpMin.addEventListener('change', () => this.liveObj.min = Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity )
+      <input type="number" value={obj.min} step="1" />)
     const inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.liveObj.max} step="1" />)
-    inpMax.addEventListener('change', () => this.liveObj.max = Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity )
+      <input type="number" value={obj.max} step="1" />)
     const inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={this.liveObj.precision} min="0" step="1" />)
-    inpPrc.addEventListener('change', () => this.liveObj.precision = Number.isFinite(inpPrc.valueAsNumber) ? inpPrc.valueAsNumber : NaN )
+      <input type="number" value={obj.precision} min="0" step="1" />)
     const inpNotes = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{this.liveObj.notes.trim()}</textarea>)
-    inpNotes.addEventListener('change', () => this.liveObj.notes = inpNotes.value.trim())
+      <textarea rows="3">{obj.notes.trim()}</textarea>)
 
     const prcToStep = () => {
-      const s = this.liveObj.precisionAsStep(inpPrc.valueAsNumber)
+      const s = obj.precisionAsStep(inpPrc.valueAsNumber)
       if (s) { inpMin.step = s; inpMax.step = s }
     }
     inpPrc.addEventListener('change', prcToStep)
@@ -71,6 +63,12 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
       this.makeRow(inpNotes, tr('Notes'), tr('notes-help'), null),
     ])
+
+    this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
+      min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
+      max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
+      precision: Number.isFinite(inpPrc.valueAsNumber) ? inpPrc.valueAsNumber : NaN,
+      notes: inpNotes.value.trim() })
 
     this.open()
   }
