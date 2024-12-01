@@ -148,7 +148,7 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
     const ss = s0.summaryDisplay()
     samp = ss[0]+': '+ss[1]
   }
-  return [ loc.name, samp+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']' ]
+  return [ loc.name, samp /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */

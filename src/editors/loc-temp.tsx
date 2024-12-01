@@ -64,7 +64,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null),
       <div class="border rounded my-3 p-3">
-        <div class="mb-3 fs-5">{tr('Template Samples')}</div>
+        <div class="mb-3 fs-5">{tr('Samples')}</div>
         {sampEdit.el}
       </div>
     ])

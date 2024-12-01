@@ -152,8 +152,10 @@ const translations = {
     'Gleichartige Proben',
     'Uniform Samples' ],
   'common-samples-help': [
-    'Wenn an allen Messpunkten der Messfahrt die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.',
-    'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.' ],
+    'Wenn an allen Messpunkten der Messfahrt die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
+    +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den hier festgelegten Proben.',
+    'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.'
+    +' If individual sampling locations have different samples defined, these override the samples defined here.' ],
 
   // editor: sample template
   'Sample Type': ['Art der Probe'],
@@ -192,13 +194,12 @@ const translations = {
   'Sampling Location': ['Messpunkt'],
   'Sampling Locations': ['Messpunkte'],
   'Sampling Location Template': ['Messpunkt-Vorlage'],
-  'Sampling Location Templates': ['Messpunkt-Vorlagen'],
   'Sample': ['Probe'],
-  'Template Sample': ['Vorlage für Probe'],
-  'Template Samples': ['Vorlagen für Proben'],
+  'Samples': ['Proben'],
+  'Sample Template': ['Vorlage für Probe'],
   'Measurement': ['Messung'],
+  'Measurements': ['Messungen'],
   'Measurement Type': ['Messtyp'],
-  'Measurement Types': ['Messtypen'],
   'Coordinates': ['Koordinaten'],
   'sampling-locations': [
     { zero: 'keine Messpunkte', one: 'ein Messpunkt', other: '%{count} Messpunkte' },
@@ -259,8 +260,10 @@ const translations = {
     'Der Messwert liegt unter dem Minimalwert',
     'The measurement value is below the minimum' ],
   'duplicate-trip-id': [
-    'Es existiert bereits eine Messfahrt mit diesem Namen an demselben Anfangs-Datum. Bitte den Messfahrt-Namen ergänzen, um diese zwei Messfahrten zu unterscheiden.',
-    'There is already a sampling trip with this name on the same start date. Please modify the sampling trip\'s name to differentiate these two sampling trips.' ],
+    'Es existiert bereits eine Messfahrt mit diesem Namen an demselben Anfangs-Datum.'
+    +' Bitte die Messfahrt ergänzen (Namen oder Datum), um diese zwei Messfahrten zu unterscheiden.',
+    'There is already a sampling trip with this name on the same start date.'
+    +' Please modify the sampling trip (name or date) to differentiate these two sampling trips.' ],
 
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Nicht aufgezeichnet', 'Not recorded'],

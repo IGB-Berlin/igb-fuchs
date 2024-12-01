@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
-import { AbstractStore } from '../storage'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { AbstractStore, ArrayStore } from '../storage'
+import { MeasTypeEditor } from './meas-type'
+import { ListEditor } from './list-edit'
 import { GlobalContext } from '../main'
-import { Editor } from './base'
 import { i18n, tr } from '../i18n'
+import { Editor } from './base'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
   override readonly el :HTMLElement
@@ -28,7 +30,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SampleTemplate>
   protected override readonly form2obj :()=>Readonly<SampleTemplate>
-  protected override readonly onClose :()=>void = ()=>{}
+  protected override readonly onClose :()=>void
 
   constructor(ctx :GlobalContext, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
     super(ctx, targetStore, targetObj)
@@ -44,10 +46,25 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
         })}
       </select>)
 
-    //TODO: measurementTypes[]
+    // see notes in trip-temp.tsx about this:
+    const measList = new ArrayStore(obj.measurementTypes)
+    const measEdit = new ListEditor(ctx, measList, MeasTypeEditor)
+    measList.events.add(() => this.reportMod())
 
-    this.el = this.form = this.makeForm(tr('Template Sample'), [
+    // see notes in trip-temp.tsx about this:
+    const updState = () => {
+      measEdit.enable(!!this.savedObj)
+    }
+    updState()
+    targetStore.events.add(updState)
+    this.onClose = () => targetStore.events.remove(updState)
+
+    this.el = this.form = this.makeForm(tr('Sample Template'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      <div class="border rounded my-3 p-3">
+        <div class="mb-3 fs-5">{tr('Measurements')}</div>
+        {measEdit.el}
+      </div>
     ])
 
     this.form2obj = () => new SampleTemplate({

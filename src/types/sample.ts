@@ -123,7 +123,7 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
     this.type = o?.type ?? 'undefined'
     this.measurementTypes = o ? o.measurementTypes.map(m => new MeasurementType(m)) : []
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Template Sample':'samp-temp') }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample Template':'samp-temp') }
   override validate(_others :SampleTemplate[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
   override summaryDisplay() { return sampSummary(this) }

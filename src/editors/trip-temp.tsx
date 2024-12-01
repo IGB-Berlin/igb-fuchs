@@ -82,12 +82,12 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
       <div class="border rounded my-3 p-3">
-        <div class="mb-3 fs-5">{tr('Sampling Location Templates')}</div>
+        <div class="mb-3 fs-5">{tr('Sampling Locations')}</div>
         {btnLocFromTemp}
         {locEdit.el}
       </div>,
       <div class="border rounded my-3 p-3">
-        <div class="fs5">{tr('common-samples')}</div>
+        <div class="fs-5">{tr('common-samples')}</div>
         <div class="form-text mb-3">{tr('common-samples-help')}</div>
         {sampEdit.el}
       </div>,
