@@ -36,7 +36,7 @@ export interface ISamplingLocation {
   notes ?:string|null
   photos ?:string[]
 }
-const samplingLocationKeys = ['name','description','nominalCoords','actualCoords','startTime','endTime','samples','notes','photos'] as const
+const samplingLocationKeys = ['name','description','nominalCoords','actualCoords','startTime','endTime','samples','notes','photos','template'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   if (!o || typeof o !== 'object') return false

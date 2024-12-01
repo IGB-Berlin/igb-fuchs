@@ -159,11 +159,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
   protected abstract makeNew(t :T) :B
   protected btnTemp :HTMLElement
-  constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>T[]) {
+  constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(ctx, theStore, editorClass)
     this.btnTemp = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
-      const template = await listSelectDialog(dialogTitle, templateSource())
+      const template = await listSelectDialog(dialogTitle, await templateSource())
       if (template===null) return
       const newObj = this.makeNew(template)
       console.debug('Added',newObj,'with id',theStore.add(newObj))
@@ -180,5 +180,6 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
+  //TODO: It would probably be good to immediately open the editor for these objects:
   protected override makeNew(t :T) :D { return t.templateToObject() }
 }

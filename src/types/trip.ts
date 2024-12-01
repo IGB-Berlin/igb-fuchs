@@ -35,7 +35,7 @@ export interface ISamplingTrip extends HasId {
   notes ?:string|null
   locations :ISamplingLocation[]
 }
-const samplingTripKeys = ['id','name','description','startTime','endTime','lastModified','persons','weather','notes','locations'] as const
+const samplingTripKeys = ['id','name','description','startTime','endTime','lastModified','persons','weather','notes','locations','template'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
 export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if (!o || typeof o !== 'object') return false

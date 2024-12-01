@@ -50,7 +50,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
     const measEdit = new ListEditorForTemp(ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
-      ()=>setRemove(ctx.storage.allMeasurementTemplates, obj.measurementTypes))
+      ()=>Promise.resolve(setRemove(ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
     measStore.events.add(() => this.reportMod())
     measEdit.watchEnable(this)
     this.onClose = () => measEdit.close()

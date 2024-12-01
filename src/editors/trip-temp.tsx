@@ -52,13 +52,13 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      */
     const locStore = new ArrayStore(obj.locations)
     const locEdit = new ListEditorForTemp(ctx, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
-      ()=>setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples())))
+      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
 
     const sampStore = new ArrayStore(obj.commonSamples)
     const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
-      ()=>setRemove(ctx.storage.allSampleTemplates, obj.commonSamples))
+      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.commonSamples)))
     sampStore.events.add(() => this.reportMod())
     sampEdit.watchEnable(this)
 

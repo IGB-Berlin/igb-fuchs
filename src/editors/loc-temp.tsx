@@ -50,7 +50,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
-      ()=>setRemove(ctx.storage.allSampleTemplates, obj.samples))
+      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.samples)))
     sampStore.events.add(() => this.reportMod())
     sampEdit.watchEnable(this)
     this.onClose = () => sampEdit.close()

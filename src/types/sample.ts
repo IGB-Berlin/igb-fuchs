@@ -38,6 +38,7 @@ export interface ISample {
 }
 export function isISample(o :unknown) :o is ISample {
   if (!o || typeof o !== 'object') return false
+  //TODO: Allow 'template' key here - though it's not a member of the interface, this type checker is used on the objects too!
   if (Object.keys(o).length!==3 || !('type' in o && 'measurements' in o && 'notes' in o)) return false  // keys
   // type checks
   if (!isSampleType(o.type) || !Array.isArray(o.measurements)) return false

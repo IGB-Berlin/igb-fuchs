@@ -106,13 +106,14 @@ const translations = {
   'meas-type-notes-help': [
     'Optionale Notizen, z.B. bei besonderen Messverfahren.',
     'Optional notes, for example for special measurement procedures.' ],
+  'new-meas-from-temp': [
+    'Neue Messung aus Vorlage',
+    'New Measurement from Template' ],
 
-  // editor: location (template)
+  // editor: location (template) & coords
   'loc-desc-help': [
     'Optionale Beschreibung des Messpunkts, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
     'Optional description of the sampling location, for example to help in finding or reaching it, etc.' ],
-
-  // editor: coords
   'Lat': ['Lat'],
   'Lon': ['Lon'],
   'Latitude': ['Breitengrad'],
@@ -148,12 +149,6 @@ const translations = {
   'new-loc-from-temp': [
     'Neuer Messpunkt aus Vorlage',
     'New Sampling Location from Template' ],
-  'new-samp-from-temp': [
-    'Neue Probe aus Vorlage',
-    'New Sample from Template' ],
-  'new-meas-from-temp': [
-    'Neue Messung aus Vorlage',
-    'New Measurement from Template' ],
   'common-samples': [
     'Gleichartige Proben',
     'Uniform Samples' ],
@@ -163,8 +158,31 @@ const translations = {
     'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.'
     +' If individual sampling locations have different samples defined, these override the samples defined here.' ],
 
+  // editor: trip
+  'Start time': ['Anfangs-Zeit'],
+  'start-time-help': [
+    'Wann die Messfahrt begann. Zeitzone ist die des Geräts',
+    'When the sampling trip began. Timezone is that of your device' ],
+  'End time': ['End-Zeit'],
+  'end-time-help': [
+    'Wann die Messfahrt endete. Zeitzone ist die des Geräts',
+    'When the sampling trip ended. Timezone is that of your device' ],
+  'Persons': ['Personen'],
+  'persons-help': ['Welche Personen an der Probenahme beteiligt waren.', 'Who was involved in the sampling.'],
+  'Weather': ['Wetter'],
+  'weather-help': ['Wie das Wetter während der Probenahme war.', 'How the weather during the sampling trip was.'],
+  'trip-notes-help': ['Optionale Notizen zur Messfahrt im Allgemeinen.', 'Optional notes about the sampling trip in general.'],
+  'Now': ['Jetzt'],
+  'Use current date and time': ['Aktuelles Datum und Uhrzeit verwenden'],
+  'new-trip-from-temp': [
+    'Neue Messfahrt aus Vorlage',
+    'New Sampling Trip from Template' ],
+
   // editor: sample template
   'Sample Type': ['Art der Probe'],
+  'new-samp-from-temp': [
+    'Neue Probe aus Vorlage',
+    'New Sample from Template' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

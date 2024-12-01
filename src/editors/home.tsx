@@ -15,8 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ListEditor, ListEditorWithTemp } from './list-edit'
 import { TripTemplateEditor } from './trip-temp'
-import { ListEditor } from './list-edit'
+import { SamplingTripEditor } from './trip'
 import { GlobalContext } from '../main'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
@@ -39,12 +40,15 @@ function makeAcc(title :string, body :HTMLElement|string) {
 }
 
 export function makeHomePage(ctx :GlobalContext) {
+  const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips(), SamplingTripEditor, tr('new-trip-from-temp'),
+    async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t) )
+  stEdit.enable(true)
   const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)
 
   return <div class="p-3">
     <div class="accordion" id="homeAccordion">
-      {makeAcc(tr('Sampling Trips'), 'TODO')}
+      {makeAcc(tr('Sampling Trips'), stEdit.el)}
       {makeAcc(tr('Sampling Trip Templates'), ttEdit.el)}
     </div>
   </div>
