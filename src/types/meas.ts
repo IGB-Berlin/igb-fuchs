@@ -47,7 +47,10 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   formattedValue() {
     return Number.isFinite(this.type.precision) ? this.value.toFixed(this.type.precision) : this.value.toString() }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement':'meas') }
-  override validate(_others :Measurement[]) { validateTimestamp(this.time) }
+  override validate(_others :Measurement[]) {
+    this.type.validate([])
+    validateTimestamp(this.time)
+  }
   override summaryDisplay() :[string,null] {
     return [ `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`, null ] }
   override equals(o: unknown) {

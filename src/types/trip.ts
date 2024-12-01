@@ -52,8 +52,6 @@ export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
   return true
 }
-export function isISamplingTripArray(a :unknown) :a is ISamplingTrip[] {  //TODO: remove if unused
-  return Array.isArray(a) && a.every(o => isISamplingTrip(o)) }
 
 /** Records an entire sampling trip. */
 export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {
@@ -96,7 +94,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
     validateTimestamp(this.lastModified)
-    if (others.some(o => o.tripId === this.tripId))  //TODO: should is really be an error, or just a warning?
+    if (others.some(o => o.tripId === this.tripId))
       throw new Error(tr('duplicate-trip-id'))
   }
   override summaryDisplay() :[string,string] {
@@ -105,7 +103,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   }
   override equals(o: unknown) {
     return isISamplingTrip(o)
-      //TODO: compare ID or not? (same question for the template)
+      // not comparing ids
       && this.name === o.name
       && this.description.trim() === ( o.description?.trim() ?? '' )
       && this.startTime === o.startTime
@@ -174,8 +172,6 @@ export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate 
   if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
-export function isISamplingTripTemplateArray(a :unknown) :a is ISamplingTripTemplate[] {  //TODO: remove if unused
-  return Array.isArray(a) && a.every(o => isISamplingTripTemplate(o)) }
 
 export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplate, SamplingTrip> implements ISamplingTripTemplate {
   readonly id :string

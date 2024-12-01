@@ -264,9 +264,12 @@ const translations = {
     +' Bitte die Messfahrt ergänzen (Namen oder Datum), um diese zwei Messfahrten zu unterscheiden.',
     'There is already a sampling trip with this name on the same start date.'
     +' Please modify the sampling trip (name or date) to differentiate these two sampling trips.' ],
+  'samp-type-undef': [
+    'Art der Probe nicht festgelegt.',
+    'Sample type not defined.' ],
 
   // sample types (Remember to keep in sync with SampleType!)
-  'st-undefined': ['Nicht aufgezeichnet', 'Not recorded'],
+  'st-undefined': ['Unbekannt (nicht festgelegt/aufgezeichnet)', 'Unknown (not defined/recorded)'],
   'st-surface-water-stream': ['Oberflächenwasser (Strom)', 'Surface Water (Stream)'],
   'st-surface-water-pond': ['Oberflächenwasser (Teich)', 'Surface Water (Pond)'],
   'st-ground-water': ['Grundwasser', 'Groundwater'],

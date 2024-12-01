@@ -191,7 +191,11 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck() { return [] }
+  override warningsCheck(isBrandNew :boolean) {
+    const rv :string[] = []
+    if (!isBrandNew && !this.samples.length) rv.push(tr('No samples'))
+    return rv
+  }
   override summaryDisplay() { return locSummary(this) }
   override equals(o: unknown) {
     return isISamplingLocationTemplate(o)

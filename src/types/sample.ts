@@ -76,7 +76,8 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
-    if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))
+    if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
     return rv.concat( this.measurements.flatMap(m => m.warningsCheck(isBrandNew)) )
   }
   override extractTemplate() :SampleTemplate {
@@ -104,6 +105,8 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
 
 export interface ISampleTemplate {
   type :SampleType
+  /* TODO: More fields in sample template? like amount? (e.g. in case only a sample is taken back to the lab without measurements)
+   * Or "other type" for a freeform type definition? */
   measurementTypes :IMeasurementType[]
 }
 export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
@@ -133,7 +136,9 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
       && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
   }
   override warningsCheck() {
-    return []  //TODO: warn on type 'undefined' (same for 'Sample')
+    const rv :string[] = []
+    if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    return rv
   }
   override toJSON(_key: string): ISampleTemplate {
     return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) } }
