@@ -103,7 +103,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
     if (distM > MAX_NOM_ACT_DIST_M)
       rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
-    return rv.concat( this.samples.flatMap(s => s.warningsCheck(isBrandNew)) )
+    return rv
   }
   override summaryDisplay() { return locSummary(this) }
   override equals(o :unknown) {

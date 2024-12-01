@@ -50,11 +50,13 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected readonly ctx :GlobalContext
   /** The store in which the object with being edited resides. */
   private readonly targetStore :AbstractStore<B>
+  /** The event hub of the store in which the object being edited resides. */
+  get targetEvents() { return this.targetStore.events }
   /** The object being edited, if it is stored in `targetStore`, or `null` if creating a new object.
    *
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
-  protected get savedObj() { return this._savedObj }
+  get savedObj() { return this._savedObj }
   private _savedObj :Readonly<B>|null = null
 
   /** Helper to get the static property from an instance. */

@@ -20,9 +20,8 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingTripTemplate } from '../types/trip'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
-import { listSelectDialog } from './list-dialog'
+import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
-import { ListEditor } from './list-edit'
 import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
@@ -45,53 +44,31 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{obj.description.trim()}</textarea>)
 
-    /* We want to edit the original object's locations array directly, because
-     * we want changes there to be saved immediately, for that we propagate
-     * the change event to the parent via `reportSelfChange` below. */
-    const locList = new ArrayStore(obj.locations)
-    const locEdit = new ListEditor(ctx, locList, LocationTemplateEditor)
-    locList.events.add(() => this.reportMod())
+    /* We want to edit the original object's arrays directly, because we want changes there to be saved
+     * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.
+     * In addition, it's important we:
+     * - Enable the ListEditor to watch this editor so that it enables itself when appropriate (`watchEnable`)
+     * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
+     */
+    const locStore = new ArrayStore(obj.locations)
+    const locEdit = new ListEditorForTemp(ctx, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
+      ()=>setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples())))
+    locStore.events.add(() => this.reportMod())
+    locEdit.watchEnable(this)
 
-    // "New from Template" - TODO: add button to list editor?
-    const btnLocFromTemp = <button type="button" class="btn btn-info" disabled><i class="bi-journal-plus"/> {tr('From Template')}</button>
-    btnLocFromTemp.addEventListener('click', async () => {
-      const locs = setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))
-      const idx = await listSelectDialog(tr('new-loc-from-temp'), locs)
-      console.debug('selected', idx)  //TODO: debug, do something useful instead
-    })
+    const sampStore = new ArrayStore(obj.commonSamples)
+    const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+      ()=>setRemove(ctx.storage.allSampleTemplates, obj.commonSamples))
+    sampStore.events.add(() => this.reportMod())
+    sampEdit.watchEnable(this)
 
-    const sampList = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditor(ctx, sampList, SampleTemplateEditor)
-    sampList.events.add(() => this.reportMod())
-
-    /* If this is a new object we are currently editing, it won't have been saved to its
-     * target array, so any changes to any arrays it holds (like in this case the .locations[])
-     * won't be saved either. So, to prevent users from being able to build large object
-     * trees without them ever being saved, we require this current object to be saved
-     * before allowing edits to its arrays. */
-    const updState = () => {
-      locEdit.enable(!!this.savedObj)
-      sampEdit.enable(!!this.savedObj)
-      if (this.savedObj) btnLocFromTemp.removeAttribute('disabled')
-      else btnLocFromTemp.setAttribute('disabled', 'disabled')
-    }
-    updState()
-    targetStore.events.add(updState)
-    this.onClose = () => targetStore.events.remove(updState)
+    this.onClose = () => { locEdit.close(); sampEdit.close() }
 
     this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
-      <div class="border rounded my-3 p-3">
-        <div class="mb-3 fs-5">{tr('Sampling Locations')}</div>
-        {btnLocFromTemp}
-        {locEdit.el}
-      </div>,
-      <div class="border rounded my-3 p-3">
-        <div class="fs-5">{tr('common-samples')}</div>
-        <div class="form-text mb-3">{tr('common-samples-help')}</div>
-        {sampEdit.el}
-      </div>,
+      locEdit.withBorder(tr('Sampling Locations')),
+      sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
     ])
 
     this.form2obj = () => new SamplingTripTemplate({ id: obj.id,

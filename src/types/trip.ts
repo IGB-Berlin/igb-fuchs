@@ -128,9 +128,9 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    //if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
-    return rv.concat( this.locations.flatMap(l => l.warningsCheck(isBrandNew)) )
+    return rv
   }
   override extractTemplate() :SamplingTripTemplate {
     /* If all location templates have the same set of samples, then we
@@ -216,7 +216,6 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
-    this.locations.forEach(l => l.samples.forEach(s => s.measurementTypes.forEach( t => rv.push(...t.warningsCheck(isBrandNew)) )))
     return rv
   }
   override templateToObject(startNow :boolean) :SamplingTrip {

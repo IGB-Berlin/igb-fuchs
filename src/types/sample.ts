@@ -78,7 +78,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     const rv :string[] = []
     if (this.type==='undefined') rv.push(tr('samp-type-undef'))
     if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
-    return rv.concat( this.measurements.flatMap(m => m.warningsCheck(isBrandNew)) )
+    return rv
   }
   override extractTemplate() :SampleTemplate {
     return new SampleTemplate({ type: this.type, measurementTypes: this.measurements.map(m => m.extractTemplate()) })

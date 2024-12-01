@@ -18,8 +18,9 @@
 import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
+import { ListEditorForTemp } from './list-edit'
 import { MeasTypeEditor } from './meas-type'
-import { ListEditor } from './list-edit'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { i18n, tr } from '../i18n'
 import { Editor } from './base'
@@ -47,24 +48,16 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
       </select>)
 
     // see notes in trip-temp.tsx about this:
-    const measList = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditor(ctx, measList, MeasTypeEditor)
-    measList.events.add(() => this.reportMod())
-
-    // see notes in trip-temp.tsx about this:
-    const updState = () => {
-      measEdit.enable(!!this.savedObj)
-    }
-    updState()
-    targetStore.events.add(updState)
-    this.onClose = () => targetStore.events.remove(updState)
+    const measStore = new ArrayStore(obj.measurementTypes)
+    const measEdit = new ListEditorForTemp(ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
+      ()=>setRemove(ctx.storage.allMeasurementTemplates, obj.measurementTypes))
+    measStore.events.add(() => this.reportMod())
+    measEdit.watchEnable(this)
+    this.onClose = () => measEdit.close()
 
     this.el = this.form = this.makeForm(tr('Sample Template'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      <div class="border rounded my-3 p-3">
-        <div class="mb-3 fs-5">{tr('Measurements')}</div>
-        {measEdit.el}
-      </div>
+      measEdit.withBorder(tr('Measurements')),
     ])
 
     this.form2obj = () => new SampleTemplate({

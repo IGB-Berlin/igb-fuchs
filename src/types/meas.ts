@@ -62,7 +62,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value } }
   override warningsCheck(_isBrandNew :boolean) {
-    const rv = []  // this.type should be checked as part of the templates check
+    const rv = []
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
     if (Number.isFinite(this.value)) {
       if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)

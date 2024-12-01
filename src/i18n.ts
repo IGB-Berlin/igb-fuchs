@@ -148,6 +148,12 @@ const translations = {
   'new-loc-from-temp': [
     'Neuer Messpunkt aus Vorlage',
     'New Sampling Location from Template' ],
+  'new-samp-from-temp': [
+    'Neue Probe aus Vorlage',
+    'New Sample from Template' ],
+  'new-meas-from-temp': [
+    'Neue Messung aus Vorlage',
+    'New Measurement from Template' ],
   'common-samples': [
     'Gleichartige Proben',
     'Uniform Samples' ],

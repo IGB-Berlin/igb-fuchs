@@ -21,8 +21,9 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { Wgs84Coordinates } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
+import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
-import { ListEditor } from './list-edit'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -47,26 +48,18 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       <textarea rows="3">{obj.description.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
-    const sampList = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditor(ctx, sampList, SampleTemplateEditor)
-    sampList.events.add(() => this.reportMod())
-
-    // see notes in trip-temp.tsx about this:
-    const updState = () => {
-      sampEdit.enable(!!this.savedObj)
-    }
-    updState()
-    targetStore.events.add(updState)
-    this.onClose = () => targetStore.events.remove(updState)
+    const sampStore = new ArrayStore(obj.samples)
+    const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+      ()=>setRemove(ctx.storage.allSampleTemplates, obj.samples))
+    sampStore.events.add(() => this.reportMod())
+    sampEdit.watchEnable(this)
+    this.onClose = () => sampEdit.close()
 
     this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null),
-      <div class="border rounded my-3 p-3">
-        <div class="mb-3 fs-5">{tr('Samples')}</div>
-        {sampEdit.el}
-      </div>
+      sampEdit.withBorder(tr('Samples')),
     ])
 
     this.form2obj = () =>

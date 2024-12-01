@@ -235,11 +235,13 @@ export class IndexedStorage {
 
   async updateTemplates() {  // this function is expensive
     const startMs = performance.now()
-    const allLoc = ( await this.tripTemplates().getAll(null) ).flatMap(([_,t]) => t.locations).concat(
-      ( await this.samplingTrips().getAll(null) ).flatMap(([_,t]) => t.locations.map(l => l.extractTemplate())) )
-    // no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
+    const allTripTs = await this.tripTemplates().getAll(null)
+    const allLoc = allTripTs.flatMap(([_,t]) => t.locations)
+      .concat( ( await this.samplingTrips().getAll(null) ).flatMap(([_,t]) => t.locations.map(l => l.extractTemplate())) )
+    // locations - no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
     this._allLocTemps = deduplicatedSet( allLoc.map(l => l.cloneNoSamples()) )
-    this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => s.deepClone())) )
+    this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => s.deepClone()))
+      .concat( allTripTs.flatMap(([_,t]) => t.commonSamples) ) )
     this._allMeasTemps = deduplicatedSet( this._allSampTemps.flatMap(s => s.measurementTypes.map(m => m.deepClone())) )
     const durMs = performance.now() - startMs
     if (durMs>10) console.log('updateTemplates took', durMs, 'ms')

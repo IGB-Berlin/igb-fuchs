@@ -20,9 +20,9 @@ import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
+export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
-export function listSelectDialog(title :string|HTMLElement, list :HasHtmlSummary[]) :Promise<number> {
+export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :T[]) :Promise<T|null> {
   let okClicked = false
   const btnOk = <button type="button" class="btn btn-success" data-bs-dismiss="modal"
     onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>
@@ -42,15 +42,16 @@ export function listSelectDialog(title :string|HTMLElement, list :HasHtmlSummary
     selIdx = idx
     btnOk.removeAttribute('disabled')
   }
-  const els :HTMLElement[] = list.map((e,i) =>
+  const els :HTMLElement[] = list.length ? list.map((e,i) =>
     <li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{e.summaryAsHtml(false)}</li>)
+    : [<li class="list-group-item"><em>{tr('No items')}</em></li>]
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="listSelectDialogLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="listSelectDialogLabel">
-            <i class="bi-card-list" /> {title}</h1>
+            <i class="bi-card-list me-2" /> {title}</h1>
         </div>
         <div class="modal-body">
           <ul class="list-group">{els}</ul>
@@ -63,13 +64,18 @@ export function listSelectDialog(title :string|HTMLElement, list :HasHtmlSummary
     </div>
   </div>
   document.body.appendChild(dialog)
-  return new Promise<number>(resolve => {
+  return new Promise<T|null>(resolve => {
     const modal = new bootstrap.Modal(dialog)
     dialog.addEventListener('hidden.bs.modal', () => {
       modal.dispose()
       document.body.removeChild(dialog)
-      assert(els.length===list.length && selIdx<list.length)
-      resolve( okClicked ? selIdx : -1 )
+      assert((list.length===0 && els.length===1 || els.length===list.length) && selIdx<list.length)
+      if (okClicked && selIdx>=0) {
+        const item = list[selIdx]
+        assert(item)
+        resolve(item)
+      }
+      else resolve(null)
     })
     modal.show()
   })
