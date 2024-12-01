@@ -65,8 +65,11 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
+    // TODO Later: A reload causes us to lose association with the template. Is there any way to persist that?
+    const template = obj.template
     const locEdit = new ListEditorWithTemp(ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))))
+      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
+      template ? ()=>Promise.resolve(setRemove(template.locations, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))) : null )
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
     this.onClose = () => locEdit.close()

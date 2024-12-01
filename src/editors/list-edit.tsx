@@ -17,9 +17,9 @@
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate } from '../types/common'
 import { HasHtmlSummary, listSelectDialog } from './list-dialog'
+import { AbstractStore, StoreEvent } from '../storage'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
-import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
@@ -73,11 +73,15 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     this.parentEditor.targetEvents.add(this.parentListener)
     this.parentListener()
   }
+
+  protected storeListenersToRemove :((event :StoreEvent)=>void)[] = []
   close() {
     if (this.parentEditor!==null) {
       this.parentEditor.targetEvents.remove(this.parentListener)
       this.parentEditor = null
     }
+    this.storeListenersToRemove.forEach(l => this.theStore.events.remove(l))
+    this.storeListenersToRemove.length = 0
   }
 
   protected readonly ctx :GlobalContext
@@ -88,9 +92,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     this.theStore = theStore
     this.editorClass = editorClass
 
-    this.btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
-    this.btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
-    this.btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
+    this.btnDel = <button type="button" class="btn btn-danger text-nowrap mt-1" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
+    this.btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>
+    this.btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
     const els :HTMLElement[] = []
     const selectItem = (id :string|null, scroll :boolean = false) => {
@@ -150,7 +154,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     this.btnNew.addEventListener('click', () => {
       new editorClass(ctx, theStore, null)  // adds and removes itself from the stack
     })
-    theStore.events.add(event => redrawList(event.action === 'del' ? undefined : event.id))
+    const onChange = (event :StoreEvent) => redrawList(event.action === 'del' ? undefined : event.id)
+    theStore.events.add(onChange)
+    this.storeListenersToRemove.push(onChange)
   }
 
   withBorder(title :string, help :string|null = null) {
@@ -168,7 +174,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
   protected btnTemp :HTMLElement
   constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(ctx, theStore, editorClass)
-    this.btnTemp = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-copy"/> {tr('From Template')}</button>
+    this.btnTemp = <button type="button" class="btn btn-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog(dialogTitle, await templateSource())
       if (template===null) return
@@ -188,6 +194,36 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
+  constructor(ctx :GlobalContext, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, dialogTitle :string|HTMLElement,
+    templateSource :()=>Promise<T[]>, planned :(()=>Promise<T[]>)|null) {
+    super(ctx, theStore, editorClass, dialogTitle, templateSource)
+
+    const theUl = <ul class="list-group"></ul>
+    const myEl = <div class="mt-3 d-none">
+      <div class="mb-2">{dialogTitle}</div>
+      {theUl}
+    </div>
+    const redrawList = async () => {
+      const temps = planned ? await planned() : []
+      myEl.classList.toggle('d-none', !temps.length)
+      theUl.replaceChildren(...temps.map(t => {
+        const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
+        btnNew.addEventListener('click', () => {
+          const newObj = t.templateToObject()
+          console.debug('Added',newObj,'with id',theStore.add(newObj))
+          new this.editorClass(this.ctx, this.theStore, newObj)
+        })
+        return <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="me-auto">{t.summaryAsHtml(false)}</div>
+          {btnNew}
+        </li>
+      }))
+    }
+    setTimeout(redrawList)
+    this.theStore.events.add(redrawList)
+    this.storeListenersToRemove.push(redrawList)
+    this.el.appendChild(myEl)
+  }
   protected override makeNew(t :T) :D { return t.templateToObject() }
   protected override postNew(obj: D) {
     new this.editorClass(this.ctx, this.theStore, obj) }

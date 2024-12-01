@@ -41,7 +41,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
 
 export function makeHomePage(ctx :GlobalContext) {
   const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips(), SamplingTripEditor, tr('new-trip-from-temp'),
-    async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t) )
+    async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t), null)
   stEdit.enable(true)
   const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)

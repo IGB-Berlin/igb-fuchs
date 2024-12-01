@@ -18,7 +18,7 @@
 import { SimpleEventHub } from './events'
 import { assert } from './utils'
 
-interface StoreEvent {
+export interface StoreEvent {
   action :'add'|'upd'|'del'|'mod'
   id :string
 }
