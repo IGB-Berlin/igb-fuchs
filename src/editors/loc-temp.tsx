@@ -42,10 +42,10 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{obj.description.trim()}</textarea>)
+    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const inpNomCoords = makeCoordinateEditor(nomCoords)
 
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
@@ -58,7 +58,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
       sampEdit.withBorder(tr('Samples')),
     ])
 

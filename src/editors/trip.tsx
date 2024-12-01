@@ -16,13 +16,16 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestampSet, NO_TIMESTAMP, timestampNow, VALID_NAME_RE } from '../types/common'
+import { dateTimeLocalInputToDate, dateToLocalString, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { AbstractStore, ArrayStore } from '../storage'
+import { SamplingLocationEditor } from './location'
+import { ListEditorWithTemp } from './list-edit'
 import { SamplingTrip } from '../types/trip'
-import { AbstractStore } from '../storage'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
-import { dateTimeLocalInputToDate, dateToLocalString, getTzOffset } from '../date'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
   override readonly el :HTMLElement
@@ -60,9 +63,14 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
 
-    //TODO: locations[], and how to best use this.obj.template?
-
-    this.onClose = () => {}
+    // see notes in trip-temp.tsx about this:
+    const locStore = new ArrayStore(obj.locations)
+    const locEdit = new ListEditorWithTemp(ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
+      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))))
+    locStore.events.add(() => this.reportMod())
+    locEdit.watchEnable(this)
+    this.onClose = () => locEdit.close()
+    //TODO: how to best use this.obj.template?
 
     const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Trip'), [
@@ -73,6 +81,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')}</>, null),
+      locEdit.withBorder(tr('Sampling Locations')),
     ])
 
     this.form2obj = () => new SamplingTrip({ id: obj.id,
