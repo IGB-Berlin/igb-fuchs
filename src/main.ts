@@ -16,8 +16,8 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { EditorStack } from './editors/stack'
-import { IndexedStorage } from './storage'
-import * as misc from './dialogs'
+import { IndexedStorage } from './idb-store'
+import { noStorageAlert } from './dialogs'
 import { assert } from './utils'
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   setTheme()
   const storage = await IndexedStorage.open()
   if (!await storage.selfTest()) {
-    misc.noStorageAlert()
+    noStorageAlert()
     throw new Error('Storage not available, can\'t continue')
   }
   const ctx = new GlobalContext(storage)
