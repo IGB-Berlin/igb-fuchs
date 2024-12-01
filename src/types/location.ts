@@ -21,7 +21,7 @@ import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coor
 import { distanceBearing } from '../geo-func'
 import { dataSetsEqual } from './set'
 import { assert } from '../utils'
-import { tr } from '../i18n'
+import { i18n, tr } from '../i18n'
 
 const MAX_NOM_ACT_DIST_M = 200
 
@@ -105,8 +105,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
     return rv.concat( this.samples.flatMap(s => s.warningsCheck(isBrandNew)) )
   }
-  override summaryDisplay() :[string,string] {
-    return [ this.name, this.actCoords.summaryDisplay()[0] ] }
+  override summaryDisplay() { return locSummary(this) }
   override equals(o :unknown) {
     return isISamplingLocation(o)
       && this.name === o.name
@@ -139,6 +138,17 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     assert(isISamplingLocation(clone))
     return new SamplingLocation(clone, this.template)
   }
+}
+
+function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,string] {
+  let samp = i18n.t('samples', {count:loc.samples.length})
+  if (loc.samples.length===1) {
+    const s0 = loc.samples[0]
+    assert(s0)
+    const ss = s0.summaryDisplay()
+    samp = ss[0]+': '+ss[1]
+  }
+  return [ loc.name, samp+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']' ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -182,8 +192,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override warningsCheck() { return [] }
-  override summaryDisplay() :[string,string] {
-    return [ this.name, this.nomCoords.summaryDisplay()[0] ] }
+  override summaryDisplay() { return locSummary(this) }
   override equals(o: unknown) {
     return isISamplingLocationTemplate(o)
       && this.name===o.name

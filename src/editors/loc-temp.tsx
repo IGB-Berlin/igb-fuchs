@@ -17,10 +17,12 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
+import { AbstractStore, ArrayStore } from '../storage'
 import { Wgs84Coordinates } from '../types/coords'
+import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
-import { AbstractStore } from '../storage'
+import { ListEditor } from './list-edit'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -31,7 +33,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
-  protected override readonly onClose :()=>void = ()=>{}
+  protected override readonly onClose :()=>void
 
   constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
     super(ctx, targetStore, targetObj)
@@ -44,19 +46,34 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{obj.description.trim()}</textarea>)
 
-    //TODO: samples[]
+    // see notes in trip-temp.tsx about this:
+    const sampList = new ArrayStore(obj.samples)
+    const sampEdit = new ListEditor(ctx, sampList, SampleTemplateEditor)
+    sampList.events.add(() => this.reportMod())
+
+    // see notes in trip-temp.tsx about this:
+    const updState = () => {
+      sampEdit.enable(!!this.savedObj)
+    }
+    updState()
+    targetStore.events.add(updState)
+    this.onClose = () => targetStore.events.remove(updState)
 
     this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null)
+      this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), null),
+      <div class="border rounded my-3 p-3">
+        <div class="mb-3 fs-5">{tr('Template Samples')}</div>
+        {sampEdit.el}
+      </div>
     ])
 
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value,
         description: inpDesc.value.trim(),
         nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
-        samples: [] })
+        samples: obj.samples })
 
     this.open()
   }

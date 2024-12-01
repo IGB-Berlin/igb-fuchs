@@ -22,13 +22,13 @@ import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
-const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
+export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',
 ] as const
 
 type SampleType = typeof sampleTypes[number]
-function isSampleType(v :unknown) :v is SampleType {
+export function isSampleType(v :unknown) :v is SampleType {
   return typeof v==='string' && sampleTypes.includes(v as SampleType) }
 
 export interface ISample {
@@ -62,8 +62,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample':'Sample') }
   override validate(_others :Sample[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
-  override summaryDisplay() :[string,string] {
-    return [ this.type, i18n.t('measurements', {count: this.measurements.length}) ] }
+  override summaryDisplay() { return sampSummary(this) }
   override equals(o: unknown) {
     return isISample(o)
       && this.type === o.type
@@ -88,6 +87,17 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     assert(isISample(clone))
     return new Sample(clone, this.template)
   }
+}
+
+function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
+  const meas = 'measurementTypes' in samp ? samp.measurementTypes : samp.measurements
+  let m = i18n.t('measurements', {count: meas.length})
+  if (meas.length===1) {
+    const m0 = meas[0]
+    assert(m0)
+    m += ': '+m0.summaryDisplay()[0]
+  }
+  return [ i18n.t('st-'+samp.type), m ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
@@ -116,14 +126,15 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Template Sample':'samp-temp') }
   override validate(_others :SampleTemplate[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`) }
-  override summaryDisplay() :[string,string] {
-    return [ this.type, i18n.t('measurements', {count: this.measurementTypes.length}) ] }
+  override summaryDisplay() { return sampSummary(this) }
   override equals(o: unknown) {
     return isISampleTemplate(o)
       && this.type === o.type
       && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
   }
-  override warningsCheck() { return [] }
+  override warningsCheck() {
+    return []  //TODO: warn on type 'undefined' (same for 'Sample')
+  }
   override toJSON(_key: string): ISampleTemplate {
     return { type: this.type, measurementTypes: this.measurementTypes.map((m,mi) => m.toJSON(mi.toString())) } }
   override templateToObject() :Sample {

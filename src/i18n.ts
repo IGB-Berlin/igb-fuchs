@@ -69,13 +69,7 @@ const translations = {
     +'Names must be unique across all entries of the same kind (sampling location, measurement type, etc.).'
   ],
   'Notes': ['Notizen'],
-  'notes-help': [
-    'Etwaige Notizen.',
-    'Optional notes.' ],
   'Description': ['Beschreibung'],
-  'desc-help': [
-    'Etwaige Beschreibung.',
-    'Optional description.' ],
   'duplicate-name': [
     'Dieser Name wird bereits verwendet',
     'This name is already being used' ],
@@ -109,6 +103,14 @@ const translations = {
   'precision-help': [
     'Die Anzahl der Nachkommastellen, die im Messwert erlaubt sind.',
     'The number of decimal places allowed after the decimal point in the measurement value.' ],
+  'meas-type-notes-help': [
+    'Optionale Notizen, z.B. bei besonderen Messverfahren.',
+    'Optional notes, for example for special measurement procedures.' ],
+
+  // editor: location (template)
+  'loc-desc-help': [
+    'Optionale Beschreibung des Messpunkts, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
+    'Optional description of the sampling location, for example to help in finding or reaching it, etc.' ],
 
   // editor: coords
   'Lat': ['Lat'],
@@ -140,9 +142,21 @@ const translations = {
   'Show on map': ['Auf Karte zeigen'],
 
   // editor: trip template
+  'trip-desc-help': [
+    'Optionale Beschreibung der Messfahrt.',
+    'Optional description of the sampling trip.' ],
   'new-loc-from-temp': [
     'Neuer Messpunkt aus Vorlage',
     'New Sampling Location from Template' ],
+  'common-samples': [
+    'Gleichartige Proben',
+    'Uniform Samples' ],
+  'common-samples-help': [
+    'Wenn an allen Messpunkten der Messfahrt die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.',
+    'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.' ],
+
+  // editor: sample template
+  'Sample Type': ['Art der Probe'],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
@@ -181,6 +195,7 @@ const translations = {
   'Sampling Location Templates': ['Messpunkt-Vorlagen'],
   'Sample': ['Probe'],
   'Template Sample': ['Vorlage für Probe'],
+  'Template Samples': ['Vorlagen für Proben'],
   'Measurement': ['Messung'],
   'Measurement Type': ['Messtyp'],
   'Measurement Types': ['Messtypen'],
@@ -191,6 +206,9 @@ const translations = {
   'measurements': [
     { zero: 'keine Messungen', one: 'eine Messung', other: '%{count} Messungen' },
     { zero: 'no measurements', one: 'one measurement', other: '%{count} measurements' } ],
+  'samples': [
+    { zero: 'keine Proben', one: 'eine Probe', other: '%{count} Proben' },
+    { zero: 'no samples', one: 'one sample', other: '%{count} samples' } ],
   // partially abbrev. for breadcrumbs
   'Templates': ['Vorlagen'],
   'Trips': ['Fahrten'],

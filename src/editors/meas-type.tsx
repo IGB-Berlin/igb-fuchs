@@ -61,7 +61,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       this.makeRow(inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
       this.makeRow(inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
       this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
-      this.makeRow(inpNotes, tr('Notes'), tr('notes-help'), null),
+      this.makeRow(inpNotes, tr('Notes'), tr('meas-type-notes-help'), null),
     ])
 
     this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,

@@ -19,6 +19,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingTripTemplate } from '../types/trip'
 import { LocationTemplateEditor } from './loc-temp'
+import { SampleTemplateEditor } from './samp-temp'
 import { listSelectDialog } from './list-dialog'
 import { VALID_NAME_RE } from '../types/common'
 import { ListEditor } from './list-edit'
@@ -58,6 +59,10 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       console.debug('selected', idx)  //TODO: debug, remove
     })
 
+    const sampList = new ArrayStore(obj.commonSamples)
+    const sampEdit = new ListEditor(ctx, sampList, SampleTemplateEditor)
+    sampList.events.add(() => this.reportMod())
+
     /* If this is a new object we are currently editing, it won't have been saved to its
      * target array, so any changes to any arrays it holds (like in this case the .locations[])
      * won't be saved either. So, to prevent users from being able to build large object
@@ -65,6 +70,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      * before allowing edits to its arrays. */
     const updState = () => {
       locEdit.enable(!!this.savedObj)
+      sampEdit.enable(!!this.savedObj)
       if (this.savedObj) btnLocFromTemp.removeAttribute('disabled')
       else btnLocFromTemp.setAttribute('disabled', 'disabled')
     }
@@ -72,21 +78,24 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     targetStore.events.add(updState)
     this.onClose = () => targetStore.events.remove(updState)
 
-    //TODO: commonSamples[]
-
     this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), tr('desc-help'), null),
+      this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
       <div class="border rounded my-3 p-3">
         <div class="mb-3 fs-5">{tr('Sampling Location Templates')}</div>
         {btnLocFromTemp}
         {locEdit.el}
       </div>,
+      <div class="border rounded my-3 p-3">
+        <div class="fs5">{tr('common-samples')}</div>
+        <div class="form-text mb-3">{tr('common-samples-help')}</div>
+        {sampEdit.el}
+      </div>,
     ])
 
     this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
       name: inpName.value, description: inpDesc.value.trim(),
-      locations: obj.locations, commonSamples: [] })
+      locations: obj.locations, commonSamples: obj.commonSamples })
 
     this.open()
   }

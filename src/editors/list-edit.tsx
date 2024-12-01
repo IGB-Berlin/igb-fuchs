@@ -90,8 +90,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       {disableNotice}
     </div>
     btnDel.addEventListener('click', async () => {
-      if (selId===null) return  // shouldn't happen
-      const selItem = await theStore.get(selId)
+      const delId = selId  // b/c the event handlers may change this
+      if (delId===null) return  // shouldn't happen
+      const selItem = await theStore.get(delId)
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
       case 'cancel': break
       case 'delete': {
@@ -99,7 +100,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         /* REMEMBER deletion may change some object's ids!
          * Redrawing the list is handled via the event listener below. */
         const del = await theStore.del(selItem)
-        assert(selId === del)  // paranoia
+        assert(delId === del, `${delId}!==${del}`)  // paranoia
         console.debug('... deleted id',del)
         break }
       }
