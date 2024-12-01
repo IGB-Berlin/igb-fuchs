@@ -28,6 +28,7 @@ export class EditorStack {
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
   protected readonly stack :[string, HTMLElement][] = []
   protected redrawNavbar() {
+    //TODO: The navbar can get too wide for the window - how to handle that?
     this.navList.replaceChildren(
       ...this.stack.map(([t,_e],i) => {
         return i<this.stack.length-1
@@ -52,6 +53,8 @@ export class EditorStack {
     this.stack.push([e.briefTitle, e.el])
     this.el.appendChild(e.el)
     this.redrawNavbar()
+    //TODO Later: The title is hidden under the sticky header
+    e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
   pop<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
     console.debug('Stack pop', e.briefTitle)
@@ -64,5 +67,6 @@ export class EditorStack {
     assert(top)
     top[1].classList.remove('d-none')
     this.redrawNavbar()
+    top[1].scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 }

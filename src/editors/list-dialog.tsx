@@ -22,7 +22,7 @@ import { tr } from '../i18n'
 
 export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
-export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :T[]) :Promise<T|null> {
+export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
   const btnOk = <button type="button" class="btn btn-success" data-bs-dismiss="modal"
     onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>

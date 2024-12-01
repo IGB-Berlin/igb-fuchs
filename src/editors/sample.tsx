@@ -17,7 +17,10 @@
  */
 import { isSampleType, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { AbstractStore } from '../storage'
+import { AbstractStore, ArrayStore } from '../storage'
+import { ListEditorWithTemp } from './list-edit'
+import { MeasurementEditor } from './meas'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { i18n, tr } from '../i18n'
 import { Editor } from './base'
@@ -45,12 +48,20 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       </select>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    //TODO: measurements[]
-    this.onClose = () => {}
+    // see notes in trip-temp.tsx about this:
+    const measStore = new ArrayStore(obj.measurements)
+    const template = obj.template
+    const measEdit = new ListEditorWithTemp(ctx, measStore, MeasurementEditor, tr('new-meas-from-temp'),
+      ()=>Promise.resolve(setRemove(ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
+      template ? ()=>Promise.resolve(setRemove(template.measurementTypes, obj.measurements.map(m => m.extractTemplate()))) : null )
+    measStore.events.add(() => this.reportMod())
+    measEdit.watchEnable(this)
+    this.onClose = () => measEdit.close()
 
     this.el = this.form = this.makeForm(tr('Sample'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')}</>, null),
+      measEdit.withBorder(tr('Measurements')),
     ])
 
     this.form2obj = () => new Sample({

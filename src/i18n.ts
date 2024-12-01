@@ -197,6 +197,17 @@ const translations = {
     'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
     'Optional notes about the sample, e.g. Quality. amount, etc.' ],
 
+  // editor: measurement
+  'Timestamp': ['Zeitstempel'],
+  'Value': ['Messwert'],
+  'meas-value-help': [ 'Der gemessene Wert. Muss in dem Bereich liegen:', 'The measured value. Must be in the range:' ],
+  'meas-time-help': ['Wann die Messung genommen bzw. aufgezeichnet wurde.', 'When the measurement was taken / recorded.'],
+  'meas-type-help': ['Messtyp', 'Type of the measurement'],
+  'sel-meas-type': [ 'Messtyp Auswählen', 'Select Measurement Type' ],
+  'no units': ['keine Einheit'],
+  'not specified': ['nicht angegeben'],
+  'precision': ['Erlaubte Nachkommastellen:', 'Allowed digits after decimal:'],
+
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
   'unsaved-changes': [
@@ -276,11 +287,13 @@ const translations = {
   'Invalid name': ['Ungültiger Name'],
   'Invalid timestamp': ['Ungültiger Zeitstempel'],
   'Invalid unit': ['Ungültige Messeinheit'],
+  'Invalid value': ['Ungültiger Messwert'],
   'Invalid minimum value': ['Ungültiger Minimalwert'],
   'Invalid maximum value': ['Ungültiger Maximalwert'],
   'Invalid min/max value': ['Ungültiger Minimal-/Maximalwert'],
   'Invalid precision': ['Ungültige Anzahl der Nachkommastellen'],
   'Invalid sample type': ['Ungültiger Probentyp'],
+  'Invalid measurement type': ['Ungültiger Messtyp'],
   'invalid-latitude': [
     'Ungültiger Breitengrad, benötigt wird eine Zahl zwischen -90 und +90',
     'Invalid latitude, required is a number between -90 and +90' ],
@@ -307,8 +320,8 @@ const translations = {
 
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Unbekannt (nicht festgelegt/aufgezeichnet)', 'Unknown (not defined/recorded)'],
-  'st-surface-water-stream': ['Oberflächenwasser (Strom)', 'Surface Water (Stream)'],
-  'st-surface-water-pond': ['Oberflächenwasser (Teich)', 'Surface Water (Pond)'],
+  'st-surface-water-stream': ['Oberflächenwasser (Fließgewässer)', 'Surface water (stream / flowing water)'],
+  'st-surface-water-pond': ['Oberflächenwasser (stehendes Gewässer)', 'Surface water (pond / standing water)'],
   'st-ground-water': ['Grundwasser', 'Groundwater'],
   'st-water-precipitation': ['Niederschlag', 'Precipitation'],
   'st-sediment': ['Sediment', 'Sediment'],
