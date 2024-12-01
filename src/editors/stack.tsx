@@ -16,8 +16,6 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase } from '../types/common'
-import { GlobalContext } from '../main'
-import { makeHomePage } from './home'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { Editor } from './base'
@@ -26,19 +24,9 @@ import { tr } from '../i18n'
 //TODO: History support (browser back button)
 
 export class EditorStack {
-  static makeStack(ctx :GlobalContext, navbarMain :HTMLElement) {
-    const stack = new EditorStack()
-    const home = makeHomePage(ctx, stack)
-    stack.stack.push([tr('Home'), home])
-    stack.el.appendChild(home)
-    navbarMain.replaceChildren(stack.navList)
-    stack.redrawNavbar()
-    return stack
-  }
   readonly el :HTMLElement = <div></div>
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
   protected readonly stack :[string, HTMLElement][] = []
-  protected constructor() {}
   protected redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map(([t,_e],i) => {
@@ -47,6 +35,12 @@ export class EditorStack {
           ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
           : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
       }) )
+  }
+  initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
+    this.stack.push([tr('Home'), homePage])
+    this.el.appendChild(homePage)
+    navbarMain.replaceChildren(this.navList)
+    this.redrawNavbar()
   }
   push<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
     console.debug('Stack push', e.briefTitle)

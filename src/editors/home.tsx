@@ -17,10 +17,9 @@
  */
 import { TripTemplateEditor } from './trip-temp'
 import { ListEditor } from './list-edit'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
-import { GlobalContext } from '../main'
 
 let _accId = 0
 function makeAcc(title :string, body :HTMLElement|string) {
@@ -39,8 +38,8 @@ function makeAcc(title :string, body :HTMLElement|string) {
   </div>
 }
 
-export function makeHomePage(ctx :GlobalContext, stack :EditorStack) {
-  const ttEdit = new ListEditor(stack, ctx.storage.tripTemplates(), TripTemplateEditor)
+export function makeHomePage(ctx :GlobalContext) {
+  const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)
 
   return <div class="p-3">

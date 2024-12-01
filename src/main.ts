@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
 import { IndexedStorage } from './idb-store'
 import { noStorageAlert } from './dialogs'
@@ -35,29 +36,35 @@ if ('serviceWorker' in navigator) {
 const setTheme = () => document.documentElement.setAttribute('data-bs-theme',
   window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setTheme)
+window.addEventListener('DOMContentLoaded', setTheme)
 
 export class GlobalContext {
   readonly storage :IndexedStorage
-  constructor(storage :IndexedStorage) {
+  readonly stack :EditorStack
+  constructor(storage :IndexedStorage, stack :EditorStack) {
     this.storage = storage
+    this.stack = stack
   }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  setTheme()
   const storage = await IndexedStorage.open()
   if (!await storage.selfTest()) {
     noStorageAlert()
     throw new Error('Storage not available, can\'t continue')
   }
-  const ctx = new GlobalContext(storage)
+
+  const igbLogo = document.getElementById('igbLogo')
+  assert(igbLogo instanceof HTMLElement)
+  igbLogo.addEventListener('click', event => event.preventDefault())  // about dialog is triggered from HTML via Bootstrap
+
   const htmlMain = document.querySelector('main')
   const navbarMain = document.getElementById('navbarMain')
-  const igbLogo = document.getElementById('igbLogo')
-  assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement && igbLogo instanceof HTMLElement)
-  igbLogo.addEventListener('click', event => event.preventDefault())  // about dialog is triggered from HTML via Bootstrap
-  const editorStack = EditorStack.makeStack(ctx, navbarMain)
-  htmlMain.appendChild(editorStack.el)
+  assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
+
+  const ctx = new GlobalContext(storage, new EditorStack())
+  ctx.stack.initialize(navbarMain, makeHomePage(ctx))
+  htmlMain.appendChild(ctx.stack.el)
 })
 
 /* TODO Later: Sharing

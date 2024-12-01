@@ -17,32 +17,24 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
+import { Wgs84Coordinates } from '../types/coords'
 import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
 import { AbstractStore } from '../storage'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
-import { Wgs84Coordinates } from '../types/coords'
-
-export interface LocationTemplateEditorArgs {
-  showSampleList :boolean
-}
-function isLocationTemplateEditorArgs(o :unknown) :o is LocationTemplateEditorArgs {
-  return !!( o && typeof o === 'object' && 'showSampleList' in o && typeof o.showSampleList === 'boolean' )
-}
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  static override readonly briefTitle = tr('loc-temp')
   override readonly el :HTMLElement
+  static override readonly briefTitle = tr('loc-temp')
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
-  protected override form2obj: ()=>Readonly<SamplingLocationTemplate>
-  protected override onClose :()=>void = ()=>{}
+  protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
+  protected override readonly onClose :()=>void = ()=>{}
 
-  constructor(stack :EditorStack, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, args_ ?:object) {
-    super(stack, targetStore, targetObj)
-    const args :LocationTemplateEditorArgs = isLocationTemplateEditorArgs(args_) ? args_ : { showSampleList: true }
+  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
+    super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocationTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
@@ -51,9 +43,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const inpDesc = safeCastElement(HTMLTextAreaElement,
       <textarea rows="3">{obj.description.trim()}</textarea>)
-    if (args.showSampleList) {
-      //TODO: samples[]
-    }
+
+    //TODO: samples[]
 
     this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),

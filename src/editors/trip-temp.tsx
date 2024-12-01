@@ -15,27 +15,27 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { LocationTemplateEditor, LocationTemplateEditorArgs } from './loc-temp'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingTripTemplate } from '../types/trip'
+import { LocationTemplateEditor } from './loc-temp'
 import { listSelectDialog } from './list-dialog'
 import { VALID_NAME_RE } from '../types/common'
 import { ListEditor } from './list-edit'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
-  static override readonly briefTitle: string = tr('trip-temp')
   override readonly el :HTMLElement
+  static override readonly briefTitle: string = tr('trip-temp')
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingTripTemplate>
-  protected override form2obj :()=>Readonly<SamplingTripTemplate>
-  protected override onClose :()=>void
+  protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
+  protected override readonly onClose :()=>void
 
-  constructor(stack :EditorStack, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
-    super(stack, targetStore, targetObj)
+  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
+    super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTripTemplate(null)
 
     const inpName = safeCastElement(HTMLInputElement,
@@ -47,8 +47,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      * we want changes there to be saved immediately, for that we propagate
      * the change event to the parent via `reportSelfChange` below. */
     const locList = new ArrayStore(obj.locations)
-    const locArgs :LocationTemplateEditorArgs = { showSampleList: true }
-    const locEdit = new ListEditor(stack, locList, LocationTemplateEditor, locArgs)
+    const locEdit = new ListEditor(ctx, locList, LocationTemplateEditor)
     locList.events.add(() => this.reportMod())
 
     // "New from Template" - TODO: add button to list editor?

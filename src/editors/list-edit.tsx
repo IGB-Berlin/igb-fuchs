@@ -19,7 +19,7 @@ import { DataObjectBase } from '../types/common'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
 import { AbstractStore } from '../storage'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
@@ -27,7 +27,7 @@ import { tr } from '../i18n'
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
   readonly enable :(enable :boolean) => void
-  constructor(stack :EditorStack, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, editorArgs ?:object) {
+  constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
     const btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     const btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
@@ -107,10 +107,10 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     btnEdit.addEventListener('click', async () => {
       if (selId===null) return  // shouldn't happen
       const selItem = await theStore.get(selId)
-      new editorClass(stack, theStore, selItem, editorArgs)  // adds and removes itself from the stack
+      new editorClass(ctx, theStore, selItem)  // adds and removes itself from the stack
     })
     btnNew.addEventListener('click', () => {
-      new editorClass(stack, theStore, null, editorArgs)  // adds and removes itself from the stack
+      new editorClass(ctx, theStore, null)  // adds and removes itself from the stack
     })
     theStore.events.add(event => redrawList(event.action === 'del' ? undefined : event.id))
   }

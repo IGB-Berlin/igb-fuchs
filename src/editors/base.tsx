@@ -19,22 +19,22 @@ import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { AbstractStore } from '../storage'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { briefTitle :string,
-  new (stack :EditorStack, targetStore :AbstractStore<B>, savedObj :B|null, _args ?:object): E }
+  new (ctx :GlobalContext, targetStore :AbstractStore<B>, targetObj :B|null): E }
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
-  /** A brief title of this editor (for navigation). */
-  static readonly briefTitle :string
   /** The HTML element holding the editor UI. */
   abstract readonly el :HTMLElement
+  /** A brief title of this editor (for navigation). */
+  static readonly briefTitle :string
   /** The HTML form (may or may not be the same as `el`). */
   protected abstract readonly form :HTMLFormElement
   /** The initial object being edited: either `savedObj`, or a newly created object.
@@ -43,11 +43,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * so this base class has to leave it up to the actual implementations to do so. */
   protected abstract readonly initObj :Readonly<B>
   /** Returns an object with its fields populated from the current form state. */
-  protected abstract form2obj :()=>Readonly<B>
+  protected abstract readonly form2obj :()=>Readonly<B>
   /** Perform any cleanup the subclass might need to do. */
-  protected abstract onClose :()=>void
+  protected abstract readonly onClose :()=>void
 
-  protected stack :EditorStack
+  protected readonly ctx :GlobalContext
   /** The store in which the object with being edited resides. */
   private readonly targetStore :AbstractStore<B>
   /** The object being edited, if it is stored in `targetStore`, or `null` if creating a new object.
@@ -67,17 +67,16 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *
    * @param targetStore The store in which the object to be edited lives or is to be added to.
    * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
-   * @param _args For optional use by subclasses.
    */
-  constructor(stack :EditorStack, targetStore :AbstractStore<B>, targetObj :B|null, _args ?:object) {
-    this.stack = stack
+  constructor(ctx :GlobalContext, targetStore :AbstractStore<B>, targetObj :B|null) {
+    this.ctx = ctx
     this.targetStore = targetStore
     this._savedObj = targetObj
   }
 
   /** To be called by subclasses when they're ready to be shown. */
   protected open() {
-    this.stack.push(this)
+    this.ctx.stack.push(this)
   }
 
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
@@ -101,7 +100,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * Note that we expect the user of this class to delete the editor from the DOM after receiving the event. */
   private doClose() {
     this.onClose()
-    this.stack.pop(this)
+    this.ctx.stack.pop(this)
   }
 
   /** Save the current form to the target list, optionally closing the editor after. */

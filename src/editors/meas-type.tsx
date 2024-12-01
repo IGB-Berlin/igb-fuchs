@@ -19,20 +19,20 @@ import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { VALID_NAME_RE } from '../types/common'
 import { AbstractStore } from '../storage'
-import { EditorStack } from './stack'
+import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
-  static override readonly briefTitle = tr('meas-type')
   override readonly el :HTMLElement
+  static override readonly briefTitle = tr('meas-type')
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<MeasurementType>
-  protected override form2obj :()=>Readonly<MeasurementType>
-  protected override onClose :()=>void = ()=>{}
+  protected override readonly form2obj :()=>Readonly<MeasurementType>
+  protected override readonly onClose :()=>void = ()=>{}
 
-  constructor(stack :EditorStack, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {
-    super(stack, targetStore, targetObj)
+  constructor(ctx :GlobalContext, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {
+    super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new MeasurementType(null)
 
     const inpName = safeCastElement(HTMLInputElement,
