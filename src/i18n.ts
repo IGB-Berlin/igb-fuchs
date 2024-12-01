@@ -161,12 +161,12 @@ const translations = {
   // editor: trip
   'Start time': ['Anfangs-Zeit'],
   'start-time-help': [
-    'Wann die Messfahrt begann. Zeitzone ist die des Geräts',
-    'When the sampling trip began. Timezone is that of your device' ],
+    'Wann die Messfahrt begann. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the sampling trip began. Timezone is that of this device (usually local time)' ],
   'End time': ['End-Zeit'],
   'end-time-help': [
-    'Wann die Messfahrt endete. Zeitzone ist die des Geräts',
-    'When the sampling trip ended. Timezone is that of your device' ],
+    'Wann die Messfahrt endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the sampling trip ended. Timezone is that of this device (usually local time)' ],
   'Persons': ['Personen'],
   'persons-help': ['Welche Personen an der Probenahme beteiligt waren.', 'Who was involved in the sampling.'],
   'Weather': ['Wetter'],

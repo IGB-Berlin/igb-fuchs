@@ -37,6 +37,14 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    //TODO: description
+    //TODO: nominalCoords
+    //TODO: actualCoords
+    //TODO: startTime
+    //TODO: endTime
+    //TODO: samples[]
+    //TODO: notes
+    //TODO: photos
 
     this.onClose = () => {}
 

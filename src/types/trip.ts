@@ -219,6 +219,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return rv
   }
   override templateToObject(startNow :boolean) :SamplingTrip {
+    //TODO: should probably consider startNow being true by default; same for other templateToObject methods
     const rv :ISamplingTrip = { id: crypto.randomUUID(), name: this.name, locations: [],
       startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()
