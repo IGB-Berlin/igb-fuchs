@@ -38,8 +38,8 @@ export interface ISample {
 }
 export function isISample(o :unknown) :o is ISample {
   if (!o || typeof o !== 'object') return false
-  //TODO: Allow 'template' key here - though it's not a member of the interface, this type checker is used on the objects too!
-  if (Object.keys(o).length!==3 || !('type' in o && 'measurements' in o && 'notes' in o)) return false  // keys
+  if (!( 'type' in o && 'measurements' in o && 'notes' in o
+    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'template' in o ) )) return false // keys
   // type checks
   if (!isSampleType(o.type) || !Array.isArray(o.measurements)) return false
   for (const m of o.measurements) if (!isIMeasurement(m)) return false
@@ -99,7 +99,7 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
     assert(m0)
     m += ': '+m0.summaryDisplay()[0]
   }
-  return [ i18n.t('st-'+samp.type), m ]
+  return [ i18n.t('st-'+samp.type, {defaultValue:samp.type}), m ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */

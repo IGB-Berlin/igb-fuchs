@@ -18,6 +18,7 @@
 import { NO_TIMESTAMP, timestampNow, VALID_NAME_RE } from '../types/common'
 import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { ListEditorWithTemp } from './list-edit'
@@ -29,7 +30,7 @@ import { tr } from '../i18n'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
   override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('trip-temp')
+  static override readonly briefTitle: string = tr('Trip')
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingTrip>
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
@@ -38,6 +39,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
   constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTrip(null, null)
+    //TODO Later: A reload causes us to lose association with obj.template. Is there any way to persist that?
 
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
@@ -49,14 +51,31 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
 
+    const getPlannedLocs = async () => {
+      if (!obj.template) return []
+      /* We want to get a list of the locations planned in the trip template,
+       * remove the locations we already have records for (ignoring the number of samples),
+       * and populate any locations that have no samples from commonSamples.
+       * TODO: The location list should also be sorted by distance from our current location.
+       */
+      const visitedLocs = obj.locations.map(l => l.extractTemplate().cloneNoSamples())
+      const plannedLocs :SamplingLocationTemplate[] = []
+      for(const loc of obj.template.locations) {
+        const locNoSamp = loc.cloneNoSamples()
+        if ( visitedLocs.findIndex(e => e.equals(locNoSamp)) < 0 ) {  // not seen before
+          const l = loc.deepClone()
+          if (!l.samples.length) l.samples = obj.template.commonSamples
+          plannedLocs.push(l)
+        }
+      }
+      return plannedLocs
+    }
+
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
-    //TODO Later: A reload causes us to lose association with the template. Is there any way to persist that?
-    const template = obj.template
     const locEdit = new ListEditorWithTemp(ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
-      //TODO: the location list should be sorted by distance
-      template ? ()=>Promise.resolve(setRemove(template.locations, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))) : null )
+      getPlannedLocs )
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
     this.onClose = () => locEdit.close()
@@ -79,7 +98,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
       lastModified: timestampNow(), persons: inpPersons.value.trim(),
       weather: inpWeather.value.trim(), notes: inpNotes.value.trim(),
-      locations: obj.locations }, null)
+      locations: obj.locations }, obj.template)
 
     this.open()
   }

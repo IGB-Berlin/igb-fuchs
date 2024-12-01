@@ -15,27 +15,24 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
+import { isSampleType, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { AbstractStore, ArrayStore } from '../storage'
-import { ListEditorForTemp } from './list-edit'
-import { MeasTypeEditor } from './meas-type'
-import { setRemove } from '../types/set'
+import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { i18n, tr } from '../i18n'
 import { Editor } from './base'
 
-export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
+export class SampleEditor extends Editor<SampleEditor, Sample> {
   override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('samp-temp')
+  static override readonly briefTitle: string = tr('Sample')
   protected override readonly form :HTMLFormElement
-  protected override readonly initObj :Readonly<SampleTemplate>
-  protected override readonly form2obj :()=>Readonly<SampleTemplate>
+  protected override readonly initObj :Readonly<Sample>
+  protected override readonly form2obj :()=>Readonly<Sample>
   protected override readonly onClose :()=>void
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
+  constructor(ctx :GlobalContext, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
     super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SampleTemplate(null)
+    const obj = this.initObj = targetObj!==null ? targetObj : new Sample(null, null)
 
     const inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select">
@@ -46,25 +43,21 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
           return opt
         })}
       </select>)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
 
-    // see notes in trip-temp.tsx about this:
-    const measStore = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditorForTemp(ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
-    measStore.events.add(() => this.reportMod())
-    measEdit.watchEnable(this)
-    this.onClose = () => measEdit.close()
+    //TODO: measurements[]
+    this.onClose = () => {}
 
-    this.el = this.form = this.makeForm(tr('Sample Template'), [
+    this.el = this.form = this.makeForm(tr('Sample'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      measEdit.withBorder(tr('Measurements')),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')}</>, null),
     ])
 
-    this.form2obj = () => new SampleTemplate({
+    this.form2obj = () => new Sample({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      measurementTypes: obj.measurementTypes })
+      notes: inpNotes.value.trim(), measurements: obj.measurements
+    }, obj.template)
 
     this.open()
   }
-
 }

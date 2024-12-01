@@ -18,17 +18,20 @@
 import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { NO_TIMESTAMP, VALID_NAME_RE } from '../types/common'
+import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { Wgs84Coordinates } from '../types/coords'
+import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
-import { AbstractStore } from '../storage'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
+import { SampleEditor } from './sample'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
   override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('trip-temp')
+  static override readonly briefTitle: string = tr('Location')
   protected override readonly form :HTMLFormElement
   protected override readonly initObj :Readonly<SamplingLocation>
   protected override readonly form2obj :()=>Readonly<SamplingLocation>
@@ -49,9 +52,15 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
 
-    //TODO: samples[]
-
-    this.onClose = () => {}
+    // see notes in trip-temp.tsx about this:
+    const sampStore = new ArrayStore(obj.samples)
+    const template = obj.template
+    const sampEdit = new ListEditorWithTemp(ctx, sampStore, SampleEditor, tr('new-samp-from-temp'),
+      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
+      template ? ()=>Promise.resolve(setRemove(template.samples, obj.samples.map(s => s.extractTemplate()))) : null )
+    sampStore.events.add(() => this.reportMod())
+    sampEdit.watchEnable(this)
+    this.onClose = () => sampEdit.close()
 
     const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Location'), [
@@ -62,6 +71,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(grpEnd, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')}</>, null),
+      sampEdit.withBorder(tr('Samples')),
     ])
 
     this.form2obj = () => new SamplingLocation({
@@ -72,7 +82,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
       samples: obj.samples, notes: inpNotes.value.trim(),
       photos: [], //TODO
-    }, null)
+    }, obj.template)
 
     this.open()
   }

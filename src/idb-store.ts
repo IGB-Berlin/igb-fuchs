@@ -227,10 +227,13 @@ export class IndexedStorage {
   }
 
   protected _allLocTemps :SamplingLocationTemplate[] = []
+  /** All location templates, with their samples removed. */
   get allLocationTemplates() :Readonly<Readonly<SamplingLocationTemplate>[]> { return this._allLocTemps }
   protected _allSampTemps :SampleTemplate[] = []
+  /** All sample templates. */
   get allSampleTemplates() :Readonly<Readonly<SampleTemplate>[]> { return this._allSampTemps }
   protected _allMeasTemps :MeasurementType[] = []
+  /** All measurement templates. */
   get allMeasurementTemplates() :Readonly<Readonly<MeasurementType>[]> { return this._allMeasTemps }
 
   async updateTemplates() {  // this function is expensive

@@ -188,11 +188,14 @@ const translations = {
     'Neue Messfahrt aus Vorlage',
     'New Sampling Trip from Template' ],
 
-  // editor: sample template
+  // editor: sample (template)
   'Sample Type': ['Art der Probe'],
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
+  'samp-notes-help': [
+    'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
+    'Optional notes about the sample, e.g. Quality. amount, etc.' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

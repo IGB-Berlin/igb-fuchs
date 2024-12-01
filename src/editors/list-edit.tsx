@@ -179,7 +179,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
       const template = await listSelectDialog(dialogTitle, await templateSource())
       if (template===null) return
       const newObj = this.makeNew(template)
-      console.debug('Added',newObj,'with id',theStore.add(newObj))
+      console.debug('Added',newObj,'with id',await theStore.add(newObj))
       this.postNew(newObj)
     })
     this.btnNew.insertAdjacentElement('beforebegin', this.btnTemp)
@@ -208,9 +208,9 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
       myEl.classList.toggle('d-none', !temps.length)
       theUl.replaceChildren(...temps.map(t => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
-        btnNew.addEventListener('click', () => {
+        btnNew.addEventListener('click', async () => {
           const newObj = t.templateToObject()
-          console.debug('Added',newObj,'with id',theStore.add(newObj))
+          console.debug('Added',newObj,'with id',await theStore.add(newObj))
           new this.editorClass(this.ctx, this.theStore, newObj)
         })
         return <li class="list-group-item d-flex justify-content-between align-items-center">
