@@ -65,7 +65,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> {
 
 export abstract class DataObjectTemplate<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends DataObjectBase<T> {
   /** Generate a new data object based on this template. */
-  abstract templateToObject(...args :unknown[]) :D
+  abstract templateToObject() :D
 }
 export abstract class DataObjectWithTemplate<D extends DataObjectWithTemplate<D, T>, T extends DataObjectTemplate<T, D>> extends DataObjectBase<D> {
   /** The template on which this object was based. */

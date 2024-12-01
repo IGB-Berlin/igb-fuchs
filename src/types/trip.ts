@@ -128,7 +128,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    //if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
     return rv
   }
@@ -218,10 +218,9 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
     return rv
   }
-  override templateToObject(startNow :boolean) :SamplingTrip {
-    //TODO: should probably consider startNow being true by default; same for other templateToObject methods
+  override templateToObject() :SamplingTrip {
     const rv :ISamplingTrip = { id: crypto.randomUUID(), name: this.name, locations: [],
-      startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, lastModified: timestampNow() }
+      startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingTrip(rv, this)
   }

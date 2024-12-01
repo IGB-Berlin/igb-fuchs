@@ -211,10 +211,10 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
-  override templateToObject(actualCoords :IWgs84Coordinates|null, startNow :boolean) :SamplingLocation {
+  override templateToObject() :SamplingLocation {
     const rv :ISamplingLocation = { name: this.name,
-      nominalCoords: this.nominalCoords, actualCoords: actualCoords ?? this.nominalCoords,
-      startTime: startNow ? timestampNow() : NO_TIMESTAMP, endTime: NO_TIMESTAMP, samples: [] }
+      nominalCoords: this.nominalCoords, actualCoords: this.nominalCoords,
+      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [] }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingLocation(rv, this)
   }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { validateName, NO_TIMESTAMP, DataObjectTemplate, timestampNow } from './common'
+import { validateName, DataObjectTemplate, timestampNow } from './common'
 import { Measurement } from './meas'
 import { tr } from '../i18n'
 
@@ -108,8 +108,8 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     if (!Number.isFinite(this.precision)) rv.push(tr('No precision'))
     return rv
   }
-  override templateToObject(value :number, timeNow :boolean) :Measurement {
-    return new Measurement({ type: this.toJSON('type'), time: timeNow ? timestampNow() : NO_TIMESTAMP, value: value }) }
+  override templateToObject() :Measurement {
+    return new Measurement({ type: this.toJSON('type'), time: timestampNow(), value: NaN }) }
   /** Return a step value ("1", "0.1", "0.01", etc.) either for the precision specified in the argument, or using this object's precision. */
   precisionAsStep(pr ?:number) :string|undefined {
     const p = pr===undefined ? this.precision : pr
