@@ -131,16 +131,26 @@ const translations = {
     'Unerwarteter / unbekannter Fehler beim Standortzugriff.',
     'Unexpected / unknown error when trying to access position.' ],
   'nom-coord': ['Soll-Koord.', 'Nominal Coord.'],
-  'act-coord': ['Ist-Koord.', 'Actual Coord.'],
   'nom-coord-help': [
     'Die Soll-Koordinaten geben den Ort an, an dem eine Probe im Normalfall genommen wird. (Referenzsystem EPSG:4326, "WGS84")',
     'The nominal coordinates specify the place where a sample is normally taken. (Reference system EPSG:4326, "WGS84")' ],
+  'act-coord': ['Ist-Koord.', 'Actual Coord.'],
+  'act-coord-help': [
+    'Die Ist-Koordinaten geben den Ort an, an dem eine Probe in Wirklichkeit genommen wurde. (Referenzsystem EPSG:4326, "WGS84")',
+    'The actual coordinates specify the place where a sample was actually taken. (Reference system EPSG:4326, "WGS84")' ],
   'invalid-coords': [
     'Ungültige Koordinaten.',
     'Invalid coordinates.' ],
   'Please wait': ['Bitte warten'],
   'Use current location': ['Aktuellen Standort verwenden'],
   'Show on map': ['Auf Karte zeigen'],
+  'loc-start-time-help': [
+    'Ankunftszeit am Messpunkt bzw. Beginn der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'Arrival time at the sampling location / beginning of measurements. Timezone is that of this device (usually local time)' ],
+  'loc-end-time-help': [
+    'Abfahrtszeit vom Messpunkt bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'Departure time from the sampling location / end of measurements. Timezone is that of this device (usually local time)' ],
+  'loc-notes-help': ['Optionale Notizen zum Messpunkt im Allgemeinen.', 'Optional notes about the sampling location in general.'],
 
   // editor: trip template
   'trip-desc-help': [
@@ -160,11 +170,11 @@ const translations = {
 
   // editor: trip
   'Start time': ['Anfangs-Zeit'],
-  'start-time-help': [
+  'trip-start-time-help': [
     'Wann die Messfahrt begann. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'When the sampling trip began. Timezone is that of this device (usually local time)' ],
   'End time': ['End-Zeit'],
-  'end-time-help': [
+  'trip-end-time-help': [
     'Wann die Messfahrt endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'When the sampling trip ended. Timezone is that of this device (usually local time)' ],
   'Persons': ['Personen'],

@@ -15,9 +15,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { NO_TIMESTAMP, VALID_NAME_RE } from '../types/common'
 import { SamplingLocation } from '../types/location'
-import { VALID_NAME_RE } from '../types/common'
+import { Wgs84Coordinates } from '../types/coords'
+import { makeCoordinateEditor } from './coords'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
@@ -35,24 +38,41 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocation(null, null)
 
-    const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    //TODO: description
-    //TODO: nominalCoords
-    //TODO: actualCoords
-    //TODO: startTime
-    //TODO: endTime
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.description.trim()}</textarea>)
+    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const inpNomCoords = makeCoordinateEditor(nomCoords)
+    const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const inpActCoords = makeCoordinateEditor(actCoords)
+    const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
+    inpStart.setAttribute('required', 'required')
+    const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
+
     //TODO: samples[]
-    //TODO: notes
-    //TODO: photos
 
     this.onClose = () => {}
 
+    const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Location'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
+      this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
+      this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(grpEnd, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')}</>, null),
     ])
 
-    this.form2obj = () => new SamplingLocation(null, null)  //TODO
+    this.form2obj = () => new SamplingLocation({
+      name: inpName.value, description: inpDesc.value.trim(),
+      nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
+      actualCoords: new Wgs84Coordinates(actCoords).deepClone(),
+      startTime: dateTimeLocalInputToDate(inpStart)?.getTime() ?? NO_TIMESTAMP,
+      endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
+      samples: obj.samples, notes: inpNotes.value.trim(),
+      photos: [], //TODO
+    }, null)
 
     this.open()
   }

@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestampSet, NO_TIMESTAMP, timestampNow, VALID_NAME_RE } from '../types/common'
-import { dateTimeLocalInputToDate, dateToLocalString, getTzOffset } from '../date'
+import { NO_TIMESTAMP, timestampNow, VALID_NAME_RE } from '../types/common'
+import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
@@ -42,45 +42,31 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const inpName = safeCastElement(HTMLInputElement,
       <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.description.trim()}</textarea>)
-    const inpStart = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local"
-      value={isTimestampSet(obj.startTime) ? dateToLocalString(new Date(obj.startTime)) : ''} required />)
-    const grpStart = <div class="input-group">
-      <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}
-        onclick={()=>inpStart.value=dateToLocalString(new Date())}>
-        <i class="bi-clock me-1"/> {tr('Now')}
-      </button>
-      {inpStart}
-    </div>
-    const inpEnd = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local"
-      value={isTimestampSet(obj.endTime) ? dateToLocalString(new Date(obj.endTime)) : ''} />)
-    const grpEnd = <div class="input-group">
-      <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}
-        onclick={()=>inpEnd.value=dateToLocalString(new Date())}>
-        <i class="bi-clock me-1"/> {tr('Now')}
-      </button> {inpEnd}
-    </div>
+    const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
+    inpStart.setAttribute('required', 'required')
+    const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
-    // TODO Later: A reload causes us to lose association with the template. Is there any way to persist that?
+    //TODO Later: A reload causes us to lose association with the template. Is there any way to persist that?
     const template = obj.template
     const locEdit = new ListEditorWithTemp(ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
+      //TODO: the location list should be sorted by distance
       template ? ()=>Promise.resolve(setRemove(template.locations, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))) : null )
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
     this.onClose = () => locEdit.close()
-    //TODO: how to best use this.obj.template?
 
     const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Trip'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
-      this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(grpEnd, tr('End time'), <>{tr('end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(grpEnd, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')}</>, null),
