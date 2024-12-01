@@ -40,10 +40,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocationTemplate(null)
 
-    const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{obj.description.trim()}</textarea>)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
 

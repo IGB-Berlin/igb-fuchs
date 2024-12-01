@@ -42,7 +42,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocation(null, null)
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.description.trim()}</textarea>)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
@@ -50,7 +50,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
     inpStart.setAttribute('required', 'required')
     const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
-    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)

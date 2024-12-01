@@ -43,7 +43,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
           return opt
         })}
       </select>)
-    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     //TODO: measurements[]
     this.onClose = () => {}

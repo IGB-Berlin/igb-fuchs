@@ -35,18 +35,12 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new MeasurementType(null)
 
-    const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpUnit = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
-    const inpMin = safeCastElement(HTMLInputElement,
-      <input type="number" value={obj.min} step="1" />)
-    const inpMax = safeCastElement(HTMLInputElement,
-      <input type="number" value={obj.max} step="1" />)
-    const inpPrc = safeCastElement(HTMLInputElement,
-      <input type="number" value={obj.precision} min="0" step="1" />)
-    const inpNotes = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{obj.notes.trim()}</textarea>)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
+    const inpMin = safeCastElement(HTMLInputElement, <input type="number" value={obj.min} step="1" />)
+    const inpMax = safeCastElement(HTMLInputElement, <input type="number" value={obj.max} step="1" />)
+    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={obj.precision} min="0" step="1" />)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     const prcToStep = () => {
       const s = obj.precisionAsStep(inpPrc.valueAsNumber)

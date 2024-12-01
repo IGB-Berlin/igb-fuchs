@@ -39,10 +39,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTripTemplate(null)
 
-    const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement,
-      <textarea rows="3">{obj.description.trim()}</textarea>)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved
      * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.

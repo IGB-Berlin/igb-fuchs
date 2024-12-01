@@ -41,15 +41,14 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTrip(null, null)
     //TODO Later: A reload causes us to lose association with obj.template. Is there any way to persist that?
 
-    const inpName = safeCastElement(HTMLInputElement,
-      <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.description.trim()}</textarea>)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
     const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
     inpStart.setAttribute('required', 'required')
     const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
-    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="3">{obj.notes.trim()}</textarea>)
+    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     const getPlannedLocs = async () => {
       if (!obj.template) return []
