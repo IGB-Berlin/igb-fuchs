@@ -23,6 +23,7 @@ import { SampleTemplateEditor } from './samp-temp'
 import { listSelectDialog } from './list-dialog'
 import { VALID_NAME_RE } from '../types/common'
 import { ListEditor } from './list-edit'
+import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -54,9 +55,9 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     // "New from Template" - TODO: add button to list editor?
     const btnLocFromTemp = <button type="button" class="btn btn-info" disabled><i class="bi-journal-plus"/> {tr('From Template')}</button>
     btnLocFromTemp.addEventListener('click', async () => {
-      //TODO: fetch the list of templates and use it here (and filter locations already in our list)
-      const idx = await listSelectDialog(tr('new-loc-from-temp'), obj.locations)
-      console.debug('selected', idx)  //TODO: debug, remove
+      const locs = setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))
+      const idx = await listSelectDialog(tr('new-loc-from-temp'), locs)
+      console.debug('selected', idx)  //TODO: debug, do something useful instead
     })
 
     const sampList = new ArrayStore(obj.commonSamples)

@@ -223,4 +223,9 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     assert(isISamplingLocationTemplate(clone))
     return new SamplingLocationTemplate(clone)
   }
+  cloneNoSamples() :SamplingLocationTemplate {
+    const clone = this.deepClone()
+    clone.samples.length = 0
+    return clone
+  }
 }

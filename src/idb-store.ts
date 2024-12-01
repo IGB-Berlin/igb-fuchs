@@ -16,7 +16,11 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
+import { SamplingLocationTemplate } from './types/location'
 import { AbstractStore, HasId, hasId } from './storage'
+import { MeasurementType } from './types/meas-type'
+import { SampleTemplate } from './types/sample'
+import { deduplicatedSet } from './types/set'
 
 const IDB_NAME = 'IGB-Field'
 const SELF_TEST_STORE = '_self_test'
@@ -24,6 +28,7 @@ const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
 
 export class IndexedStorage {
+
   static open() {
     return new Promise<IndexedStorage>((resolve, reject) => {
       const req = indexedDB.open(IDB_NAME, 1)
@@ -40,6 +45,7 @@ export class IndexedStorage {
   protected constructor(db :IDBDatabase) {
     this.db = db
   }
+
   protected getAll<T extends HasId>(storeName :string, typeChecker :(o :HasId)=>o is T, except :T|null) {
     return new Promise<T[]>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readonly')
@@ -65,6 +71,7 @@ export class IndexedStorage {
       }
     })
   }
+
   protected get<T extends HasId>(storeName :string, key :string, typeChecker :(o :HasId)=>o is T) {
     return new Promise<T>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readonly')
@@ -92,26 +99,30 @@ export class IndexedStorage {
       }
     })
   }
+
   protected add(storeName :string, data :HasId) {
     return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => {
+      trans.oncomplete = async () => {
         console.debug('IDB add', storeName, data.id)
         resolve(data.id)
+        await this.updateTemplates()
       }
       // .add() already throws an error if the Id already exists
       const req = trans.objectStore(storeName).add(data)
       req.onerror = () => reject(req.error)
     })
   }
+
   protected upd(storeName :string, prevObj :HasId, newObj :HasId) {
     return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => {
+      trans.oncomplete = async () => {
         console.debug('IDB upd', storeName, prevObj.id, newObj.id)
         resolve(newObj.id)
+        await this.updateTemplates()
       }
       const store = trans.objectStore(storeName)
       const req1 = store.openCursor(prevObj.id)
@@ -125,13 +136,15 @@ export class IndexedStorage {
       }
     })
   }
+
   protected del(storeName :string, data :HasId) {
     return new Promise<string>((resolve, reject) => {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
-      trans.oncomplete = () => {
+      trans.oncomplete = async () => {
         console.debug('IDB del', storeName, data.id)
         resolve(data.id)
+        await this.updateTemplates()
       }
       const store = trans.objectStore(storeName)
       const req1 = store.openCursor(data.id)
@@ -145,6 +158,7 @@ export class IndexedStorage {
       }
     })
   }
+
   tripTemplates() :AbstractStore<SamplingTripTemplate> {
     class TripTempStore extends AbstractStore<SamplingTripTemplate> {
       protected readonly store :IndexedStorage
@@ -161,6 +175,7 @@ export class IndexedStorage {
     }
     return new TripTempStore(this)
   }
+
   samplingTrips() :AbstractStore<SamplingTrip> {
     class SampTripStore extends AbstractStore<SamplingTrip> {
       protected readonly store :IndexedStorage
@@ -177,6 +192,7 @@ export class IndexedStorage {
     }
     return new SampTripStore(this)
   }
+
   async selfTest() :Promise<boolean> {
     class DummyObj implements HasId {
       readonly id :string
@@ -209,4 +225,24 @@ export class IndexedStorage {
       return false
     }
   }
+
+  protected _allLocTemps :SamplingLocationTemplate[] = []
+  get allLocationTemplates() :Readonly<Readonly<SamplingLocationTemplate>[]> { return this._allLocTemps }
+  protected _allSampTemps :SampleTemplate[] = []
+  get allSampleTemplates() :Readonly<Readonly<SampleTemplate>[]> { return this._allSampTemps }
+  protected _allMeasTemps :MeasurementType[] = []
+  get allMeasurementTemplates() :Readonly<Readonly<MeasurementType>[]> { return this._allMeasTemps }
+
+  async updateTemplates() {  // this function is expensive
+    const startMs = performance.now()
+    const allLoc = ( await this.tripTemplates().getAll(null) ).flatMap(([_,t]) => t.locations).concat(
+      ( await this.samplingTrips().getAll(null) ).flatMap(([_,t]) => t.locations.map(l => l.extractTemplate())) )
+    // no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
+    this._allLocTemps = deduplicatedSet( allLoc.map(l => l.cloneNoSamples()) )
+    this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => s.deepClone())) )
+    this._allMeasTemps = deduplicatedSet( this._allSampTemps.flatMap(s => s.measurementTypes.map(m => m.deepClone())) )
+    const durMs = performance.now() - startMs
+    if (durMs>10) console.log('updateTemplates took', durMs, 'ms')
+  }
+
 }

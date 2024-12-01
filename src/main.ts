@@ -53,6 +53,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     noStorageAlert()
     throw new Error('Storage not available, can\'t continue')
   }
+  await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)
