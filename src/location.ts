@@ -17,14 +17,14 @@
  */
 import { WGS84_PRECISION } from './types/coords'
 
-export async function query() {
+export async function query() {  //TODO Later: Remove if unused
   const state = await navigator.permissions.query({ name: 'geolocation' })
   console.log(state.state)  // "denied" | "granted" | "prompt"
 }
 
 const MAX_AGE_MS = 1000*60*10  // 10 mins
 
-export function start() {
+export function start() {  //TODO Later: Use this?
   navigator.geolocation.watchPosition(pos => {
     console.log(pos)
     const ageMs = Math.max(0, pos.timestamp - Date.now())

@@ -16,6 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase } from '../types/common'
+import { GlobalContext } from '../main'
 import { makeHomePage } from './home'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
@@ -25,9 +26,9 @@ import { tr } from '../i18n'
 //TODO: History support (browser back button)
 
 export class EditorStack {
-  static async makeStack(navbarMain :HTMLElement) {
+  static makeStack(ctx :GlobalContext, navbarMain :HTMLElement) {
     const stack = new EditorStack()
-    const home = await makeHomePage(stack)
+    const home = makeHomePage(ctx, stack)
     stack.stack.push([tr('Home'), home])
     stack.el.appendChild(home)
     navbarMain.replaceChildren(stack.navList)

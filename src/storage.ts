@@ -30,11 +30,9 @@ export function hasId(o :unknown) :o is HasId {
 
 export abstract class AbstractStore<T> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
-  abstract id(obj :T) :string
   abstract getAll(except :T|null) :Promise<[string,T][]>
   abstract get(id :string) :Promise<T>
   /** If this object is added to the store immediately after this call, this call returns the id the object will have. */
-  abstract addId(obj :T) :string  //TODO: Remove if unused
   protected abstract _add(obj :T) :Promise<string>
   protected abstract _mod(obj :T) :Promise<string>
   protected abstract _upd(prevObj :T, newObj :T) :Promise<string>
@@ -74,7 +72,6 @@ export class ArrayStore<T> extends AbstractStore<T> {
     assert(idx<this.array.length)
     return idx
   }
-  override id(obj :T) { return this.idx(obj).toString() }
   override getAll(except :T|null) {
     return Promise.resolve(this.array.filter(o => except===null || !Object.is(o,except)).map((o,i) => {
       const rv :[string,T] = [i.toString(),o]
@@ -88,7 +85,6 @@ export class ArrayStore<T> extends AbstractStore<T> {
     assert(rv)
     return Promise.resolve(rv)
   }
-  override addId(_obj :T) { return this.array.length.toString() }
   protected override _add(obj :T) {
     if (this.array.some(o => Object.is(o,obj))) throw new Error('Object already in store')
     return Promise.resolve( (this.array.push(obj)-1).toString() )
@@ -108,22 +104,9 @@ export class ArrayStore<T> extends AbstractStore<T> {
 }
 
 const IDB_NAME = 'IGB-Field'
+const SELF_TEST_STORE = '_self_test'
 const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
-
-export const CAN_STORAGE :boolean = (() => {
-  //TODO: rewrite this
-  let storage :Storage|undefined
-  try {
-    storage = window['localStorage']
-    const x = '__storage_test__'
-    storage.setItem(x, x)
-    storage.removeItem(x)
-    return true
-  } catch (e) {
-    return !!( e instanceof DOMException && e.name === 'QuotaExceededError' && storage && storage.length>0 )
-  }
-})()
 
 export class IndexedStorage {
   static open() {
@@ -132,6 +115,7 @@ export class IndexedStorage {
       req.onerror = () => reject(req.error)
       req.onsuccess = () => resolve(new IndexedStorage(req.result))
       req.onupgradeneeded = () => {
+        req.result.createObjectStore(SELF_TEST_STORE, { keyPath: 'id' })
         req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'id' })
         req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'id' })
       }
@@ -250,12 +234,10 @@ export class IndexedStorage {
     class TripTempStore extends AbstractStore<SamplingTripTemplate> {
       protected readonly store :IndexedStorage
       constructor(store :IndexedStorage) { super(); this.store = store }
-      override id(obj :SamplingTripTemplate) { return obj.id }
       override async getAll(except :SamplingTripTemplate|null) :Promise<[string,SamplingTripTemplate][]> {
         return (await this.store.getAll(TRIP_TEMPLATES, isISamplingTripTemplate, except)).map(o => [o.id, new SamplingTripTemplate(o)]) }
       override async get(id :string) :Promise<SamplingTripTemplate> {
         return new SamplingTripTemplate(await this.store.get(TRIP_TEMPLATES, id, isISamplingTripTemplate)) }
-      override addId(obj :SamplingTripTemplate) { return obj.id }
       protected override _add(obj :SamplingTripTemplate) { return this.store.add(TRIP_TEMPLATES, obj) }
       protected override _upd(prevObj :SamplingTripTemplate, newObj :SamplingTripTemplate) {
         return this.store.upd(TRIP_TEMPLATES, prevObj, newObj) }
@@ -268,12 +250,10 @@ export class IndexedStorage {
     class SampTripStore extends AbstractStore<SamplingTrip> {
       protected readonly store :IndexedStorage
       constructor(store :IndexedStorage) { super(); this.store = store }
-      override id(obj :SamplingTrip) { return obj.id }
       override async getAll(except :SamplingTrip|null) :Promise<[string,SamplingTrip][]> {
         return (await this.store.getAll(SAMP_TRIPS, isISamplingTrip, except)).map(o => [o.id, new SamplingTrip(o, null) ]) }
       override async get(id :string) :Promise<SamplingTrip> {
         return new SamplingTrip(await this.store.get(SAMP_TRIPS, id, isISamplingTrip), null) }
-      override addId(obj :SamplingTrip) { return obj.id }
       protected override _add(obj :SamplingTrip) { return this.store.add(SAMP_TRIPS, obj) }
       protected override _upd(prevObj :SamplingTrip, newObj :SamplingTrip) {
         return this.store.upd(SAMP_TRIPS, prevObj, newObj) }
@@ -281,5 +261,37 @@ export class IndexedStorage {
       protected override _del(obj :SamplingTrip) { return this.store.del(SAMP_TRIPS, obj) }
     }
     return new SampTripStore(this)
+  }
+  async selfTest() :Promise<boolean> {
+    class DummyObj implements HasId {
+      readonly id :string
+      readonly foo :string
+      constructor(id :string, foo :string) { this.id = id; this.foo = foo }
+    }
+    function isDummyObj(o :unknown) :o is DummyObj {
+      return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
+    try {
+      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
+      const d1 = new DummyObj('one', 'bar')
+      try { await this.upd(SELF_TEST_STORE, d1, d1); return false } catch (_) { /*expected*/ }
+      if ( await this.add(SELF_TEST_STORE, d1) !== 'one' ) return false
+      try { await this.add(SELF_TEST_STORE, d1); return false } catch (_) { /*expected*/ }
+      const all = await this.getAll(SELF_TEST_STORE, isDummyObj, null)
+      if ( all.length !== 1 || all[0]?.id !== 'one' || all[0]?.foo !== 'bar' ) return false
+      if ( (await this.get(SELF_TEST_STORE, 'one', isDummyObj)).foo !== 'bar' ) return false
+      if ( await this.upd(SELF_TEST_STORE, new DummyObj('one','x'), new DummyObj('one','quz')) !== 'one' ) return false
+      if ( (await this.get(SELF_TEST_STORE, 'one', isDummyObj)).foo !== 'quz' ) return false
+      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 1 ) return false
+      try { await this.get(SELF_TEST_STORE, 'two', isDummyObj); return false } catch (_) { /*expected*/ }
+      try { await this.upd(SELF_TEST_STORE, new DummyObj('two','x'), d1); return false } catch (_) { /*expected*/ }
+      try { await this.del(SELF_TEST_STORE, new DummyObj('two','x')); return false } catch (_) { /*expected*/ }
+      if ( await this.del(SELF_TEST_STORE, new DummyObj('one','x')) !== 'one' ) return false
+      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
+      return true
+    }
+    catch (ex) {
+      console.error(ex)
+      return false
+    }
   }
 }

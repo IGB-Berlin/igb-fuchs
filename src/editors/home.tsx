@@ -16,11 +16,11 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { TripTemplateEditor } from './trip-temp'
-import { IndexedStorage } from '../storage'
 import { ListEditor } from './list-edit'
 import { EditorStack } from './stack'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
+import { GlobalContext } from '../main'
 
 let _accId = 0
 function makeAcc(title :string, body :HTMLElement|string) {
@@ -39,9 +39,8 @@ function makeAcc(title :string, body :HTMLElement|string) {
   </div>
 }
 
-export async function makeHomePage(stack :EditorStack) {
-  const idxStore = await IndexedStorage.open()
-  const ttEdit = new ListEditor(stack, idxStore.tripTemplates(), TripTemplateEditor)
+export function makeHomePage(ctx :GlobalContext, stack :EditorStack) {
+  const ttEdit = new ListEditor(stack, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)
 
   return <div class="p-3">
