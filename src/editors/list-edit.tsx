@@ -80,7 +80,14 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     }
   }
 
+  protected readonly ctx :GlobalContext
+  protected readonly theStore :AbstractStore<B>
+  protected readonly editorClass :EditorClass<E, B>
   constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
+    this.ctx = ctx
+    this.theStore = theStore
+    this.editorClass = editorClass
+
     this.btnDel = <button type="button" class="btn btn-danger text-nowrap" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
     this.btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-plus-circle"/> {tr('New')}</button>
     this.btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
@@ -153,11 +160,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       {this.el}
     </div>
   }
-
 }
 
 abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
   protected abstract makeNew(t :T) :B
+  protected postNew(_obj :B) {}
   protected btnTemp :HTMLElement
   constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(ctx, theStore, editorClass)
@@ -167,6 +174,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
       if (template===null) return
       const newObj = this.makeNew(template)
       console.debug('Added',newObj,'with id',theStore.add(newObj))
+      this.postNew(newObj)
     })
     this.btnNew.insertAdjacentElement('beforebegin', this.btnTemp)
   }
@@ -180,6 +188,7 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
-  //TODO: It would probably be good to immediately open the editor for these objects:
   protected override makeNew(t :T) :D { return t.templateToObject() }
+  protected override postNew(obj: D) {
+    new this.editorClass(this.ctx, this.theStore, obj) }
 }
