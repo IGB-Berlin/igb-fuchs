@@ -33,6 +33,11 @@ export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
 export const WGS84_PRECISION = 6
 export const WGS84_PRC_STEP = '0.000001'
 
+export const EMPTY_COORDS :IWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN }
+export function areWgs84CoordsValid(c :IWgs84Coordinates) {
+  return Number.isFinite(c.wgs84lat) && c.wgs84lat >=  -90 && c.wgs84lat <=  90
+      && Number.isFinite(c.wgs84lon) && c.wgs84lon >= -180 && c.wgs84lon <= 180 }
+
 /** EPSG:4326 Coordinates ("WGS 84")
  *
  * Used by many GPS devices and the API of many online maps, like OSM and Google Maps.

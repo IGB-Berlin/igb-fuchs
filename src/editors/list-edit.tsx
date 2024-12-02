@@ -28,6 +28,8 @@ import { tr } from '../i18n'
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
 
+  protected btnDiv :HTMLElement
+  protected readonly extraButtons :HTMLButtonElement[] = []
   protected selId :string|null = null
   protected btnDel :HTMLElement
   protected btnNew :HTMLElement
@@ -40,10 +42,12 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       if (this.selId!==null) {
         this.btnDel.removeAttribute('disabled')
         this.btnEdit.removeAttribute('disabled')
+        this.extraButtons.forEach(btn => btn.removeAttribute('disabled'))
       }
       else {
         this.btnDel.setAttribute('disabled', 'disabled')
         this.btnEdit.setAttribute('disabled', 'disabled')
+        this.extraButtons.forEach(btn => btn.setAttribute('disabled', 'disabled'))
       }
       this.btnNew.removeAttribute('disabled')
       this.disableNotice.classList.add('d-none')
@@ -52,8 +56,18 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.btnDel.setAttribute('disabled', 'disabled')
       this.btnEdit.setAttribute('disabled', 'disabled')
       this.btnNew.setAttribute('disabled', 'disabled')
+      this.extraButtons.forEach(btn => btn.setAttribute('disabled', 'disabled'))
       this.disableNotice.classList.remove('d-none')
     }
+  }
+
+  addButton(btn :HTMLButtonElement, onclick :(sel :B)=>void) {
+    this.extraButtons.push(btn)
+    this.btnDiv.appendChild(btn)
+    btn.addEventListener('click', async () => {
+      if (this.selId===null) return  // shouldn't happen
+      onclick( await this.theStore.get(this.selId) )
+    })
   }
 
   /* If this list editor is editing part of an object that is new, then it won't have
@@ -125,11 +139,8 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.enable(this.globalEnabled)
     }
     setTimeout(redrawList)  // work around that we can't call the async function from the constructor
-    this.el = <div>
-      {theUl}
-      <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
-      {this.disableNotice}
-    </div>
+    this.btnDiv = <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
+    this.el = <div>{theUl}{this.btnDiv}{this.disableNotice}</div>
     this.btnDel.addEventListener('click', async () => {
       const delId = this.selId  // b/c the event handlers may change this
       if (delId===null) return  // shouldn't happen
@@ -176,7 +187,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
     super(ctx, theStore, editorClass)
     this.btnTemp = <button type="button" class="btn btn-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
-      const template = await listSelectDialog(dialogTitle, await templateSource())
+      const template = await listSelectDialog<T>(dialogTitle, await templateSource())
       if (template===null) return
       const newObj = this.makeNew(template)
       console.debug('Added',newObj,'with id',await theStore.add(newObj))

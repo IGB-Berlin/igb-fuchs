@@ -20,6 +20,7 @@ type EventHandler<T extends object> = (event :T) => void
 
 export class SimpleEventHub<T extends object> {
   protected readonly listeners :EventHandler<T>[] = []
+  //TODO Later: Audit that all added event handlers are also removed.
   /** Add an event listener. */
   add(handler :EventHandler<T>) {
     this.listeners.push(handler)

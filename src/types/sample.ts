@@ -107,7 +107,8 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
 export interface ISampleTemplate {
   type :SampleType
   /* TODO: More fields in sample template? like amount? (e.g. in case only a sample is taken back to the lab without measurements)
-   * Or "other type" for a freeform type definition? */
+   * Or "other type" for a freeform type definition?
+   * Also, the help text for Sample.notes says that quality notes could be recorded there, but we should probably have a machine-readable field! */
   measurementTypes :IMeasurementType[]
 }
 export function isISampleTemplate(o :unknown) :o is ISampleTemplate {

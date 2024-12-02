@@ -16,25 +16,26 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export async function shareCsv(fn :string, data :ArrayBuffer) :Promise<boolean> {
-  try {
-    const sh = { files: [new File([data], fn, { type: 'text/csv', endings: 'native' })] }
-    await navigator.share(sh)
-    return true
+export async function shareFile(file :File) {
+  if ('share' in navigator) {
+    try { await navigator.share({ files: [file] }) }
+    catch (ex) {
+      console.warn('Share failed', ex)
+      downloadFile(file)
+    }
   }
-  catch(ex) {
-    console.warn('Share failed', ex)
-    return false
+  else {
+    console.log('Don\'t have navigator.share, just downloading')
+    downloadFile(file)
   }
 }
 
-export async function downloadCsv(fn :string, data :ArrayBuffer) {
-  const blob = new File([data], fn, { type: 'text/csv', endings: 'native' })
-  const url = URL.createObjectURL(blob)
+export function downloadFile(file :File) {
+  const url = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.style.setProperty('display','none')
   a.href = url
-  a.download = fn
+  a.download = file.name
   document.documentElement.appendChild(a)
   a.click()
   URL.revokeObjectURL(url)

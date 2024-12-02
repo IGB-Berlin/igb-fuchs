@@ -16,10 +16,13 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorWithTemp } from './list-edit'
+import { jsx, safeCastElement } from '../jsx-dom'
+import { tripToCsvFile } from '../types/trip-csv'
 import { TripTemplateEditor } from './trip-temp'
+import { SamplingTrip } from '../types/trip'
 import { SamplingTripEditor } from './trip'
 import { GlobalContext } from '../main'
-import { jsx } from '../jsx-dom'
+import { shareFile } from '../share'
 import { tr } from '../i18n'
 
 let _accId = 0
@@ -40,9 +43,15 @@ function makeAcc(title :string, body :HTMLElement|string) {
 }
 
 export function makeHomePage(ctx :GlobalContext) {
+
+  const btnShare = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
+
   const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips(), SamplingTripEditor, tr('new-trip-from-temp'),
     async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t), null)
   stEdit.enable(true)
+  stEdit.addButton(btnShare, (obj :SamplingTrip) => shareFile(tripToCsvFile(obj)))
+
   const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)
 

@@ -80,21 +80,23 @@ export function validateId(id :string) {
 // Also https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // The backslash is required when RE.source is used as <input type="text" pattern={...} />
 // eslint-disable-next-line no-useless-escape
-export const VALID_NAME_RE = /^(?!CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])[a-zA-Z0-9][a-zA-Z0-9\.,\-_\(\)\u0020ÄäÜüÖöß]+(?<![\.\u0020])$/u
+export const VALID_NAME_RE = /^(?!CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])[a-zA-Z0-9][a-zA-Z0-9\.\-_\(\)\u0020ÄäÜüÖöß]+(?<![\.\u0020])$/u
 export function validateName(s :string) {
   if (!s.match(VALID_NAME_RE)) throw new Error(`${tr('Invalid name')}: ${s}`) }
 
 /** Timestamp stored as number of milliseconds (like Unix Timestamp) */
 export type Timestamp = number
-export const NO_TIMESTAMP :Timestamp = 0
-const MIN_TIMESTAMP :Timestamp = 1  // 1ms after midnight at the beginning of January 1, 1970, UTC
+export const NO_TIMESTAMP :Timestamp = NaN
+const MIN_TIMESTAMP :Timestamp = 0  // midnight at the beginning of January 1, 1970, UTC
 const MAX_TIMESTAMP :Timestamp = new Date(3000,1,1,0,0,0,0).getTime() // Y3K problem ;-)
 export function isTimestamp(v :unknown) :v is Timestamp {
   return typeof v === 'number' }
 export function timestampNow() :Timestamp {
   return Date.now() }
 export function isTimestampSet(t :Timestamp) :boolean {
-  return t !== NO_TIMESTAMP }
+  return Number.isFinite(t) }
 export function validateTimestamp(t :Timestamp) {
-  if (!( t === NO_TIMESTAMP || t > MIN_TIMESTAMP && t < MAX_TIMESTAMP ))
+  if (!( !Number.isFinite(t) || t > MIN_TIMESTAMP && t < MAX_TIMESTAMP ))
     throw new Error(`${tr('Invalid timestamp')}: ${t} (${new Date(t).toISOString()})`) }
+export function isValidAndSetTs(t :Timestamp) {
+  return Number.isFinite(t) && t > MIN_TIMESTAMP && t < MAX_TIMESTAMP }

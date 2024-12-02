@@ -67,10 +67,3 @@ window.addEventListener('DOMContentLoaded', async () => {
   ctx.stack.initialize(navbarMain, makeHomePage(ctx))
   htmlMain.appendChild(ctx.stack.el)
 })
-
-/* TODO Later: Sharing
-import * as share from './share'
-export async function test() {
-  dummy.appendChild(<button onclick={async () => await share.shareCsv('test.csv', new ArrayBuffer(0))}>Share Test</button>)
-  dummy.appendChild(<button onclick={async () => await share.downloadCsv('test.csv', new ArrayBuffer(0))}>Download</button>)
-}*/

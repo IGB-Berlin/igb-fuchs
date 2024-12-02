@@ -23,12 +23,16 @@ import { i18n, tr } from '../i18n'
 import { HasId } from '../storage'
 import { assert } from '../utils'
 
+/* TODO NEXT: All "notes" fields should go into export, "description" not, and this needs to be unified
+ * and stated in help texts: i18n 'notes-are-exported' and 'desc-not-exported'
+ * at the moment, I think it's only MeasurementType.notes that needs to be renamed to desc */
 export interface ISamplingTrip extends HasId {
   readonly id :string
   name :string
   description ?:string|null
   startTime :Timestamp
   endTime :Timestamp
+  //TODO Later: more consistently update trip's lastModified
   lastModified ?:Timestamp|null
   persons ?:string|null
   weather ?:string|null
@@ -128,6 +132,8 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
+    /* TODO Later: The Trip and Location .endTime warnings on Save are a little annoying, maybe a checkbox "auto update on save"?
+     * Maybe smart-enable checkboxes only when: For trips, if the date is still today, and for locations, if the trip doesn't have an end time set yet? */
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
     return rv
