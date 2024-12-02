@@ -15,12 +15,15 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
+import { ISamplingTrip, ISamplingTripTemplate, isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
 import { SamplingLocationTemplate } from './types/location'
 import { AbstractStore, HasId, hasId } from './storage'
+import { HasHtmlSummary } from './editors/list-dialog'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
+import { yesNoDialog } from './dialogs'
+import { i18n, tr } from './i18n'
 
 const IDB_NAME = 'IGB-Field'
 const SELF_TEST_STORE = '_self_test'
@@ -28,6 +31,16 @@ const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
 const FILE_STORE = 'files'
 const FILE_TEST_STORE = '_files_self_test'
+
+interface AllData {
+  samplingTrips: { [key :string]: ISamplingTrip }
+  tripTemplates: { [key :string]: ISamplingTripTemplate }
+}
+
+interface ImportResults {
+  errors :string[]
+  info :string[]
+}
 
 export class IndexedStorage {
 
@@ -50,6 +63,120 @@ export class IndexedStorage {
     this.db = db
   }
   private fileStore = FILE_STORE  // is temporarily changed to FILE_TEST_STORE for testing
+
+  export() :Promise<AllData> {
+    return new Promise<AllData>((resolve, reject) => {
+      const trans = this.db.transaction([SAMP_TRIPS, TRIP_TEMPLATES], 'readonly')
+      trans.onerror = () => reject(trans.error)
+
+      const data :AllData = { samplingTrips: {}, tripTemplates: {} }
+      let tripDone = false, tempDone = false
+      const maybeDone = () => { if (tripDone && tempDone) resolve(data) }
+
+      const tripReq = trans.objectStore(SAMP_TRIPS).openCursor()
+      tripReq.onerror = () => reject(tripReq.error)
+      tripReq.onsuccess = () => {
+        const cur = tripReq.result
+        if (cur===null) { tripDone = true; maybeDone() }
+        else {
+          const key = cur.key
+          if (typeof key==='string') {
+            if (key in data.samplingTrips)
+              console.error('Export: duplicate key, the latter will be clobbered:', data.samplingTrips[key], cur.value)
+            // NOTE we're intentionally not type checking here, to allow export of objects after schema changes
+            data.samplingTrips[key] = cur.value as ISamplingTrip
+          } else console.error('Export: ignoring bad key (not string)',key)
+          cur.continue()
+        }
+      }
+
+      const tempReq = trans.objectStore(TRIP_TEMPLATES).openCursor()
+      tempReq.onerror = () => reject(tempReq.error)
+      tempReq.onsuccess = () => {
+        const cur = tempReq.result
+        if (cur===null) { tempDone = true; maybeDone() }
+        else {
+          const key = cur.key
+          if (typeof key==='string') {
+            if (key in data.tripTemplates)
+              console.error('Export: duplicate key, the latter will be clobbered:', data.tripTemplates[key], cur.value)
+            data.tripTemplates[key] = cur.value as ISamplingTripTemplate
+          } else console.error('Export: ignoring bad key (not string)',key)
+          cur.continue()
+        }
+      }
+    })
+  }
+
+  async import(data :unknown) :Promise<ImportResults> {
+    /* Note in this function I'm only translating those messages that are *likely* to happen.
+     * I'm also not doing everything in a single transaction because I think that's probably overkill. */
+    if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
+    const rv :ImportResults = { info: [], errors: [] }
+    const makeOverwriteQ = (have :HasHtmlSummary, inp :HasHtmlSummary) :HTMLElement => {
+      const f = document.createElement('div')
+      // question
+      const q = document.createElement('p')
+      q.classList.add('fw-bold','text-danger-emphasis')
+      q.innerText = tr('import-overwrite')
+      f.appendChild(q)
+      // existing obj
+      const h = have.summaryAsHtml(true)  // we know this is a flex-row div
+      h.classList.add('mb-3')
+      const hl = document.createElement('div')
+      hl.classList.add('fw-semibold','text-success-emphasis')
+      hl.innerText = tr('Existing object')+':'
+      h.insertAdjacentElement('afterbegin', hl)
+      f.appendChild(h)
+      // imported obj
+      const i = inp.summaryAsHtml(true)
+      const il = document.createElement('div')
+      il.classList.add('fw-semibold','text-warning-emphasis')
+      il.innerText = tr('Imported object')+':'
+      i.insertAdjacentElement('afterbegin', il)
+      f.appendChild(i)
+      return f
+    }
+    if ('samplingTrips' in data && data.samplingTrips && typeof data.samplingTrips==='object') {
+      let counter = 0
+      await Promise.all(Object.entries(data.samplingTrips).map(async ([k,v]) => {
+        if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k}`); return }
+        if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
+        try {
+          if (await this.haveKey(SAMP_TRIPS, v.id)) {
+            const have = new SamplingTrip( await this.get(SAMP_TRIPS, v.id, isISamplingTrip), null )
+            if (have.equals(v)) { counter++ }  // nothing needed, but just report it as imported b/c I think that's better info for the user (?)
+            else {
+              const inp = new SamplingTrip(v, null)
+              const yesNo = await yesNoDialog(makeOverwriteQ(have,inp),tr('Import Data'),false,false)
+              if (yesNo==='yes') { await this.upd(SAMP_TRIPS, have, inp); counter++ }
+            }
+          } else { await this.add(SAMP_TRIPS, v); counter++ }
+        } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
+      }))
+      rv.info.push(i18n.t('import-trip-info', { count: counter }))
+    } else rv.errors.push('No samplingTrips in file, or bad format.')
+    if ('tripTemplates' in data && data.tripTemplates && typeof data.tripTemplates==='object') {
+      let counter = 0
+      await Promise.all(Object.entries(data.tripTemplates).map(async ([k,v]) => {
+        if (!isISamplingTripTemplate(v)) { rv.errors.push(`${tr('import-bad-temp')}: ${k}`); return }
+        if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
+        try {
+          if (await this.haveKey(TRIP_TEMPLATES, v.id)) {
+            const have = new SamplingTripTemplate( await this.get(TRIP_TEMPLATES, v.id, isISamplingTripTemplate) )
+            if (have.equals(v)) { counter++ }
+            else {
+              const inp = new SamplingTripTemplate(v)
+              const yesNo = await yesNoDialog(makeOverwriteQ(have,inp),tr('Import Data'),false,false)
+              if (yesNo==='yes') { await this.upd(TRIP_TEMPLATES, have, inp); counter++ }
+            }
+          } else { await this.add(TRIP_TEMPLATES, v); counter++ }
+        } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
+      }))
+      rv.info.push(i18n.t('import-temp-info', { count: counter }))
+    } else rv.errors.push('No tripTemplates in file, or bad format.')
+    return rv
+  }
 
   protected getAll<T extends HasId>(storeName :string, typeChecker :(o :HasId)=>o is T, except :T|null) {
     return new Promise<T[]>((resolve, reject) => {
@@ -187,6 +314,16 @@ export class IndexedStorage {
         }
         else reject(new Error(`Key ${prevObj.id} not found`))
       }
+    })
+  }
+
+  protected haveKey(storeName :string, key :string) {
+    return new Promise<boolean>((resolve, reject) => {
+      const trans = this.db.transaction([storeName], 'readonly')
+      trans.onerror = () => reject(trans.error)
+      const req = trans.objectStore(storeName).openKeyCursor(key)
+      req.onerror = () => reject(req.error)
+      req.onsuccess = () => resolve(!!req.result)
     })
   }
 

@@ -115,27 +115,27 @@ export function deleteConfirmation(desc :string|HTMLElement) :Promise<DeletionCo
 }
 
 type YesNoResult = 'yes'|'no'|'cancel'
-export function yesNoDialog(question :string, title :string, cancel :false) :Promise<'yes'|'no'>
-export function yesNoDialog(question :string, title :string, cancel :true) :Promise<YesNoResult>
-export function yesNoDialog(question :string, title :string, cancel :boolean) :Promise<YesNoResult> {
+export function yesNoDialog(question :string|HTMLElement, title :string, cancel :false, yesIsGood :boolean) :Promise<'yes'|'no'>
+export function yesNoDialog(question :string|HTMLElement, title :string, cancel :true, yesIsGood :boolean) :Promise<YesNoResult>
+export function yesNoDialog(question :string|HTMLElement, title :string, cancel :boolean, yesIsGood :boolean = false) :Promise<YesNoResult> {
   let result :YesNoResult = cancel ? 'cancel' : 'no'
   const btnCancel = <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
     <i class="bi-x-lg"/> {tr('Cancel')}</button>
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="yesNoDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header text-info">
           <h1 class="modal-title fs-5" id="yesNoDialogLabel">
             <i class="bi-question-circle-fill"/> {title}</h1>
         </div>
         <div class="modal-body">
-          <p><strong>{question}</strong></p>
+          { question instanceof HTMLElement ? question : <p><strong>{question}</strong></p> }
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick={()=>result='yes'}>
+          <button type="button" class={yesIsGood?'btn btn-success':'btn btn-warning'} data-bs-dismiss="modal" onclick={()=>result='yes'}>
             <i class="bi-check-circle"/> {tr('Yes')}</button>
-          <button type="button" class="btn btn-warning" data-bs-dismiss="modal" onclick={()=>result='no'}>
+          <button type="button" class={yesIsGood?'btn btn-warning':'btn btn-success'} data-bs-dismiss="modal" onclick={()=>result='no'}>
             <i class="bi-x-square"/> {tr('No')}</button>
           {cancel ? btnCancel : ''}
         </div>

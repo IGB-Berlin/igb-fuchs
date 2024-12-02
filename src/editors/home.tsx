@@ -16,6 +16,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorWithTemp } from './list-edit'
+import { makeImportExport } from '../import-export'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { tripToCsvFile } from '../types/trip-csv'
 import { TripTemplateEditor } from './trip-temp'
@@ -55,10 +56,13 @@ export function makeHomePage(ctx :GlobalContext) {
   const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
   ttEdit.enable(true)
 
+  const inpExp = makeImportExport(ctx)
+
   return <div class="p-3">
     <div class="accordion" id="homeAccordion">
       {makeAcc(tr('Sampling Trips'), stEdit.el)}
       {makeAcc(tr('Sampling Trip Templates'), ttEdit.el)}
+      {makeAcc(tr('import-export'), inpExp)}
     </div>
   </div>
 }

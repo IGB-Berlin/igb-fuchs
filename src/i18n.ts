@@ -40,6 +40,39 @@ const translations = {
   'Select': ['Auswählen'],
   'From Template': ['Aus Vorlage'],
   'Export CSV': ['CSV Export.'],
+  'Information': ['Informationen'],
+
+  // import-export
+  'import-export': ['Daten-Import/-Export', 'Data Import/Export'],
+  'Export All Data': ['Alle Daten Exportieren'],
+  'Import Data': ['Daten Importieren'],
+  'export-help': [
+    'Mit dieser Funktion werden sämtliche Daten dieser Seite/App ins JSON-Format exportiert.',
+    'This function allows you to export all data from this page/app in the JSON format.' ],
+  'import-help': [
+    'Mit dieser Funktion können zuvor aus dieser Seite/App exportierten Daten im JSON-Format wieder importiert werden.',
+    'This function allows you to import data that was previously exported from the page/app in the JSON format.' ],
+  'import-with-errors': [
+    'Es gab beim Import der Daten folgende Fehler:',
+    'The following errors occurred during import of the data:' ],
+  'import-success': ['Import erfolgreich!', 'Import successful!'],
+  'import-trip-info': [
+    { zero: 'Keine Messfahrten importiert.', one: 'Eine Messfahrt importiert.', other: '%{count} Messfahrten importiert.' },
+    { zero: 'No sampling trips imported.', one: 'One sampling trip imported.', other: '%{count} sampling trips imported.' } ],
+  'import-temp-info': [
+    { zero: 'Keine Messfahrt-Vorlagen importiert.', one: 'Eine Messfahrt-Vorlage importiert.', other: '%{count} Messfahrt-Vorlagen importiert.' },
+    { zero: 'No sampling trip templates imported.', one: 'One sampling trip template imported.', other: '%{count} sampling trip templates imported.' } ],
+  'import-bad-trip': [
+    'Das Objekt mit folgendem Schlüssel wurde nicht als Messfahrt erkannt:',
+    'The object with the following key was not recognized as a sampling trip:' ],
+  'import-bad-temp': [
+    'Das Objekt mit folgendem Schlüssel wurde nicht als Messfahrt-Vorlage erkannt:',
+    'The object with the following key was not recognized as as sampling trip template:' ],
+  'import-overwrite': [
+    'Das bestehende Objekt mit dem importierten Objekt überschreiben?',
+    'Overwrite the existing object with the imported object?' ],
+  'Existing object': ['Bestehendes Objekt'],
+  'Imported object': ['Importiertes Objekt'],
 
   // editors
   'Required': ['Eingabe erforderlich'],
