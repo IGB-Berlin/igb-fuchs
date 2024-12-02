@@ -15,58 +15,76 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase } from '../types/common'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
-import { Editor } from './base'
 import { tr } from '../i18n'
 
 //TODO: History support (browser back button)
 
+interface StackAble {  // the only bits of the Editor class we care about
+  readonly el :HTMLElement
+  readonly briefTitle :string
+  readonly unsavedChanges :boolean
+}
+
 export class EditorStack {
   readonly el :HTMLElement = <div></div>
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
-  protected readonly stack :[string, HTMLElement][] = []
+  protected readonly stack :StackAble[] = []
   protected redrawNavbar() {
     //TODO: The navbar can get too wide for the window - how to handle that?
     this.navList.replaceChildren(
-      ...this.stack.map(([t,_e],i) => {
+      ...this.stack.map((s,i) => {
         return i<this.stack.length-1
           //TODO Later: Clicking on a previous item should cancel all editors up to this point
-          //TODO NEXT: also onBeforeUnload support!
-          ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
-          : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
+          ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{s.briefTitle}</a>
+          : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{s.briefTitle}</a>
       }) )
   }
   initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
-    this.stack.push([tr('Home'), homePage])
+    this.stack.push({ el: homePage, briefTitle: tr('Home'), unsavedChanges: false })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
+    window.addEventListener('beforeunload', event => {
+      /* Instead of looking at .unsavedChanges, we currently want to prevent any navigation while any editor
+       * is open, because that will drop the object's .template associations, which is an annoying user
+       * experience. I have a note elsewhere that I could think about persisting that, but that's low-priority.
+       * For now, the advice to users is to stay on this page for the entire measurement trip. */
+      if ( this.stack.length>1 /*this.stack.some(s => s.unsavedChanges*)*/ ) {
+        event.preventDefault()
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        event.returnValue = true  // MDN says it's best practice to still do this despite deprecation
+        return true
+      }
+      return undefined
+    })
   }
-  push<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+  push(e :StackAble) {
     console.debug('Stack push', e.briefTitle)
     assert(this.stack.length)
     const top = this.stack.at(-1)
     assert(top)
-    top[1].classList.add('d-none')
-    this.stack.push([e.briefTitle, e.el])
+    top.el.classList.add('d-none')
+    this.stack.push(e)
     this.el.appendChild(e.el)
     this.redrawNavbar()
     //TODO Later: The title is hidden under the sticky header
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
-  pop<E extends Editor<E, B>, B extends DataObjectBase<B>>(e :E) {
+  pop(e :StackAble) {
     console.debug('Stack pop', e.briefTitle)
     assert(this.stack.length>1)
     const del = this.stack.pop()
     assert(del)
-    assert(del[1]===e.el, `Should have popped ${e.briefTitle} but TOS was ${del[0]}`)
-    this.el.removeChild(del[1])
+    assert(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)  // paranoia
+    this.el.removeChild(del.el)
     const top = this.stack.at(-1)
     assert(top)
-    top[1].classList.remove('d-none')
+    top.el.classList.remove('d-none')
     this.redrawNavbar()
-    top[1].scrollIntoView({ block: 'start', behavior: 'smooth' })
+    top.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 }

@@ -82,12 +82,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
+  /** Whether there are any unsaved changes. */
+  get unsavedChanges() :boolean { return !this.form2obj().equals(this.savedObj ?? this.initObj) }
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this. */
   async requestBack() {
     // Has the user made any changes?
     const prevObj = this.savedObj ?? this.initObj
     const curObj = this.form2obj()
-    if ( !prevObj.equals(curObj) ) {
+    if ( !curObj.equals(prevObj) ) {
       console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
       switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
       case 'save': this.form.requestSubmit(); return
