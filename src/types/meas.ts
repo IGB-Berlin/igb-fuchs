@@ -22,7 +22,7 @@ import { tr } from '../i18n'
 export interface IMeasurement {
   type :IMeasurementType
   time :Timestamp
-  value :number
+  value :number  //TODO: store as string instead!
 }
 export function isIMeasurement(o :unknown) :o is IMeasurement {
   if (!o || typeof o !== 'object') return false

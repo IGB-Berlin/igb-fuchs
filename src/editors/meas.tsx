@@ -55,6 +55,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       if (r.length) lblRange.innerText = r
       else lblRange.replaceChildren(<em>({tr('not specified')})</em>)
       const p = measType[0].precision
+      //TODO: always show allowed precision (for now - when we store the meas value as a string it shouldn't be necessary.)
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
     }
     typeChange()

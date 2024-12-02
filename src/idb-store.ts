@@ -35,6 +35,7 @@ export class IndexedStorage {
       req.onerror = () => reject(req.error)
       req.onsuccess = () => resolve(new IndexedStorage(req.result))
       req.onupgradeneeded = () => {
+        //TODO: File storage
         req.result.createObjectStore(SELF_TEST_STORE, { keyPath: 'id' })
         req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'id' })
         req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'id' })
@@ -66,7 +67,7 @@ export class IndexedStorage {
         if (del.length)
           setTimeout(async () => {
             console.error('These objects didn\'t pass the type checker, deleting', del)
-            for(const o of del) await this.del(storeName, o)
+            for(const o of del) await this.del(storeName, o)  //TODO: don't do this (here and below), just alert user (they can get raw data with "Export" function)
           })
       }
     })
@@ -247,7 +248,7 @@ export class IndexedStorage {
       .concat( allTripTs.flatMap(([_,t]) => t.commonSamples) ) )
     this._allMeasTemps = deduplicatedSet( this._allSampTemps.flatMap(s => s.measurementTypes.map(m => m.deepClone())) )
     const durMs = performance.now() - startMs
-    if (durMs>10) console.log('updateTemplates took', durMs, 'ms')
+    if (durMs>50) console.log('updateTemplates took', durMs, 'ms')
   }
 
 }
