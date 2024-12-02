@@ -21,7 +21,6 @@ import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates) {
-  //TODO Later: Would be nice if we could offer users a "choose on map" type interface?
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)} required
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} aria-describedby="lblLat" />)

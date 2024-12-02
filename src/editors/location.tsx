@@ -81,7 +81,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       startTime: dateTimeLocalInputToDate(inpStart)?.getTime() ?? NO_TIMESTAMP,
       endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
       samples: obj.samples, notes: inpNotes.value.trim(),
-      photos: [], //TODO
+      photos: [], //TODO Later
     }, obj.template)
 
     this.open()

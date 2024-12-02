@@ -32,8 +32,8 @@ export class EditorStack {
     this.navList.replaceChildren(
       ...this.stack.map(([t,_e],i) => {
         return i<this.stack.length-1
-          //TODO: Clicking on a previous item should cancel all editors up to this point (?)
-          //TODO: also onBeforeUnload support!
+          //TODO Later: Clicking on a previous item should cancel all editors up to this point
+          //TODO NEXT: also onBeforeUnload support!
           ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
           : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{t}</a>
       }) )

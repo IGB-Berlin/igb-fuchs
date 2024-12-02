@@ -55,7 +55,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       /* We want to get a list of the locations planned in the trip template,
        * remove the locations we already have records for (ignoring the number of samples),
        * and populate any locations that have no samples from commonSamples.
-       * TODO: The location list should also be sorted by distance from our current location.
+       * TODO Later: The location list should also be sorted by distance from our current location.
        */
       const visitedLocs = obj.locations.map(l => l.extractTemplate().cloneNoSamples())
       const plannedLocs :SamplingLocationTemplate[] = []
