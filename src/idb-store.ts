@@ -26,6 +26,8 @@ const IDB_NAME = 'IGB-Field'
 const SELF_TEST_STORE = '_self_test'
 const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
+const FILE_STORE = 'files'
+const FILE_TEST_STORE = '_files_self_test'
 
 export class IndexedStorage {
 
@@ -35,10 +37,11 @@ export class IndexedStorage {
       req.onerror = () => reject(req.error)
       req.onsuccess = () => resolve(new IndexedStorage(req.result))
       req.onupgradeneeded = () => {
-        //TODO: File storage
         req.result.createObjectStore(SELF_TEST_STORE, { keyPath: 'id' })
         req.result.createObjectStore(TRIP_TEMPLATES, { keyPath: 'id' })
         req.result.createObjectStore(SAMP_TRIPS, { keyPath: 'id' })
+        req.result.createObjectStore(FILE_STORE, {})
+        req.result.createObjectStore(FILE_TEST_STORE, {})
       }
     })
   }
@@ -46,6 +49,7 @@ export class IndexedStorage {
   protected constructor(db :IDBDatabase) {
     this.db = db
   }
+  private fileStore = FILE_STORE  // is temporarily changed to FILE_TEST_STORE for testing
 
   protected getAll<T extends HasId>(storeName :string, typeChecker :(o :HasId)=>o is T, except :T|null) {
     return new Promise<T[]>((resolve, reject) => {
@@ -55,20 +59,39 @@ export class IndexedStorage {
       req.onerror = () => reject(req.error)
       req.onsuccess = () => {
         const rv :T[] = []
-        const del :HasId[] = []
-        for(const o of req.result) {
-          if (hasId(o) && typeChecker(o)) {
-            if (!except || except.id!==o.id) rv.push(o) }
-          else if (hasId(o)) del.push(o)
-          else console.error('Didn\'t have id?',o)
+        const bad :unknown[] = []
+        for (const o of req.result) {
+          if (hasId(o) && typeChecker(o)) { if (except===null || except.id!==o.id) rv.push(o) }
+          else bad.push(o)
         }
-        console.debug('IDB getAll', storeName, 'got',rv.length,'bad',del.length)
+        console.debug('IDB getAll',storeName,'got',rv.length,'bad',bad.length)
         resolve(rv)
-        if (del.length)
-          setTimeout(async () => {
-            console.error('These objects didn\'t pass the type checker, deleting', del)
-            for(const o of del) await this.del(storeName, o)  //TODO: don't do this (here and below), just alert user (they can get raw data with "Export" function)
-          })
+        if (bad.length) console.warn('Objects in',storeName,'that didn\'t pass checker',bad)
+      }
+    })
+  }
+
+  /** Returns a list of [key,File.name] */
+  fileList() {
+    return new Promise<[string,string][]>((resolve, reject) => {
+      const trans = this.db.transaction([this.fileStore], 'readonly')
+      trans.onerror = () => reject(trans.error)
+      const req = trans.objectStore(this.fileStore).openCursor()
+      req.onerror = () => reject(req.error)
+      const rv :[string,string][] = []
+      req.onsuccess = () => {
+        const cur = req.result
+        if (cur===null) {
+          console.debug('IDB fileList',this.fileStore,rv.length)
+          resolve(rv)
+        }
+        else {
+          const key = cur.key
+          const val :unknown = cur.value
+          if (typeof key === 'string' && val instanceof File) rv.push([key, val.name])
+          else console.error('Object in',this.fileStore,'with bad key',key,'or not a file',val)
+          cur.continue()
+        }
       }
     })
   }
@@ -89,12 +112,28 @@ export class IndexedStorage {
           }
           else {
             reject(new Error(`Result didn't pass type check (${JSON.stringify(obj)})`))
-            if (hasId(obj)) {
-              setTimeout(async () => {
-                console.error('This object didn\'t pass the checker, deleting', obj)
-                await this.del(storeName, obj)
-              })
-            } else console.error('Didn\'t have id?', obj)
+            console.warn('Object in',storeName,'with key',key,'didn\'t pass type checker',obj)
+          }
+        } else reject(new Error(`Key ${key} not found`))
+      }
+    })
+  }
+
+  getFile(key :string) {
+    return new Promise<File>((resolve, reject) => {
+      const trans = this.db.transaction([this.fileStore], 'readonly')
+      trans.onerror = () => reject(trans.error)
+      const req = trans.objectStore(this.fileStore).openCursor(key)
+      req.onerror = () => reject(req.error)
+      req.onsuccess = () => {
+        if (req.result) {
+          const obj :unknown = req.result.value
+          if (obj instanceof File) {
+            console.debug('IDB getFile',this.fileStore,key)
+            resolve(obj)
+          } else {
+            console.error('Object in',this.fileStore,'that wasn\'t a file',obj)
+            reject(new Error(`Object in ${this.fileStore} that wasn't a file ${String(obj)}`))
           }
         } else reject(new Error(`Key ${key} not found`))
       }
@@ -112,6 +151,19 @@ export class IndexedStorage {
       }
       // .add() already throws an error if the Id already exists
       const req = trans.objectStore(storeName).add(data)
+      req.onerror = () => reject(req.error)
+    })
+  }
+
+  addFile(key :string, file :File) {
+    return new Promise<void>((resolve, reject) => {
+      const trans = this.db.transaction([this.fileStore], 'readwrite')
+      trans.onerror = () => reject(trans.error)
+      trans.oncomplete = async () => {
+        console.debug('IDB addFile', this.fileStore, key)
+        resolve()
+      }
+      const req = trans.objectStore(this.fileStore).add(file, key)
       req.onerror = () => reject(req.error)
     })
   }
@@ -143,19 +195,36 @@ export class IndexedStorage {
       const trans = this.db.transaction([storeName], 'readwrite')
       trans.onerror = () => reject(trans.error)
       trans.oncomplete = async () => {
-        console.debug('IDB del', storeName, data.id)
         resolve(data.id)
         await this.updateTemplates()
       }
-      const store = trans.objectStore(storeName)
-      const req1 = store.openCursor(data.id)
+      const req1 = trans.objectStore(storeName).openCursor(data.id)
       req1.onerror = () => reject(req1.error)
       req1.onsuccess = () => {
         if (req1.result) {  // was found
           const req2 = req1.result.delete()
           req2.onerror = () => reject(req2.error)
+          req2.onsuccess = () => console.debug('IDB del', storeName, data.id)
         }
         else reject(new Error(`Key ${data.id} not found`))
+      }
+    })
+  }
+
+  delFile(key :string) {
+    return new Promise<void>((resolve, reject) => {
+      const trans = this.db.transaction([this.fileStore], 'readwrite')
+      trans.onerror = () => reject(trans.error)
+      trans.oncomplete = async () => resolve()
+      const req1 = trans.objectStore(this.fileStore).openCursor(key)
+      req1.onerror = () => reject(req1.error)
+      req1.onsuccess = () => {
+        if (req1.result) {  // was found
+          const req2 = req1.result.delete()
+          req2.onerror = () => reject(req2.error)
+          req2.onsuccess = () => console.debug('IDB delFile', this.fileStore, key)
+        }
+        else reject(new Error(`Key ${key} not found`))
       }
     })
   }
@@ -194,6 +263,7 @@ export class IndexedStorage {
     return new SampTripStore(this)
   }
 
+  /** Test the functionality of IndexedDB so it doesn't blow up on the user later. */
   async selfTest() :Promise<boolean> {
     class DummyObj implements HasId {
       readonly id :string
@@ -202,6 +272,7 @@ export class IndexedStorage {
     }
     function isDummyObj(o :unknown) :o is DummyObj {
       return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
+    console.log('Running storage test...')
     try {
       if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
       const d1 = new DummyObj('one', 'bar')
@@ -219,6 +290,24 @@ export class IndexedStorage {
       try { await this.del(SELF_TEST_STORE, new DummyObj('two','x')); return false } catch (_) { /*expected*/ }
       if ( await this.del(SELF_TEST_STORE, new DummyObj('one','x')) !== 'one' ) return false
       if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
+
+      try { this.fileStore = FILE_TEST_STORE
+        if ( (await this.fileList()).length !== 0 ) return false
+        const f1 = new File(['Hello, World!'], 'test.txt', { type: 'text/plain' })
+        await this.addFile('foo', f1)
+        try { await this.addFile('foo', f1); return false } catch (_) { /*expected*/ }
+        const fl1 = await this.fileList()
+        if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0]?.[1]!=='test.txt' ) return false
+        const f1b = await this.getFile('foo')
+        if ( f1b.name!=='test.txt' || await f1b.text() !== 'Hello, World!' ) return false
+        await this.delFile('foo')
+        try { await this.getFile('foo'); return false } catch (_) { /*expected*/ }
+        try { await this.delFile('foo'); return false } catch (_) { /*expected*/ }
+        if ( (await this.fileList()).length !== 0 ) return false
+      }
+      finally { this.fileStore = FILE_STORE }
+
+      console.log('... storage test passed!')
       return true
     }
     catch (ex) {
