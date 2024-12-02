@@ -28,7 +28,7 @@ interface StackAble {  // the only bits of the Editor class we care about
 }
 
 export class EditorStack {
-  readonly el :HTMLElement = <div></div>
+  readonly el :HTMLElement = <div class="editor-stack"></div>
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
   protected readonly stack :StackAble[] = []
   protected redrawNavbar() {
