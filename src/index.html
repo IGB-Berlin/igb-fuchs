@@ -17,7 +17,7 @@
 </head>
 <body>
   <div class="modal fade" id="aboutDialog" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true" lang="en">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="aboutModalLabel">
@@ -59,7 +59,7 @@
               </h2>
               <div id="collapseLibraries" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
-                  <ul>
+                  <ul id="licensesList">
                     <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap</a>,
                       Copyright (c) 2011-2024 The Bootstrap Authors,
                       <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank">License: MIT</a></li>
@@ -78,7 +78,24 @@
                     <li><a href="https://www.movable-type.co.uk/scripts/latlong.html" target="_blank">Movable Type Scripts / Distance and Bearing</a>,
                       Copyright © 2002-2022 Chris Veness,
                       <a href="https://github.com/chrisveness/geodesy/blob/master/LICENSE" target="_blank">License: MIT</a></li>
+                    <li><a href="https://gildas-lormeau.github.io/zip.js/" target="_blank">zip.js</a>,
+                      Copyright (c) 2023, Gildas Lormeau,
+                      <a href="https://github.com/gildas-lormeau/zip.js/blob/master/LICENSE" target="_blank">License: BSD 3-Clause License</a></li>
                   </ul>
+                  <p class="mb-0">For the full text of the licenses, see "Open-Source Licenses" below.</p>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicenses"
+                    aria-expanded="false" aria-controls="collapseLicenses">Open-Source Licenses</button>
+              </h2>
+              <div id="collapseLicenses" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                <div class="accordion-body">
+                  <pre id="licensesText" style="max-height: 50vh" class="border rounded overflow-auto p-1">
+                    Licenses should be loaded and shown here. If not, see the links above,
+                    or the file "licenses.txt" that is part of the source distribution.</pre>
                 </div>
               </div>
             </div>

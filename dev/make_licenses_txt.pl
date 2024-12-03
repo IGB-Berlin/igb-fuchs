@@ -1,0 +1,25 @@
+#!/usr/bin/env perl
+use v5.036;
+use Mojo::DOM;
+use Mojo::File qw/curfile/;
+use Mojo::UserAgent;
+
+my $ua = Mojo::UserAgent->new(max_redirects => 10);
+my $dom = Mojo::DOM->new( curfile->dirname->sibling('src','index.html')->slurp('UTF-8') );
+my $out = curfile->dirname->sibling('licenses.txt');
+
+my $fh = $out->open('>:raw:encoding(UTF-8)');
+say {$fh} "\nThis file contains the licenses for the libraries used in this project.\n",
+  "\n##########", (" ##########" x 7);
+$dom->find('#licensesList li')->each(sub {
+  my $as = $_->find('a');
+  die $_ unless $as->size==2;
+  my $url = $as->[1]{'href'};
+  $url =~ s#/blob/#/raw/#;
+  say {$fh} "\n* ",$as->[0]->all_text,"\n* ",$as->[0]{'href'},"\n";
+  say $url;
+  my $license = $ua->get($url)->result->text;
+  $license =~ s/^\s+|\s+$//g;
+  say {$fh} $license, "\n\n##########", (" ##########" x 7);
+});
+close $fh;

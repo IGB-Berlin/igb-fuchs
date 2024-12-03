@@ -1,5 +1,5 @@
 {   // https://aka.ms/devcontainer.json
-  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
   "features": {
     // https://github.com/devcontainers/features/tree/main/src/common-utils
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -10,10 +10,13 @@
       "username": "none"
     },
     // https://github.com/devcontainers/features/tree/main/src/node
+    //"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/haukex/devcontainer-features/perl:1": {},
+    "ghcr.io/lukewiwa/features/shellcheck:0": {},
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/guiyomh/features/vim:0": {}
   },
-  "forwardPorts": [ 1234 ],
-  "postCreateCommand": "npm ci"
+  "forwardPorts": [ 1234 ]
+  /*"postCreateCommand": "npm ci"*/
 }
 /* vim: set filetype=javascript ts=2 sw=2 expandtab : */

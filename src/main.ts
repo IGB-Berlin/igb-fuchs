@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
 import { IndexedStorage } from './idb-store'
@@ -66,4 +67,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   const ctx = new GlobalContext(storage, new EditorStack())
   ctx.stack.initialize(navbarMain, makeHomePage(ctx))
   htmlMain.appendChild(ctx.stack.el)
+
+  const licensesText = document.getElementById('licensesText')
+  assert(licensesText instanceof HTMLElement)
+  licensesText.innerText = licenses_txt.trim()
+
 })
