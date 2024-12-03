@@ -250,6 +250,9 @@ const translations = {
   'no units': ['keine Einheit'],
   'not specified': ['nicht angegeben'],
   'precision': ['Erlaubte Nachkommastellen:', 'Allowed digits after decimal:'],
+  'meas-desc-help': [
+    'Beschreibung des Messtyps. Dieses Feld wird aus der "Messtyp" Maske kopiert und kann hier nicht bearbeitet werden.',
+    'Description of the measurement type. This field is copied from the "measurement type" input and cannot be edited here.' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

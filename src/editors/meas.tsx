@@ -43,6 +43,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const lblUnit = <span class="input-group-text"></span>
     const lblRange = <span></span>
     const lblPrc = <span></span>
+    const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const measType :[MeasurementType] = [obj.type]
     const mtStore = new ArrayStore(measType)
@@ -57,6 +58,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       const p = measType[0].precision
       //TODO: always show allowed precision (for now - when we store the meas value as a string it shouldn't be necessary.)
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
+      typeDesc.value = measType[0].description
     }
     typeChange()
     mtStore.events.add(typeChange)
@@ -76,8 +78,6 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       value={Number.isFinite(obj.value)?obj.value:''} step={obj.type.precisionAsStep()??'1'} required />)
     const grpValue = <div class="input-group"> {inpValue} {lblUnit} </div>
 
-    //TODO Later: Display the Measurement Type Description here
-
     /* TODO Later: The time input fields only have minute granularity, but if the user clicks the "Now" button
      * or they're initialized from somewhere else, like templateToObject(), we should be able to keep those values. */
     const [inpTime, grpTime] = this.makeDtSelect(obj.time)
@@ -87,6 +87,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
+      this.makeRow(typeDesc, tr('Description'), <>{tr('meas-desc-help')}</>, null),
       this.makeRow(grpTime, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
 
