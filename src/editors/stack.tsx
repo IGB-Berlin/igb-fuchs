@@ -25,6 +25,10 @@ interface StackAble {  // the only bits of the Editor class we care about
   readonly unsavedChanges :boolean
 }
 
+interface HistoryState { stackLen :number }
+function isHistoryState(o :unknown) :o is HistoryState {
+  return !!( o && typeof o === 'object' && Object.keys(o).length===1 && 'stackLen' in o && typeof o.stackLen === 'number' && o.stackLen>0 ) }
+
 export class EditorStack {
   readonly el :HTMLElement = <div class="editor-stack"></div>
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
@@ -32,13 +36,27 @@ export class EditorStack {
   protected redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
-        return i<this.stack.length-1
-          //TODO Later: Clicking on a previous item should cancel all editors up to this point
-          ? <a class="nav-link" href="#" onclick={(event :Event)=>event.preventDefault()}>{s.briefTitle}</a>
-          : <a class="nav-link active" aria-current="page" href="#" onclick={(event :Event)=>event.preventDefault()}>{s.briefTitle}</a>
+        const link = <a class="nav-link" href='#'>{s.briefTitle}</a>
+        if (i===this.stack.length-1) {
+          link.classList.add('active')
+          link.setAttribute('aria-current','page')
+          link.addEventListener('click', event => event.preventDefault())
+        }
+        else {
+          assert(i>=0 && i<this.stack.length-1)
+          link.addEventListener('click', event => {
+            event.preventDefault()
+            const howMany = -this.stack.length+1+i
+            console.debug('navbar go',howMany)
+            assert(howMany<0)
+            history.go(howMany)  // handled by popstate event
+          })
+        }
+        return link
       }) )
   }
   initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
+    assert(this.stack.length===0)
     this.stack.push({ el: homePage, briefTitle: tr('Home'), unsavedChanges: false })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
@@ -59,14 +77,40 @@ export class EditorStack {
       return undefined
     })
 
-    window.addEventListener('popstate', () => {
-      if (this.stack.length>1) {
-        const top = this.stack.at(-1)
-        assert(top)
-        if (top.unsavedChanges) history.forward()
-        else this.pop(top)
+    window.addEventListener('popstate', event => {
+      if (isHistoryState(event.state)) {
+        const targetStackLen = event.state.stackLen
+        if (targetStackLen>=this.stack.length) {  // probably user pressed "Forward" button
+          const howMany = this.stack.length - targetStackLen
+          console.debug('rejecting popstate b/c targetStackLen',targetStackLen,'> stack.length',this.stack.length,'so go',howMany)
+          if (howMany) history.go(howMany)
+        }
+        else {
+          const popHowMany = this.stack.length - targetStackLen
+          console.debug('popstate targetStackLen',targetStackLen,'stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
+          for (let i=0;i<popHowMany;i++) {
+            assert(this.stack.length>1)
+            const top = this.stack.at(-1)
+            assert(top)
+            //TODO: This isn't quite working right when there are unsaved changes.
+            if (top.unsavedChanges) {
+              const howMany = popHowMany-1-i
+              console.debug('popping #',i+1,'unsavedChanges so go',howMany)
+              if (howMany) history.go(howMany)
+              break
+            }
+            else {
+              console.debug('popping #',i+1)
+              this._pop(top)
+            }
+          }
+        }
       }
+      else console.warn('popstate with invalid state',event.state)
     })
+    const histState :HistoryState = { stackLen: this.stack.length }
+    history.replaceState(histState, '', null)
+    history.scrollRestoration = 'manual'
   }
   push(e :StackAble) {
     console.debug('Stack push', e.briefTitle)
@@ -74,14 +118,22 @@ export class EditorStack {
     const top = this.stack.at(-1)
     assert(top)
     top.el.classList.add('d-none')
-    this.stack.push(e)
+    const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
     this.redrawNavbar()
     //TODO Later: The title is hidden under the sticky header
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
-    history.pushState({ briefTitle: e.briefTitle }, '', null)
+    const histState :HistoryState = { stackLen: newLen }
+    history.pushState(histState, '', null)
   }
   pop(e :StackAble) {
+    console.debug('Programmatic stack pop requested by editor',e.briefTitle)
+    assert(this.stack.length>1)
+    const top = this.stack.at(-1)
+    assert(top && top.el===e.el)
+    history.go(-1)  // handled by popstate event
+  }
+  protected _pop(e :StackAble) {
     console.debug('Stack pop', e.briefTitle)
     assert(this.stack.length>1)
     const del = this.stack.pop()
