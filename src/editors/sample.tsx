@@ -62,7 +62,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     this.el = this.form = this.makeForm(tr('Sample'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])

@@ -110,6 +110,9 @@ const translations = {
   'desc-help': [
     'Beschreibungen dienen der Hilfe bei Durchführung der Messungen, und sind daher im CSV Export nicht enthalten.',
     'Descriptions serve to help conduct measurements, and are therefore not exported in the CSV format.' ],
+  'desc-see-notes': [
+    'Siehe auch das Field "Notizen".',
+    'See also the field "Notes".'],
   'duplicate-name': [
     'Dieser Name wird bereits verwendet',
     'This name is already being used' ],

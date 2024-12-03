@@ -65,7 +65,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Location'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
       this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
       this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
