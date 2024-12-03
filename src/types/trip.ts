@@ -23,9 +23,6 @@ import { i18n, tr } from '../i18n'
 import { HasId } from '../storage'
 import { assert } from '../utils'
 
-/* TODO NEXT: All "notes" fields should go into export, "description" not, and this needs to be unified
- * and stated in help texts: i18n 'notes-are-exported' and 'desc-not-exported'
- * at the moment, I think it's only MeasurementType.notes that needs to be renamed to desc */
 export interface ISamplingTrip extends HasId {
   readonly id :string
   name :string

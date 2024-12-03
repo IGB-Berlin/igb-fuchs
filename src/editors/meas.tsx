@@ -76,6 +76,8 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       value={Number.isFinite(obj.value)?obj.value:''} step={obj.type.precisionAsStep()??'1'} required />)
     const grpValue = <div class="input-group"> {inpValue} {lblUnit} </div>
 
+    //TODO Later: Display the Measurement Type Description here
+
     /* TODO Later: The time input fields only have minute granularity, but if the user clicks the "Now" button
      * or they're initialized from somewhere else, like templateToObject(), we should be able to keep those values. */
     const [inpTime, grpTime] = this.makeDtSelect(obj.time)

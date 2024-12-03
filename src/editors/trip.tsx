@@ -82,12 +82,12 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const tzOff = getTzOffset(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Trip'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(grpEnd, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')}</>, null),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')} {tr('notes-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
     ])
 

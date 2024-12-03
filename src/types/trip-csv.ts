@@ -83,7 +83,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
       /* ********** ********** Process the measurements ********** ********** */
       // measurement: type, time, value.formattedValue()
-      // type: name, unit, min, max, precision, notes
+      // type: name, unit, min, max, precision, description
       /* TODO: Currently, if a sample has multiple measurements of the same type, only the newest one is exported.
        * I need to handle this possibility via at *least* a warning, maybe even a validation error. */
       const ms = Array.from(samp.measurements)

@@ -64,7 +64,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
     this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), tr('trip-desc-help'), null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
     ])

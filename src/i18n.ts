@@ -104,8 +104,12 @@ const translations = {
   ],
   'Notes': ['Notizen'],
   'Description': ['Beschreibung'],
-  'notes-are-exported': ['Notizen werden im CSV-Format mit exportiert.', 'Notes are included in the export in CSV format.'],
-  'desc-not-exported': ['Beschreibungen sind im CSV Export nicht enthalten.', 'Descriptions are not exported in the CSV format.'],
+  'notes-help': [
+    'Notizen dienen der Aufzeichnung und Auswertung von Messungen und werden im CSV-Format mit exportiert.',
+    'Notes serve the recording and analysis of measurements and are included in the export in CSV format.' ],
+  'desc-help': [
+    'Beschreibungen dienen der Hilfe bei Durchführung der Messungen, und sind daher im CSV Export nicht enthalten.',
+    'Descriptions serve to help conduct measurements, and are therefore not exported in the CSV format.' ],
   'duplicate-name': [
     'Dieser Name wird bereits verwendet',
     'This name is already being used' ],
@@ -139,9 +143,9 @@ const translations = {
   'precision-help': [
     'Die Anzahl der Nachkommastellen, die im Messwert erlaubt sind.',
     'The number of decimal places allowed after the decimal point in the measurement value.' ],
-  'meas-type-notes-help': [
-    'Optionale Notizen, z.B. bei besonderen Messverfahren.',
-    'Optional notes, for example for special measurement procedures.' ],
+  'meas-type-desc-help': [
+    'Optionale Beschreibung, z.B. bei besonderen Messverfahren.',
+    'Optional description, for example for special measurement procedures.' ],
   'new-meas-from-temp': [
     'Neue Messung aus Vorlage',
     'New Measurement from Template' ],
@@ -231,7 +235,7 @@ const translations = {
     'New Sample from Template' ],
   'samp-notes-help': [
     'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
-    'Optional notes about the sample, e.g. Quality. amount, etc.' ],
+    'Optional notes about the sample, e.g. quality, amount, etc.' ],
 
   // editor: measurement
   'Timestamp': ['Zeitstempel'],

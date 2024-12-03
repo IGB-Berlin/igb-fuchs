@@ -55,7 +55,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), tr('loc-desc-help'), null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
       sampEdit.withBorder(tr('Samples')),
     ])

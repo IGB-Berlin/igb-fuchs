@@ -27,9 +27,9 @@ export interface IMeasurementType {
   min ?:number|null
   max ?:number|null
   precision ?:number|null
-  notes ?:string|null
+  description ?:string|null
 }
-const measurementTypeKeys = ['name','unit','min','max','precision','notes'] as const
+const measurementTypeKeys = ['name','unit','min','max','precision','description'] as const
 type MeasurementTypeKey = typeof measurementTypeKeys[number] & keyof IMeasurementType
 export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   if (!o || typeof o !== 'object') return false
@@ -40,7 +40,7 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   if ('min' in o && !( o.min===null || typeof o.min === 'number' )) return false
   if ('max' in o && !( o.max===null || typeof o.max === 'number' )) return false
   if ('precision' in o && !( o.precision===null || typeof o.precision === 'number' )) return false
-  if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
+  if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
   return true
 }
 
@@ -54,7 +54,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
   max :number
   /** Number of places after the decimal point, both for input validation and for display rounding. (Optional but recommended.) */
   precision :number
-  notes :string
+  description :string
   constructor(o :IMeasurementType|null) {
     super()
     this.name = o?.name ?? ''
@@ -62,7 +62,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.min = o && 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
     this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
     this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
-    this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
   override validate(others :MeasurementType[]) {
@@ -79,14 +79,14 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
       && ( Number.isNaN(this.min) && Number.isNaN(o.min) || this.min === o.min )
       && ( Number.isNaN(this.max) && Number.isNaN(o.max) || this.max === o.max )
       && ( Number.isNaN(this.precision) && Number.isNaN(o.precision) || this.precision === o.precision )
-      && this.notes.trim() === ( o.notes?.trim() ?? '' )
+      && this.description.trim() === ( o.description?.trim() ?? '' )
   }
   override toJSON(_key :string) :IMeasurementType {
     const rv :IMeasurementType = { name: this.name, unit: this.unit }
     if (Number.isFinite(this.min)) rv.min = this.min
     if (Number.isFinite(this.max)) rv.max = this.max
     if (Number.isFinite(this.precision)) rv.precision = this.precision
-    if (this.notes.trim().length) rv.notes = this.notes.trim()
+    if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
   get rangeAsText() {
