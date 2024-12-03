@@ -193,6 +193,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
+    //TODO Later: The "No Samples" warning is a little annoying if building a Trip with commonSamples
     if (!isBrandNew && !this.samples.length) rv.push(tr('No samples'))
     return rv
   }
