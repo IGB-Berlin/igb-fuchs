@@ -32,7 +32,6 @@ export class EditorStack {
   protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
   protected readonly stack :StackAble[] = []
   protected redrawNavbar() {
-    //TODO: The navbar can get too wide for the window - how to handle that?
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
         return i<this.stack.length-1
