@@ -198,7 +198,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         warnAlert.scrollIntoView({ behavior: 'smooth' })
         if (andClose) {  // Button "Save & Close"
           // Did the user click the "Save & Close" button a second time without making changes?
-          //TODO NEXT: this currently seems buggy, at least for Trip and Location when no end time is set (?)
           if (curObj.equals(prevSaveClickObjState))
             await this.doSave(curObj, true)
           else { // otherwise, "Save & Close" wasn't clicked before, or there were changes made since the last click

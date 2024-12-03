@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateTimestamp, validateName, DataObjectWithTemplate, validateId } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
 import { dataSetsEqual } from './set'
@@ -107,8 +107,8 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       // not comparing ids
       && this.name === o.name
       && this.description.trim() === ( o.description?.trim() ?? '' )
-      && this.startTime === o.startTime
-      && this.endTime === o.endTime
+      && timestampsEqual(this.startTime, o.startTime)
+      && timestampsEqual(this.endTime, o.endTime)
       // not comparing lastModified
       && this.persons.trim() === ( o.persons?.trim() ?? '' )
       && this.weather.trim() === ( o.weather?.trim() ?? '' )

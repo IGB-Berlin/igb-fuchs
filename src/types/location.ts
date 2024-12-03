@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp, DataObjectWithTemplate } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp, DataObjectWithTemplate, timestampsEqual } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
@@ -112,8 +112,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       && this.description.trim() === ( o.description?.trim() ?? '' )
       && this.nomCoords.equals(o.nominalCoords)
       && this.actCoords.equals(o.actualCoords)
-      && this.startTime === o.startTime
-      && this.endTime === o.endTime
+      && timestampsEqual(this.startTime, o.startTime)
+      && timestampsEqual(this.endTime, o.endTime)
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
       // not comparing photos (?)
       && dataSetsEqual(this.samples, o.samples.map(s => new Sample(s, null)))

@@ -100,3 +100,5 @@ export function validateTimestamp(t :Timestamp) {
     throw new Error(`${tr('Invalid timestamp')}: ${t} (${new Date(t).toISOString()})`) }
 export function isValidAndSetTs(t :Timestamp) {
   return Number.isFinite(t) && t > MIN_TIMESTAMP && t < MAX_TIMESTAMP }
+export function timestampsEqual(a :Timestamp, b :Timestamp) {
+  return Number.isNaN(a) && Number.isNaN(b) || a===b }
