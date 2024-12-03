@@ -61,7 +61,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
       min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
       max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
-      precision: Number.isFinite(inpPrc.valueAsNumber) ? inpPrc.valueAsNumber : NaN,
+      precision: Number.isFinite(inpPrc.valueAsNumber) && inpPrc.valueAsNumber>=0 ? inpPrc.valueAsNumber : NaN,
       description: inpDesc.value.trim() })
 
     this.open()

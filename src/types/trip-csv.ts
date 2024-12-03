@@ -91,7 +91,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
         const meas = ms.find(m => type.equals(m.type))
         const key = measCols[ti]
         assert(key)
-        row[key] = meas!==undefined && Number.isFinite(meas.value) ? meas.formattedValue() : ''
+        row[key] = meas?.value ?? ''
       })
 
       return row  /* ***** Done with row ***** */

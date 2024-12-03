@@ -39,10 +39,25 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const obj = this.initObj = targetObj!==null ? targetObj : new Measurement(null)
 
     const inpType = safeCastElement(HTMLInputElement, <input class="form-control" type="text" value="" readonly required /> )
+    const btnTypeEdit = <button type="button" class="btn btn-outline-secondary"><i class="bi-pencil"/> {tr('Edit')}</button>
+    btnTypeEdit.addEventListener('click', () => { new MeasTypeEditor(ctx, mtStore, measType[0]) })
+    const btnTypeSel = <button type="button" class="btn btn-outline-secondary"><i class="bi-card-list"/> {tr('Select')}</button>
+    btnTypeSel.addEventListener('click', async () => {
+      const type = await listSelectDialog(tr('sel-meas-type'), ctx.storage.allMeasurementTemplates)
+      if (type) await mtStore.upd(measType[0], type)
+    })
+    const grpType = <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>
+
+    const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
+      pattern={obj.type.validPattern} value={obj.value} required />)
     const lblUnit = <span class="input-group-text"></span>
+    const grpValue = <div class="input-group"> {inpValue} {lblUnit} </div>
     const lblRange = <span></span>
     const lblPrc = <span></span>
+
     const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
+
+    const inpTime = new DateTimeInput(obj.time, true)
 
     const measType :[MeasurementType] = [obj.type]
     const mtStore = new ArrayStore(measType)
@@ -55,29 +70,12 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       if (r.length) lblRange.innerText = r
       else lblRange.replaceChildren(<em>({tr('not specified')})</em>)
       const p = measType[0].precision
-      //TODO: always show allowed precision (for now - when we store the meas value as a string it shouldn't be necessary.)
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
       typeDesc.value = measType[0].description
+      inpValue.pattern = measType[0].validPattern
     }
     typeChange()
     mtStore.events.add(typeChange)
-
-    const btnTypeEdit = <button type="button" class="btn btn-outline-secondary"><i class="bi-pencil"/> {tr('Edit')}</button>
-    btnTypeEdit.addEventListener('click', () => { new MeasTypeEditor(ctx, mtStore, measType[0]) })
-
-    const btnTypeSel = <button type="button" class="btn btn-outline-secondary"><i class="bi-card-list"/> {tr('Select')}</button>
-    btnTypeSel.addEventListener('click', async () => {
-      const type = await listSelectDialog(tr('sel-meas-type'), ctx.storage.allMeasurementTemplates)
-      if (type) await mtStore.upd(measType[0], type)
-    })
-
-    const grpType = <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>
-
-    const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="number"
-      value={Number.isFinite(obj.value)?obj.value:''} step={obj.type.precisionAsStep()??'1'} required />)
-    const grpValue = <div class="input-group"> {inpValue} {lblUnit} </div>
-
-    const inpTime = new DateTimeInput(obj.time, true)
 
     this.el = this.form = this.makeForm(tr('Measurement'), [
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
@@ -88,7 +86,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     ])
 
     this.form2obj = () => new Measurement({ type: measType[0],
-      value: inpValue.valueAsNumber, time: inpTime.timestamp })
+      value: inpValue.value, time: inpTime.timestamp })
 
     this.onClose = () => mtStore.events.remove(typeChange)
     this.open()

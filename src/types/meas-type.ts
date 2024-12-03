@@ -61,7 +61,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.unit = o?.unit ?? ''
     this.min = o && 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
     this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
-    this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) ? o.precision : NaN
+    this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) && o.precision>=0 ? o.precision : NaN
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
@@ -85,13 +85,13 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     const rv :IMeasurementType = { name: this.name, unit: this.unit }
     if (Number.isFinite(this.min)) rv.min = this.min
     if (Number.isFinite(this.max)) rv.max = this.max
-    if (Number.isFinite(this.precision)) rv.precision = this.precision
+    if (Number.isFinite(this.precision) && this.precision>=0) rv.precision = this.precision
     if (this.description.trim().length) rv.description = this.description.trim()
     return rv
   }
   get rangeAsText() {
-    const mn = Number.isFinite(this.precision) ? this.min.toFixed(this.precision) : this.min.toString()
-    const mx = Number.isFinite(this.precision) ? this.max.toFixed(this.precision) : this.max.toString()
+    const mn = Number.isFinite(this.precision) && this.precision>=0 ? this.min.toFixed(this.precision) : this.min.toString()
+    const mx = Number.isFinite(this.precision) && this.precision>=0 ? this.max.toFixed(this.precision) : this.max.toString()
     const detail = Number.isFinite(this.min) && Number.isFinite(this.max)
       ? `${mn} - ${mx}`
       : Number.isFinite(this.min)
@@ -112,11 +112,18 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     return rv
   }
   override templateToObject() :Measurement {
-    return new Measurement({ type: this.toJSON('type'), time: timestampNow(), value: NaN }) }
+    return new Measurement({ type: this.toJSON('type'), time: timestampNow(), value: '' }) }
   /** Return a step value ("1", "0.1", "0.01", etc.) either for the precision specified in the argument, or using this object's precision. */
   precisionAsStep(pr ?:number) :string|undefined {
     const p = pr===undefined ? this.precision : pr
     return Number.isFinite(p) && p>=0 ? ( p ? '0.'+('1'.padStart(p,'0')) : '1' ) : undefined
+  }
+  /** Regular expression that can be used to validate measurement value inputs of this type. */
+  get validPattern() {
+    const after = !Number.isFinite(this.precision) || this.precision<0 ? '[0-9]+'
+      : this.precision===0 ? ''  // special case: just integers (see below)
+        : this.precision===1 ? '[0-9]' : `[0-9]{1,${this.precision}}`  // one or more digits after decimal point
+    return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
   override deepClone() :MeasurementType { return new MeasurementType(this.toJSON('')) }
 }

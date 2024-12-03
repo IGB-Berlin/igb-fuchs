@@ -22,12 +22,12 @@ import { tr } from '../i18n'
 export interface IMeasurement {
   type :IMeasurementType
   time :Timestamp
-  value :number  //TODO: store as string instead!
+  value :string  // stored as string to avoid any floating-point ambiguities; validated via regex
 }
 export function isIMeasurement(o :unknown) :o is IMeasurement {
   if (!o || typeof o !== 'object') return false
   if (Object.keys(o).length!==3 || !('type' in o && 'time' in o && 'value' in o)) return false  // keys
-  if (!isIMeasurementType(o.type) || !isTimestamp(o.time) || typeof o.value !== 'number') return false  // types
+  if (!isIMeasurementType(o.type) || !isTimestamp(o.time) || typeof o.value !== 'string') return false  // types
   return true
 }
 
@@ -36,38 +36,37 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   type :MeasurementType
   time :Timestamp
   /** The actual measurement value. May be NaN when the measurement is first created. */
-  value :number
+  value :string
   get template() { return this.type }
   constructor(o :IMeasurement|null) {
     super()
     this.type = new MeasurementType(o?.type??null)
     this.time = o?.time ?? NO_TIMESTAMP
-    this.value = o?.value ?? NaN
+    this.value = o?.value ?? ''
   }
-  formattedValue() {
-    return Number.isFinite(this.type.precision) ? this.value.toFixed(this.type.precision) : this.value.toString() }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement':'meas') }
   override validate(_others :Measurement[]) {
     this.type.validate([])
     validateTimestamp(this.time)
+    if (!this.value.match(this.type.validPattern)) throw new Error(tr('Invalid value'))
   }
   override summaryDisplay() :[string,null] {
-    return [ `${this.type.name} = ${this.formattedValue()} ${this.type.unit}`, null ] }
+    return [ `${this.type.name} = ${this.value} ${this.type.unit}`, null ] }
   override equals(o: unknown) {
     return isIMeasurement(o)
     && this.type.equals(o.type)
     && this.time === o.time
-    && ( Number.isNaN(this.value) && Number.isNaN(o.value) || this.value === o.value )
+    && this.value === o.value
   }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value } }
   override warningsCheck(_isBrandNew :boolean) {
     const rv = []
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
-    if (Number.isFinite(this.value)) {
-      if (Number.isFinite(this.type.min) && this.value < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
-      if (Number.isFinite(this.type.max) && this.value > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)
-      if (Number.isFinite(this.type.precision)) { /* can't check this here since it applies to `string` inputs - rely on form validation */ }
+    if (this.value.match(this.type.validPattern)) {
+      const val = Number.parseFloat(this.value)
+      if (Number.isFinite(this.type.min) && val < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
+      if (Number.isFinite(this.type.max) && val > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)
     } else rv.push(tr('No measurement value'))
     return rv
   }
