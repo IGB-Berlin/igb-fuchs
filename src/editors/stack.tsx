@@ -19,8 +19,6 @@ import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-//TODO: History support (browser back button)
-
 interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
   readonly briefTitle :string
@@ -60,6 +58,15 @@ export class EditorStack {
       }
       return undefined
     })
+
+    window.addEventListener('popstate', () => {
+      if (this.stack.length>1) {
+        const top = this.stack.at(-1)
+        assert(top)
+        if (top.unsavedChanges) history.forward()
+        else this.pop(top)
+      }
+    })
   }
   push(e :StackAble) {
     console.debug('Stack push', e.briefTitle)
@@ -72,6 +79,7 @@ export class EditorStack {
     this.redrawNavbar()
     //TODO Later: The title is hidden under the sticky header
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    history.pushState({ briefTitle: e.briefTitle }, '', null)
   }
   pop(e :StackAble) {
     console.debug('Stack pop', e.briefTitle)
