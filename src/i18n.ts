@@ -197,8 +197,8 @@ const translations = {
 
   // editor: trip template
   'trip-desc-help': [
-    'Optionale Beschreibung der Messfahrt.',
-    'Optional description of the sampling trip.' ],
+    'Optionale Beschreibung der Messfahrt, z.B. mitzunehmende Geräte und Materialien, usw.',
+    'Optional description of the sampling trip, e.g. equipment and materials to take, etc.' ],
   'new-loc-from-temp': [
     'Neuer Messpunkt aus Vorlage',
     'New Sampling Location from Template' ],
@@ -207,9 +207,9 @@ const translations = {
     'Uniform Samples' ],
   'common-samples-help': [
     'Wenn an allen Messpunkten der Messfahrt die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
-    +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den hier festgelegten Proben.',
+    +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
     'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.'
-    +' If individual sampling locations have different samples defined, these override the samples defined here.' ],
+    +' If individual sampling locations have different samples defined, these override the samples in this section.' ],
 
   // editor: trip
   'Start time': ['Anfangs-Zeit'],
@@ -379,6 +379,7 @@ const translations = {
   'st-organism': ['Organismus', 'Organism'],
   'st-fish': ['Fisch', 'Fish'],
   'st-insect': ['Insekt', 'Insect'],
+  'st-data-logger': ['Datenlogger auslesen', 'Read out data logger'],
 
   // '': [''],
 } as const

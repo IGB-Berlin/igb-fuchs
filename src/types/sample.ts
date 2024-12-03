@@ -24,7 +24,7 @@ import { assert } from '../utils'
 
 export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
-  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect',
+  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger',
 ] as const
 
 type SampleType = typeof sampleTypes[number]
