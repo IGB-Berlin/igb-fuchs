@@ -233,6 +233,9 @@ const translations = {
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
+  'samp-desc-help': [
+    'Optionale Beschreibung der Probenahme, z.B. Menge, Filterung, usw.',
+    'Optional description of the sample procedure, e.g. amount, filtering, etc.' ],
   'samp-notes-help': [
     'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
     'Optional notes about the sample, e.g. quality, amount, etc.' ],

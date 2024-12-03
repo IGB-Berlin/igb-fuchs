@@ -61,7 +61,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
     return loc.samples.map((samp,si) => {
       /* ********** ********** Process the sample ********** ********** */
-      // sample: type, measurements[], notes, template?
+      // sample: type, description, measurements[], notes, template?
 
       const rowNotes = [samp.notes.trim()]
         .concat( li ? [] : tripNotes )  // append trip notes on the very first row

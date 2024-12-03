@@ -47,6 +47,8 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
         })}
       </select>)
 
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
     const measEdit = new ListEditorForTemp(ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
@@ -57,12 +59,13 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     this.el = this.form = this.makeForm(tr('Sample Template'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])
 
     this.form2obj = () => new SampleTemplate({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      measurementTypes: obj.measurementTypes })
+      description: inpDesc.value.trim(), measurementTypes: obj.measurementTypes })
 
     this.open()
   }

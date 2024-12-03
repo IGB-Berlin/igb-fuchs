@@ -46,6 +46,8 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
           return opt
         })}
       </select>)
+
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
@@ -60,13 +62,14 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     this.el = this.form = this.makeForm(tr('Sample'), [
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])
 
     this.form2obj = () => new Sample({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      notes: inpNotes.value.trim(), measurements: obj.measurements
+      description: inpDesc.value.trim(), notes: inpNotes.value.trim(), measurements: obj.measurements
     }, obj.template)
 
     this.open()
