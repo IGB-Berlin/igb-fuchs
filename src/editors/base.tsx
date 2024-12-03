@@ -15,10 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase, isTimestampSet, Timestamp } from '../types/common'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { dateToLocalString } from '../date'
+import { DataObjectBase } from '../types/common'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { assert } from '../utils'
@@ -257,18 +256,5 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       await infoDialog('info', tr('name-help-title'), <ul>{tr('name-help-full').split('\n').map(t => <li>{t}</li>)}</ul>)
     })
     return el
-  }
-
-  protected makeDtSelect(initial :Timestamp) :[HTMLInputElement, HTMLDivElement] {
-    const inp = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local"
-      value={isTimestampSet(initial) ? dateToLocalString(new Date(initial)) : ''} />)
-    const grp = safeCastElement(HTMLDivElement, <div class="input-group">
-      <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}
-        onclick={()=>inp.value=dateToLocalString(new Date())}>
-        <i class="bi-clock me-1"/> {tr('Now')}
-      </button>
-      {inp}
-    </div>)
-    return [inp, grp]
   }
 }

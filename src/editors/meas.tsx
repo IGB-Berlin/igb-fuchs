@@ -18,10 +18,9 @@
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { MeasurementType } from '../types/meas-type'
-import { dateTimeLocalInputToDate } from '../date'
 import { listSelectDialog } from './list-dialog'
-import { NO_TIMESTAMP } from '../types/common'
 import { MeasTypeEditor } from './meas-type'
+import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
 import { GlobalContext } from '../main'
 import { Editor } from './base'
@@ -78,21 +77,18 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       value={Number.isFinite(obj.value)?obj.value:''} step={obj.type.precisionAsStep()??'1'} required />)
     const grpValue = <div class="input-group"> {inpValue} {lblUnit} </div>
 
-    /* TODO Later: The time input fields only have minute granularity, but if the user clicks the "Now" button
-     * or they're initialized from somewhere else, like templateToObject(), we should be able to keep those values. */
-    const [inpTime, grpTime] = this.makeDtSelect(obj.time)
-    inpTime.setAttribute('required', 'required')
+    const inpTime = new DateTimeInput(obj.time, true)
 
     this.el = this.form = this.makeForm(tr('Measurement'), [
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
       this.makeRow(typeDesc, tr('Description'), <>{tr('meas-desc-help')}</>, null),
-      this.makeRow(grpTime, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
+      this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
 
-    this.form2obj = () => new Measurement({ type: measType[0], value: inpValue.valueAsNumber,
-      time: dateTimeLocalInputToDate(inpTime)?.getTime() ?? NO_TIMESTAMP })
+    this.form2obj = () => new Measurement({ type: measType[0],
+      value: inpValue.valueAsNumber, time: inpTime.timestamp })
 
     this.onClose = () => mtStore.events.remove(typeChange)
     this.open()

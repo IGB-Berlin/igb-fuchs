@@ -99,6 +99,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
     if (!isBrandNew && !this.samples.length) rv.push(tr('No samples'))
     const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
     if (distM > MAX_NOM_ACT_DIST_M)

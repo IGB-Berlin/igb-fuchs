@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { NO_TIMESTAMP, timestampNow, VALID_NAME_RE } from '../types/common'
-import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { timestampNow, VALID_NAME_RE } from '../types/common'
 import { SamplingLocationTemplate } from '../types/location'
+import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { ListEditorWithTemp } from './list-edit'
@@ -43,9 +43,8 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
-    const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
-    inpStart.setAttribute('required', 'required')
-    const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
+    const inpStart = new DateTimeInput(obj.startTime, true)
+    const inpEnd = new DateTimeInput(obj.endTime, false)
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
@@ -79,12 +78,12 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     locEdit.watchEnable(this)
     this.onClose = () => locEdit.close()
 
-    const tzOff = getTzOffset(new Date())
+    const tzOff = getTzOffsetStr(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Trip'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
-      this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(grpEnd, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpEnd.el, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')} {tr('notes-help')}</>, null),
@@ -93,8 +92,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     this.form2obj = () => new SamplingTrip({ id: obj.id,
       name: inpName.value, description: inpDesc.value.trim(),
-      startTime: dateTimeLocalInputToDate(inpStart)?.getTime() ?? NO_TIMESTAMP,
-      endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
+      startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
       lastModified: timestampNow(), persons: inpPersons.value.trim(),
       weather: inpWeather.value.trim(), notes: inpNotes.value.trim(),
       locations: obj.locations }, obj.template)

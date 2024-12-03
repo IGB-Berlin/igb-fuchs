@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { dateTimeLocalInputToDate, getTzOffset } from '../date'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { NO_TIMESTAMP, VALID_NAME_RE } from '../types/common'
+import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { Wgs84Coordinates } from '../types/coords'
 import { ListEditorWithTemp } from './list-edit'
+import {  VALID_NAME_RE } from '../types/common'
 import { makeCoordinateEditor } from './coords'
 import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
@@ -47,9 +47,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpActCoords = makeCoordinateEditor(actCoords)
-    const [inpStart, grpStart] = this.makeDtSelect(obj.startTime)
-    inpStart.setAttribute('required', 'required')
-    const [inpEnd, grpEnd] = this.makeDtSelect(obj.endTime)
+    const inpStart = new DateTimeInput(obj.startTime, true)
+    const inpEnd = new DateTimeInput(obj.endTime, false)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
@@ -62,14 +61,14 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     sampEdit.watchEnable(this)
     this.onClose = () => sampEdit.close()
 
-    const tzOff = getTzOffset(new Date())
+    const tzOff = getTzOffsetStr(new Date())
     this.el = this.form = this.makeForm(tr('Sampling Location'), [
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
       this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
-      this.makeRow(grpStart, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(grpEnd, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpEnd.el, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
       sampEdit.withBorder(tr('Samples')),
     ])
@@ -78,8 +77,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       name: inpName.value, description: inpDesc.value.trim(),
       nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
       actualCoords: new Wgs84Coordinates(actCoords).deepClone(),
-      startTime: dateTimeLocalInputToDate(inpStart)?.getTime() ?? NO_TIMESTAMP,
-      endTime:   dateTimeLocalInputToDate(inpEnd)?.getTime() ?? NO_TIMESTAMP,
+      startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
       samples: obj.samples, notes: inpNotes.value.trim(),
       photos: [], //TODO Later
     }, obj.template)

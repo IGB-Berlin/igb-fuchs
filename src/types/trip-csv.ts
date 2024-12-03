@@ -32,7 +32,6 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
   const measCols = allTypes.map(t => `${t.name}[${ t.unit.trim().length ? t.unit : '?' }]`)
   // collisions between these column names and measurements aren't possible as long as these names don't have "[]" in them:
   const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType'].concat(measCols).concat(['Notes'])
-  console.debug(columns)
 
   /* ********** ********** Process the trip ********** ********** */
   // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?

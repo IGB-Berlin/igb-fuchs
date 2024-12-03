@@ -366,6 +366,9 @@ const translations = {
   'samp-type-undef': [
     'Art der Probe nicht festgelegt.',
     'Sample type not defined.' ],
+  'times-order': [
+    'Die End-Zeit liegt vor der Anfangs-Zeit.',
+    'The end time is before the start time.' ],
 
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Unbekannt (nicht festgelegt/aufgezeichnet)', 'Unknown (not defined/recorded)'],
