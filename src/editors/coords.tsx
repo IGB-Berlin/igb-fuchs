@@ -23,7 +23,7 @@ import { tr } from '../i18n'
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
 
-  const btnGetCoords = <button class="btn btn-outline-secondary" type="button" title={tr('Use current location')}>
+  const btnGetCoords = <button class="btn btn-outline-primary" type="button" title={tr('Use current location')}>
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)} required
@@ -32,7 +32,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
     <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)} required
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
   const mapLink = safeCastElement(HTMLAnchorElement,
-    <a class="btn btn-outline-secondary" href="#" target="_blank" title={tr('Show on map')}>
+    <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>
       <i class="bi-pin-map"/><span class="visually-hidden">{tr('Show on map')}</span></a>)
   const grp = <div class="input-group">
     {btnGetCoords}

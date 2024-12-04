@@ -87,8 +87,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.savedObj = targetObj
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
-    const btnSave = <button type="button" class="btn btn-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
-    const btnBack = <button type="button" class="btn btn-secondary mt-1 text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
+    const btnSave = <button type="button" class="btn btn-outline-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
+    const btnBack = <button type="button" class="btn btn-outline-secondary mt-1 text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
     this.elWarnList = <ul></ul>
     this.elWarnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
@@ -110,8 +110,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     btnBack.addEventListener('click', () => this.ctx.stack.back(this))
     this.el.addEventListener(CustomChangeEvent.NAME, () => {
       const unsaved = this.unsavedChanges
-      btnBack.classList.toggle('btn-secondary', !unsaved)
-      btnBack.classList.toggle('btn-warning', unsaved)
+      btnBack.classList.toggle('btn-outline-secondary', !unsaved)
+      btnBack.classList.toggle('btn-outline-warning', unsaved)
     })
     btnSave.addEventListener('click', () => this.doSave(false))
     this.form.addEventListener('submit', async event => {

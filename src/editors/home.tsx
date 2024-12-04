@@ -46,7 +46,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
 export function makeHomePage(ctx :GlobalContext) {
 
   const btnShare = safeCastElement(HTMLButtonElement,
-    <button type="button" class="btn btn-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
+    <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
 
   const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips(), SamplingTripEditor, tr('new-trip-from-temp'),
     async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t), null)

@@ -36,9 +36,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const obj = this.initObj = targetObj!==null ? targetObj : new Measurement(null)
 
     const inpType = safeCastElement(HTMLInputElement, <input class="form-control" type="text" value="" readonly required /> )
-    const btnTypeEdit = <button type="button" class="btn btn-outline-secondary"><i class="bi-pencil"/> {tr('Edit')}</button>
+    const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
     btnTypeEdit.addEventListener('click', () => { new MeasTypeEditor(this.ctx, mtStore, measType[0]) })
-    const btnTypeSel = <button type="button" class="btn btn-outline-secondary"><i class="bi-card-list"/> {tr('Select')}</button>
+    const btnTypeSel = <button type="button" class="btn btn-outline-primary"><i class="bi-card-list"/> {tr('Select')}</button>
     btnTypeSel.addEventListener('click', async () => {
       const type = await listSelectDialog(tr('sel-meas-type'), this.ctx.storage.allMeasurementTemplates)
       if (type) await mtStore.upd(measType[0], type)

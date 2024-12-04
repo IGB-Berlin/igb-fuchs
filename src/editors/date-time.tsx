@@ -66,7 +66,7 @@ export class DateTimeInput {
       this.el.dispatchEvent(new CustomChangeEvent())
     })
     this.timestamp = this._ts
-    const btnNow = <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}>
+    const btnNow = <button type="button" class="btn btn-outline-primary" title={tr('Use current date and time')}>
       <i class="bi-clock me-1"/> {tr('Now')}</button>
     btnNow.addEventListener('click', () => {
       this.timestamp = Date.now()

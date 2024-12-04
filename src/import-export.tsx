@@ -23,14 +23,14 @@ import { assert } from './utils'
 import { tr } from './i18n'
 
 export function makeImportExport(ctx :GlobalContext) :HTMLElement {
-  const btnExportAll = <button type="button" class="btn btn-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
+  const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
     <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" />)
   const el = <div class="p-3 d-flex flex-column">
     {btnExportAll}
     <div class="mt-1 mb-4">{tr('export-help')}</div>
     <div class="input-group">
-      <label class="input-group-text text-bg-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
+      <label class="input-group-text btn btn-outline-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
       {inpImportFile}
     </div>
     <div class="mt-1">{tr('import-help')}</div>

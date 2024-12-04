@@ -106,9 +106,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     this.theStore = theStore
     this.editorClass = editorClass
 
-    this.btnDel = <button type="button" class="btn btn-danger text-nowrap mt-1" disabled><i class="bi-trash3-fill"/> {tr('Delete')}</button>
-    this.btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>
-    this.btnEdit = <button type="button" class="btn btn-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
+    this.btnDel = <button type="button" class="btn btn-outline-danger text-nowrap mt-1" disabled><i class="bi-trash3"/> {tr('Delete')}</button>
+    this.btnNew = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>
+    this.btnEdit = <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
     const els :HTMLElement[] = []
     const selectItem = (id :string|null, scroll :boolean = false) => {
@@ -185,7 +185,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
   protected btnTemp :HTMLElement
   constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(ctx, theStore, editorClass)
-    this.btnTemp = <button type="button" class="btn btn-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
+    this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
       if (template===null) return
