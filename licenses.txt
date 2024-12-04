@@ -3,8 +3,9 @@ This file contains the licenses for the libraries used in this project.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* Bootstrap
+*** Bootstrap ***
 * https://getbootstrap.com/
+* https://github.com/twbs/bootstrap/blob/main/LICENSE
 
 The MIT License (MIT)
 
@@ -30,8 +31,9 @@ THE SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* Bootstrap Icons
+*** Bootstrap Icons ***
 * https://icons.getbootstrap.com/
+* https://github.com/twbs/icons/blob/main/LICENSE
 
 The MIT License (MIT)
 
@@ -57,8 +59,9 @@ THE SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* Popper.js
+*** Popper.js ***
 * https://popper.js.org/docs/
+* https://github.com/floating-ui/floating-ui/blob/v2.x/LICENSE.md
 
 The MIT License (MIT)
 
@@ -83,8 +86,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* Papa Parse
+*** Papa Parse ***
 * https://www.papaparse.com/
+* https://github.com/mholt/PapaParse/blob/master/LICENSE
 
 The MIT License (MIT)
 
@@ -109,8 +113,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* i18n.js
+*** i18n.js ***
 * https://fnando.github.io/i18n/
+* https://github.com/fnando/i18n/blob/main/LICENSE.md
 
 # The MIT License (MIT)
 
@@ -135,8 +140,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* Movable Type Scripts / Distance and Bearing
+*** Movable Type Scripts / Distance and Bearing ***
 * https://www.movable-type.co.uk/scripts/latlong.html
+* https://github.com/chrisveness/geodesy/blob/master/LICENSE
 
 The MIT License (MIT)
 
@@ -162,8 +168,9 @@ SOFTWARE.
 
 ########## ########## ########## ########## ########## ########## ########## ##########
 
-* zip.js
+*** zip.js ***
 * https://gildas-lormeau.github.io/zip.js/
+* https://github.com/gildas-lormeau/zip.js/blob/master/LICENSE
 
 BSD 3-Clause License
 

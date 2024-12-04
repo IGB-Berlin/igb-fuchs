@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-use v5.036;
+use 5.036;
 use Mojo::DOM;
 use Mojo::File qw/curfile/;
 use Mojo::UserAgent;
@@ -15,8 +15,8 @@ $dom->find('#licensesList li')->each(sub {
   my $as = $_->find('a');
   die $_ unless $as->size==2;
   my $url = $as->[1]{'href'};
+  say {$fh} "\n*** ",$as->[0]->all_text," ***\n* ",$as->[0]{'href'},"\n* ",$url."\n";
   $url =~ s#/blob/#/raw/#;
-  say {$fh} "\n* ",$as->[0]->all_text,"\n* ",$as->[0]{'href'},"\n";
   say $url;
   my $license = $ua->get($url)->result->text;
   $license =~ s/^\s+|\s+$//g;
