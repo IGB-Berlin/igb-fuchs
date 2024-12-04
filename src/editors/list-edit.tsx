@@ -79,7 +79,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   protected parentEditor :Editor<any, any>|null = null
   protected parentListener :(()=>void) = () => {
     assert(this.parentEditor!==null, 'bad internal state')
-    this.enable(!!this.parentEditor.savedObj)
+    this.enable(!!this.parentEditor.isSaved)
   }
   watchEnable<E2 extends Editor<E2, B2>, B2 extends DataObjectBase<B2>>(parentEditor :E2) {
     assert(this.parentEditor===null, 'watchEnable called twice')

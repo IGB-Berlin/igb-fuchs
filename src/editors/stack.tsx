@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { CUSTOM_CHANGE_EVENT_NAME } from './base'
+import { CustomChangeEvent } from './base'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
@@ -23,6 +23,7 @@ import { tr } from '../i18n'
 interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
   readonly briefTitle :string
+  readonly fullTitle :string
   readonly unsavedChanges :boolean
 }
 
@@ -37,7 +38,7 @@ export class EditorStack {
   protected redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
-        const link = <a class="nav-link" href='#'>{s.briefTitle}</a>
+        const link = <a class="nav-link" href='#' title={s.fullTitle}>{s.briefTitle}</a>
         if (i===this.stack.length-1) {
           link.classList.add('active')
           link.setAttribute('aria-current','page')
@@ -58,7 +59,7 @@ export class EditorStack {
   }
   initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
     assert(this.stack.length===0)
-    this.stack.push({ el: homePage, briefTitle: tr('Home'), unsavedChanges: false })
+    this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -126,7 +127,8 @@ export class EditorStack {
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     const histState :HistoryState = { stackLen: newLen }
     history.pushState(histState, '', null)
-    e.el.addEventListener(CUSTOM_CHANGE_EVENT_NAME, () => console.debug('Change!', e.briefTitle, e.unsavedChanges))  //TODO: something useful with this
+    e.el.addEventListener(CustomChangeEvent.NAME, () =>
+      console.debug('Change!', e.briefTitle, e.unsavedChanges))  //TODO: something useful with this
   }
   pop(e :StackAble) {
     console.debug('Programmatic stack pop requested by editor',e.briefTitle)

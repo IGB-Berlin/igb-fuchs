@@ -26,9 +26,8 @@ import { i18n, tr } from '../i18n'
 import { Editor } from './base'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('Sample')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sample')
+  override readonly briefTitle = tr('Sample')
   protected override readonly initObj :Readonly<Sample>
   protected override readonly form2obj :()=>Readonly<Sample>
   protected override readonly onClose :()=>void
@@ -53,25 +52,23 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurements)
     const template = obj.template
-    const measEdit = new ListEditorWithTemp(ctx, measStore, MeasurementEditor, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
+    const measEdit = new ListEditorWithTemp(this.ctx, measStore, MeasurementEditor, tr('new-meas-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
       template ? ()=>Promise.resolve(setRemove(template.measurementTypes, obj.measurements.map(m => m.extractTemplate()))) : null )
     measStore.events.add(() => this.reportMod())
     measEdit.watchEnable(this)
     this.onClose = () => measEdit.close()
-
-    this.el = this.form = this.makeForm(tr('Sample'), [
-      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
-      measEdit.withBorder(tr('Measurements')),
-    ])
 
     this.form2obj = () => new Sample({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
       description: inpDesc.value.trim(), notes: inpNotes.value.trim(), measurements: obj.measurements
     }, obj.template)
 
-    this.open()
+    this.initialize([
+      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
+      measEdit.withBorder(tr('Measurements')),
+    ])
   }
 }

@@ -28,9 +28,8 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('trip-temp')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sampling Trip Template')
+  override readonly briefTitle = tr('trip-temp')
   protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
   protected override readonly onClose :()=>void
@@ -49,31 +48,29 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
      */
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorForTemp(ctx, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
+    const locEdit = new ListEditorForTemp(this.ctx, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
 
     const sampStore = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.commonSamples)))
+    const sampEdit = new ListEditorForTemp(this.ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
     sampStore.events.add(() => this.reportMod())
     sampEdit.watchEnable(this)
 
     this.onClose = () => { locEdit.close(); sampEdit.close() }
 
-    this.el = this.form = this.makeForm(tr('Sampling Trip Template'), [
+    this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
+      name: inpName.value, description: inpDesc.value.trim(),
+      locations: obj.locations, commonSamples: obj.commonSamples })
+
+    this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
     ])
-
-    this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(),
-      locations: obj.locations, commonSamples: obj.commonSamples })
-
-    this.open()
   }
 
 }

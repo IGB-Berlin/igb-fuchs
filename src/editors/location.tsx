@@ -30,9 +30,8 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('Location')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sampling Location')
+  override readonly briefTitle = tr('Location')
   protected override readonly initObj :Readonly<SamplingLocation>
   protected override readonly form2obj :()=>Readonly<SamplingLocation>
   protected override readonly onClose :()=>void
@@ -54,24 +53,12 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const template = obj.template
-    const sampEdit = new ListEditorWithTemp(ctx, sampStore, SampleEditor, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
+    const sampEdit = new ListEditorWithTemp(this.ctx, sampStore, SampleEditor, tr('new-samp-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
       template ? ()=>Promise.resolve(setRemove(template.samples, obj.samples.map(s => s.extractTemplate()))) : null )
     sampStore.events.add(() => this.reportMod())
     sampEdit.watchEnable(this)
     this.onClose = () => sampEdit.close()
-
-    const tzOff = getTzOffsetStr(new Date())
-    this.el = this.form = this.makeForm(tr('Sampling Location'), [
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
-      this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
-      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(inpEnd.el, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
-      sampEdit.withBorder(tr('Samples')),
-    ])
 
     this.form2obj = () => new SamplingLocation({
       name: inpName.value, description: inpDesc.value.trim(),
@@ -82,6 +69,16 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       photos: [], //TODO Later
     }, obj.template)
 
-    this.open()
+    const tzOff = getTzOffsetStr(new Date())
+    this.initialize([
+      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
+      this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
+      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpEnd.el, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
+      sampEdit.withBorder(tr('Samples')),
+    ])
   }
 }

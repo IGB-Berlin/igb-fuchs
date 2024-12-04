@@ -29,9 +29,8 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle = tr('loc-temp')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sampling Location Template')
+  override readonly briefTitle = tr('loc-temp')
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
   protected override readonly onClose :()=>void
@@ -47,18 +46,11 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorForTemp(ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allSampleTemplates, obj.samples)))
+    const sampEdit = new ListEditorForTemp(this.ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
     sampStore.events.add(() => this.reportMod())
     sampEdit.watchEnable(this)
     this.onClose = () => sampEdit.close()
-
-    this.el = this.form = this.makeForm(tr('Sampling Location Template'), [
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
-      sampEdit.withBorder(tr('Samples')),
-    ])
 
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value,
@@ -66,6 +58,11 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
         nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
         samples: obj.samples })
 
-    this.open()
+    this.initialize([
+      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
+      sampEdit.withBorder(tr('Samples')),
+    ])
   }
 }

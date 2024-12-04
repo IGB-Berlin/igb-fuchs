@@ -24,9 +24,8 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle = tr('meas-type')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Measurement Type')
+  override readonly briefTitle = tr('meas-type')
   protected override readonly initObj :Readonly<MeasurementType>
   protected override readonly form2obj :()=>Readonly<MeasurementType>
   protected override readonly onClose :()=>void = ()=>{}
@@ -49,7 +48,13 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     inpPrc.addEventListener('change', prcToStep)
     prcToStep()
 
-    this.el = this.form = this.makeForm(tr('Measurement Type'), [
+    this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
+      min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
+      max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
+      precision: Number.isFinite(inpPrc.valueAsNumber) && inpPrc.valueAsNumber>=0 ? inpPrc.valueAsNumber : NaN,
+      description: inpDesc.value.trim() })
+
+    this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
       this.makeRow(inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
@@ -57,13 +62,5 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('meas-type-desc-help')} {tr('desc-help')}</>, null),
     ])
-
-    this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
-      min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
-      max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
-      precision: Number.isFinite(inpPrc.valueAsNumber) && inpPrc.valueAsNumber>=0 ? inpPrc.valueAsNumber : NaN,
-      description: inpDesc.value.trim() })
-
-    this.open()
   }
 }

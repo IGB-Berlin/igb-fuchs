@@ -17,8 +17,8 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
-import { Editor, newCustomChangeEvent } from './base'
 import { MeasurementType } from '../types/meas-type'
+import { Editor, CustomChangeEvent } from './base'
 import { listSelectDialog } from './list-dialog'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
@@ -27,9 +27,8 @@ import { GlobalContext } from '../main'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('meas')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Measurement')
+  override readonly briefTitle = tr('meas')
   protected override readonly initObj :Readonly<Measurement>
   protected override readonly form2obj :()=>Readonly<Measurement>
   protected override readonly onClose :()=>void
@@ -40,17 +39,17 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     const inpType = safeCastElement(HTMLInputElement, <input class="form-control" type="text" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-secondary"><i class="bi-pencil"/> {tr('Edit')}</button>
-    btnTypeEdit.addEventListener('click', () => { new MeasTypeEditor(ctx, mtStore, measType[0]) })
+    btnTypeEdit.addEventListener('click', () => { new MeasTypeEditor(this.ctx, mtStore, measType[0]) })
     const btnTypeSel = <button type="button" class="btn btn-outline-secondary"><i class="bi-card-list"/> {tr('Select')}</button>
     btnTypeSel.addEventListener('click', async () => {
-      const type = await listSelectDialog(tr('sel-meas-type'), ctx.storage.allMeasurementTemplates)
+      const type = await listSelectDialog(tr('sel-meas-type'), this.ctx.storage.allMeasurementTemplates)
       if (type) await mtStore.upd(measType[0], type)
     })
     const grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
     const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
       pattern={obj.type.validPattern} value={obj.value} required />)
-    inpValue.addEventListener('change', () => grpValue.dispatchEvent(newCustomChangeEvent()))
+    inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
     const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {inpValue} {lblUnit} </div>)
     const lblRange = <span></span>
@@ -74,23 +73,21 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
       typeDesc.value = measType[0].description
       inpValue.pattern = measType[0].validPattern
-      grpType.dispatchEvent(newCustomChangeEvent())
+      grpType.dispatchEvent(new CustomChangeEvent())
     }
     typeChange()
     mtStore.events.add(typeChange)
     this.onClose = () => mtStore.events.remove(typeChange)
 
-    this.el = this.form = this.makeForm(tr('Measurement'), [
+    this.form2obj = () => new Measurement({ type: measType[0],
+      value: inpValue.value, time: inpTime.timestamp })
+
+    this.initialize([
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
       this.makeRow(typeDesc, tr('Description'), <>{tr('meas-desc-help')}</>, null),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
-
-    this.form2obj = () => new Measurement({ type: measType[0],
-      value: inpValue.value, time: inpTime.timestamp })
-
-    this.open()
   }
 }

@@ -29,9 +29,8 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('Trip')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sampling Trip')
+  override readonly briefTitle = tr('Trip')
   protected override readonly initObj :Readonly<SamplingTrip>
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
   protected override readonly onClose :()=>void
@@ -71,15 +70,22 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorWithTemp(ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
+    const locEdit = new ListEditorWithTemp(this.ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       getPlannedLocs )
     locStore.events.add(() => this.reportMod())
     locEdit.watchEnable(this)
     this.onClose = () => locEdit.close()
 
+    this.form2obj = () => new SamplingTrip({ id: obj.id,
+      name: inpName.value, description: inpDesc.value.trim(),
+      startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
+      lastModified: timestampNow(), persons: inpPersons.value.trim(),
+      weather: inpWeather.value.trim(), notes: inpNotes.value.trim(),
+      locations: obj.locations }, obj.template)
+
     const tzOff = getTzOffsetStr(new Date())
-    this.el = this.form = this.makeForm(tr('Sampling Trip'), [
+    this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
@@ -89,14 +95,5 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')} {tr('notes-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
     ])
-
-    this.form2obj = () => new SamplingTrip({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(),
-      startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
-      lastModified: timestampNow(), persons: inpPersons.value.trim(),
-      weather: inpWeather.value.trim(), notes: inpNotes.value.trim(),
-      locations: obj.locations }, obj.template)
-
-    this.open()
   }
 }

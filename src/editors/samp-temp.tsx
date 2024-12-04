@@ -26,9 +26,8 @@ import { i18n, tr } from '../i18n'
 import { Editor } from './base'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
-  override readonly el :HTMLElement
-  static override readonly briefTitle: string = tr('samp-temp')
-  protected override readonly form :HTMLFormElement
+  override readonly fullTitle = tr('Sample Template')
+  override readonly briefTitle = tr('samp-temp')
   protected override readonly initObj :Readonly<SampleTemplate>
   protected override readonly form2obj :()=>Readonly<SampleTemplate>
   protected override readonly onClose :()=>void
@@ -51,23 +50,21 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditorForTemp(ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
+    const measEdit = new ListEditorForTemp(this.ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
     measStore.events.add(() => this.reportMod())
     measEdit.watchEnable(this)
     this.onClose = () => measEdit.close()
-
-    this.el = this.form = this.makeForm(tr('Sample Template'), [
-      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
-      measEdit.withBorder(tr('Measurements')),
-    ])
 
     this.form2obj = () => new SampleTemplate({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
       description: inpDesc.value.trim(), measurementTypes: obj.measurementTypes })
 
-    this.open()
+    this.initialize([
+      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
+      measEdit.withBorder(tr('Measurements')),
+    ])
   }
 
 }

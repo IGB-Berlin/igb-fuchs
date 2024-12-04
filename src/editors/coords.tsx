@@ -17,7 +17,7 @@
  */
 import { IWgs84Coordinates, WGS84_PRC_STEP, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { newCustomChangeEvent } from './base'
+import { CustomChangeEvent } from './base'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
@@ -27,17 +27,17 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)} required
-      class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} aria-describedby="lblLat" />)
+      class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
   const inpLon = safeCastElement(HTMLInputElement,
     <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)} required
-      class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} aria-describedby="lblLon" />)
+      class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-secondary" href="#" target="_blank" title={tr('Show on map')}>
       <i class="bi-pin-map"/><span class="visually-hidden">{tr('Show on map')}</span></a>)
   const grp = <div class="input-group">
     {btnGetCoords}
-    <span class="input-group-text" id="lblLat">{tr('Lat')}</span> {inpLat}
-    <span class="input-group-text" id="lblLon">{tr('Lon')}</span> {inpLon}
+    <span class="input-group-text" title={tr('Latitude')}>{tr('Lat')}</span> {inpLat}
+    <span class="input-group-text" title={tr('Longitude')}>{tr('Lon')}</span> {inpLon}
     {mapLink}
   </div>
   const el = safeCastElement(HTMLDivElement, <div>{grp}</div>)
@@ -58,7 +58,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
       mapLink.addEventListener('click', preventClick)
       return
     }
-    if (fire) el.dispatchEvent(newCustomChangeEvent())
+    if (fire) el.dispatchEvent(new CustomChangeEvent())
   }
   coordsUpdated()
   inpLat.addEventListener('change', () => {
