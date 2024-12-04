@@ -27,6 +27,7 @@ import { i18n, tr } from './i18n'
 
 const IDB_NAME = 'IGB-Field'
 const SELF_TEST_STORE = '_self_test'
+//TODO: Trips and templates don't need to go in separate stores
 const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
 const FILE_STORE = 'files'
@@ -43,6 +44,9 @@ interface ImportResults {
 }
 
 export class IndexedStorage {
+
+  static newTripTemplateId() :string { return crypto.randomUUID() }
+  static newSamplingTripId() :string { return crypto.randomUUID() }
 
   static open() {
     return new Promise<IndexedStorage>((resolve, reject) => {

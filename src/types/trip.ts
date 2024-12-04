@@ -22,6 +22,7 @@ import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { HasId } from '../storage'
 import { assert } from '../utils'
+import { IndexedStorage } from '../idb-store'
 
 export interface ISamplingTrip extends HasId {
   readonly id :string
@@ -70,7 +71,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   readonly template :SamplingTripTemplate|null
   constructor(o :ISamplingTrip|null, template :SamplingTripTemplate|null) {
     super()
-    this.id = o===null ? crypto.randomUUID() : o.id
+    this.id = o===null ? IndexedStorage.newSamplingTripId() : o.id
     this.name = o?.name ?? ''
     this.description = o &&'description' in o && o.description!==null ? o.description.trim() : ''
     this.startTime = o?.startTime ?? NO_TIMESTAMP
@@ -145,7 +146,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       l0 && locs.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
     if (allLocsHaveSameSamples) locs.forEach(l => l.samples.length = 0)
     const common = allLocsHaveSameSamples ? l0.samples : []
-    return new SamplingTripTemplate({ id: crypto.randomUUID(),
+    return new SamplingTripTemplate({ id: IndexedStorage.newTripTemplateId(),
       name: this.name, description: this.description.trim(),
       locations: locs, commonSamples: common })
   }
@@ -187,7 +188,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   commonSamples :SampleTemplate[]
   constructor(o :ISamplingTripTemplate|null) {
     super()
-    this.id = o===null ? crypto.randomUUID() : o.id
+    this.id = o===null ? IndexedStorage.newTripTemplateId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
     this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
@@ -223,7 +224,8 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return rv
   }
   override templateToObject() :SamplingTrip {
-    const rv :ISamplingTrip = { id: crypto.randomUUID(), name: this.name, locations: [],
+    const rv :ISamplingTrip = { id: IndexedStorage.newSamplingTripId(),
+      name: this.name, locations: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingTrip(rv, this)
