@@ -36,7 +36,12 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
   constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
     super(ctx, targetStore, targetObj)
     const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTrip(null, null)
-    //TODO Later: A reload causes us to lose association with obj.template. Is there any way to persist that?
+    /* TODO: A reload causes us to lose association with obj.template. Is there any way to persist that?
+     * Actually, it's not just a reload: a simple return to the home page causes the editor to be destroyed,
+     * and re-opening the object causes it to be reloaded from the DB without its template association.
+     * A workaround might be to move the following "getPlannedLocs" into the SamplingTrip class and add
+     * a warning when trying to save a trip with locations remaining (the same could be done for all other
+     * "planned" template lists). */
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
@@ -52,6 +57,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
        * remove the locations we already have records for (ignoring the number of samples),
        * and populate any locations that have no samples from commonSamples.
        * TODO Later: The location list should also be sorted by distance from our current location.
+       * This also applies to all other places where locations lists occur! (e.g. From Template dialog)
        */
       const visitedLocs = obj.locations.map(l => l.extractTemplate().cloneNoSamples())
       const plannedLocs :SamplingLocationTemplate[] = []
