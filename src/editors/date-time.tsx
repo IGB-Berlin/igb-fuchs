@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestampSet, NO_TIMESTAMP, Timestamp } from '../types/common'
+import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { tr } from '../i18n'
 
@@ -56,19 +56,22 @@ export class DateTimeInput {
   protected _ts :Timestamp
   protected input :HTMLInputElement
   constructor(initialTs :Timestamp|null, required :boolean) {
-    this._ts = initialTs===null ? NO_TIMESTAMP : initialTs
+    this._ts = isTimestamp(initialTs) && isValidAndSetTs(initialTs) ? initialTs : NO_TIMESTAMP
     this.input = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local" />)
     if (required) this.input.setAttribute('required','required')
     this.input.addEventListener('change', () => {
       const dt = dateTimeLocalInputToDate(this.input)
       this._ts = dt===null ? NO_TIMESTAMP : dt.getTime()
+      this.el.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }))
     })
     this.timestamp = this._ts
     const btnNow = <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}>
-      <i class="bi-clock me-1"/> {tr('Now')} </button>
-    btnNow.addEventListener('click', () => this.timestamp = Date.now() )
-    this.el = safeCastElement(HTMLDivElement, <div class="input-group">
-      {btnNow} {this.input} </div>)
+      <i class="bi-clock me-1"/> {tr('Now')}</button>
+    btnNow.addEventListener('click', () => {
+      this.timestamp = Date.now()
+      this.el.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }))
+    })
+    this.el = safeCastElement(HTMLDivElement, <div class="input-group"> {btnNow} {this.input} </div>)
   }
   set timestamp(value :Timestamp) {
     this._ts = value
