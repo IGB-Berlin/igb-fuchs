@@ -15,14 +15,16 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual } from './common'
-import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate, SamplingLocation, SamplingLocationTemplate } from './location'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate,
+  validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual } from './common'
+import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
+  SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
+import { IndexedStorage } from '../idb-store'
 import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { HasId } from '../storage'
 import { assert } from '../utils'
-import { IndexedStorage } from '../idb-store'
 
 export interface ISamplingTrip extends HasId {
   readonly id :string

@@ -21,24 +21,18 @@ import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates) {
+
+  const btnGetCoords = <button class="btn btn-outline-secondary" type="button" title={tr('Use current location')}>
+    <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)} required
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} aria-describedby="lblLat" />)
   const inpLon = safeCastElement(HTMLInputElement,
     <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)} required
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} aria-describedby="lblLon" />)
-  const getCoordsSpin = <div class="input-group-text">
-    <div class="spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">{tr('Please wait')}</span>
-    </div>
-  </div>
-  const btnGetCoords = <button class="btn btn-outline-secondary" type="button" title={tr('Use current location')}>
-    <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
-  const preventClick = (event :Event) => event.preventDefault()
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-secondary" href="#" target="_blank" title={tr('Show on map')}>
       <i class="bi-pin-map"/><span class="visually-hidden">{tr('Show on map')}</span></a>)
-  let curAlert :Alert|null = null
   const grp = <div class="input-group">
     {btnGetCoords}
     <span class="input-group-text" id="lblLat">{tr('Lat')}</span> {inpLat}
@@ -46,6 +40,8 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
     {mapLink}
   </div>
   const el = <div>{grp}</div>
+
+  const preventClick = (event :Event) => event.preventDefault()
   const coordsUpdated = (fire :boolean = false) => {
     const c = new Wgs84Coordinates(coord)
     try {
@@ -79,6 +75,13 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
     inpLon.value = lon.toFixed(WGS84_PRECISION)
     coordsUpdated(true)
   }
+
+  const getCoordsSpin = <div class="input-group-text">
+    <div class="spinner-border spinner-border-sm" role="status">
+      <span class="visually-hidden">{tr('Please wait')}</span>
+    </div>
+  </div>
+  let curAlert :Alert|null = null
   btnGetCoords.addEventListener('click', () => {
     grp.replaceChild(getCoordsSpin, btnGetCoords)
     navigator.geolocation.getCurrentPosition(pos => {
@@ -102,6 +105,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
       curAlert = bsAlert
     }, { maximumAge: 1000*30, timeout: 1000*10, enableHighAccuracy: true })
   })
+
   const pasteHandler = (event :ClipboardEvent) => {
     const txt = event.clipboardData?.getData('text/plain')
     if (txt) {
@@ -109,14 +113,17 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
       if (m) {
         const lat = Number.parseFloat(m[1] ?? '')
         const lon = Number.parseFloat(m[2] ?? '')
-        console.debug('Parsed clipboard', txt, 'to', lat, lon)
-        setCoords(lat, lon)
-        event.preventDefault()
-        event.stopPropagation()
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          console.debug('Parsed clipboard', txt, 'to', lat, lon)
+          setCoords(lat, lon)
+          event.preventDefault()
+          event.stopPropagation()
+        }
       }
     }
   }
   inpLat.addEventListener('paste', pasteHandler)
   inpLon.addEventListener('paste', pasteHandler)
+
   return el
 }
