@@ -23,6 +23,9 @@ import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
+export const CUSTOM_CHANGE_EVENT_NAME = 'custom.change'
+export function newCustomChangeEvent() { return new Event(CUSTOM_CHANGE_EVENT_NAME, { bubbles: false, cancelable :false }) }
+
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = { briefTitle :string,
   new (ctx :GlobalContext, targetStore :AbstractStore<B>, targetObj :B|null): E }
 
@@ -117,6 +120,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         this._savedObj = curObj
         const rv = await this.targetStore.add(curObj)
         console.debug('... added with id',rv)
+        this.el.dispatchEvent(newCustomChangeEvent())
       }
       else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
         console.debug('Saving',curObj,'...')
@@ -124,6 +128,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         this._savedObj = curObj
         const rv = await this.targetStore.upd(prevObj, curObj)
         console.debug('... saved with id',rv)
+        this.el.dispatchEvent(newCustomChangeEvent())
       }
       else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     }
@@ -228,7 +233,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   /** Helper function to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
-  protected makeRow(input :HTMLElement,
+  protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
     label :string, helpText :HTMLElement|string|null, invalidText :HTMLElement|string|null) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
@@ -237,8 +242,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting
     if (helpText)
       input.setAttribute('aria-describedby', helpId)
-    if (!(input instanceof HTMLDivElement))
+    if (input instanceof HTMLDivElement)
+      input.addEventListener(CUSTOM_CHANGE_EVENT_NAME, event => this.el.dispatchEvent(event))
+    else {
+      input.addEventListener('change', () => this.el.dispatchEvent(newCustomChangeEvent()))
       input.classList.add('form-control')
+    }
     return <div class="row mb-3">
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
       <div class="col-sm-9">

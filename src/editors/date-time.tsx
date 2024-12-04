@@ -17,6 +17,7 @@
  */
 import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
+import { newCustomChangeEvent } from './base'
 import { tr } from '../i18n'
 
 export function getTzOffsetStr(date :Date) :string {
@@ -62,14 +63,14 @@ export class DateTimeInput {
     this.input.addEventListener('change', () => {
       const dt = dateTimeLocalInputToDate(this.input)
       this._ts = dt===null ? NO_TIMESTAMP : dt.getTime()
-      this.el.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }))
+      this.el.dispatchEvent(newCustomChangeEvent())
     })
     this.timestamp = this._ts
     const btnNow = <button type="button" class="btn btn-outline-secondary" title={tr('Use current date and time')}>
       <i class="bi-clock me-1"/> {tr('Now')}</button>
     btnNow.addEventListener('click', () => {
       this.timestamp = Date.now()
-      this.el.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }))
+      this.el.dispatchEvent(newCustomChangeEvent())
     })
     this.el = safeCastElement(HTMLDivElement, <div class="input-group"> {btnNow} {this.input} </div>)
   }

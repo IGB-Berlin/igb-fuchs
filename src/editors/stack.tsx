@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { CUSTOM_CHANGE_EVENT_NAME } from './base'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
@@ -125,6 +126,7 @@ export class EditorStack {
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     const histState :HistoryState = { stackLen: newLen }
     history.pushState(histState, '', null)
+    e.el.addEventListener(CUSTOM_CHANGE_EVENT_NAME, () => console.debug('Change!', e.briefTitle, e.unsavedChanges))  //TODO: something useful with this
   }
   pop(e :StackAble) {
     console.debug('Programmatic stack pop requested by editor',e.briefTitle)

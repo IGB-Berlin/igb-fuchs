@@ -17,10 +17,11 @@
  */
 import { IWgs84Coordinates, WGS84_PRC_STEP, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { jsx, safeCastElement } from '../jsx-dom'
+import { newCustomChangeEvent } from './base'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
-export function makeCoordinateEditor(coord :IWgs84Coordinates) {
+export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
 
   const btnGetCoords = <button class="btn btn-outline-secondary" type="button" title={tr('Use current location')}>
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
@@ -39,7 +40,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
     <span class="input-group-text" id="lblLon">{tr('Lon')}</span> {inpLon}
     {mapLink}
   </div>
-  const el = <div>{grp}</div>
+  const el = safeCastElement(HTMLDivElement, <div>{grp}</div>)
 
   const preventClick = (event :Event) => event.preventDefault()
   const coordsUpdated = (fire :boolean = false) => {
@@ -57,7 +58,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) {
       mapLink.addEventListener('click', preventClick)
       return
     }
-    if (fire) el.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }))
+    if (fire) el.dispatchEvent(newCustomChangeEvent())
   }
   coordsUpdated()
   inpLat.addEventListener('change', () => {
