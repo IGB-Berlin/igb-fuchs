@@ -29,8 +29,6 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
-  override readonly fullTitle = tr('Sampling Trip')
-  override readonly briefTitle = tr('Trip')
   protected override readonly initObj :Readonly<SamplingTrip>
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
   protected override readonly onClose :()=>void

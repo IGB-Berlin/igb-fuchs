@@ -29,8 +29,6 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  override readonly fullTitle = tr('Sampling Location Template')
-  override readonly briefTitle = tr('loc-temp')
   protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
   protected override readonly onClose :()=>void

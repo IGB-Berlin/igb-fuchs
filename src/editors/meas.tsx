@@ -27,8 +27,6 @@ import { GlobalContext } from '../main'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
-  override readonly fullTitle = tr('Measurement')
-  override readonly briefTitle = tr('meas')
   protected override readonly initObj :Readonly<Measurement>
   protected override readonly form2obj :()=>Readonly<Measurement>
   protected override readonly onClose :()=>void

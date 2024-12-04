@@ -26,8 +26,6 @@ import { i18n, tr } from '../i18n'
 import { Editor } from './base'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
-  override readonly fullTitle = tr('Sample')
-  override readonly briefTitle = tr('Sample')
   protected override readonly initObj :Readonly<Sample>
   protected override readonly form2obj :()=>Readonly<Sample>
   protected override readonly onClose :()=>void

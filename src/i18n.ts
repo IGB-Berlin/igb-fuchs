@@ -260,8 +260,8 @@ const translations = {
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
   'unsaved-changes': [
-    'Die Eingaben wurden noch nicht gespeichert.',
-    'The changes were not yet saved.'],
+    'Die Änderungen an dem folgenden Datensatz wurden noch nicht gespeichert.',
+    'The changes on the following item were not yet saved.'],
   'cannot-undo-discard': [
     'Verworfene Änderungen können nicht wiederhergestellt werden!',
     'Discarded changes cannot be recovered!' ],

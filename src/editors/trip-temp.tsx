@@ -28,8 +28,6 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
-  override readonly fullTitle = tr('Sampling Trip Template')
-  override readonly briefTitle = tr('trip-temp')
   protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
   protected override readonly onClose :()=>void

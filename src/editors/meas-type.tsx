@@ -24,8 +24,6 @@ import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
-  override readonly fullTitle = tr('Measurement Type')
-  override readonly briefTitle = tr('meas-type')
   protected override readonly initObj :Readonly<MeasurementType>
   protected override readonly form2obj :()=>Readonly<MeasurementType>
   protected override readonly onClose :()=>void = ()=>{}

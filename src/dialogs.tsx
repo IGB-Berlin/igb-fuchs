@@ -40,7 +40,7 @@ export function noStorageAlert() {
 }
 
 type UnsavedChangesResponse = 'save'|'discard'|'cancel'
-export function unsavedChangesQuestion(saveBtnLabel :string = tr('Save')) :Promise<UnsavedChangesResponse> {
+export function unsavedChangesQuestion(saveBtnLabel :string, details :HTMLElement|string) :Promise<UnsavedChangesResponse> {
   let result :UnsavedChangesResponse = 'cancel'
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="unsavedChangesAlertLabel" aria-hidden="true">
@@ -52,14 +52,15 @@ export function unsavedChangesQuestion(saveBtnLabel :string = tr('Save')) :Promi
         </div>
         <div class="modal-body">
           <p><strong>{tr('unsaved-changes')}</strong></p>
-          <p class="mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
+          { details instanceof HTMLElement ? details : <p>{details}</p> }
+          <p class="mt-3 mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='discard'}>
             <i class="bi-trash3-fill"/> {tr('Discard')}</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="bi-x-lg"/> {tr('Cancel')}</button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick={()=>result='save'}>
+          <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick={()=>result='save'}>
             <i class="bi-floppy-fill"/> {saveBtnLabel}</button>
         </div>
       </div>

@@ -25,6 +25,8 @@ interface StackAble {  // the only bits of the Editor class we care about
   readonly briefTitle :string
   readonly fullTitle :string
   readonly unsavedChanges :boolean
+  requestClose() :Promise<boolean>
+  close() :void
 }
 
 interface HistoryState { stackLen :number }
@@ -33,9 +35,10 @@ function isHistoryState(o :unknown) :o is HistoryState {
 
 export class EditorStack {
   readonly el :HTMLElement = <div class="editor-stack"></div>
-  protected readonly navList :HTMLElement = <div class="navbar-nav"></div>
-  protected readonly stack :StackAble[] = []
-  protected redrawNavbar() {
+  private readonly navList :HTMLElement = <div class="navbar-nav"></div>
+  private readonly stack :StackAble[] = []
+  private readonly origTitle = document.title
+  private redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
         const link = <a class="nav-link" href='#' title={s.fullTitle}>{s.briefTitle}</a>
@@ -56,10 +59,26 @@ export class EditorStack {
         }
         return link
       }) )
+    this.restyleNavbar()
+  }
+  private restyleNavbar() {
+    let anyUnsaved = false
+    Array.from(this.navList.children).forEach((l,i) => {
+      assert(l instanceof HTMLAnchorElement)
+      const s = this.stack[i]
+      assert(s)
+      l.classList.toggle('link-warning', s.unsavedChanges)
+      if (s.unsavedChanges) anyUnsaved = true
+    })
+    // I think the following is a mis-detection by eslint?
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    document.title = this.origTitle + (anyUnsaved?'*':'')
   }
   initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
     assert(this.stack.length===0)
-    this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false })
+    // note the home page *always* stays on the stack
+    this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
+      requestClose: () => Promise.resolve(false), close: () => { throw new Error('shouldn\'t happen') } })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -79,37 +98,38 @@ export class EditorStack {
       return undefined
     })
 
-    window.addEventListener('popstate', event => {
+    window.addEventListener('popstate', async event => {
       if (isHistoryState(event.state)) {
-        const targetStackLen = event.state.stackLen
-        if (targetStackLen>=this.stack.length) {  // probably user pressed "Forward" button
-          const howMany = this.stack.length - targetStackLen
-          console.debug('rejecting popstate b/c targetStackLen',targetStackLen,'> stack.length',this.stack.length,'so go',howMany)
-          if (howMany) history.go(howMany)
+        if ( event.state.stackLen === this.stack.length ) {
+          console.debug('ignoring popstate b/c target stackLen',event.state.stackLen,'=== stack.length',this.stack.length)
         }
-        else {
-          const popHowMany = this.stack.length - targetStackLen
-          console.debug('popstate targetStackLen',targetStackLen,'stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
-          for (let i=0;i<popHowMany;i++) {
+        else if ( event.state.stackLen > this.stack.length ) {  // probably user pressed "Forward" button
+          const howMany = this.stack.length - event.state.stackLen
+          console.debug('rejecting popstate b/c target stackLen',event.state.stackLen,'> stack.length',this.stack.length,'so go',howMany)
+          history.go(howMany)
+        }
+        else { // targetStackLen < this.stack.length
+          const popHowMany = this.stack.length - event.state.stackLen
+          console.debug('popstate target stackLen',event.state.stackLen,'< stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
+          for ( let i=0; i<popHowMany; i++ ) {
             assert(this.stack.length>1)
             const top = this.stack.at(-1)
             assert(top)
-            //TODO: This isn't quite working right when there are unsaved changes.
-            if (top.unsavedChanges) {
-              const howMany = popHowMany-1-i
-              console.debug('popping #',i+1,'unsavedChanges so go',howMany)
-              if (howMany) history.go(howMany)
-              break
-            }
+            if (await top.requestClose())
+              this.pop(top)
             else {
-              console.debug('popping #',i+1)
-              this._pop(top)
+              /* The editor did not want to close (b/c there were warnings, validation errors,
+               * or the user canceled, so we need to reject the history for that many editors. */
+              console.debug('editor idx',i,'from top of stack rejected, so go',popHowMany-i)
+              history.go(popHowMany-i)
+              break
             }
           }
         }
       }
       else console.warn('popstate with invalid state',event.state)
     })
+
     const histState :HistoryState = { stackLen: this.stack.length }
     history.replaceState(histState, '', null)
     history.scrollRestoration = 'manual'
@@ -117,33 +137,37 @@ export class EditorStack {
   push(e :StackAble) {
     console.debug('Stack push', e.briefTitle)
     assert(this.stack.length)
+    // hide current top element
     const top = this.stack.at(-1)
     assert(top)
     top.el.classList.add('d-none')
+    // push and display new element
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
     this.redrawNavbar()
     //TODO Later: The title is hidden under the sticky header
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    // save history state
     const histState :HistoryState = { stackLen: newLen }
     history.pushState(histState, '', null)
-    e.el.addEventListener(CustomChangeEvent.NAME, () =>
-      console.debug('Change!', e.briefTitle, e.unsavedChanges))  //TODO: something useful with this
+    // track changes in the new editor
+    e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
   }
-  pop(e :StackAble) {
-    console.debug('Programmatic stack pop requested by editor',e.briefTitle)
-    assert(this.stack.length>1)
-    const top = this.stack.at(-1)
-    assert(top && top.el===e.el)
+  back(e :StackAble) {
+    console.debug('Editor requested its pop', e.briefTitle)
+    assert(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor (paranoia)
     history.go(-1)  // handled by popstate event
   }
-  protected _pop(e :StackAble) {
+  private pop(e :StackAble) {
     console.debug('Stack pop', e.briefTitle)
     assert(this.stack.length>1)
+    // pop and remove the top element
     const del = this.stack.pop()
     assert(del)
     assert(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)  // paranoia
     this.el.removeChild(del.el)
+    del.close()
+    // display the element underneath
     const top = this.stack.at(-1)
     assert(top)
     top.el.classList.remove('d-none')

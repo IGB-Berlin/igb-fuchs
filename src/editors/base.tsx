@@ -38,9 +38,6 @@ export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
-  abstract readonly fullTitle :string
-  /** A brief title of this editor (for navigation). */
-  abstract readonly briefTitle :string
   /** The initial object being edited: either `savedObj`, or a newly created object.
    *
    * This exists because when creating a new object, this base class cannot create new objects,
@@ -50,6 +47,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract readonly form2obj :()=>Readonly<B>
   /** Perform any cleanup the subclass might need to do. */
   protected abstract readonly onClose :()=>void
+
+  get fullTitle() { return this.initObj.typeName('full') }
+  get briefTitle() { return this.initObj.typeName('short') }
 
   protected readonly ctx :GlobalContext
   /** The store in which the object with being edited resides. */
@@ -107,12 +107,17 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         {this.elWarnAlert} {this.elErrAlert}
         <div class="d-flex flex-row justify-content-end flex-wrap"> {btnBack} {btnSave} {this.btnSaveClose} </div>
       </form>)
-    btnBack.addEventListener('click', () => this.requestClose())
+    btnBack.addEventListener('click', () => this.ctx.stack.back(this))
+    this.el.addEventListener(CustomChangeEvent.NAME, () => {
+      const unsaved = this.unsavedChanges
+      btnBack.classList.toggle('btn-secondary', !unsaved)
+      btnBack.classList.toggle('btn-warning', unsaved)
+    })
     btnSave.addEventListener('click', () => this.doSave(false))
     this.form.addEventListener('submit', async event => {
       event.preventDefault()
       event.stopPropagation()
-      await this.doSave(true)
+      if (await this.doSave(true)) this.ctx.stack.back(this)
     })
   }
 
@@ -132,7 +137,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   private prevSaveClickObjState :Readonly<B>|null = null  // for doSave
   /** Perform a save of the object being edited.
    *
-   * @returns `true` if this editor was closed, `false` otherwise.
+   * @param andClose Whether the "Save & Close" button was clicked, but
+   *  *NOT* whether this function should actually perform the close, that's up to the caller!
+   * @returns `true` if this editor can and should be closed, `false` otherwise.
    */
   private async doSave(andClose :boolean) :Promise<boolean> {
     this.form.classList.add('was-validated')
@@ -168,9 +175,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.elWarnAlert.scrollIntoView({ behavior: 'smooth' })
       if (andClose) {  // Button "Save & Close"
         // Did the user click the "Save & Close" button a second time without making changes?
-        if (curObj.equals(this.prevSaveClickObjState))
-        { /* Nothing needed here */ }
-        else { // otherwise, "Save & Close" wasn't clicked before, or there were changes made since the last click
+        if (!curObj.equals(this.prevSaveClickObjState)) { // no, first time or changes were made
           // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
           this.btnSaveClose.setAttribute('disabled','disabled')
           setTimeout(() => this.btnSaveClose.removeAttribute('disabled'), 700)
@@ -211,7 +216,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       await infoDialog('error', tr('Error Saving'), <><p>{tr('save-error-txt')}</p><p class="mb-0">{ex}</p></>)
     }
 
-    if (andClose) this.doClose()
     return andClose
   }
 
@@ -219,7 +223,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   get unsavedChanges() :boolean { return !this.form2obj().equals(this.savedObj ?? this.initObj) }
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this.
    *
-   * @returns `true` if this editor was closed, `false` otherwise.
+   * @returns `true` if this editor can and should be closed, `false` otherwise.
    */
   async requestClose() :Promise<boolean> {
     // Has the user made any changes?
@@ -227,20 +231,18 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     const prevObj = this.savedObj ?? this.initObj
     if ( !curObj.equals(prevObj) ) {
       console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
-      switch( await unsavedChangesQuestion(tr('Save & Close')) ) {
+      switch( await unsavedChangesQuestion(tr('Save & Close'), curObj.summaryAsHtml(true)) ) {
       case 'save': return this.doSave(true)
       case 'cancel': return false
       case 'discard': break
       }
     }
-    this.doClose()
     return true
   }
 
-  /** Close out this editor. */
-  private doClose() {
+  /** Close out this editor after a successful `requestClose`. */
+  close() {
     this.onClose()
-    this.ctx.stack.pop(this)  // removes this editor from the DOM
   }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
@@ -255,7 +257,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     if (helpText)
       input.setAttribute('aria-describedby', helpId)
     if (input instanceof HTMLDivElement)
-      input.addEventListener(CustomChangeEvent.NAME, event => this.el.dispatchEvent(event))
+      input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     else {
       input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))
       input.classList.add('form-control')
