@@ -16,19 +16,18 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ISamplingTrip, ISamplingTripTemplate, isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
-import { SamplingLocationTemplate } from './types/location'
+import { SamplingLocation, SamplingLocationTemplate } from './types/location'
+import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { AbstractStore, HasId, hasId } from './storage'
 import { HasHtmlSummary } from './editors/list-dialog'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
 import { yesNoDialog } from './dialogs'
-import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { i18n, tr } from './i18n'
 
 const IDB_NAME = 'IGB-Field'
 const SELF_TEST_STORE = '_self_test'
-//TODO: Trips and templates don't need to go in separate stores
 const SAMP_TRIPS = 'sampling-trips'
 const TRIP_TEMPLATES = 'trip-templates'
 const FILE_STORE = 'files'
@@ -43,52 +42,134 @@ interface ImportResults {
   errors :string[]
   info :string[]
 }
-class DummyObj implements HasId {
+
+interface IDummyObj {
   readonly id :string
   readonly foo :string
-  constructor(id :string, foo :string) { this.id = id; this.foo = foo }
 }
-function isDummyObj(o :unknown) :o is DummyObj {
+function isIDummyObj(o :unknown) :o is IDummyObj {
   return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
 
+interface IPlaceholder {  // reserved for settings etc. later
+  something :string
+}
+/*function isIPlaceholder(o :unknown) :o is IPlaceholder {
+  return !!( o && typeof o === 'object' ) }*/
+
 interface MyDB extends DBSchema {
-  selfTest :{ key :string, value :DummyObj  },
+  selfTest :{ key :string, value :IDummyObj  },
   samplingTrips :{ key :string, value :ISamplingTrip },
   tripTemplates :{ key :string, value :ISamplingTripTemplate },
   filesTest :{ key :string, value :File },
   files :{ key :string, value :File },
-  general :{ key :string, value :object },  // reserved for settings etc. later
+  general :{ key :string, value :IPlaceholder },
 }
 
-type Class<T> = new (...args: unknown[]) => T
+//type Class<T> = new (...args: unknown[]) => T
 type TypeChecker<T> = (o :unknown) => o is T
 
-class TypedStore<T extends SamplingTrip|SamplingTripTemplate|DummyObj> extends AbstractStore<T> {
+class FileStore {
   private readonly db :IDBPDatabase<MyDB>
   private readonly storeName :StoreNames<MyDB>
-  private readonly cls :Class<T>
+  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>) {
+    this.db = db
+    this.storeName = storeName
+  }
+  async list() :Promise<[string,string][]> {
+    const rv :[string,string][] = []
+    for await (const f of this.asyncList()) rv.push(f)
+    return rv
+  }
+  async* asyncList() :AsyncGenerator<[string,string], void, void> {
+    const tx = this.db.transaction(this.storeName)
+    for await (const cur of tx.store) {
+      if (cur.value instanceof File)
+        yield [cur.key, cur.value.name]
+      else console.warn('Store', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
+    }
+  }
+  async get(key :string) :Promise<File> {
+    const obj = await this.db.get(this.storeName, key)
+    if (!obj) throw new Error(`Key ${key} not found`)
+    if (obj instanceof File) return obj
+    throw new Error(`Store ${this.storeName} object at key ${key} wasn't a file (is ${typeof obj})`)
+  }
+  async add(key :string, file :File) :Promise<void> {
+    await this.db.add(this.storeName, file, key)
+  }
+  async del(key :string) :Promise<void> {
+    const trans = this.db.transaction(this.storeName, 'readwrite')
+    const cur = await trans.store.openCursor(key)
+    if (!cur)  throw new Error(`Key ${key} not found`)
+    await Promise.all([ trans.done, cur.delete() ])
+  }
+}
+
+class TypedIdStore<T extends ISamplingTrip|ISamplingTripTemplate|IDummyObj> extends AbstractStore<T> {
+  private readonly db :IDBPDatabase<MyDB>
+  private readonly storeName :StoreNames<MyDB>
   private readonly typeChecker :TypeChecker<T>
-  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>, cls :Class<T>, typeChecker :TypeChecker<T>) {
+  private readonly modifyCallback :(()=>Promise<void>)|null
+  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>, typeChecker :TypeChecker<T>, modifyCallback :(()=>Promise<void>)|null) {
     super()
     this.db = db
     this.storeName = storeName
-    this.cls = cls
     this.typeChecker = typeChecker
+    this.modifyCallback = modifyCallback
   }
   newId() :string { return crypto.randomUUID() }
-  async *getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never> {
+  async *getAllAsync(except :T|null) :AsyncGenerator<[string,T], void, void> {
     const tx = this.db.transaction(this.storeName)
     for await (const cur of tx.store) {
       if (this.typeChecker(cur.value)) {
         if (!except || except.id!==cur.value.id)
-          //TODO: calling the constructor isn't appropriate for File/object etc.
-          yield [cur.value.id, new this.cls(cur.value)]
-      } else { console.warn('DB value is not an ISamplingTripTemplate', cur.value) }
+          yield [cur.key, cur.value]
+      } else console.warn('Store', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
     }
+  }
+  override async getAll(except :T|null): Promise<[string,T][]> {
+    const rv :[string,T][] = []
+    // Array.fromAsync() was added in 2024, so wait a while before we use that...
+    for await (const r of this.getAllAsync(except)) rv.push(r)
+    return rv
+  }
+  override async get(key :string) :Promise<T> {
+    const obj = await this.db.get(this.storeName, key)
+    if (!obj) throw new Error(`Key ${key} not found`)
+    if (this.typeChecker(obj)) return obj
+    throw new Error(`Store ${this.storeName} object at key ${key} didn't pass type check (${JSON.stringify(obj)})`)
+  }
+  protected override async _add(obj :T) {
+    const rv = await this.db.add(this.storeName, obj)
+    if (this.modifyCallback) await this.modifyCallback()
+    return rv
+  }
+  protected override async _upd(prevObj :T, newObj :T) {
+    const trans = this.db.transaction(this.storeName, 'readwrite')
+    const cur = await trans.store.openCursor(prevObj.id)
+    if (!cur) throw new Error(`Key ${prevObj.id} not found`)
+    await Promise.all([ trans.done, cur.update(newObj) ])
+    if (this.modifyCallback) await this.modifyCallback()
+    return newObj.id
+  }
+  protected override _mod(obj :T) {
+    return this._upd(obj, obj)
+  }
+  protected override async _del(obj :T) {
+    const trans = this.db.transaction(this.storeName, 'readwrite')
+    const cur = await trans.store.openCursor(obj.id)
+    if (!cur) throw new Error(`Key ${obj.id} not found`)
+    await Promise.all([ trans.done, cur.delete() ])
+    if (this.modifyCallback) await this.modifyCallback()
+    return obj.id
+  }
+  async haveKey(key :string) {  //TODO: remove if unused
+    const trans = this.db.transaction(this.storeName, 'readonly')
+    return !!await trans.store.openKeyCursor(key)
   }
 }
 
-export class IdbStorage {
+export class IdbStorage {  //TODO: switch from IndexedStorage to this
 
   static async open() {
     return new IdbStorage( await openDB<MyDB>(IDB_NAME+'2', 1, {  //TODO: remove the "2", it's for debugging
@@ -103,60 +184,85 @@ export class IdbStorage {
     }))
   }
 
-  private readonly db :IDBPDatabase<MyDB>
-  private constructor(db :IDBPDatabase<MyDB>) { this.db = db }
+  private readonly selfTestStore :TypedIdStore<IDummyObj>
+  private readonly fileTestStore :FileStore
+  readonly tripTemplates :TypedIdStore<ISamplingTripTemplate>
+  readonly samplingTrips :TypedIdStore<ISamplingTrip>
+  readonly fileStore :FileStore
+  private constructor(db :IDBPDatabase<MyDB>) {
+    this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, null)
+    this.fileTestStore = new FileStore(db, 'filesTest')
+    this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, ()=>this.updateTemplates())
+    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, ()=>this.updateTemplates())
+    this.fileStore = new FileStore(db, 'files')
+  }
 
-  tripTemplates() :AbstractStore<SamplingTripTemplate> {
-    class TripTempStore extends AbstractStore<SamplingTripTemplate> {
-      protected readonly store :IdbStorage
-      constructor(store :IdbStorage) { super(); this.store = store }
-      newId() :string { return crypto.randomUUID() }
-      async *getAllAsync(except :SamplingTripTemplate|null) :AsyncGenerator<[string, SamplingTripTemplate], void, never> {
-        const tx = this.store.db.transaction('tripTemplates')
-        for await (const cur of tx.store) {
-          if (except && except.id===cur.value.id) continue
-          if (isISamplingTripTemplate(cur.value))
-            yield [cur.value.id, new SamplingTripTemplate(cur.value)]
-          else { console.warn('DB value is not an ISamplingTripTemplate', cur.value) }
-        }
-      }
-      override async getAll(except :SamplingTripTemplate|null) :Promise<[string,SamplingTripTemplate][]> {
-        const tx = this.store.db.transaction('tripTemplates')
-        const rv :SamplingTripTemplate[] = []
-        for await (const cur of tx.store) {
-          if (except && except.id===cur.value.id) continue
-          if (isISamplingTripTemplate(cur.value)) rv.push(new SamplingTripTemplate(cur.value))
-          else { console.warn('Not a SamplingTripTemplate', cur.value) }
-        }
-        return rv.map(o => [o.id, new SamplingTripTemplate(o)])
-      }
-      override async get(id :string) :Promise<SamplingTripTemplate> {
-        const obj = await this.store.db.get('tripTemplates', id)
-        if (!obj) throw new Error(`Key ${id} not found`)
-        if (!isISamplingTripTemplate(obj))
-          new Error(`Result didn't pass type check (${JSON.stringify(obj)})`)
-        return new SamplingTripTemplate(obj)
-      }
-      protected override _add(obj :SamplingTripTemplate) {
-        return this.store.db.add('tripTemplates', obj) }
-      protected override async _upd(prevObj :SamplingTripTemplate, newObj :SamplingTripTemplate) {
-        const trans = this.store.db.transaction('tripTemplates', 'readwrite')
-        const cur = await trans.store.openCursor(prevObj.id)
-        if (!cur) throw new Error(`Key ${prevObj.id} not found`)
-        await Promise.all([ trans.done, cur.update(newObj) ])
-        return newObj.id
-      }
-      protected override _mod(obj :SamplingTripTemplate) {
-        return this._upd(obj, obj) }
-      protected override async _del(obj :SamplingTripTemplate) {
-        const trans = this.store.db.transaction('tripTemplates', 'readwrite')
-        const cur = await trans.store.openCursor(obj.id)
-        if (!cur) throw new Error(`Key ${obj.id} not found`)
-        await Promise.all([ trans.done, cur.delete() ])
-        return obj.id
-      }
+  protected _allLocTemps :SamplingLocationTemplate[] = []
+  /** All location templates, with their samples removed. */
+  get allLocationTemplates() :Readonly<Readonly<SamplingLocationTemplate>[]> { return this._allLocTemps }
+  protected _allSampTemps :SampleTemplate[] = []
+  /** All sample templates. */
+  get allSampleTemplates() :Readonly<Readonly<SampleTemplate>[]> { return this._allSampTemps }
+  protected _allMeasTemps :MeasurementType[] = []
+  /** All measurement templates. */
+  get allMeasurementTemplates() :Readonly<Readonly<MeasurementType>[]> { return this._allMeasTemps }
+
+  async updateTemplates() :Promise<void> {  // this function is expensive
+    const startMs = performance.now()
+    const allTripTs = await this.tripTemplates.getAll(null)
+    const allLoc = allTripTs.flatMap(([_,t]) => t.locations)
+      .concat( ( await this.samplingTrips.getAll(null) ).flatMap(([_,t]) =>
+        t.locations.map(l => new SamplingLocation(l, null).extractTemplate())) )
+    // locations - no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
+    this._allLocTemps = deduplicatedSet( allLoc.map(l => new SamplingLocationTemplate(l).cloneNoSamples()) )
+    this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => new SampleTemplate(s).deepClone()))
+      .concat( allTripTs.flatMap(([_,t]) => t.commonSamples.map(s => new SampleTemplate(s)) ) ) )
+    this._allMeasTemps = deduplicatedSet( this._allSampTemps.flatMap(s => s.measurementTypes.map(m => m.deepClone())) )
+    const durMs = performance.now() - startMs
+    if (durMs>50) console.log('updateTemplates took', durMs, 'ms')
+  }
+
+  async selfTest() :Promise<boolean> {
+    try {
+      if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
+      const d1 :IDummyObj = { id: 'one', foo: 'bar' }
+      try { await this.selfTestStore.upd(d1, d1); return false } catch (_) { /*expected*/ }
+      if ( await this.selfTestStore.add(d1) !== 'one') return false
+      try { await this.selfTestStore.add(d1); return false } catch (_) { /*expected*/ }
+      const all = await this.selfTestStore.getAll(null)
+      if ( all.length!==1 || all[0]?.[0]!=='one' || all[0]?.[1]?.id!=='one' || all[0]?.[1]?.foo!=='bar ') return false
+      if ( (await this.selfTestStore.get('one')).foo !== 'bar' ) return false
+      const d1x :IDummyObj = { id: 'one', foo: 'x' }
+      const d1b :IDummyObj = { id: 'one', foo: 'quz' }
+      if ( await this.selfTestStore.upd(d1x, d1b) !== 'one' ) return false
+      if ( (await this.selfTestStore.get('one')).foo !== 'quz' ) return false
+      if ( (await this.selfTestStore.getAll(null)).length !== 1 ) return false
+      try { await this.selfTestStore.get('two'); return false } catch (_) { /*expected*/ }
+      const d2 :IDummyObj = { id: 'two', foo: 'y' }
+      try { await this.selfTestStore.upd(d2, d1); return false } catch (_) { /*expected*/ }
+      try { await this.selfTestStore.del(d2); return false } catch (_) { /*expected*/ }
+      if ( await this.selfTestStore.del(d1x) !== 'one' ) return false
+      if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
+
+      if ( (await this.fileTestStore.list()).length !== 0 ) return false
+      const f1 = new File(['Hello, World!'], 'test.txt', { type: 'text/plain' })
+      await this.fileTestStore.add('foo', f1)
+      try { await this.fileTestStore.add('foo', f1); return false } catch (_) { /*expected*/ }
+      const fl1 = await this.fileTestStore.list()
+      if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0]?.[1]!=='test.txt' ) return false
+      const f1b = await this.fileTestStore.get('foo')
+      if ( f1b.name!=='test.txt' || await f1b.text() !== 'Hello, World!' ) return false
+      await this.fileTestStore.del('foo')
+      try { await this.fileTestStore.get('foo'); return false } catch (_) { /*expected*/ }
+      try { await this.fileTestStore.del('foo'); return false } catch (_) { /*expected*/ }
+      if ( (await this.fileTestStore.list()).length !== 0 ) return false
+
+      return true
     }
-    return new TripTempStore(this)
+    catch (ex) {
+      console.error(ex)
+      return false
+    }
   }
 
 }
@@ -526,22 +632,22 @@ export class IndexedStorage {
   async selfTest() :Promise<boolean> {
     console.log('Running storage test...')
     try {
-      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
-      const d1 = new DummyObj('one', 'bar')
+      if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 0 ) return false
+      const d1 :IDummyObj = { id: 'one', foo: 'bar' }
       try { await this.upd(SELF_TEST_STORE, d1, d1); return false } catch (_) { /*expected*/ }
       if ( await this.add(SELF_TEST_STORE, d1) !== 'one' ) return false
       try { await this.add(SELF_TEST_STORE, d1); return false } catch (_) { /*expected*/ }
-      const all = await this.getAll(SELF_TEST_STORE, isDummyObj, null)
+      const all = await this.getAll(SELF_TEST_STORE, isIDummyObj, null)
       if ( all.length !== 1 || all[0]?.id !== 'one' || all[0]?.foo !== 'bar' ) return false
-      if ( (await this.get(SELF_TEST_STORE, 'one', isDummyObj)).foo !== 'bar' ) return false
-      if ( await this.upd(SELF_TEST_STORE, new DummyObj('one','x'), new DummyObj('one','quz')) !== 'one' ) return false
-      if ( (await this.get(SELF_TEST_STORE, 'one', isDummyObj)).foo !== 'quz' ) return false
-      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 1 ) return false
-      try { await this.get(SELF_TEST_STORE, 'two', isDummyObj); return false } catch (_) { /*expected*/ }
-      try { await this.upd(SELF_TEST_STORE, new DummyObj('two','x'), d1); return false } catch (_) { /*expected*/ }
-      try { await this.del(SELF_TEST_STORE, new DummyObj('two','x')); return false } catch (_) { /*expected*/ }
-      if ( await this.del(SELF_TEST_STORE, new DummyObj('one','x')) !== 'one' ) return false
-      if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false
+      if ( (await this.get(SELF_TEST_STORE, 'one', isIDummyObj)).foo !== 'bar' ) return false
+      if ( await this.upd(SELF_TEST_STORE, { id: 'one', foo: 'x' } as IDummyObj, { id: 'one', foo: 'quz' } as IDummyObj) !== 'one' ) return false
+      if ( (await this.get(SELF_TEST_STORE, 'one', isIDummyObj)).foo !== 'quz' ) return false
+      if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 1 ) return false
+      try { await this.get(SELF_TEST_STORE, 'two', isIDummyObj); return false } catch (_) { /*expected*/ }
+      try { await this.upd(SELF_TEST_STORE, { id: 'two', foo: 'x' } as IDummyObj, d1); return false } catch (_) { /*expected*/ }
+      try { await this.del(SELF_TEST_STORE, { id: 'two', foo: 'x' } as IDummyObj); return false } catch (_) { /*expected*/ }
+      if ( await this.del(SELF_TEST_STORE, { id: 'one', foo: 'x' } as IDummyObj) !== 'one' ) return false
+      if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 0 ) return false
 
       try { this.fileStore = FILE_TEST_STORE
         if ( (await this.fileList()).length !== 0 ) return false
