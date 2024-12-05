@@ -56,6 +56,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 
+  /*TODO: const storage2 = await IdbStorage.open()
+  if (!await storage2.selfTest()) {
+    noStorageAlert()
+    throw new Error('Storage not available, can\'t continue')
+  }
+  await storage2.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
+  */
+
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)
   igbLogo.addEventListener('click', event => event.preventDefault())  // about dialog is triggered from HTML via Bootstrap
