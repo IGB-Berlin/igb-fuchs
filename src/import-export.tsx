@@ -25,7 +25,7 @@ import { tr } from './i18n'
 export function makeImportExport(ctx :GlobalContext) :HTMLElement {
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
-    <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" />)
+    <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
   const el = <div class="p-3 d-flex flex-column">
     {btnExportAll}
     <div class="mt-1 mb-4">{tr('export-help')}</div>
