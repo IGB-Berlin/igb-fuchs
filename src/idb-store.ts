@@ -23,6 +23,7 @@ import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
 import { yesNoDialog } from './dialogs'
+import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { i18n, tr } from './i18n'
 
 const IDB_NAME = 'IGB-Field'
@@ -41,6 +42,123 @@ interface AllData {
 interface ImportResults {
   errors :string[]
   info :string[]
+}
+class DummyObj implements HasId {
+  readonly id :string
+  readonly foo :string
+  constructor(id :string, foo :string) { this.id = id; this.foo = foo }
+}
+function isDummyObj(o :unknown) :o is DummyObj {
+  return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
+
+interface MyDB extends DBSchema {
+  selfTest :{ key :string, value :DummyObj  },
+  samplingTrips :{ key :string, value :ISamplingTrip },
+  tripTemplates :{ key :string, value :ISamplingTripTemplate },
+  filesTest :{ key :string, value :File },
+  files :{ key :string, value :File },
+  general :{ key :string, value :object },  // reserved for settings etc. later
+}
+
+type Class<T> = new (...args: unknown[]) => T
+type TypeChecker<T> = (o :unknown) => o is T
+
+class TypedStore<T extends SamplingTrip|SamplingTripTemplate|DummyObj> extends AbstractStore<T> {
+  private readonly db :IDBPDatabase<MyDB>
+  private readonly storeName :StoreNames<MyDB>
+  private readonly cls :Class<T>
+  private readonly typeChecker :TypeChecker<T>
+  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>, cls :Class<T>, typeChecker :TypeChecker<T>) {
+    super()
+    this.db = db
+    this.storeName = storeName
+    this.cls = cls
+    this.typeChecker = typeChecker
+  }
+  newId() :string { return crypto.randomUUID() }
+  async *getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never> {
+    const tx = this.db.transaction(this.storeName)
+    for await (const cur of tx.store) {
+      if (this.typeChecker(cur.value)) {
+        if (!except || except.id!==cur.value.id)
+          //TODO: calling the constructor isn't appropriate for File/object etc.
+          yield [cur.value.id, new this.cls(cur.value)]
+      } else { console.warn('DB value is not an ISamplingTripTemplate', cur.value) }
+    }
+  }
+}
+
+export class IdbStorage {
+
+  static async open() {
+    return new IdbStorage( await openDB<MyDB>(IDB_NAME+'2', 1, {  //TODO: remove the "2", it's for debugging
+      upgrade(db) {
+        db.createObjectStore('selfTest', { keyPath: 'id' })
+        db.createObjectStore('tripTemplates', { keyPath: 'id' })
+        db.createObjectStore('samplingTrips', { keyPath: 'id' })
+        db.createObjectStore('filesTest', {})
+        db.createObjectStore('files', {})
+        db.createObjectStore('general', {})
+      }
+    }))
+  }
+
+  private readonly db :IDBPDatabase<MyDB>
+  private constructor(db :IDBPDatabase<MyDB>) { this.db = db }
+
+  tripTemplates() :AbstractStore<SamplingTripTemplate> {
+    class TripTempStore extends AbstractStore<SamplingTripTemplate> {
+      protected readonly store :IdbStorage
+      constructor(store :IdbStorage) { super(); this.store = store }
+      newId() :string { return crypto.randomUUID() }
+      async *getAllAsync(except :SamplingTripTemplate|null) :AsyncGenerator<[string, SamplingTripTemplate], void, never> {
+        const tx = this.store.db.transaction('tripTemplates')
+        for await (const cur of tx.store) {
+          if (except && except.id===cur.value.id) continue
+          if (isISamplingTripTemplate(cur.value))
+            yield [cur.value.id, new SamplingTripTemplate(cur.value)]
+          else { console.warn('DB value is not an ISamplingTripTemplate', cur.value) }
+        }
+      }
+      override async getAll(except :SamplingTripTemplate|null) :Promise<[string,SamplingTripTemplate][]> {
+        const tx = this.store.db.transaction('tripTemplates')
+        const rv :SamplingTripTemplate[] = []
+        for await (const cur of tx.store) {
+          if (except && except.id===cur.value.id) continue
+          if (isISamplingTripTemplate(cur.value)) rv.push(new SamplingTripTemplate(cur.value))
+          else { console.warn('Not a SamplingTripTemplate', cur.value) }
+        }
+        return rv.map(o => [o.id, new SamplingTripTemplate(o)])
+      }
+      override async get(id :string) :Promise<SamplingTripTemplate> {
+        const obj = await this.store.db.get('tripTemplates', id)
+        if (!obj) throw new Error(`Key ${id} not found`)
+        if (!isISamplingTripTemplate(obj))
+          new Error(`Result didn't pass type check (${JSON.stringify(obj)})`)
+        return new SamplingTripTemplate(obj)
+      }
+      protected override _add(obj :SamplingTripTemplate) {
+        return this.store.db.add('tripTemplates', obj) }
+      protected override async _upd(prevObj :SamplingTripTemplate, newObj :SamplingTripTemplate) {
+        const trans = this.store.db.transaction('tripTemplates', 'readwrite')
+        const cur = await trans.store.openCursor(prevObj.id)
+        if (!cur) throw new Error(`Key ${prevObj.id} not found`)
+        await Promise.all([ trans.done, cur.update(newObj) ])
+        return newObj.id
+      }
+      protected override _mod(obj :SamplingTripTemplate) {
+        return this._upd(obj, obj) }
+      protected override async _del(obj :SamplingTripTemplate) {
+        const trans = this.store.db.transaction('tripTemplates', 'readwrite')
+        const cur = await trans.store.openCursor(obj.id)
+        if (!cur) throw new Error(`Key ${obj.id} not found`)
+        await Promise.all([ trans.done, cur.delete() ])
+        return obj.id
+      }
+    }
+    return new TripTempStore(this)
+  }
+
 }
 
 export class IndexedStorage {
@@ -406,13 +524,6 @@ export class IndexedStorage {
 
   /** Test the functionality of IndexedDB so it doesn't blow up on the user later. */
   async selfTest() :Promise<boolean> {
-    class DummyObj implements HasId {
-      readonly id :string
-      readonly foo :string
-      constructor(id :string, foo :string) { this.id = id; this.foo = foo }
-    }
-    function isDummyObj(o :unknown) :o is DummyObj {
-      return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
     console.log('Running storage test...')
     try {
       if ( (await this.getAll(SELF_TEST_STORE, isDummyObj, null)).length !== 0 ) return false

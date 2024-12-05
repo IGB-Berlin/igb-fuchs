@@ -36,6 +36,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "i18n-js": "^4.5.0",
+    "idb": "^8.0.0",
     "papaparse": "^5.4.1"
   }
 }

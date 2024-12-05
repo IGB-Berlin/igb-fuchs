@@ -26,7 +26,7 @@ export function dataSetsEqual<T extends HasEquals>(a :T[], b :T[]) :boolean {
   if (x.length!==y.length) return false
   for (let i = x.length-1; i>=0; i--) {
     if (!y.length) return false
-    for (let j = y.length-1; j>=0; j--) {
+    for (let j = y.length-1; j>=0; j--) {  // expensive search
       if (x[i]?.equals(y[j])) {
         x.splice(i,1)
         y.splice(j,1)

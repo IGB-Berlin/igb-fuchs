@@ -29,24 +29,30 @@ export function hasId(o :unknown) :o is HasId {
 
 export abstract class AbstractStore<T> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
+  //TODO: abstract getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never>
+  /** Return all objects from this store as key/value pairs. */
   abstract getAll(except :T|null) :Promise<[string,T][]>
+  /** Get an object, and throw an error if it is not found. */
   abstract get(id :string) :Promise<T>
   /** If this object is added to the store immediately after this call, this call returns the id the object will have. */
   protected abstract _add(obj :T) :Promise<string>
   protected abstract _mod(obj :T) :Promise<string>
   protected abstract _upd(prevObj :T, newObj :T) :Promise<string>
   protected abstract _del(obj :T) :Promise<string>
+  /** Add an object, and throw an error if it is already in the store. */
   async add(obj :T) :Promise<string> {
     const id = await this._add(obj)
     this.events.fire({ action: 'add', id: id })
     return id
   }
+  /** Replace an object in the store with a new one, throwing an error if the previous object was not in the DB. */
   async upd(prevObj :T, newObj :T) :Promise<string> {
+    //TODO: since IDs shouldn't change on update, should we throw an error if they differ?
     const id = await this._upd(prevObj, newObj)
     this.events.fire({ action: 'upd', id: id })
     return id
   }
-  /** **WARNING:** Deletion will change *other* object's IDs! */
+  /** Delete an object from the store, throwing an error if it is not found. **WARNING:** Deletion will change *other* object's IDs! */
   async del(obj :T) :Promise<string> {
     const id = await this._del(obj)
     this.events.fire({ action: 'del', id: id })
