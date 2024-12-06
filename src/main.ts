@@ -15,12 +15,15 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { internalErrorDialog, noStorageAlert } from './dialogs'
 import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
-import { noStorageAlert } from './dialogs'
 import { IdbStorage } from './idb-store'
 import { assert } from './utils'
+
+window.addEventListener('error', internalErrorDialog)
+window.addEventListener('unhandledrejection', internalErrorDialog)
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
 

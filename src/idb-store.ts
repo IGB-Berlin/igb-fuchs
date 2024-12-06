@@ -285,7 +285,7 @@ export class IdbStorage {
     if ('samplingTrips' in data && data.samplingTrips && typeof data.samplingTrips==='object') {
       let counter = 0
       await Promise.all(Object.entries(data.samplingTrips).map(async ([k,v]) => {
-        if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k}`); return }
+        if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k} (${tr('import-bad-explain')})`); return }
         if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
         try {
           const imp = new SamplingTrip(v, null)
@@ -304,7 +304,7 @@ export class IdbStorage {
     if ('tripTemplates' in data && data.tripTemplates && typeof data.tripTemplates==='object') {
       let counter = 0
       await Promise.all(Object.entries(data.tripTemplates).map(async ([k,v]) => {
-        if (!isISamplingTripTemplate(v)) { rv.errors.push(`${tr('import-bad-temp')}: ${k}`); return }
+        if (!isISamplingTripTemplate(v)) { rv.errors.push(`${tr('import-bad-temp')}: ${k} (${tr('import-bad-explain')})`); return }
         if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
         try {
           const imp = new SamplingTripTemplate(v)

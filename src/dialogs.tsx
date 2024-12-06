@@ -16,8 +16,8 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { HasHtmlSummary } from './types/common'
+import { jsx, jsxFragment } from './jsx-dom'
 import * as bootstrap from 'bootstrap'
-import { jsx } from './jsx-dom'
 import { tr } from './i18n'
 
 export function noStorageAlert() {
@@ -168,6 +168,11 @@ export function yesNoDialog(question :string|HTMLElement, title :string, cancel 
     })
     modal.show()
   })
+}
+
+export function internalErrorDialog(event :ErrorEvent|PromiseRejectionEvent) :Promise<void> {
+  const content = event instanceof ErrorEvent ? <pre>{event.filename}:{event.lineno}:{event.colno}: {event.message}</pre> : <pre>{String(event.reason)}</pre>
+  return infoDialog('error', tr('Error'), <><p>{tr('internal-error')}</p>{content}</>)
 }
 
 type InfoDialogType = 'info'|'warning'|'error'

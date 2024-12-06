@@ -68,6 +68,11 @@ const translations = {
   'import-bad-temp': [
     'Das Objekt mit folgendem Schlüssel wurde nicht als Messfahrt-Vorlage erkannt:',
     'The object with the following key was not recognized as as sampling trip template:' ],
+  'import-bad-explain': [
+    'Dies kann z.B. dann passieren, wenn man einen älteren exportierten Datensatz in eine neuere Version der App lädt.'
+    +' Ggf. muss der Datensatz manuell bearbeitet und ins neue Format gebracht werden, um ihn zu importieren.',
+    'This can happen e.g. when trying to import an older exported dataset into a newer version of the app.'
+    +' The data set may need to be edited manually to convert it to the newer format before it can be imported.' ],
   'import-overwrite': [
     'Das bestehende Objekt mit dem importierten Objekt überschreiben?',
     'Overwrite the existing object with the imported object?' ],
@@ -282,6 +287,9 @@ const translations = {
     'Your browser has not made any storage available. This app cannot be used in "private browsing" mode,'
     +' and make sure you don\'t have any browser plugins enabled that may block content (ad blockers etc.).'
     +' If you do, you need to disable them for this app.' ],
+  'internal-error': [
+    'Ein interner Fehler ist aufgetreten. Bitte diesen Fehler melden, inklusive einer Beschreibung der Schritte, wie es zu diesem Fehler kam - am besten wie er reproduziert werden kann.',
+    'An internal error occurred. Please report this error, including a description of the steps before the error occurred - the best thing is a series of steps of how the error can be reproduced.' ],
 
   // types
   'Sampling Trip': ['Messfahrt'],
