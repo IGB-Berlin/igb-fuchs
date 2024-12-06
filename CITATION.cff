@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: IGB-FUCHS
+message: If you use this software, please cite it using the metadata from this file.
+type: software
+abstract: An Electronic Lab Notebook for Fieldwork.
+url: 'https://fuchs.igb-berlin.de'
+repository-code: 'https://gitlab.igb-berlin.de/haukex/igb-fuchs'
+repository: 'https://github.com/IGB-Berlin/igb-fuchs'
+license: GPL-3.0-or-later
+authors:
+  - given-names: Hauke
+    family-names: Dämpfling
+    email: haukex@zero-g.net
+    affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+    orcid: 'https://orcid.org/0000-0002-0554-757X'
+  - name: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+    alias: IGB Berlin
+    address: Müggelseedamm 310
+    post-code: '12587'
+    city: Berlin
+    country: DE
+    website: 'https://www.igb-berlin.de'
