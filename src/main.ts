@@ -18,7 +18,7 @@
 import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
-import { IndexedStorage } from './idb-store'
+import { IdbStorage, IndexedStorage } from './idb-store'
 import { noStorageAlert } from './dialogs'
 import { assert } from './utils'
 
@@ -56,13 +56,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 
-  /*TODO: const storage2 = await IdbStorage.open()
+  const storage2 = await IdbStorage.open()
   if (!await storage2.selfTest()) {
     noStorageAlert()
     throw new Error('Storage not available, can\'t continue')
   }
   await storage2.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
-  */
 
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)

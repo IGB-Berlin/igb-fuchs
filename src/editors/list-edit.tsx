@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate } from '../types/common'
-import { HasHtmlSummary, listSelectDialog } from './list-dialog'
+import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
 import { AbstractStore, StoreEvent } from '../storage'
+import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
 import { GlobalContext } from '../main'

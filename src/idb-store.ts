@@ -18,12 +18,12 @@
 import { ISamplingTrip, ISamplingTripTemplate, isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
+import { importOverwriteQuestion, yesNoDialog } from './dialogs'
 import { AbstractStore, HasId, hasId } from './storage'
-import { HasHtmlSummary } from './editors/list-dialog'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
+import { HasHtmlSummary } from './types/common'
 import { deduplicatedSet } from './types/set'
-import { yesNoDialog } from './dialogs'
 import { i18n, tr } from './i18n'
 
 const IDB_NAME = 'IGB-Field'
@@ -49,6 +49,14 @@ interface IDummyObj {
 }
 function isIDummyObj(o :unknown) :o is IDummyObj {
   return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
+class DummyObj implements IDummyObj {
+  readonly id
+  readonly foo
+  constructor(o :IDummyObj) {
+    this.id = o.id
+    this.foo = o.foo
+  }
+}
 
 interface IPlaceholder {  // reserved for settings etc. later
   something :string
@@ -65,111 +73,140 @@ interface MyDB extends DBSchema {
   general :{ key :string, value :IPlaceholder },
 }
 
-//type Class<T> = new (...args: unknown[]) => T
-type TypeChecker<T> = (o :unknown) => o is T
-
 class FileStore {
-  private readonly db :IDBPDatabase<MyDB>
-  private readonly storeName :StoreNames<MyDB>
+  private readonly db
+  private readonly storeName
   constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>) {
     this.db = db
     this.storeName = storeName
+  }
+  async* asyncList() :AsyncGenerator<[string,string], void, void> {
+    const tx = this.db.transaction(this.storeName)
+    let goodCount = 0, badCount = 0
+    for await (const cur of tx.store) {
+      if (cur.value instanceof File) {
+        yield [cur.key, cur.value.name]
+        goodCount++
+      }
+      else {
+        console.warn('Store', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
+        badCount++
+      }
+    }
+    console.debug('IDB file.asyncList',this.storeName,'got',goodCount,'bad',badCount)
   }
   async list() :Promise<[string,string][]> {
     const rv :[string,string][] = []
     for await (const f of this.asyncList()) rv.push(f)
     return rv
   }
-  async* asyncList() :AsyncGenerator<[string,string], void, void> {
-    const tx = this.db.transaction(this.storeName)
-    for await (const cur of tx.store) {
-      if (cur.value instanceof File)
-        yield [cur.key, cur.value.name]
-      else console.warn('Store', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
-    }
-  }
   async get(key :string) :Promise<File> {
     const obj = await this.db.get(this.storeName, key)
     if (!obj) throw new Error(`Key ${key} not found`)
-    if (obj instanceof File) return obj
+    if (obj instanceof File) {
+      console.debug('IDB file.get', this.storeName, key, obj.name)
+      return obj
+    }
     throw new Error(`Store ${this.storeName} object at key ${key} wasn't a file (is ${typeof obj})`)
   }
   async add(key :string, file :File) :Promise<void> {
     await this.db.add(this.storeName, file, key)
+    console.debug('IDB file.add', this.storeName, key, file.name)
   }
   async del(key :string) :Promise<void> {
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(key)
-    if (!cur)  throw new Error(`Key ${key} not found`)
+    if (!cur) throw new Error(`Key ${key} not found`)
     await Promise.all([ trans.done, cur.delete() ])
+    console.debug('IDB file.del', this.storeName, key)
   }
 }
 
-class TypedIdStore<T extends ISamplingTrip|ISamplingTripTemplate|IDummyObj> extends AbstractStore<T> {
-  private readonly db :IDBPDatabase<MyDB>
-  private readonly storeName :StoreNames<MyDB>
-  private readonly typeChecker :TypeChecker<T>
-  private readonly modifyCallback :(()=>Promise<void>)|null
-  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>, typeChecker :TypeChecker<T>, modifyCallback :(()=>Promise<void>)|null) {
+class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O extends I> extends AbstractStore<O> {
+  private readonly db
+  private readonly storeName
+  private readonly typeChecker
+  private readonly converter
+  private readonly cbModified
+  constructor(db :IDBPDatabase<MyDB>, storeName :StoreNames<MyDB>, typeChecker :(o:unknown)=>o is I, converter :(o:I)=>O, cbModified :(()=>Promise<void>)|null) {
     super()
     this.db = db
     this.storeName = storeName
     this.typeChecker = typeChecker
-    this.modifyCallback = modifyCallback
+    this.converter = converter
+    this.cbModified = cbModified
   }
   newId() :string { return crypto.randomUUID() }
-  async *getAllAsync(except :T|null) :AsyncGenerator<[string,T], void, void> {
+  async *getAllAsync(except :I|null) :AsyncGenerator<[string,O], void, void> {
     const tx = this.db.transaction(this.storeName)
+    let goodCount = 0, badCount = 0
     for await (const cur of tx.store) {
       if (this.typeChecker(cur.value)) {
         if (!except || except.id!==cur.value.id)
-          yield [cur.key, cur.value]
-      } else console.warn('Store', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
+          yield [cur.key, this.converter(cur.value)]
+        goodCount++
+      } else {
+        console.warn('IDB', this.storeName, 'object at key', cur.key, 'didn\'t pass type checker', cur.value)
+        badCount++
+      }
     }
+    console.debug('IDB getAllAsync',this.storeName,'got',goodCount,'bad',badCount)
   }
-  override async getAll(except :T|null): Promise<[string,T][]> {
-    const rv :[string,T][] = []
+  override async getAll(except :I|null): Promise<[string,O][]> {
+    const rv :[string,O][] = []
     // Array.fromAsync() was added in 2024, so wait a while before we use that...
     for await (const r of this.getAllAsync(except)) rv.push(r)
     return rv
   }
-  override async get(key :string) :Promise<T> {
+  override async get(key :string) :Promise<O> {
     const obj = await this.db.get(this.storeName, key)
     if (!obj) throw new Error(`Key ${key} not found`)
-    if (this.typeChecker(obj)) return obj
+    if (this.typeChecker(obj)) {
+      console.debug('IDB get', this.storeName, obj.id)
+      return this.converter(obj)
+    }
     throw new Error(`Store ${this.storeName} object at key ${key} didn't pass type check (${JSON.stringify(obj)})`)
   }
-  protected override async _add(obj :T) {
+  async tryGet(key :string) :Promise<O|null> {
+    const obj = await this.db.get(this.storeName, key)
+    if (obj===undefined) return null
+    if (this.typeChecker(obj)) {
+      console.debug('IGB tryGet', this.storeName, key)
+      return this.converter(obj)
+    } else console.warn('IDB', this.storeName, 'object at key', key, 'didn\'t pass type checker', obj)
+    return null
+  }
+  protected override async _add(obj :I) {
     const rv = await this.db.add(this.storeName, obj)
-    if (this.modifyCallback) await this.modifyCallback()
+    console.debug('IDB add', this.storeName, obj.id)
+    if (this.cbModified) await this.cbModified()
     return rv
   }
-  protected override async _upd(prevObj :T, newObj :T) {
+  protected override async _upd(prevObj :I, newObj :I) {
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(prevObj.id)
     if (!cur) throw new Error(`Key ${prevObj.id} not found`)
     await Promise.all([ trans.done, cur.update(newObj) ])
-    if (this.modifyCallback) await this.modifyCallback()
+    console.debug('IDB upd', this.storeName, prevObj.id, newObj.id)
+    if (this.cbModified) await this.cbModified()
     return newObj.id
   }
-  protected override _mod(obj :T) {
+  protected override _mod(obj :I) {
     return this._upd(obj, obj)
   }
-  protected override async _del(obj :T) {
+  protected override async _del(obj :I) {
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(obj.id)
     if (!cur) throw new Error(`Key ${obj.id} not found`)
     await Promise.all([ trans.done, cur.delete() ])
-    if (this.modifyCallback) await this.modifyCallback()
+    console.debug('IDB del', this.storeName, obj.id)
+    if (this.cbModified) await this.cbModified()
     return obj.id
-  }
-  async haveKey(key :string) {  //TODO: remove if unused
-    const trans = this.db.transaction(this.storeName, 'readonly')
-    return !!await trans.store.openKeyCursor(key)
   }
 }
 
 export class IdbStorage {  //TODO: switch from IndexedStorage to this
+  // https://github.com/jakearchibald/idb#readme
 
   static async open() {
     return new IdbStorage( await openDB<MyDB>(IDB_NAME+'2', 1, {  //TODO: remove the "2", it's for debugging
@@ -184,26 +221,28 @@ export class IdbStorage {  //TODO: switch from IndexedStorage to this
     }))
   }
 
-  private readonly selfTestStore :TypedIdStore<IDummyObj>
-  private readonly fileTestStore :FileStore
-  readonly tripTemplates :TypedIdStore<ISamplingTripTemplate>
-  readonly samplingTrips :TypedIdStore<ISamplingTrip>
-  readonly fileStore :FileStore
+  private readonly db
+  private readonly selfTestStore
+  private readonly fileTestStore
+  readonly tripTemplates
+  readonly samplingTrips
+  readonly fileStore
   private constructor(db :IDBPDatabase<MyDB>) {
-    this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, null)
+    this.db = db
+    this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, (o:IDummyObj)=>new DummyObj(o), null)
     this.fileTestStore = new FileStore(db, 'filesTest')
-    this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, ()=>this.updateTemplates())
-    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, ()=>this.updateTemplates())
+    this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, (o:ISamplingTripTemplate)=>new SamplingTripTemplate(o), ()=>this.updateTemplates())
+    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, (o:ISamplingTrip)=>new SamplingTrip(o,null), ()=>this.updateTemplates())
     this.fileStore = new FileStore(db, 'files')
   }
 
-  protected _allLocTemps :SamplingLocationTemplate[] = []
+  private _allLocTemps :SamplingLocationTemplate[] = []
   /** All location templates, with their samples removed. */
   get allLocationTemplates() :Readonly<Readonly<SamplingLocationTemplate>[]> { return this._allLocTemps }
-  protected _allSampTemps :SampleTemplate[] = []
+  private _allSampTemps :SampleTemplate[] = []
   /** All sample templates. */
   get allSampleTemplates() :Readonly<Readonly<SampleTemplate>[]> { return this._allSampTemps }
-  protected _allMeasTemps :MeasurementType[] = []
+  private _allMeasTemps :MeasurementType[] = []
   /** All measurement templates. */
   get allMeasurementTemplates() :Readonly<Readonly<MeasurementType>[]> { return this._allMeasTemps }
 
@@ -222,23 +261,89 @@ export class IdbStorage {  //TODO: switch from IndexedStorage to this
     if (durMs>50) console.log('updateTemplates took', durMs, 'ms')
   }
 
+  async export() :Promise<AllData> {
+    const data :AllData = { samplingTrips: {}, tripTemplates: {} }
+    const stores = ['samplingTrips', 'tripTemplates'] as const
+    const trans = this.db.transaction(stores, 'readonly')
+    await Promise.all(stores.map(async storeName => {
+      for await (const cur of trans.objectStore(storeName)) {
+        if (cur.key in data[storeName])
+          console.error('Export: duplicate key, the former will be clobbered:', data[storeName][cur.key], cur.value)
+        // NOTE we're intentionally not type checking here, to allow export of objects after schema changes
+        data[storeName][cur.key] = cur.value
+      } }) )
+    return data
+  }
+
+  async import(data :unknown) :Promise<ImportResults> {
+    /* Note in this function I'm only translating those messages that are *likely* to happen.
+     * I'm also not using a single transaction for everything because that wouldn't work; the
+     * docs for `idb` say: "Do not await other things between the start and end of your
+     * transaction, otherwise the transaction will close before you're done. An IDB transaction
+     * auto-closes if it doesn't have anything left do once microtasks have been processed."
+     * Since we may need to `await` overwrite confirmation dialogs, it would fail. */
+    if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
+    const rv :ImportResults = { info: [], errors: [] }
+
+    if ('samplingTrips' in data && data.samplingTrips && typeof data.samplingTrips==='object') {
+      let counter = 0
+      await Promise.all(Object.entries(data.samplingTrips).map(async ([k,v]) => {
+        if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k}`); return }
+        if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
+        try {
+          const imp = new SamplingTrip(v, null)
+          const have = await this.samplingTrips.tryGet(v.id)
+          if (have) {
+            if (have.equals(v)) { counter++ }  // nothing needed, but just report it as imported b/c I think that's better info for the user (?)
+            else if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
+              await this.samplingTrips.add(imp); counter++ }
+          }
+          else { await this.samplingTrips.add(imp); counter++ }
+        } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
+      }))
+      rv.info.push(i18n.t('import-trip-info', { count: counter }))
+    } else rv.errors.push('No samplingTrips in file, or bad format.')
+
+    if ('tripTemplates' in data && data.tripTemplates && typeof data.tripTemplates==='object') {
+      let counter = 0
+      await Promise.all(Object.entries(data.tripTemplates).map(async ([k,v]) => {
+        if (!isISamplingTripTemplate(v)) { rv.errors.push(`${tr('import-bad-temp')}: ${k}`); return }
+        if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
+        try {
+          const imp = new SamplingTripTemplate(v)
+          const have = await this.tripTemplates.tryGet(v.id)
+          if (have) {
+            if (have.equals(v)) { counter++ }
+            else if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
+              await this.tripTemplates.add(imp); counter++ }
+          }
+          else { await this.tripTemplates.add(imp); counter++ }
+        } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
+      }))
+      rv.info.push(i18n.t('import-temp-info', { count: counter }))
+    } else rv.errors.push('No tripTemplates in file, or bad format.')
+
+    return rv
+  }
+
   async selfTest() :Promise<boolean> {
+    console.log('Running storage test...')
     try {
       if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
-      const d1 :IDummyObj = { id: 'one', foo: 'bar' }
+      const d1 = new DummyObj({ id: 'one', foo: 'bar' })
       try { await this.selfTestStore.upd(d1, d1); return false } catch (_) { /*expected*/ }
       if ( await this.selfTestStore.add(d1) !== 'one') return false
       try { await this.selfTestStore.add(d1); return false } catch (_) { /*expected*/ }
       const all = await this.selfTestStore.getAll(null)
-      if ( all.length!==1 || all[0]?.[0]!=='one' || all[0]?.[1]?.id!=='one' || all[0]?.[1]?.foo!=='bar ') return false
+      if ( all.length!==1 || all[0]?.[0]!=='one' || all[0]?.[1]?.id!=='one' || all[0]?.[1]?.foo!=='bar' ) return false
       if ( (await this.selfTestStore.get('one')).foo !== 'bar' ) return false
-      const d1x :IDummyObj = { id: 'one', foo: 'x' }
-      const d1b :IDummyObj = { id: 'one', foo: 'quz' }
+      const d1x = new DummyObj({ id: 'one', foo: 'x' })
+      const d1b = new DummyObj({ id: 'one', foo: 'quz' })
       if ( await this.selfTestStore.upd(d1x, d1b) !== 'one' ) return false
       if ( (await this.selfTestStore.get('one')).foo !== 'quz' ) return false
       if ( (await this.selfTestStore.getAll(null)).length !== 1 ) return false
       try { await this.selfTestStore.get('two'); return false } catch (_) { /*expected*/ }
-      const d2 :IDummyObj = { id: 'two', foo: 'y' }
+      const d2 = new DummyObj({ id: 'two', foo: 'y' })
       try { await this.selfTestStore.upd(d2, d1); return false } catch (_) { /*expected*/ }
       try { await this.selfTestStore.del(d2); return false } catch (_) { /*expected*/ }
       if ( await this.selfTestStore.del(d1x) !== 'one' ) return false
@@ -257,6 +362,7 @@ export class IdbStorage {  //TODO: switch from IndexedStorage to this
       try { await this.fileTestStore.del('foo'); return false } catch (_) { /*expected*/ }
       if ( (await this.fileTestStore.list()).length !== 0 ) return false
 
+      console.log('... storage test passed!')
       return true
     }
     catch (ex) {
@@ -633,20 +739,20 @@ export class IndexedStorage {
     console.log('Running storage test...')
     try {
       if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 0 ) return false
-      const d1 :IDummyObj = { id: 'one', foo: 'bar' }
+      const d1 = new DummyObj({ id: 'one', foo: 'bar' })
       try { await this.upd(SELF_TEST_STORE, d1, d1); return false } catch (_) { /*expected*/ }
       if ( await this.add(SELF_TEST_STORE, d1) !== 'one' ) return false
       try { await this.add(SELF_TEST_STORE, d1); return false } catch (_) { /*expected*/ }
       const all = await this.getAll(SELF_TEST_STORE, isIDummyObj, null)
       if ( all.length !== 1 || all[0]?.id !== 'one' || all[0]?.foo !== 'bar' ) return false
       if ( (await this.get(SELF_TEST_STORE, 'one', isIDummyObj)).foo !== 'bar' ) return false
-      if ( await this.upd(SELF_TEST_STORE, { id: 'one', foo: 'x' } as IDummyObj, { id: 'one', foo: 'quz' } as IDummyObj) !== 'one' ) return false
+      if ( await this.upd(SELF_TEST_STORE, new DummyObj({ id: 'one', foo: 'x' }), new DummyObj({ id: 'one', foo: 'quz' })) !== 'one' ) return false
       if ( (await this.get(SELF_TEST_STORE, 'one', isIDummyObj)).foo !== 'quz' ) return false
       if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 1 ) return false
       try { await this.get(SELF_TEST_STORE, 'two', isIDummyObj); return false } catch (_) { /*expected*/ }
-      try { await this.upd(SELF_TEST_STORE, { id: 'two', foo: 'x' } as IDummyObj, d1); return false } catch (_) { /*expected*/ }
-      try { await this.del(SELF_TEST_STORE, { id: 'two', foo: 'x' } as IDummyObj); return false } catch (_) { /*expected*/ }
-      if ( await this.del(SELF_TEST_STORE, { id: 'one', foo: 'x' } as IDummyObj) !== 'one' ) return false
+      try { await this.upd(SELF_TEST_STORE, new DummyObj({ id: 'two', foo: 'x' }), d1); return false } catch (_) { /*expected*/ }
+      try { await this.del(SELF_TEST_STORE, new DummyObj({ id: 'two', foo: 'x' })); return false } catch (_) { /*expected*/ }
+      if ( await this.del(SELF_TEST_STORE, new DummyObj({ id: 'one', foo: 'x' })) !== 'one' ) return false
       if ( (await this.getAll(SELF_TEST_STORE, isIDummyObj, null)).length !== 0 ) return false
 
       try { this.fileStore = FILE_TEST_STORE

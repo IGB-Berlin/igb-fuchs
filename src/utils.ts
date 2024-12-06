@@ -19,3 +19,5 @@
 export function assert(condition: unknown, msg?: string): asserts condition {
   if (!condition) throw new Error(msg)
 }
+
+export type Class<T> = new (...args :unknown[]) => T

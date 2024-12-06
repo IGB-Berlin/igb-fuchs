@@ -29,7 +29,7 @@ export function hasId(o :unknown) :o is HasId {
 
 export abstract class AbstractStore<T> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
-  //TODO: abstract getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never>
+  //TODO Later if needed: abstract getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never>
   /** Return all objects from this store as key/value pairs. */
   abstract getAll(except :T|null) :Promise<[string,T][]>
   /** Get an object, and throw an error if it is not found. */

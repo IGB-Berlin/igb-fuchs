@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { HasHtmlSummary } from './types/common'
 import * as bootstrap from 'bootstrap'
 import { jsx } from './jsx-dom'
 import { tr } from './i18n'
@@ -113,6 +114,20 @@ export function deleteConfirmation(desc :string|HTMLElement) :Promise<DeletionCo
     })
     modal.show()
   })
+}
+
+/** For use during data import as the contents of a yesNoDialog */
+export function importOverwriteQuestion(have :HasHtmlSummary, imp :HasHtmlSummary) :HTMLElement {
+  const h = have.summaryAsHtml(true)  // we know this is a flex-row div
+  h.classList.add('mb-3')
+  h.insertAdjacentElement('afterbegin',
+    <div class="fw-semibold text-success-emphasis">{tr('Existing object')}:</div>)
+  const i = imp.summaryAsHtml(true)
+  i.insertAdjacentElement('afterbegin',
+    <div class="fw-semibold text-warning-emphasis">{tr('Imported object')}:</div>)
+  return <div>
+    <p class="fw-bold text-danger-emphasis">{tr('import-overwrite')}</p>
+    {h} {i} </div>
 }
 
 type YesNoResult = 'yes'|'no'|'cancel'

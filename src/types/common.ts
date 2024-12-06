@@ -17,7 +17,9 @@
  */
 import { tr } from '../i18n'
 
-export abstract class DataObjectBase<B extends DataObjectBase<B>> {
+export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
+
+export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary {
   /** Return the display name of this type. */
   abstract typeName(kind :'full'|'short') :string
   /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description */

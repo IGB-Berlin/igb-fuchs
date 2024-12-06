@@ -15,12 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
+import { HasHtmlSummary } from '../types/common'
 import * as bootstrap from 'bootstrap'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
-
-export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
 export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
