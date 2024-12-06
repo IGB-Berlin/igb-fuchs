@@ -46,6 +46,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     })
     const grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
+    //TODO: Option to hide help texts
     const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
       pattern={obj.type.validPattern} value={obj.value} required />)
     inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
@@ -57,6 +58,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     /* TODO Later: Should we disallow edits to "Description" in general?
      * This might especially make sense when all objects store a copy of their template.
      * Perhaps even change the terminology to reflect that. */
+    //TODO: Don't display description when empty
     const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const inpTime = new DateTimeInput(obj.time, true)

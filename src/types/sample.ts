@@ -23,6 +23,7 @@ import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
 export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
+  //TODO: general 'surface-water'
   'surface-water-stream', 'surface-water-pond', 'ground-water', 'water-precipitation',
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger',
 ] as const

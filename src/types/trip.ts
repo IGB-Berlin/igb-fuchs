@@ -168,6 +168,7 @@ export interface ISamplingTripTemplate extends HasId {
   description ?:string|null
   locations :ISamplingLocationTemplate[]
   commonSamples :ISampleTemplate[]
+  //TODO: Checklist (Packliste)
 }
 export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
   if (!o || typeof o !== 'object') return false

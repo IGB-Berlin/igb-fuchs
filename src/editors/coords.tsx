@@ -47,6 +47,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
     const c = new Wgs84Coordinates(coord)
     try {
       c.validate([])
+      //TODO: On mobile, how to open location in *any* navigation app?
       // No error thrown: These are valid coords, so enable the maps link:
       //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       // https://developers.google.com/maps/documentation/urls/get-started#search-action

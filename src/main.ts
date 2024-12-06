@@ -22,6 +22,8 @@ import { EditorStack } from './editors/stack'
 import { IdbStorage } from './idb-store'
 import { assert } from './utils'
 
+//TODO: Alpha version notice
+
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
 

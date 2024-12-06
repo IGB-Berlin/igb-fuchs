@@ -126,6 +126,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.selId = id
       this.enable(this.globalEnabled)
     }
+    //TODO: Buttons to change order
     const theUl = <ul class="list-group mb-2"></ul>
     const redrawList = async (selAfter :string|null = null) => {
       const theList = await this.theStore.getAll(null)
