@@ -56,6 +56,8 @@ export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
   return true
 }
+/* TODO Later: For the future, when this project is released and changes happen to the schema,
+ * there should be a Migrator class that upgrades/converts older objects to newer ones. */
 
 /** Records an entire sampling trip. */
 export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {

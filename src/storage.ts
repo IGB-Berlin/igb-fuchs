@@ -69,6 +69,10 @@ export abstract class AbstractStore<T> {
 }
 
 export class ArrayStore<T> extends AbstractStore<T> {
+  /* TODO Later: ArrayStore is a bit inefficient, can it be removed so we can allow ListEditors to edit arrays directly? (maybe two ListEditor subclasses?)
+   * Similarly, Editor just does two operations on targetStore (add/upd/mod), perhaps it can get an abstraction object?
+   * For that abstraction, do *all* objects need an id/idx ? If not, can probably remove the .id and just use keys?
+   * */
   protected array :T[]
   constructor(array :T[]) { super(); this.array = array }
   protected idx(obj :T) :number {

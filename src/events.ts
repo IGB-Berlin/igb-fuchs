@@ -16,9 +16,18 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+export class CustomChangeEvent extends Event {
+  static NAME = 'custom.change'
+  constructor() {
+    super(CustomChangeEvent.NAME, { bubbles: false, cancelable :false })
+  }
+}
+
 type EventHandler<T extends object> = (event :T) => void
 
 export class SimpleEventHub<T extends object> {
+  /* TODO Later: Can SimpleEventHub be replaced by a 'custom.save' Event on ListEditor and Editor's .el?
+   * (Editor and ListEditor just need to be passed their parent?) */
   protected readonly listeners :EventHandler<T>[] = []
   //TODO Later: Audit that all added event handlers are also removed.
   /** Add an event listener. */

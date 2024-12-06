@@ -17,7 +17,7 @@
  */
 import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { CustomChangeEvent } from './base'
+import { CustomChangeEvent } from '../events'
 import { tr } from '../i18n'
 
 export function getTzOffsetStr(date :Date) :string {

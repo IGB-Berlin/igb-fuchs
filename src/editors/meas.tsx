@@ -18,12 +18,13 @@
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { MeasurementType } from '../types/meas-type'
-import { Editor, CustomChangeEvent } from './base'
 import { listSelectDialog } from './list-dialog'
+import { CustomChangeEvent } from '../events'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
 import { GlobalContext } from '../main'
+import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
@@ -53,6 +54,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const lblRange = <span></span>
     const lblPrc = <span></span>
 
+    /* TODO Later: Should we disallow edits to "Description" in general?
+     * This might especially make sense when all objects store a copy of their template.
+     * Perhaps even change the terminology to reflect that. */
     const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const inpTime = new DateTimeInput(obj.time, true)

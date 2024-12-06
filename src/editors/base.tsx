@@ -18,17 +18,11 @@
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
+import { CustomChangeEvent } from '../events'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { tr } from '../i18n'
-
-export class CustomChangeEvent extends Event {
-  static NAME = 'custom.change'
-  constructor() {
-    super(CustomChangeEvent.NAME, { bubbles: false, cancelable :false })
-  }
-}
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
@@ -51,9 +45,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   get fullTitle() { return this.initObj.typeName('full') }
   get briefTitle() { return this.initObj.typeName('short') }
 
-  protected readonly ctx :GlobalContext
+  protected readonly ctx
   /** The store in which the object with being edited resides. */
-  private readonly targetStore :AbstractStore<B>
+  private readonly targetStore
   /** The event hub of the store in which the object being edited resides. */
   get targetEvents() { return this.targetStore.events }
 
@@ -131,7 +125,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** To be called by subclasses to report when any of the lists they're editing have changed. */
   protected async reportMod() {
     if (this.savedObj!==null) await this.targetStore.mod(this.savedObj)
-    else console.warn('reportSelfChange ignored because savedObj is null')
+    else console.warn('reportMod ignored because savedObj is null')
   }
 
   private prevSaveClickObjState :Readonly<B>|null = null  // for doSave

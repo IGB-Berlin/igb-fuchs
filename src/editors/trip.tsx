@@ -41,7 +41,10 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
      * and re-opening the object causes it to be reloaded from the DB without its template association.
      * A workaround might be to move the following "getPlannedLocs" into the SamplingTrip class and add
      * a warning when trying to save a trip with locations remaining (the same could be done for all other
-     * "planned" template lists). */
+     * "planned" template lists).
+     * But the better solution is that objects with a template should "officially" store a copy of their template;
+     * then, as e.g. Locations are added to the samplingTrip, they are removed from its stored tripTemplate.
+     * */
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)

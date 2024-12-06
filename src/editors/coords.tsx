@@ -17,7 +17,7 @@
  */
 import { IWgs84Coordinates, WGS84_PRC_STEP, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { CustomChangeEvent } from './base'
+import { CustomChangeEvent } from '../events'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
