@@ -1,4 +1,13 @@
 {
+  "name": "igb-fuchs",
+  "displayName": "IGB-FUCHS",
+  "version": "0.0.1-alpha",
+  "description": "An Electronic Lab Notebook for Fieldwork",
+  "author": {
+    "name": "Hauke Dämpfling at the IGB Berlin",
+    "email": "haukex@zero-g.net"
+  },
+  "license": "GPL-3.0-or-later",
   "source": "src/index.html",
   "browserslist": "defaults",
   "type": "module",
@@ -12,9 +21,11 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@jest/globals": "^29.2.5",
+    "@parcel/packager-raw-url": "^2.13.2",
     "@parcel/transformer-inline-string": "^2.13.2",
     "@parcel/transformer-sass": "^2.13.0",
     "@parcel/transformer-typescript-tsc": "^2.13.0",
+    "@parcel/transformer-webmanifest": "^2.13.2",
     "@stylistic/eslint-plugin": "^2.11.0",
     "@types/bootstrap": "^5.2.10",
     "@types/node": "^22.9.1",
