@@ -18,8 +18,8 @@
 import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
-import { IdbStorage, IndexedStorage } from './idb-store'
 import { noStorageAlert } from './dialogs'
+import { IdbStorage } from './idb-store'
 import { assert } from './utils'
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
@@ -40,28 +40,21 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
 window.addEventListener('DOMContentLoaded', setTheme)
 
 export class GlobalContext {
-  readonly storage :IndexedStorage
-  readonly stack :EditorStack
-  constructor(storage :IndexedStorage, stack :EditorStack) {
+  readonly storage
+  readonly stack
+  constructor(storage :IdbStorage, stack :EditorStack) {
     this.storage = storage
     this.stack = stack
   }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const storage = await IndexedStorage.open()
+  const storage = await IdbStorage.open()
   if (!await storage.selfTest()) {
     noStorageAlert()
     throw new Error('Storage not available, can\'t continue')
   }
   await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
-
-  const storage2 = await IdbStorage.open()
-  if (!await storage2.selfTest()) {
-    noStorageAlert()
-    throw new Error('Storage not available, can\'t continue')
-  }
-  await storage2.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)

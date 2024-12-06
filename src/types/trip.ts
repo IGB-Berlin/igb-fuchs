@@ -20,7 +20,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
-import { IndexedStorage } from '../idb-store'
+import { IdbStorage } from '../idb-store'
 import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { HasId } from '../storage'
@@ -73,7 +73,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   readonly template :SamplingTripTemplate|null
   constructor(o :ISamplingTrip|null, template :SamplingTripTemplate|null) {
     super()
-    this.id = o===null ? IndexedStorage.newSamplingTripId() : o.id
+    this.id = o===null ? IdbStorage.newSamplingTripId() : o.id
     this.name = o?.name ?? ''
     this.description = o &&'description' in o && o.description!==null ? o.description.trim() : ''
     this.startTime = o?.startTime ?? NO_TIMESTAMP
@@ -148,7 +148,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       l0 && locs.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
     if (allLocsHaveSameSamples) locs.forEach(l => l.samples.length = 0)
     const common = allLocsHaveSameSamples ? l0.samples : []
-    return new SamplingTripTemplate({ id: IndexedStorage.newTripTemplateId(),
+    return new SamplingTripTemplate({ id: IdbStorage.newTripTemplateId(),
       name: this.name, description: this.description.trim(),
       locations: locs, commonSamples: common })
   }
@@ -190,7 +190,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   commonSamples :SampleTemplate[]
   constructor(o :ISamplingTripTemplate|null) {
     super()
-    this.id = o===null ? IndexedStorage.newTripTemplateId() : o.id
+    this.id = o===null ? IdbStorage.newTripTemplateId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
     this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
@@ -226,7 +226,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return rv
   }
   override templateToObject() :SamplingTrip {
-    const rv :ISamplingTrip = { id: IndexedStorage.newSamplingTripId(),
+    const rv :ISamplingTrip = { id: IdbStorage.newSamplingTripId(),
       name: this.name, locations: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() }
     if (this.description.trim().length) rv.description = this.description.trim()

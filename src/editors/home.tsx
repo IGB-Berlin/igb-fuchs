@@ -48,12 +48,12 @@ export function makeHomePage(ctx :GlobalContext) {
   const btnShare = safeCastElement(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
 
-  const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips(), SamplingTripEditor, tr('new-trip-from-temp'),
-    async () => (await ctx.storage.tripTemplates().getAll(null)).map(([_,t])=>t), null)
+  const stEdit = new ListEditorWithTemp(ctx, ctx.storage.samplingTrips, SamplingTripEditor, tr('new-trip-from-temp'),
+    async () => (await ctx.storage.tripTemplates.getAll(null)).map(([_,t])=>t), null)
   stEdit.enable(true)
   stEdit.addButton(btnShare, (obj :SamplingTrip) => shareFile(tripToCsvFile(obj)))
 
-  const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates(), TripTemplateEditor)
+  const ttEdit = new ListEditor(ctx, ctx.storage.tripTemplates, TripTemplateEditor)
   ttEdit.enable(true)
 
   const inpExp = makeImportExport(ctx)
