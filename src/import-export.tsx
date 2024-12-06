@@ -37,6 +37,7 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     <div class="mt-1">{tr('import-help')}</div>
   </div>
 
+  //TODO: The "export all" button only works once on Chrome for Android
   btnExportAll.addEventListener('click', async () =>
     //TODO Later: Perhaps include a date in the filename
     shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-fuchs.json', { type: 'application/json' } ) ) )
