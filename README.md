@@ -1,7 +1,7 @@
 IGB-FUCHS
 =========
 
-**<https://igb-berlin.github.io/igb-fuchs>**
+**<https://fuchs.igb-berlin.de>**
 
 This is an Electronic Lab Notebook for Fieldwork developed at the
 Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB).
