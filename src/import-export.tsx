@@ -1,19 +1,19 @@
-/** IGB-Field
+/** This file is part of IGB-FUCHS.
  *
  * Copyright © 2024 Hauke Dämpfling (haukex@zero-g.net)
  * at the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB),
  * Berlin, Germany, <https://www.igb-berlin.de/>
  *
- * This program is free software: you can redistribute it and/or modify it under
+ * IGB-FUCHS is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
+ * IGB-FUCHS is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <https://www.gnu.org/licenses/>.
+ * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { GlobalContext } from './main'
@@ -38,7 +38,8 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
   </div>
 
   btnExportAll.addEventListener('click', async () =>
-    shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-field.json', { type: 'application/json' } ) ) )
+    //TODO Later: Perhaps include a date in the filename
+    shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-fuchs.json', { type: 'application/json' } ) ) )
 
   inpImportFile.addEventListener('change', async () => {
     const files = inpImportFile.files
