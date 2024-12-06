@@ -54,8 +54,8 @@ function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
  */
 export class DateTimeInput {
   readonly el :HTMLDivElement
-  protected _ts :Timestamp
-  protected input :HTMLInputElement
+  private _ts :Timestamp
+  private readonly input
   constructor(initialTs :Timestamp|null, required :boolean) {
     this._ts = isTimestamp(initialTs) && isValidAndSetTs(initialTs) ? initialTs : NO_TIMESTAMP
     this.input = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local" />)

@@ -28,7 +28,7 @@ type EventHandler<T extends object> = (event :T) => void
 export class SimpleEventHub<T extends object> {
   /* TODO Later: Can SimpleEventHub be replaced by a 'custom.save' Event on ListEditor and Editor's .el?
    * (Editor and ListEditor just need to be passed their parent?) */
-  protected readonly listeners :EventHandler<T>[] = []
+  private readonly listeners :EventHandler<T>[] = []
   //TODO Later: Audit that all added event handlers are also removed.
   /** Add an event listener. */
   add(handler :EventHandler<T>) {

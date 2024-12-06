@@ -16,14 +16,13 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate,
-  validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual } from './common'
+  validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual, HasId } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
 import { IdbStorage } from '../idb-store'
 import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
-import { HasId } from '../storage'
 import { assert } from '../utils'
 
 export interface ISamplingTrip extends HasId {

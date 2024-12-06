@@ -23,10 +23,6 @@ export interface StoreEvent {
   id :string
 }
 
-export type HasId = { readonly id :string }
-export function hasId(o :unknown) :o is HasId {
-  return !!( o && typeof o === 'object' && 'id' in o && typeof o.id === 'string' ) }
-
 export abstract class AbstractStore<T> {
   readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
   //TODO Later if needed: abstract getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never>
@@ -71,11 +67,10 @@ export abstract class AbstractStore<T> {
 export class ArrayStore<T> extends AbstractStore<T> {
   /* TODO Later: ArrayStore is a bit inefficient, can it be removed so we can allow ListEditors to edit arrays directly? (maybe two ListEditor subclasses?)
    * Similarly, Editor just does two operations on targetStore (add/upd/mod), perhaps it can get an abstraction object?
-   * For that abstraction, do *all* objects need an id/idx ? If not, can probably remove the .id and just use keys?
-   * */
-  protected array :T[]
+   * For that abstraction, do *all* objects need an id/idx ? If not, can probably remove the .id and just use keys? */
+  private array
   constructor(array :T[]) { super(); this.array = array }
-  protected idx(obj :T) :number {
+  private idx(obj :T) :number {
     const idx = this.array.findIndex(o => Object.is(o,obj))
     if (idx<0) throw new Error('Object not found in store')
     assert(idx<this.array.length)
