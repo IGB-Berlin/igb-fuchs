@@ -292,10 +292,10 @@ const translations = {
     'An internal error occurred. Please report this error, including a description of the steps before the error occurred - the best thing is a series of steps of how the error can be reproduced.' ],
   'beta-warning-title': [ 'ACHTUNG: Alpha-Testversion!', 'WARNING: Alpha Test Version!' ],
   'beta-warning-text': [
-    'Dies is eine Alpha-Testversion, welche sicherlich noch einige Fehler enthält. Es darf KEINE DATENSICHERHEIT angenommen werden. Es sollten immer regelmäßig Backups'
+    'Dies is eine junge Alpha-Testversion, welche sicherlich noch einige Fehler enthält. Es darf KEINE DATENSICHERHEIT angenommen werden. Es sollten immer regelmäßig Backups'
     +' mit der "Export" Funktion erstellt werden, allerdings ist sehr wahrscheinlich, dass diese Backups dann NICHT wieder eingelesen werden können, wenn neue Versionen'
     +' der App herausgegeben werden. Sobald die App die Testphase verlässt und das Datenformat stabil ist, wird diese Meldung entsprechend aktualisiert.',
-    'This is an alpha testing version, which certainly still contains bugs. Please assume that ANY DATA IS NOT SECURE. You should always perform regular backups'
+    'This is an early alpha testing version, which certainly still contains bugs. Please assume that ANY DATA IS NOT SECURE. You should always perform regular backups'
     +' via the "Export" function, however, it is very likely that you will not be able to restore these backups when new versions of this app are released.'
     +' As soon as the testing phase is completed and the data format has been stabilized, this message will be updated accordingly.' ],
   'beta-warning-dismiss': [

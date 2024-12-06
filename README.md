@@ -1,9 +1,23 @@
 IGB-FUCHS
 =========
 
-Hello, World!
+**<https://igb-berlin.github.io/igb-fuchs>**
 
-**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem
+This is an Electronic Lab Notebook for Fieldwork developed at the
+Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB).
+
+The name is a German acronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem".
+
+Alpha Version
+-------------
+
+This is an **alpha testing version** in the early stages, which certainly still contains bugs.
+
+Please assume that **ANY DATA IS NOT SECURE**.
+You should always perform regular backups via the "Export" function, **however,**
+it is very likely that you will not be able to restore these backups when new versions of this app are released.
+
+As soon as the testing phase is completed and the data format has been stabilized, this message will be updated accordingly.
 
 
 Author, Copyright, and License
