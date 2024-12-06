@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { internalErrorDialog, noStorageAlert } from './dialogs'
+import { betaWarning, internalErrorDialog, noStorageAlert } from './dialogs'
 import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
@@ -77,4 +77,5 @@ window.addEventListener('DOMContentLoaded', async () => {
   assert(licensesText instanceof HTMLElement)
   licensesText.innerText = licenses_txt.trim()
 
+  await betaWarning(ctx)
 })

@@ -17,6 +17,7 @@
  */
 import { HasHtmlSummary } from './types/common'
 import { jsx, jsxFragment } from './jsx-dom'
+import { GlobalContext } from './main'
 import * as bootstrap from 'bootstrap'
 import { tr } from './i18n'
 
@@ -205,4 +206,40 @@ export function infoDialog(type :InfoDialogType, title :string, content :string|
     })
     modal.show()
   })
+}
+
+export async function betaWarning(ctx :GlobalContext) :Promise<void> {
+  const sett = await ctx.storage.settings.get()
+  if (Number.isFinite(sett.hideBetaWarningUntilTimeMs) && Date.now()<sett.hideBetaWarningUntilTimeMs)
+    return
+  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
+    class="modal fade" tabindex="-1" aria-labelledby="betaWarningLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header text-bg-danger">
+          <h1 class="modal-title fs-5" id="betaWarningLabel">
+            <i class="bi-exclamation-triangle-fill" /> {tr('beta-warning-title')}</h1>
+        </div>
+        <div class="modal-body">
+          <p class="fw-bold text-warning-emphasis">{tr('beta-warning-text')}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">
+            <i class="bi-exclamation-triangle"/> {tr('beta-warning-dismiss')}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  document.body.appendChild(dialog)
+  await new Promise<void>(resolve => {
+    const modal = new bootstrap.Modal(dialog)
+    dialog.addEventListener('hidden.bs.modal', () => {
+      modal.dispose()
+      document.body.removeChild(dialog)
+      resolve()
+    })
+    modal.show()
+  })
+  sett.hideBetaWarningUntilTimeMs = Date.now() + 1000*60*60*24*7
+  await ctx.storage.settings.save(sett)
 }

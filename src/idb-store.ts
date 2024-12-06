@@ -53,11 +53,12 @@ class DummyObj implements IDummyObj {
   }
 }
 
-interface IPlaceholder {  // reserved for settings etc. later
-  something :string
+interface ISettings {
+  // NOTE! If we add more keys here, we should probably update Settings to allow getting/setting individual keys.
+  hideBetaWarningUntilTimeMs :number
 }
-/*function isIPlaceholder(o :unknown) :o is IPlaceholder {
-  return !!( o && typeof o === 'object' ) }*/
+function isISettings(o :unknown) :o is ISettings {
+  return !!( o && typeof o === 'object' && 'hideBetaWarningUntilTimeMs' in o && typeof o.hideBetaWarningUntilTimeMs === 'number' ) }
 
 interface MyDB extends DBSchema {
   selfTest :{ key :string, value :IDummyObj  },
@@ -65,7 +66,26 @@ interface MyDB extends DBSchema {
   tripTemplates :{ key :string, value :ISamplingTripTemplate },
   filesTest :{ key :string, value :File },
   files :{ key :string, value :File },
-  general :{ key :string, value :IPlaceholder },
+  general :{ key :string, value :ISettings },
+}
+
+class Settings {
+  static KEY = 'settings'
+  private readonly db
+  constructor(db :IDBPDatabase<MyDB>) { this.db = db }
+  async get() :Promise<ISettings> {
+    const s = await this.db.get('general', Settings.KEY)
+    if (s) {
+      if (isISettings(s)) return s
+      else console.error('isISettings failed', s)
+    }
+    return {
+      hideBetaWarningUntilTimeMs: -Infinity
+    }
+  }
+  save(s :ISettings) {
+    return this.db.put('general', s, Settings.KEY)
+  }
 }
 
 class FileStore {
@@ -224,6 +244,7 @@ export class IdbStorage {
   readonly tripTemplates
   readonly samplingTrips
   readonly fileStore
+  readonly settings
   private constructor(db :IDBPDatabase<MyDB>) {
     this.db = db
     this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, (o:IDummyObj)=>new DummyObj(o), null)
@@ -231,6 +252,7 @@ export class IdbStorage {
     this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, (o:ISamplingTripTemplate)=>new SamplingTripTemplate(o), ()=>this.updateTemplates())
     this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, (o:ISamplingTrip)=>new SamplingTrip(o,null), ()=>this.updateTemplates())
     this.fileStore = new FileStore(db, 'files')
+    this.settings = new Settings(db)
   }
 
   private _allLocTemps :SamplingLocationTemplate[] = []
