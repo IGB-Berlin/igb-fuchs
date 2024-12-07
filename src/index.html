@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,65 +15,53 @@
     import './main.ts';
   </script>
 </head>
-<body>
-  <div class="modal fade" id="aboutDialog" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true" lang="en">
+<!-- The data-selected-language attribute is updated from code; CSS hides/shows elements accordingly. -->
+<body data-selected-language="en">
+  <div class="modal fade" id="aboutDialog" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="aboutModalLabel">
-            <img src="images/IGB_BM_farbe_pos.svg" class="align-middle d-ib-light" height="28" alt="Logo" />
-            <img src="images/IGB_BM_farbe_neg.svg" class="align-middle d-ib-dark" height="28" alt="Logo" />
+            <img src="images/IGB_BM_farbe_pos.svg" class="align-middle d-ib-light" height="28" alt="Logo">
+            <img src="images/IGB_BM_farbe_neg.svg" class="align-middle d-ib-dark" height="28" alt="Logo">
             <span class="fw-bolder"><span class="text-igb-green">IGB</span>-<span class="text-leibniz-blue">FUCHS</span></span>
             <span class="text-uppercase text-danger fs-6">Alpha</span>
-            <em class="fs-6 ms-2"><strong>F</strong>eld- und <strong>U</strong>mweltdaten-<strong>Ch</strong>eck-<strong>S</strong>ystem</em>
           </h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <!-- TODO Later: The About dialog is a little messy with the two languages. How to best clean up?
-          Two different dialogs for the two languages, but there are some parts that we don't want to repeat... -->
         <div class="modal-body">
+          <p><small><em><strong>F</strong>eld- und <strong>U</strong>mweltdaten-<strong>Ch</strong>eck-<strong>S</strong>ystem</em></small></p>
           <p>Version: <code id="appVersion">(unknown)</code></p>
-          <p>Copyright &copy; 2024 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
+          <p lang="en">Copyright &copy; 2024 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
             at the <a href="https://www.igb-berlin.de/en" target="_blank">Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB)</a>,
-            Berlin, Germany (🇩🇪 <a href="https://www.igb-berlin.de/" target="_blank">Leibniz-Institut für Gewässerökologie und
-            Binnenfischerei (IGB) im Forschungsverbund Berlin e.V.</a>)</p>
+            Berlin, Germany</p>
+          <p lang="de">Copyright &copy; 2024 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
+            am <a href="https://www.igb-berlin.de/" target="_blank">Leibniz-Institut für Gewässerökologie und
+            Binnenfischerei (IGB) im Forschungsverbund Berlin e.V.</a></p>
           <div class="accordion" id="aboutAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHelpEn"
-                    aria-expanded="false" aria-controls="collapseHelpEn">🇺🇸 Help</button>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHelp"
+                    aria-expanded="false" aria-controls="collapseHelp">
+                    <span lang="en">Help</span> <span lang="de">Hilfe</span></button>
               </h2>
-              <div id="collapseHelpEn" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+              <div id="collapseHelp" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
-                  <ul>
+                  <ul lang="en">
                     <li>Please make sure you're using the <em>latest version</em> of a modern browser with modern JavaScript support,
-                      such as Firefox, Chrome, Edge, or Safari (but please note the latter requires a <em>current</em> version of macOS).
-                    <ul>
-                      <li>If you are using any browser plug-ins that may block JavaScript (e.g. NoScript, JShelter, LibreJS, or perhaps ad blockers),
-                        then make sure to whitelist <code>fuchs.igb-berlin.de</code>.</li>
-                    </ul></li>
+                      such as Firefox, Chrome, Edge, or Safari (but please note the latter requires a <em>current</em> version of macOS).</li>
+                    <li>If you are using any browser plug-ins that may block JavaScript (e.g. NoScript, JShelter, LibreJS, or perhaps ad blockers),
+                      then make sure to whitelist <code>fuchs.igb-berlin.de</code>.</li>
                     <li>To make sure you're seeing the latest version of the page/app, please try clearing your browser's cache,
                       or performing a backup and then clearing all saved data for <code>fuchs.igb-berlin.de</code> - note this will also
                       <strong>delete</strong> all data for this page/app!</li>
                   </ul>
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item" lang="de">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHelpDe"
-                    aria-expanded="false" aria-controls="collapseHelpDe">🇩🇪 Hilfe</button>
-              </h2>
-              <div id="collapseHelpDe" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
-                <div class="accordion-body">
-                  <ul>
+                  <ul lang="de">
                     <li>Bitte stellen Sie sicher, dass sie die <em>neuste Version</em> eines modernen Browsers mit moderner JavaScript
                       Unterstützung verwenden, z.B. Firefox, Chrome, Edge, oder Safari (beachten Sie, dass letzterer nur mit einer
-                      <em>aktuellen</em> Version von macOS verfügbar ist).
-                    <ul>
-                      <li>Wenn Sie Browser Plug-Ins verwenden, welche JavaScript blockieren (z.B. NoScript, JShelter, LibreJS, oder möglicherweise
-                        auch Werbungs-Blocker), dann erlauben ("whitelist") Sie dort bitte diese Seite (<code>fuchs.igb-berlin.de</code>).</li>
-                    </ul></li>
+                      <em>aktuellen</em> Version von macOS verfügbar ist).</li>
+                    <li>Wenn Sie Browser Plug-Ins verwenden, welche JavaScript blockieren (z.B. NoScript, JShelter, LibreJS, oder möglicherweise
+                      auch Werbungs-Blocker), dann erlauben ("whitelist") Sie dort bitte diese Seite (<code>fuchs.igb-berlin.de</code>).</li>
                     <li>Um sicherzustellen, dass Sie die neuste Version dieser Seite/App sehen, löschen Sie bitte den Cache Ihres Browsers,
                       oder erstellen Sie ein Backup und löschen dann alle gespeicherten Daten für die Seite <code>fuchs.igb-berlin.de</code> -
                       beachten Sie, dass hierdurch alle Daten in dieser Seite/App <strong>gelöscht</strong> werden!</li>
@@ -84,11 +72,25 @@
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicense"
-                    aria-expanded="false" aria-controls="collapseLicense">🇺🇸 License • 🇩🇪 Lizenz</button>
+                    aria-expanded="false" aria-controls="collapseLicense">
+                    <span lang="en">License</span> <span lang="de">Lizenz</span></button>
               </h2>
               <div id="collapseLicense" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
-                  <h5>🇺🇸 English Original • 🇩🇪 Englisches Original</h5>
+                  <p lang="de"><em>[Deutsche Übersetzung; Original s.u.]</em></p>
+                  <p lang="de">IGB-FUCHS ist Freie Software: Sie können es unter den Bedingungen
+                    der GNU General Public License, wie von der Free Software Foundation,
+                    Version 3 der Lizenz oder (nach Ihrer Wahl) jeder neueren
+                    veröffentlichten Version, weiter verteilen und/oder modifizieren.</p>
+                  <p lang="de">IGB-FUCHS wird in der Hoffnung, dass es nützlich sein wird, aber
+                    OHNE JEDE GEWÄHRLEISTUNG, bereitgestellt; sogar ohne die implizite
+                    Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
+                    Siehe die GNU General Public License für weitere Details.</p>
+                  <p lang="de">Sie sollten eine Kopie der GNU General Public License zusammen mit
+                    IGB-FUCHS erhalten haben. Wenn nicht, siehe <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
+                  <p lang="de">Der Quellcode von IGB-FUCHS steht unter <a href="https://gitlab.igb-berlin.de/haukex/igb-fuchs"
+                    target="_blank">https://gitlab.igb-berlin.de/haukex/igb-fuchs</a> zur Verfügung.</p>
+                  <p lang="de"><em>[Englisches Original]</em></p>
                   <p>IGB-FUCHS is free software: you can redistribute it and/or modify it under
                     the terms of the GNU General Public License as published by the Free Software
                     Foundation, either version 3 of the License, or (at your option) any later version.</p>
@@ -99,28 +101,14 @@
                     IGB-FUCHS. If not, see <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
                   <p>The source code for IGB-FUCHS is available at <a href="https://gitlab.igb-berlin.de/haukex/igb-fuchs"
                     target="_blank">https://gitlab.igb-berlin.de/haukex/igb-fuchs</a>.</p>
-                  <div lang="de">
-                    <h5>🇩🇪 Deutsche Übersetzung • 🇺🇸 German Translation</h5>
-                    <p>IGB-FUCHS ist Freie Software: Sie können es unter den Bedingungen
-                      der GNU General Public License, wie von der Free Software Foundation,
-                      Version 3 der Lizenz oder (nach Ihrer Wahl) jeder neueren
-                      veröffentlichten Version, weiter verteilen und/oder modifizieren.</p>
-                    <p>IGB-FUCHS wird in der Hoffnung, dass es nützlich sein wird, aber
-                      OHNE JEDE GEWÄHRLEISTUNG, bereitgestellt; sogar ohne die implizite
-                      Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
-                      Siehe die GNU General Public License für weitere Details.</p>
-                    <p>Sie sollten eine Kopie der GNU General Public License zusammen mit
-                      IGB-FUCHS erhalten haben. Wenn nicht, siehe <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
-                    <p>Der Quellcode von IGB-FUCHS steht unter <a href="https://gitlab.igb-berlin.de/haukex/igb-fuchs"
-                      target="_blank">https://gitlab.igb-berlin.de/haukex/igb-fuchs</a> zur Verfügung.</p>
-                  </div>
                 </div>
               </div>
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLibraries"
-                    aria-expanded="false" aria-controls="collapseLibraries">🇺🇸 Used Libraries • 🇩🇪 Verwendete Bibliotheken</button>
+                    aria-expanded="false" aria-controls="collapseLibraries">
+                    <span lang="en">Used Libraries</span> <span lang="de">Verwendete Bibliotheken</span></button>
               </h2>
               <div id="collapseLibraries" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
@@ -150,19 +138,20 @@
                       Copyright (c) 2023, Gildas Lormeau,
                       <a href="https://github.com/gildas-lormeau/zip.js/blob/master/LICENSE" target="_blank">License: BSD 3-Clause License</a></li>
                   </ul>
-                  <p class="mb-0">🇺🇸 For the full text of the licenses, see "Open-Source Licenses" below.<br/>
-                    🇩🇪 Der vollständige Text der Lizenzen ist im Abschnitt "Open-Source Licenses" enthalten (steht nur auf Englisch zur Verfügung).</p>
+                  <p class="mb-0" lang="en">For the full text of the licenses, see "Open-Source Licenses" below.</p>
+                  <p class="mb-0" lang="de">Der vollständige Text der Lizenzen ist im Abschnitt "Open-Source Licenses" enthalten (steht nur auf Englisch zur Verfügung).</p>
                 </div>
               </div>
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicenses"
-                    aria-expanded="false" aria-controls="collapseLicenses">🇺🇸 Open-Source Licenses</button>
+                    aria-expanded="false" aria-controls="collapseLicenses">
+                    <span lang="en">Open-Source Licenses</span> <span lang="de">Open-Source Lizenzen</span></button>
               </h2>
               <div id="collapseLicenses" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
-                  <p>🇩🇪 Dieser Abschnitt steht nur auf Englisch zur Verfügung. • 🇺🇸 This section is only available in English.</p>
+                  <p lang="de">Dieser Abschnitt steht nur auf Englisch zur Verfügung.</p>
                   <pre id="licensesText" style="max-height: 50vh" class="border rounded overflow-auto p-1">
                     Licenses should be loaded and shown here. If not, see the links above,
                     or the file "licenses.txt" that is part of the source distribution.</pre>
@@ -172,12 +161,12 @@
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataProtection"
-                    aria-expanded="false" aria-controls="collapseDataProtection">🇺🇸 Data Protection • 🇩🇪 Datenschutz</button>
+                    aria-expanded="false" aria-controls="collapseDataProtection">
+                    <span lang="en">Data Protection</span> <span lang="de">Datenschutz</span></button>
               </h2>
               <div id="collapseDataProtection" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
-                  <h5>🇺🇸 Data Protection</h5>
-                  <ul>
+                  <ul lang="en">
                     <li>This static page/app is served by <em>GitHub Pages</em>, see
                       <ul>
                         <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages#data-collection"
@@ -193,7 +182,6 @@
                       explicit request by the user (by pressing the corresponding buttons). All saved location data is
                       viewable through the user interface.</li>
                   </ul>
-                  <h5 lang="de">🇩🇪 Datenschutz</h5>
                   <ul lang="de">
                     <li>Diese statische Seite/App wird von <em>GitHub Pages</em> bereitgestellt, siehe
                       <ul>
@@ -216,11 +204,12 @@
               </div>
             </div>
           </div>
-          <div class="ms-1 mt-2">🇩🇪 <a href="https://www.igb-berlin.de/impressum" target="_blank">Impressum</a>
-            • 🇺🇸 <a href="https://www.igb-berlin.de/en/imprint" target="_blank">Imprint</a></div>
+          <div class="ms-1 mt-2" lang="en"><a href="https://www.igb-berlin.de/en/imprint" target="_blank">Imprint</a></div>
+          <div class="ms-1 mt-2" lang="de"><a href="https://www.igb-berlin.de/impressum" target="_blank">Impressum</a></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><i class="bi-x-lg"></i> Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><i class="bi-x-lg"></i>
+            <span lang="en">Close</span> <span lang="de">Schließen</span></button>
         </div>
       </div>
     </div>
@@ -230,8 +219,8 @@
       <div class="container-fluid overflow-x-hidden">
         <!-- TODO Nav items shouldn't wrap -->
         <a id="igbLogo" class="navbar-brand" href="#" data-bs-toggle="modal" data-bs-target="#aboutDialog">
-          <img src="images/IGB_BM_farbe_pos.svg" class="align-middle d-ib-light" height="28" alt="Logo" />
-          <img src="images/IGB_BM_farbe_neg.svg" class="align-middle d-ib-dark" height="28" alt="Logo" />
+          <img src="images/IGB_BM_farbe_pos.svg" class="align-middle d-ib-light" height="28" alt="Logo">
+          <img src="images/IGB_BM_farbe_neg.svg" class="align-middle d-ib-dark" height="28" alt="Logo">
           <span class="fw-bolder ms-1"><span class="text-igb-green">IGB</span>-<span class="text-leibniz-blue">FUCHS</span></span>
           <span class="text-uppercase text-danger" style="font-size: 0.6em">Alpha</span>
         </a>

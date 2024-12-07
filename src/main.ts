@@ -20,9 +20,8 @@ import licenses_txt from 'bundle-text:../licenses.txt'
 import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
 import { IdbStorage } from './idb-store'
+import { initI18n } from './i18n'
 import { assert } from './utils'
-
-//TODO: Alpha version notice
 
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
@@ -64,6 +63,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)
   igbLogo.addEventListener('click', event => event.preventDefault())  // about dialog is triggered from HTML via Bootstrap
+
+  initI18n()
 
   const htmlMain = document.querySelector('main')
   const navbarMain = document.getElementById('navbarMain')

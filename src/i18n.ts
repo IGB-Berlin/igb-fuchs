@@ -292,7 +292,7 @@ const translations = {
     'An internal error occurred. Please report this error, including a description of the steps before the error occurred - the best thing is a series of steps of how the error can be reproduced.' ],
   'beta-warning-title': [ 'ACHTUNG: Alpha-Testversion!', 'WARNING: Alpha Test Version!' ],
   'beta-warning-text': [
-    'Dies is eine junge Alpha-Testversion, welche sicherlich noch einige Fehler enthält. Es darf KEINE DATENSICHERHEIT angenommen werden. Es sollten immer regelmäßig Backups'
+    'Dies is eine frühe Alpha-Testversion, welche sicherlich noch einige Fehler enthält. Es darf KEINE DATENSICHERHEIT angenommen werden. Es sollten immer regelmäßig Backups'
     +' mit der "Export" Funktion erstellt werden, allerdings ist sehr wahrscheinlich, dass diese Backups dann NICHT wieder eingelesen werden können, wenn neue Versionen'
     +' der App herausgegeben werden. Sobald die App die Testphase verlässt und das Datenformat stabil ist, wird diese Meldung entsprechend aktualisiert.',
     'This is an early alpha testing version, which certainly still contains bugs. Please assume that ANY DATA IS NOT SECURE. You should always perform regular backups'
@@ -406,11 +406,16 @@ const translations = {
   // '': [''],
 } as const
 
+const isDe :boolean = navigator.language.toLowerCase()==='de' || navigator.language.toLowerCase().startsWith('de-')
+
 // https://fnando.github.io/i18n/
 export const i18n = new I18n({
   'en-US': Object.fromEntries( Array.from(Object.entries(translations)).map(([k,v]) => v.length>1 ? [k,v.at(-1)] : [k,k] ) ),
   'de-DE': Object.fromEntries( Array.from(Object.entries(translations)).map(([k,v]) => [k,v[0]] ) ),
-}, { defaultLocale: 'en-US', missingBehavior: 'error',
-  locale: navigator.language.toLowerCase()==='de' || navigator.language.toLowerCase().startsWith('de-')?'de-DE':'en-US' })
+}, { defaultLocale: 'en-US', locale: isDe?'de-DE':'en-US', missingBehavior: 'error' })
 
 export function tr(k :keyof typeof translations) { return i18n.t(k) }
+
+export function initI18n() {
+  if (isDe) document.body.setAttribute('data-selected-language','de')
+}
