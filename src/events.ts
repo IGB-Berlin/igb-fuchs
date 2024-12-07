@@ -43,8 +43,11 @@ type EventHandler<T extends object> = (event :T) => void
  *   - AbstractStore.mod() is called by: only Editor subclasses when a child ListEditor's storage reports a change (see below)
  * - Listeners:
  *   - ListEditor does redrawList when its storage has changed (needs to know the id of the changed object so it can be selected)
+ *     - Which can only happen from events that it knows about, or when an Editor it spawned reports a change
  *   - ListEditorWithTemp redraws its list of "planned" templates when the ListEditor's storage has changed
+ *     - Same as previous item
  *   - ListEditor listens whether its parent editor's object has been saved or not (if it hasn't, don't enable any edit buttons)
+ *     - Which can be covered by passing the ListEditor its parent Editor and listening for an event on its .el
  *   - When an Editor has a child that is a ListEditor, any changes on the ListEditor's storage (which is the array held by the
  *     Editor's object) cause the Editor's object to be updated in its storage via .mod()
  *     - This is supposed to propagate the event all the way upwards to the ListEditor on the home page, which then saves the root object
@@ -52,7 +55,7 @@ type EventHandler<T extends object> = (event :T) => void
  *     storage's events to listen for changes of the MeasurementType, using that to update its display.
  *
  * => Every ArrayStore is edited by a ListEditor, so the events could be moved to the ListEditor's el?
- *   - The only exception is the MeasurementEditor's MeasTypeEditor.
+ *   - The only exception is the MeasurementEditor's MeasTypeEditor, so perhaps redesign that first.
  */
 
 export class SimpleEventHub<T extends object> {
