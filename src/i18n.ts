@@ -395,8 +395,9 @@ const translations = {
 
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Unbekannt (nicht festgelegt/aufgezeichnet)', 'Unknown (not defined/recorded)'],
-  'st-surface-water-stream': ['Oberflächenwasser (Fließgewässer)', 'Surface water (stream / flowing water)'],
-  'st-surface-water-pond': ['Oberflächenwasser (stehendes Gewässer)', 'Surface water (pond / standing water)'],
+  'st-surface-water': ['Oberflächenwasser', 'Surface water'],
+  'st-surface-water-flowing': ['Oberflächenwasser (Fließgewässer)', 'Surface water (flowing water)'],
+  'st-surface-water-standing': ['Oberflächenwasser (stehendes Gewässer)', 'Surface water (standing water)'],
   'st-ground-water': ['Grundwasser', 'Groundwater'],
   'st-water-precipitation': ['Niederschlag', 'Precipitation'],
   'st-sediment': ['Sediment', 'Sediment'],
