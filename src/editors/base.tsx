@@ -260,7 +260,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
       <div class="col-sm-9">
         {input}
-        {helpText ? <div id={helpId} class="form-text">{helpText}</div> : '' }
+        {helpText ? <div id={helpId} class="form-text hideable-help">{helpText}</div> : '' }
         {invalidText ? <div class="invalid-feedback">{invalidText}</div> : ''}
       </div>
     </div>

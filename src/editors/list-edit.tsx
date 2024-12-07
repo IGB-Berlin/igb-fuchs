@@ -174,7 +174,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   withBorder(title :string, help :string|null = null) {
     return <div class="border rounded my-3 p-3">
       <div class={help===null?'mb-3 fs-5':'fs-5'}>{title}</div>
-      {help===null?'':<div class="form-text mb-3">{help}</div>}
+      {help===null?'':<div class="form-text mb-3 hideable-help">{help}</div>}
       {this.el}
     </div>
   }

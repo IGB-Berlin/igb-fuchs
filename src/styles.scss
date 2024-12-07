@@ -87,3 +87,6 @@ body[data-selected-language="en"] [lang="de"] {
 body[data-selected-language="de"] [lang="en"] {
   display: none;
 }
+body[data-hide-help="true"] .hideable-help {
+  display: none;
+}

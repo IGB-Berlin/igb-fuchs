@@ -389,6 +389,10 @@ const translations = {
     'Die End-Zeit liegt vor der Anfangs-Zeit.',
     'The end time is before the start time.' ],
 
+  // settings
+  'Settings': ['Einstellungen'],
+  'hide-help-texts': [ 'Hilfetexte verstecken', 'Hide help texts' ],
+
   // sample types (Remember to keep in sync with SampleType!)
   'st-undefined': ['Unbekannt (nicht festgelegt/aufgezeichnet)', 'Unknown (not defined/recorded)'],
   'st-surface-water-stream': ['Oberflächenwasser (Fließgewässer)', 'Surface water (stream / flowing water)'],

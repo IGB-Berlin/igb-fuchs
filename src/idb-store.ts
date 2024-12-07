@@ -25,6 +25,7 @@ import { deduplicatedSet } from './types/set'
 import { AbstractStore} from './storage'
 import { hasId } from './types/common'
 import { i18n, tr } from './i18n'
+import { assert } from './utils'
 
 const IDB_NAME = 'IGB-FUCHS'
 
@@ -53,13 +54,6 @@ class DummyObj implements IDummyObj {
   }
 }
 
-interface ISettings {
-  // NOTE! If we add more keys here, we should probably update Settings to allow getting/setting individual keys.
-  hideBetaWarningUntilTimeMs :number
-}
-function isISettings(o :unknown) :o is ISettings {
-  return !!( o && typeof o === 'object' && 'hideBetaWarningUntilTimeMs' in o && typeof o.hideBetaWarningUntilTimeMs === 'number' ) }
-
 interface MyDB extends DBSchema {
   selfTest :{ key :string, value :IDummyObj  },
   samplingTrips :{ key :string, value :ISamplingTrip },
@@ -69,22 +63,40 @@ interface MyDB extends DBSchema {
   general :{ key :string, value :ISettings },
 }
 
+interface ISettings {
+  hideBetaWarningUntilTimeMs :number
+  hideHelpTexts :boolean
+}
+const DEFAULT_SETTINGS :ISettings = {
+  hideBetaWarningUntilTimeMs: -Infinity,
+  hideHelpTexts: false,
+}
+function isISettings(o :unknown) :o is ISettings {
+  return !!( o && typeof o === 'object' && 'hideHelpTexts' in o && typeof o.hideHelpTexts === 'boolean' ) }
+
 class Settings {
   static KEY = 'settings'
   private readonly db
   constructor(db :IDBPDatabase<MyDB>) { this.db = db }
-  async get() :Promise<ISettings> {
-    const s = await this.db.get('general', Settings.KEY)
-    if (s) {
-      if (isISettings(s)) return s
-      else console.error('isISettings failed', s)
-    }
-    return {
-      hideBetaWarningUntilTimeMs: -Infinity
-    }
+  async get<K extends keyof ISettings = keyof ISettings>(key :K) :Promise<ISettings[K]> {
+    const sett = await this.db.get('general', Settings.KEY) ?? DEFAULT_SETTINGS
+    assert(isISettings(sett))
+    return sett[key]
   }
-  save(s :ISettings) {
-    return this.db.put('general', s, Settings.KEY)
+  async set<K extends keyof ISettings = keyof ISettings>(key :K, val :ISettings[K]) :Promise<void> {
+    const trans = this.db.transaction('general', 'readwrite')
+    const cur = await trans.store.openCursor(Settings.KEY)
+    if (cur) {
+      assert(isISettings(cur.value))
+      const sett = JSON.parse(JSON.stringify(cur.value)) as ISettings
+      sett[key] = val
+      await Promise.all([ cur.update(sett), trans.done ])
+    }
+    else {
+      const sett = JSON.parse(JSON.stringify(DEFAULT_SETTINGS)) as ISettings
+      sett[key] = val
+      await Promise.all([ trans.store.add(sett, Settings.KEY), trans.done ])
+    }
   }
 }
 

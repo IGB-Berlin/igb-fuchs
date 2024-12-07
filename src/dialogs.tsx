@@ -209,8 +209,8 @@ export function infoDialog(type :InfoDialogType, title :string, content :string|
 }
 
 export async function betaWarning(ctx :GlobalContext, force :boolean = false) :Promise<void> {
-  const sett = await ctx.storage.settings.get()
-  if (!force && Number.isFinite(sett.hideBetaWarningUntilTimeMs) && Date.now()<sett.hideBetaWarningUntilTimeMs)
+  const hideUntilMs = await ctx.storage.settings.get('hideBetaWarningUntilTimeMs')
+  if (!force && Number.isFinite(hideUntilMs) && Date.now()<hideUntilMs)
     return
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="betaWarningLabel" aria-hidden="true">
@@ -240,8 +240,7 @@ export async function betaWarning(ctx :GlobalContext, force :boolean = false) :P
     })
     modal.show()
   })
-  sett.hideBetaWarningUntilTimeMs = Date.now() + 1000*60*60*24*7
-  await ctx.storage.settings.save(sett)
+  await ctx.storage.settings.set('hideBetaWarningUntilTimeMs', Date.now() + 1000*60*60*24*7)
 }
 export function makeBetaVersionNoticeLink(ctx :GlobalContext) :HTMLElement {
   const a = <a href="#" class="ms-3 link-danger">{tr('beta-warning-title')}</a>

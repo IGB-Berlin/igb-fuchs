@@ -46,7 +46,6 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     })
     const grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
-    //TODO: Option to hide help texts
     const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
       pattern={obj.type.validPattern} value={obj.value} required />)
     inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))

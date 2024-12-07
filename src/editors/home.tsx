@@ -22,6 +22,7 @@ import { tripToCsvFile } from '../types/trip-csv'
 import { TripTemplateEditor } from './trip-temp'
 import { SamplingTrip } from '../types/trip'
 import { SamplingTripEditor } from './trip'
+import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { shareFile } from '../share'
 import { tr } from '../i18n'
@@ -58,11 +59,14 @@ export function makeHomePage(ctx :GlobalContext) {
 
   const inpExp = makeImportExport(ctx)
 
+  const settings = makeSettings(ctx)
+
   return <div class="p-3">
     <div class="accordion" id="homeAccordion">
       {makeAcc(tr('Sampling Trips'), stEdit.el)}
       {makeAcc(tr('Sampling Trip Templates'), ttEdit.el)}
       {makeAcc(tr('import-export'), inpExp)}
+      {makeAcc(tr('Settings'), settings)}
     </div>
   </div>
 }
