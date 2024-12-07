@@ -41,7 +41,7 @@ export class EditorStack {
   private redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
-        const link = <a class="nav-link" href='#' title={s.fullTitle}>{s.briefTitle}</a>
+        const link = <a class="nav-link text-nowrap" href='#' title={s.fullTitle}>{s.briefTitle}</a>
         if (i===this.stack.length-1) {
           link.classList.add('active')
           link.setAttribute('aria-current','page')
