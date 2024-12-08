@@ -62,10 +62,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const lblRange = <span></span>
     const lblPrc = <span></span>
 
-    /* TODO Later: Should we disallow edits to "Description" in general?
-     * This might especially make sense when all objects store a copy of their template.
-     * Perhaps even change the terminology to reflect that. */
-    //TODO Later: Don't display description when empty (CSS :has and :empty?)
+    /* TODO: Disallow edits to "Description" in general,
+     * - change help text and the terminology ("instructions"?) to reflect that
+     * - Don't display description when empty (CSS :has and :empty?) */
     const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const inpTime = new DateTimeInput(obj.time, true)

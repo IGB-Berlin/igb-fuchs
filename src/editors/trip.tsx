@@ -29,23 +29,15 @@ import { tr } from '../i18n'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
-  protected override newObj() { return new SamplingTrip(null, null) }
+  protected override newObj() { return new SamplingTrip(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
-    /* TODO: A reload causes us to lose association with obj.template. Is there any way to persist that?
-     * Actually, it's not just a reload: a simple return to the home page causes the editor to be destroyed,
-     * and re-opening the object causes it to be reloaded from the DB without its template association.
-     * A workaround might be to move the following "getPlannedLocs" into the SamplingTrip class and add
-     * a warning when trying to save a trip with locations remaining (the same could be done for all other
-     * "planned" template lists).
-     * But the better solution is that objects with a template should "officially" store a copy of their template;
-     * then, as e.g. Locations are added to the samplingTrip, they are removed from its stored tripTemplate.
-     * */
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
+    //TODO: Checklist (from template; hide if empty)
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
@@ -57,9 +49,10 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       /* We want to get a list of the locations planned in the trip template,
        * remove the locations we already have records for (ignoring the number of samples),
        * and populate any locations that have no samples from commonSamples.
-       * TODO Later: The location list should also be sorted by distance from our current location.
-       * This also applies to all other places where locations lists occur! (e.g. From Template dialog)
+       * TODO: All of the "planned template" code should now use the object's template and (delete items from there as they are added!)
        */
+      /* TODO Later: The location list should also be sorted by distance from our current location.
+       * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
       const visitedLocs = obj.locations.map(l => l.extractTemplate().cloneNoSamples())
       const plannedLocs :SamplingLocationTemplate[] = []
       for(const loc of obj.template.locations) {
@@ -79,12 +72,10 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       getPlannedLocs )
 
-    this.form2obj = () => new SamplingTrip({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(),
-      startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
-      lastModified: timestampNow(), persons: inpPersons.value.trim(),
-      weather: inpWeather.value.trim(), notes: inpNotes.value.trim(),
-      locations: obj.locations }, obj.template)
+    this.form2obj = () => new SamplingTrip({ id: obj.id, template: obj.template,
+      name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
+      lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),
+      notes: inpNotes.value.trim(), locations: obj.locations })
 
     const tzOff = getTzOffsetStr(new Date())
     this.initialize([

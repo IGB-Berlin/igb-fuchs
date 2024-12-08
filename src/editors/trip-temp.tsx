@@ -36,6 +36,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    //TODO: Checklist
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved
      * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.

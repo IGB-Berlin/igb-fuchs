@@ -28,10 +28,6 @@ export function hasId(o :unknown) :o is HasId {
 export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
 export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary {
-  /** Return the display name of this type. */
-  abstract typeName(kind :'full'|'short') :string
-  /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description */
-  abstract toJSON(_key :string) :object
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
   abstract validate(others :B[]) :void
   /** Returns a list of warnings on the object.
@@ -41,15 +37,20 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
    *  is supposed to have sub-objects but doesn't yet, that is acceptable on the very first save.)
    */
   abstract warningsCheck(isBrandNew :boolean) :string[]
-  /** Returns a summary of this object, e.g. for display in a list. */
-  abstract summaryDisplay() :[string,string|null]
   /** Whether this object holds the same value as another. */
   abstract equals(o :unknown) :boolean
+  /** https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description */
+  abstract toJSON(_key :string) :object
   /** Return a deep clone of this object.
    *
    * For `DataObjectWithTemplate`s, the `template` attribute does not need to be cloned.
    */
   abstract deepClone() :B
+
+  /** Return the display name of this type. */
+  abstract typeName(kind :'full'|'short') :string
+  /** Returns a summary of this object, e.g. for display in a list. */
+  abstract summaryDisplay() :[string,string|null]
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
   summaryAsHtml(withTypeName :boolean) :HTMLElement {
     const [pri,sub] = this.summaryDisplay()
@@ -80,6 +81,7 @@ export abstract class DataObjectTemplate<T extends DataObjectTemplate<T, D>, D e
 export abstract class DataObjectWithTemplate<D extends DataObjectWithTemplate<D, T>, T extends DataObjectTemplate<T, D>> extends DataObjectBase<D> {
   /** The template on which this object was based. */
   abstract get template() :T|null
+  //TODO Later: extractTemplate() is not made use of in the UI yet
   /** Generate a new template based on this object. */
   abstract extractTemplate() :T
 }

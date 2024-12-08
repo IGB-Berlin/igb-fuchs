@@ -25,10 +25,10 @@ export interface IMeasurement {
   value :string  // stored as string to avoid any floating-point ambiguities; validated via regex
 }
 export function isIMeasurement(o :unknown) :o is IMeasurement {
-  if (!o || typeof o !== 'object') return false
-  if (Object.keys(o).length!==3 || !('type' in o && 'time' in o && 'value' in o)) return false  // keys
-  if (!isIMeasurementType(o.type) || !isTimestamp(o.time) || typeof o.value !== 'string') return false  // types
-  return true
+  return !!( o && typeof o === 'object'
+    && Object.keys(o).length===3 && 'type' in o && 'time' in o && 'value' in o  // keys
+    && isIMeasurementType(o.type) && isTimestamp(o.time) && typeof o.value === 'string'  // types
+  )
 }
 
 /** Records an actual recorded measurement. */
@@ -44,22 +44,12 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     this.time = o?.time ?? NO_TIMESTAMP
     this.value = o?.value ?? ''
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement':'meas') }
   override validate(_others :Measurement[]) {
-    this.type.validate([])
+    try { this.type.validate([]) }
+    catch (ex) { throw new Error(`${tr('Invalid measurement type')}: ${String(ex)}`) }
     validateTimestamp(this.time)
     if (!this.value.match(this.type.validPattern)) throw new Error(tr('Invalid value'))
   }
-  override summaryDisplay() :[string,null] {
-    return [ `${this.type.name} = ${this.value} ${this.type.unit}`, null ] }
-  override equals(o: unknown) {
-    return isIMeasurement(o)
-    && this.type.equals(o.type)
-    && this.time === o.time
-    && this.value === o.value
-  }
-  override toJSON(_key: string): IMeasurement {
-    return { type: this.type.toJSON('type'), time: this.time, value: this.value } }
   override warningsCheck(_isBrandNew :boolean) {
     const rv = []
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
@@ -67,10 +57,24 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
       const val = Number.parseFloat(this.value)
       if (Number.isFinite(this.type.min) && val < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
       if (Number.isFinite(this.type.max) && val > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)
-    } else rv.push(tr('No measurement value'))
+    } else rv.push(tr('Invalid value'))
     return rv
   }
-  override extractTemplate() :MeasurementType { return this.type }
+  override equals(o: unknown) {
+    return isIMeasurement(o)
+    && this.type.equals(o.type)
+    && this.time === o.time
+    && this.value === o.value
+  }
+  override toJSON(_key: string): IMeasurement {
+    return { type: this.type.toJSON('type'), time: this.time, value: this.value }
+  }
   override deepClone() :Measurement {
-    return new Measurement({ type: this.type.deepClone(), time: this.time, value: this.value }) }
+    return new Measurement({ type: this.type.deepClone(), time: this.time, value: this.value })
+  }
+  override extractTemplate() :MeasurementType { return this.type }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement':'meas') }
+  override summaryDisplay() :[string,null] {
+    return [ `${this.type.name} = ${this.value} ${this.type.unit}`, null ]
+  }
 }

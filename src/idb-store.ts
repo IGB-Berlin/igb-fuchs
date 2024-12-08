@@ -261,7 +261,7 @@ export class IdbStorage {
     this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, (o:IDummyObj)=>new DummyObj(o), null)
     this.fileTestStore = new FileStore(db, 'filesTest')
     this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, (o:ISamplingTripTemplate)=>new SamplingTripTemplate(o), ()=>this.updateTemplates())
-    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, (o:ISamplingTrip)=>new SamplingTrip(o,null), ()=>this.updateTemplates())
+    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, (o:ISamplingTrip)=>new SamplingTrip(o), ()=>this.updateTemplates())
     this.fileStore = new FileStore(db, 'files')
     this.settings = new Settings(db)
   }
@@ -281,7 +281,7 @@ export class IdbStorage {
     const allTripTs = await this.tripTemplates.getAll(null)
     const allLoc = allTripTs.flatMap(([_,t]) => t.locations)
       .concat( ( await this.samplingTrips.getAll(null) ).flatMap(([_,t]) =>
-        t.locations.map(l => new SamplingLocation(l, null).extractTemplate())) )
+        t.locations.map(l => new SamplingLocation(l).extractTemplate())) )
     // locations - no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
     this._allLocTemps = deduplicatedSet( allLoc.map(l => new SamplingLocationTemplate(l).cloneNoSamples()) )
     this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => new SampleTemplate(s).deepClone()))
@@ -300,6 +300,7 @@ export class IdbStorage {
         if (cur.key in data[storeName])
           console.error('Export: duplicate key, the former will be clobbered:', data[storeName][cur.key], cur.value)
         // NOTE we're intentionally not type checking here, to allow export of objects after schema changes
+        //TODO: Use toJSON on export (when possible)
         data[storeName][cur.key] = cur.value
       } }) )
     return data
@@ -321,7 +322,7 @@ export class IdbStorage {
         if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k} (${tr('import-bad-explain')})`); return }
         if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
         try {
-          const imp = new SamplingTrip(v, null)
+          const imp = new SamplingTrip(v)
           const have = await this.samplingTrips.tryGet(v.id)
           if (have) {
             if (have.equals(v)) { counter++ }  // nothing needed, but just report it as imported b/c I think that's better info for the user (?)

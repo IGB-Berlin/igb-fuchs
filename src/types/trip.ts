@@ -29,7 +29,6 @@ import { assert } from '../utils'
 export interface ISamplingTrip extends HasId {
   readonly id :string
   name :string
-  description ?:string|null
   startTime :Timestamp
   endTime :Timestamp
   //TODO Later: more consistently update trip's lastModified
@@ -38,23 +37,23 @@ export interface ISamplingTrip extends HasId {
   weather ?:string|null
   notes ?:string|null
   readonly locations :ISamplingLocation[]
+  readonly template ?:ISamplingTripTemplate|null
 }
-const samplingTripKeys = ['id','name','description','startTime','endTime','lastModified','persons','weather','notes','locations','template'] as const
+const samplingTripKeys = ['id','name','startTime','endTime','lastModified','persons','weather','notes','locations','template'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
 export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
-  if (!o || typeof o !== 'object') return false
-  if (!('id' in o && 'name' in o && 'startTime' in o && 'endTime' in o && 'locations' in o)) return false  // required keys
-  for (const k of Object.keys(o)) if (!samplingTripKeys.includes(k as SamplingTripKey)) return false  // extra keys
-  // type checks
-  if (typeof o.id !== 'string' || typeof o.name !== 'string' || !isTimestamp(o.startTime) || !isTimestamp(o.endTime)
-    || !Array.isArray(o.locations)) return false
-  for (const l of o.locations) if (!isISamplingLocation(l)) return false
-  if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
-  if ('lastModified' in o && !( o.lastModified===null || isTimestamp(o.lastModified) )) return false
-  if ('persons' in o && !( o.persons===null || typeof o.persons === 'string' )) return false
-  if ('weather' in o && !( o.weather===null || typeof o.weather === 'string' )) return false
-  if ('notes' in o && !( o.notes===null || typeof o.notes === 'string' )) return false
-  return true
+  return !!( o && typeof o === 'object'
+    && 'id' in o && 'name' in o && 'startTime' in o && 'endTime' in o && 'locations' in o  // required keys
+    && Object.keys(o).every(k => samplingTripKeys.includes(k as SamplingTripKey))  // extra keys
+    // type checks
+    && typeof o.id === 'string' && typeof o.name === 'string' && isTimestamp(o.startTime) && isTimestamp(o.endTime)
+    && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocation(l))
+    && ( !('lastModified' in o) || o.lastModified===null || isTimestamp(o.lastModified) )
+    && ( !('persons' in o) || o.persons===null || typeof o.persons === 'string' )
+    && ( !('weather' in o) || o.weather===null || typeof o.weather === 'string' )
+    && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
+    && ( !('template' in o) || o.template===null || isISamplingTripTemplate(o.template) )
+  )
 }
 /* TODO Later: For the future, when this project is released and changes happen to the schema,
  * there should be a Migrator class that upgrades/converts older objects to newer ones. */
@@ -63,7 +62,6 @@ export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
 export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {
   readonly id :string
   name :string
-  description :string
   startTime :Timestamp
   endTime :Timestamp
   /** Last modification time, should always be updated e.g. in case of edits after the `endTime`. */
@@ -73,26 +71,18 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   notes :string
   readonly locations :SamplingLocation[]
   readonly template :SamplingTripTemplate|null
-  constructor(o :ISamplingTrip|null, template :SamplingTripTemplate|null) {
+  constructor(o :ISamplingTrip|null) {
     super()
     this.id = o===null ? IdbStorage.newSamplingTripId() : o.id
     this.name = o?.name ?? ''
-    this.description = o &&'description' in o && o.description!==null ? o.description.trim() : ''
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
     this.lastModified = o && 'lastModified' in o && o.lastModified!==null && isTimestampSet(o.lastModified) ? o.lastModified : timestampNow()
     this.persons = o && 'persons' in o && o.persons!==null ? o.persons.trim() : ''
     this.weather = o && 'weather' in o && o.weather!==null ? o.weather.trim() : ''
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l, null))
-    this.template = template
-  }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
-  get tripId() :string {
-    if (isTimestampSet(this.startTime)) {
-      const dt = new Date(this.startTime)
-      return `${this.name} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
-    } else return this.name
+    this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l))
+    this.template = o && 'template' in o ? ( o.template instanceof SamplingTripTemplate ? o.template : new SamplingTripTemplate(o.template) ) : null
   }
   override validate(others :SamplingTrip[]) {
     validateId(this.id)
@@ -103,34 +93,6 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     if (others.some(o => o.tripId === this.tripId))
       throw new Error(tr('duplicate-trip-id'))
   }
-  override summaryDisplay() :[string,string] {
-    const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
-    return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
-  }
-  override equals(o: unknown) {
-    return isISamplingTrip(o)
-      // not comparing ids
-      && this.name === o.name
-      && this.description.trim() === ( o.description?.trim() ?? '' )
-      && timestampsEqual(this.startTime, o.startTime)
-      && timestampsEqual(this.endTime, o.endTime)
-      // not comparing lastModified
-      && this.persons.trim() === ( o.persons?.trim() ?? '' )
-      && this.weather.trim() === ( o.weather?.trim() ?? '' )
-      && this.notes.trim() === ( o.notes?.trim() ?? '' )
-      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l, null)))
-  }
-  override toJSON(_key: string): ISamplingTrip {
-    const rv :ISamplingTrip = { id: this.id,
-      name: this.name, startTime: this.startTime, endTime: this.endTime,
-      locations: this.locations.map((l,li) => l.toJSON(li.toString())) }
-    if (this.description.trim().length) rv.description = this.description.trim()
-    if (isTimestampSet(this.lastModified)) rv.lastModified = this.lastModified
-    if (this.persons.trim().length) rv.persons = this.persons.trim()
-    if (this.weather.trim().length) rv.weather = this.weather.trim()
-    if (this.notes.trim().length) rv.notes = this.notes.trim()
-    return rv
-  }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
@@ -138,8 +100,37 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
      * Maybe smart-enable checkboxes only when: For trips, if the date is still today, and for locations, if the trip doesn't have an end time set yet? */
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
+    /*TODO: All objects that have templates can warn if their templates' show unused sub-templates
+     * (for example, SamplingTrip should warn if .template.locations.length, since we plan to delete those as they get used) */
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
     return rv
+  }
+  override equals(o: unknown) {
+    return isISamplingTrip(o)
+      // not comparing ids
+      && this.name === o.name
+      && timestampsEqual(this.startTime, o.startTime)
+      && timestampsEqual(this.endTime, o.endTime)
+      // not comparing lastModified
+      && this.persons.trim() === ( o.persons?.trim() ?? '' )
+      && this.weather.trim() === ( o.weather?.trim() ?? '' )
+      && this.notes.trim() === ( o.notes?.trim() ?? '' )
+      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l)))
+      // not comparing template
+  }
+  override toJSON(_key: string): ISamplingTrip {
+    return { id: this.id, name: this.name, startTime: this.startTime, endTime: this.endTime,
+      locations: this.locations.map((l,li) => l.toJSON(li.toString())),
+      ...( isTimestampSet(this.lastModified) && { lastModified: this.lastModified } ),
+      ...( this.persons.trim().length && { persons: this.persons.trim() } ),
+      ...( this.weather.trim().length && { weather: this.weather.trim() } ),
+      ...( this.notes.trim().length && { notes: this.notes.trim() } ),
+      ...( this.template!==null && { template: this.template.toJSON('template') } ) }
+  }
+  override deepClone() :SamplingTrip {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isISamplingTrip(clone))
+    return new SamplingTrip(clone)
   }
   override extractTemplate() :SamplingTripTemplate {
     /* If all location templates have the same set of samples, then we
@@ -151,13 +142,20 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     if (allLocsHaveSameSamples) locs.forEach(l => l.samples.length = 0)
     const common = allLocsHaveSameSamples ? l0.samples : []
     return new SamplingTripTemplate({ id: IdbStorage.newTripTemplateId(),
-      name: this.name, description: this.description.trim(),
-      locations: locs, commonSamples: common })
+      name: this.name, locations: locs, commonSamples: common,
+      ...( this.template?.description.trim().length && { description: this.template.description.trim() } ),
+      ...( this.template?.checklist.trim().length && { checklist: this.template.checklist.trim() } ) })
   }
-  override deepClone() :SamplingTrip {
-    const clone :unknown = JSON.parse(JSON.stringify(this))
-    assert(isISamplingTrip(clone))
-    return new SamplingTrip(clone, this.template)
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
+  override summaryDisplay() :[string,string] {
+    const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
+    return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
+  }
+  get tripId() :string {
+    if (isTimestampSet(this.startTime)) {
+      const dt = new Date(this.startTime)
+      return `${this.name} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
+    } else return this.name
   }
 }
 
@@ -167,26 +165,30 @@ export interface ISamplingTripTemplate extends HasId {
   readonly id :string
   name :string
   description ?:string|null
+  checklist ?:string|null
   readonly locations :ISamplingLocationTemplate[]
   readonly commonSamples :ISampleTemplate[]
-  //TODO: Checklist (Packliste)
 }
+const samplingTripTemplateKeys = ['id','name','description','checklist','locations','commonSamples'] as const
+type SamplingTripTemplateKey = typeof samplingTripTemplateKeys[number] & keyof ISamplingTripTemplate
 export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
-  if (!o || typeof o !== 'object') return false
-  if (!( 'id' in o && 'name' in o && 'locations' in o && 'commonSamples' in o
-    && ( Object.keys(o).length===4 || Object.keys(o).length===5 && 'description' in o ) )) return false // keys
-  // type checks
-  if ( typeof o.id !== 'string' || typeof o.name !== 'string' || !Array.isArray(o.locations) || !Array.isArray(o.commonSamples) ) return false
-  for (const l of o.locations) if (!isISamplingLocationTemplate(l)) return false
-  for (const s of o.commonSamples) if (!isISampleTemplate(s)) return false
-  if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
-  return true
+  return !!( o && typeof o === 'object'
+    && 'id' in o && 'name' in o && 'locations' in o && 'commonSamples' in o  // required keys
+    && Object.keys(o).every(k => samplingTripTemplateKeys.includes(k as SamplingTripTemplateKey))  // extra keys
+    // type checks
+    && typeof o.id === 'string' && typeof o.name === 'string'
+    && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocationTemplate(l))
+    && Array.isArray(o.commonSamples) && o.commonSamples.every(s => isISampleTemplate(s))
+    && ( !('description' in o) || o.description===null || typeof o.description === 'string' )
+    && ( !('checklist' in o) || o.checklist===null || typeof o.checklist === 'string' )
+  )
 }
 
 export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplate, SamplingTrip> implements ISamplingTripTemplate {
   readonly id :string
   name :string
   description :string
+  checklist :string
   /** The typical sampling locations on this trip. */
   readonly locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */
@@ -196,48 +198,48 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     this.id = o===null ? IdbStorage.newTripTemplateId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
+    this.checklist = o && 'checklist' in o && o.checklist!==null ? o.checklist.trim() : ''
     this.locations = o===null ? [] : isArrayOf(SamplingLocationTemplate, o.locations) ? o.locations :o.locations.map(l => new SamplingLocationTemplate(l))
     this.commonSamples = o===null ? [] : isArrayOf(SampleTemplate, o.commonSamples) ? o.commonSamples : o.commonSamples.map(s => new SampleTemplate(s))
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
   override validate(others :SamplingTripTemplate[]) {
     validateId(this.id)
     validateName(this.name)
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override summaryDisplay() :[string,string] {
-    return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ] }
-  override equals(o: unknown) {
-    return isISamplingTripTemplate(o)
-      && this.name === o.name
-      && this.description.trim() === ( o.description?.trim() ?? '' )
-      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
-      && dataSetsEqual(this.commonSamples, o.commonSamples.map(s => new SampleTemplate(s)))
-  }
-  override toJSON(_key: string): ISamplingTripTemplate {
-    const rv :ISamplingTripTemplate = { id: this.id, name: this.name,
-      locations: this.locations.map((l,li) => l.toJSON(li.toString())),
-      commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
-    }
-    if (this.description.trim().length) rv.description = this.description.trim()
-    return rv
-  }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
     return rv
   }
-  override templateToObject() :SamplingTrip {
-    const rv :ISamplingTrip = { id: IdbStorage.newSamplingTripId(),
-      name: this.name, locations: [],
-      startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() }
-    if (this.description.trim().length) rv.description = this.description.trim()
-    return new SamplingTrip(rv, this)
+  override equals(o: unknown) {
+    return isISamplingTripTemplate(o)
+      && this.name === o.name
+      && this.description.trim() === ( o.description?.trim() ?? '' )
+      && this.checklist.trim() === ( o.checklist?.trim() ?? '' )
+      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
+      && dataSetsEqual(this.commonSamples, o.commonSamples.map(s => new SampleTemplate(s)))
+  }
+  override toJSON(_key: string): ISamplingTripTemplate {
+    return { id: this.id, name: this.name,
+      locations: this.locations.map((l,li) => l.toJSON(li.toString())),
+      commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
+      ...( this.description.trim().length && { description: this.description.trim() } ),
+      ...( this.checklist.trim().length && { checklist: this.checklist.trim() } ) }
   }
   override deepClone() :SamplingTripTemplate {
     const clone :unknown = JSON.parse(JSON.stringify(this))
     assert(isISamplingTripTemplate(clone))
     return new SamplingTripTemplate(clone)
+  }
+  override templateToObject() :SamplingTrip {
+    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: this,
+      name: this.name, locations: [],
+      startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
+  }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
+  override summaryDisplay() :[string,string] {
+    return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
   }
 }

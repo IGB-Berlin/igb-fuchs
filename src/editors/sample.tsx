@@ -26,7 +26,7 @@ import { i18n, tr } from '../i18n'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
   protected override readonly form2obj :()=>Readonly<Sample>
-  protected override newObj() { return new Sample(null, null) }
+  protected override newObj() { return new Sample(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
     super(parent, targetStore, targetObj)
@@ -42,7 +42,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
         })}
       </select>)
 
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     // see notes in trip-temp.tsx about this:
@@ -52,10 +52,9 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
       template ? ()=>Promise.resolve(setRemove(template.measurementTypes, obj.measurements.map(m => m.extractTemplate()))) : null )
 
-    this.form2obj = () => new Sample({
+    this.form2obj = () => new Sample({ template: obj.template,
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      description: inpDesc.value.trim(), notes: inpNotes.value.trim(), measurements: obj.measurements
-    }, obj.template)
+      notes: inpNotes.value.trim(), measurements: obj.measurements })
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),

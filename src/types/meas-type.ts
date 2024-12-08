@@ -17,6 +17,7 @@
  */
 import { validateName, DataObjectTemplate, timestampNow } from './common'
 import { Measurement } from './meas'
+import { assert } from '../utils'
 import { tr } from '../i18n'
 
 export const VALID_UNIT_RE = /^[^\s](?:.*[^\s])?$/u
@@ -32,16 +33,16 @@ export interface IMeasurementType {
 const measurementTypeKeys = ['name','unit','min','max','precision','description'] as const
 type MeasurementTypeKey = typeof measurementTypeKeys[number] & keyof IMeasurementType
 export function isIMeasurementType(o :unknown) :o is IMeasurementType {
-  if (!o || typeof o !== 'object') return false
-  if (!('name' in o && 'unit' in o)) return false  // required keys
-  for (const k of Object.keys(o)) if (!measurementTypeKeys.includes(k as MeasurementTypeKey)) return false  // extra keys
-  // type checks
-  if (typeof o.name !== 'string' || typeof o.unit !== 'string') return false
-  if ('min' in o && !( o.min===null || typeof o.min === 'number' )) return false
-  if ('max' in o && !( o.max===null || typeof o.max === 'number' )) return false
-  if ('precision' in o && !( o.precision===null || typeof o.precision === 'number' )) return false
-  if ('description' in o && !( o.description===null || typeof o.description === 'string' )) return false
-  return true
+  return !!( o && typeof o === 'object'
+    && 'name' in o && 'unit' in o  // required keys
+    && Object.keys(o).every(k => measurementTypeKeys.includes(k as MeasurementTypeKey))  // extra keys
+    // type checks
+    && typeof o.name === 'string' && typeof o.unit === 'string'
+    && ( !( 'min' in o ) || o.min===null || typeof o.min === 'number' )
+    && ( !( 'max' in o ) || o.max===null || typeof o.max === 'number' )
+    && ( !( 'precision' in o ) || o.precision===null || typeof o.precision === 'number' )
+    && ( !( 'description' in o ) || o.description===null || typeof o.description === 'string' )
+  )
 }
 
 /** Describes a type of measurement (not a specific measurement value). */
@@ -64,7 +65,6 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) && o.precision>=0 ? o.precision : NaN
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
   override validate(others :MeasurementType[]) {
     validateName(this.name)
     if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`${tr('Invalid unit')}: ${this.unit}`)
@@ -72,6 +72,13 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     if (this.precision<0) throw new Error(`${tr('Invalid precision')}: ${this.precision}<0`)
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
+  }
+  override warningsCheck(_isBrandNew :boolean) {
+    const rv :string[] = []
+    if (!Number.isFinite(this.min)) rv.push(tr('No minimum value'))
+    if (!Number.isFinite(this.max)) rv.push(tr('No maximum value'))
+    if (!Number.isFinite(this.precision)) rv.push(tr('No precision'))
+    return rv
   }
   override equals(o: unknown) {
     return isIMeasurementType(o)
@@ -82,12 +89,23 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
       && this.description.trim() === ( o.description?.trim() ?? '' )
   }
   override toJSON(_key :string) :IMeasurementType {
-    const rv :IMeasurementType = { name: this.name, unit: this.unit }
-    if (Number.isFinite(this.min)) rv.min = this.min
-    if (Number.isFinite(this.max)) rv.max = this.max
-    if (Number.isFinite(this.precision) && this.precision>=0) rv.precision = this.precision
-    if (this.description.trim().length) rv.description = this.description.trim()
-    return rv
+    return { name: this.name, unit: this.unit,
+      ...( Number.isFinite(this.min) && { min: this.min } ),
+      ...( Number.isFinite(this.max) && { max: this.max } ),
+      ...( Number.isFinite(this.precision) && { precision: this.precision } ),
+      ...( this.description.trim().length && { description: this.description.trim() } ) }
+  }
+  override deepClone() :MeasurementType {
+    const clone :unknown = JSON.parse(JSON.stringify(this))
+    assert(isIMeasurementType(clone))
+    return new MeasurementType(clone)
+  }
+  override templateToObject() :Measurement {
+    return new Measurement({ type: this, time: timestampNow(), value: '' })
+  }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
+  override summaryDisplay() :[string,string] {
+    return [ this.name, this.rangeAsText+' '+this.unit ]
   }
   get rangeAsText() {
     const mn = Number.isFinite(this.precision) && this.precision>=0 ? this.min.toFixed(this.precision) : this.min.toString()
@@ -101,18 +119,6 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
           : ''
     return detail
   }
-  override summaryDisplay() :[string,string] {
-    return [ this.name, this.rangeAsText+' '+this.unit ]
-  }
-  override warningsCheck(_isBrandNew :boolean) {
-    const rv :string[] = []
-    if (!Number.isFinite(this.min)) rv.push(tr('No minimum value'))
-    if (!Number.isFinite(this.max)) rv.push(tr('No maximum value'))
-    if (!Number.isFinite(this.precision)) rv.push(tr('No precision'))
-    return rv
-  }
-  override templateToObject() :Measurement {
-    return new Measurement({ type: this.toJSON('type'), time: timestampNow(), value: '' }) }
   /** Return a step value ("1", "0.1", "0.01", etc.) either for the precision specified in the argument, or using this object's precision. */
   precisionAsStep(pr ?:number) :string|undefined {
     const p = pr===undefined ? this.precision : pr
@@ -125,5 +131,4 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
         : this.precision===1 ? '[0-9]' : `[0-9]{1,${this.precision}}`  // one or more digits after decimal point
     return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
-  override deepClone() :MeasurementType { return new MeasurementType(this.toJSON('')) }
 }

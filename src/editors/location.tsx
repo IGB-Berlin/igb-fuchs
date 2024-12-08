@@ -30,14 +30,14 @@ import { tr } from '../i18n'
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
   protected override readonly form2obj :()=>Readonly<SamplingLocation>
-  protected override newObj() { return new SamplingLocation(null, null) }
+  protected override newObj() { return new SamplingLocation(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
     const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
@@ -54,13 +54,13 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       template ? ()=>Promise.resolve(setRemove(template.samples, obj.samples.map(s => s.extractTemplate()))) : null )
 
     this.form2obj = () => new SamplingLocation({
-      name: inpName.value, description: inpDesc.value.trim(),
+      template: obj.template, name: inpName.value,
       nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
       actualCoords: new Wgs84Coordinates(actCoords).deepClone(),
       startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
       samples: obj.samples, notes: inpNotes.value.trim(),
       photos: [], //TODO Later
-    }, obj.template)
+    })
 
     const tzOff = getTzOffsetStr(new Date())
     this.initialize([
