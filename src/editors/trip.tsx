@@ -22,20 +22,18 @@ import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { ListEditorWithTemp } from './list-edit'
+import { Editor, EditorParent } from './base'
 import { SamplingTrip } from '../types/trip'
 import { setRemove } from '../types/set'
-import { GlobalContext } from '../main'
-import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
-  protected override readonly initObj :Readonly<SamplingTrip>
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
-  protected override readonly onClose :()=>void
+  protected override newObj() { return new SamplingTrip(null, null) }
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
-    super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTrip(null, null)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
+    super(parent, targetStore, targetObj)
+    const obj = this.initObj
     /* TODO: A reload causes us to lose association with obj.template. Is there any way to persist that?
      * Actually, it's not just a reload: a simple return to the home page causes the editor to be destroyed,
      * and re-opening the object causes it to be reloaded from the DB without its template association.
@@ -68,7 +66,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
         const locNoSamp = loc.cloneNoSamples()
         if ( visitedLocs.findIndex(e => e.equals(locNoSamp)) < 0 ) {  // not seen before
           const l = loc.deepClone()
-          if (!l.samples.length) l.samples = obj.template.commonSamples
+          if (!l.samples.length) l.samples.push(...obj.template.commonSamples)
           plannedLocs.push(l)
         }
       }
@@ -77,12 +75,9 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorWithTemp(this.ctx, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
+    const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       getPlannedLocs )
-    locStore.events.add(() => this.reportMod())
-    locEdit.watchEnable(this)
-    this.onClose = () => locEdit.close()
 
     this.form2obj = () => new SamplingTrip({ id: obj.id,
       name: inpName.value, description: inpDesc.value.trim(),

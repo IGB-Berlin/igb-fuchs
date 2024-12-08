@@ -16,14 +16,22 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
-import { AbstractStore, StoreEvent } from '../storage'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
 import { Editor, EditorClass } from './base'
+import { CustomStoreEvent } from '../events'
+import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { assert } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
+
+interface ListEditorParent {
+  readonly ctx :GlobalContext
+  readonly el :HTMLElement|null
+  readonly isBrandNew :boolean
+  selfUpdate() :Promise<void>
+}
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
@@ -35,10 +43,13 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   protected readonly btnNew
   private readonly btnEdit
   private readonly disableNotice
-  protected globalEnabled :boolean = false
-  enable (newGlobalEnable :boolean) {
-    this.globalEnabled = newGlobalEnable
-    if (this.globalEnabled) {
+  protected enable() :boolean {
+    /* If this list editor is editing part of an object that is new, then it won't have
+    * been saved to its target store, so any changes to the arrays it holds (like the one
+    * being edited by this editor) won't be saved either. So, to prevent users from being
+    * able to build large object trees without them ever being saved, we require this
+    * list editor's parent object to be saved before allowing edits to its arrays. */
+    if (!this.parent.isBrandNew) {
       if (this.selId!==null) {
         this.btnDel.removeAttribute('disabled')
         this.btnEdit.removeAttribute('disabled')
@@ -59,6 +70,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.extraButtons.forEach(btn => btn.setAttribute('disabled', 'disabled'))
       this.disableNotice.classList.remove('d-none')
     }
+    return !this.parent.isBrandNew
   }
 
   addButton(btn :HTMLButtonElement, onclick :(sel :B)=>void) {
@@ -70,39 +82,24 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     })
   }
 
-  /* If this list editor is editing part of an object that is new, then it won't have
-   * been saved to its target store, so any changes to the arrays it holds (like the one
-   * being edited by this editor) won't be saved wither. So, to prevent users from being
-   * able to build large object  trees without them ever being saved, we require this
-   * list editor's parent object to be saved before allowing edits to its arrays. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private parentEditor :Editor<any, any>|null = null
-  private readonly parentListener :(()=>void) = () => {
-    assert(this.parentEditor!==null, 'bad internal state')
-    this.enable(!!this.parentEditor.isSaved)
-  }
-  watchEnable<E2 extends Editor<E2, B2>, B2 extends DataObjectBase<B2>>(parentEditor :E2) {
-    assert(this.parentEditor===null, 'watchEnable called twice')
-    this.parentEditor = parentEditor
-    this.parentEditor.targetEvents.add(this.parentListener)
-    this.parentListener()
+  protected newEditor(obj :B|null) {
+    const ed = new this.editorClass(this, this.theStore, obj)  // adds and removes itself from the stack
+    /* Editors dispatch the CustomStoreEvent on themselves because there is a case where their child
+     * ListEditors need to see it (see the .enable() notes), so here we just bubble the event down to
+     * ourselves (so it can all be handled in one place) instead of making the editor fire it twice. */
+    ed.el.addEventListener(CustomStoreEvent.NAME, event => {
+      assert(event instanceof CustomStoreEvent)
+      this.el.dispatchEvent(new CustomStoreEvent(event.detail))
+    })
   }
 
-  protected readonly storeListenersToRemove :((event :StoreEvent)=>void)[] = []
-  close() {
-    if (this.parentEditor!==null) {
-      this.parentEditor.targetEvents.remove(this.parentListener)
-      this.parentEditor = null
-    }
-    this.storeListenersToRemove.forEach(l => this.theStore.events.remove(l))
-    this.storeListenersToRemove.length = 0
-  }
-
-  protected readonly ctx
+  readonly ctx
+  private readonly parent
   protected readonly theStore
-  protected readonly editorClass
-  constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
-    this.ctx = ctx
+  private readonly editorClass
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
+    this.ctx = parent.ctx
+    this.parent = parent
     this.theStore = theStore
     this.editorClass = editorClass
 
@@ -124,7 +121,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         }
       })
       this.selId = id
-      this.enable(this.globalEnabled)
+      this.enable()
     }
     //TODO: Buttons to change order
     const theUl = <ul class="list-group mb-2"></ul>
@@ -137,7 +134,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
       selectItem(selAfter, true)
-      this.enable(this.globalEnabled)
+      this.enable()
     }
     setTimeout(redrawList)  // work around that we can't call the async function from the constructor
     this.btnDiv = <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
@@ -152,23 +149,26 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         console.debug('Deleting',selItem,'...')
         /* REMEMBER deletion may change some object's ids!
          * Redrawing the list is handled via the event listener below. */
-        const del = await this.theStore.del(selItem)
-        assert(delId === del, `${delId}!==${del}`)  // paranoia
-        console.debug('... deleted id',del)
+        const oldId = await this.theStore.del(selItem)
+        assert(delId === oldId, `${delId}!==${oldId}`)  // paranoia
+        this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
+        console.debug('... deleted id',oldId)
         break }
       }
     })
     this.btnEdit.addEventListener('click', async () => {
       if (this.selId===null) return  // shouldn't happen
-      const selItem = await this.theStore.get(this.selId)
-      new this.editorClass(this.ctx, this.theStore, selItem)  // adds and removes itself from the stack
+      this.newEditor(await this.theStore.get(this.selId))
     })
-    this.btnNew.addEventListener('click', () => {
-      new this.editorClass(this.ctx, this.theStore, null)  // adds and removes itself from the stack
+    this.btnNew.addEventListener('click', () => this.newEditor(null))
+    this.el.addEventListener(CustomStoreEvent.NAME, async event => {
+      assert(event instanceof CustomStoreEvent)
+      // If we were changed, tell parent editor (if we have one) to update itself in its store
+      if (this.parent.el) await this.parent.selfUpdate()
+      return redrawList(event.detail.action === 'del' ? null : event.detail.id)
     })
-    const onChange = (event :StoreEvent) => redrawList(event.action === 'del' ? undefined : event.id)
-    this.theStore.events.add(onChange)
-    this.storeListenersToRemove.push(onChange)
+    if (this.parent.el)  // see notes in .enable()
+      this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.enable())
   }
 
   withBorder(title :string, help :string|null = null) {
@@ -184,31 +184,35 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
   protected abstract makeNew(t :T) :B
   protected postNew(_obj :B) {}
   private btnTemp
-  constructor(ctx :GlobalContext, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
-    super(ctx, theStore, editorClass)
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
+    super(parent, theStore, editorClass)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
       if (template===null) return
       const newObj = this.makeNew(template)
-      console.debug('Added',newObj,'with id',await this.theStore.add(newObj))
+      console.debug('Adding',newObj,'...')
+      const newId = await this.theStore.add(newObj)
+      this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
       this.postNew(newObj)
+      console.debug('... added with id',newId)
     })
     this.btnNew.insertAdjacentElement('beforebegin', this.btnTemp)
   }
-  override enable(newGlobalEnable: boolean) {
-    super.enable(newGlobalEnable)
-    if (this.globalEnabled) this.btnTemp.removeAttribute('disabled')
+  override enable() {
+    const globalEnable = super.enable()
+    if (globalEnable) this.btnTemp.removeAttribute('disabled')
     else this.btnTemp.setAttribute('disabled', 'disabled')
+    return globalEnable
   }
 }
 export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, T> {
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
-  constructor(ctx :GlobalContext, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, dialogTitle :string|HTMLElement,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, dialogTitle :string|HTMLElement,
     templateSource :()=>Promise<T[]>, planned :(()=>Promise<T[]>)|null) {
-    super(ctx, theStore, editorClass, dialogTitle, templateSource)
+    super(parent, theStore, editorClass, dialogTitle, templateSource)
 
     const theUl = <ul class="list-group"></ul>
     const myEl = <div class="mt-3 d-none">
@@ -222,8 +226,11 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
         const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
         btnNew.addEventListener('click', async () => {
           const newObj = t.templateToObject()
-          console.debug('Added',newObj,'with id',await this.theStore.add(newObj))
-          new this.editorClass(this.ctx, this.theStore, newObj)
+          console.debug('Adding',newObj,'...')
+          const newId = await this.theStore.add(newObj)
+          this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
+          this.newEditor(newObj)
+          console.debug('... added with id',newId)
         })
         return <li class="list-group-item d-flex justify-content-between align-items-center">
           <div class="me-auto">{t.summaryAsHtml(false)}</div>
@@ -232,10 +239,9 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
       }))
     }
     setTimeout(redrawList)
-    this.theStore.events.add(redrawList)
-    this.storeListenersToRemove.push(redrawList)
+    this.el.addEventListener(CustomStoreEvent.NAME, redrawList)
     this.el.appendChild(myEl)
   }
   protected override makeNew(t :T) :D { return t.templateToObject() }
-  protected override postNew(obj: D) { new this.editorClass(this.ctx, this.theStore, obj) }
+  protected override postNew(obj: D) { this.newEditor(obj) }
 }

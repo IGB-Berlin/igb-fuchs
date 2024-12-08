@@ -21,22 +21,20 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { Wgs84Coordinates } from '../types/coords'
 import { ListEditorWithTemp } from './list-edit'
-import {  VALID_NAME_RE } from '../types/common'
+import { VALID_NAME_RE } from '../types/common'
 import { makeCoordinateEditor } from './coords'
+import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
-import { GlobalContext } from '../main'
 import { SampleEditor } from './sample'
-import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
-  protected override readonly initObj :Readonly<SamplingLocation>
   protected override readonly form2obj :()=>Readonly<SamplingLocation>
-  protected override readonly onClose :()=>void
+  protected override newObj() { return new SamplingLocation(null, null) }
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {
-    super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocation(null, null)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {
+    super(parent, targetStore, targetObj)
+    const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
@@ -51,12 +49,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const template = obj.template
-    const sampEdit = new ListEditorWithTemp(this.ctx, sampStore, SampleEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
       template ? ()=>Promise.resolve(setRemove(template.samples, obj.samples.map(s => s.extractTemplate()))) : null )
-    sampStore.events.add(() => this.reportMod())
-    sampEdit.watchEnable(this)
-    this.onClose = () => sampEdit.close()
 
     this.form2obj = () => new SamplingLocation({
       name: inpName.value, description: inpDesc.value.trim(),

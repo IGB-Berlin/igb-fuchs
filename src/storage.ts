@@ -15,60 +15,26 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { SimpleEventHub } from './events'
 import { assert } from './utils'
 
-export interface StoreEvent {
-  action :'add'|'upd'|'del'|'mod'
-  id :string
-}
-
 export abstract class AbstractStore<T> {
-  readonly events :SimpleEventHub<StoreEvent> = new SimpleEventHub()
-  //TODO Later if needed: abstract getAllAsync(except :T|null) :AsyncGenerator<[string, T], void, never>
   /** Return all objects from this store as key/value pairs. */
   abstract getAll(except :T|null) :Promise<[string,T][]>
   /** Get an object, and throw an error if it is not found. */
   abstract get(id :string) :Promise<T>
-  /** If this object is added to the store immediately after this call, this call returns the id the object will have. */
-  protected abstract _add(obj :T) :Promise<string>
-  protected abstract _mod(obj :T) :Promise<string>
-  protected abstract _upd(prevObj :T, newObj :T) :Promise<string>
-  protected abstract _del(obj :T) :Promise<string>
   /** Add an object, and throw an error if it is already in the store. */
-  async add(obj :T) :Promise<string> {
-    const id = await this._add(obj)
-    this.events.fire({ action: 'add', id: id })
-    return id
-  }
+  abstract add(obj :T) :Promise<string>
   /** Replace an object in the store with a new one, throwing an error if the previous object was not in the DB. */
-  async upd(prevObj :T, newObj :T) :Promise<string> {
-    //TODO: since IDs shouldn't change on update, should we throw an error if they differ?
-    const id = await this._upd(prevObj, newObj)
-    this.events.fire({ action: 'upd', id: id })
-    return id
-  }
+  abstract upd(prevObj :T, newObj :T) :Promise<string>
   /** Delete an object from the store, throwing an error if it is not found. **WARNING:** Deletion will change *other* object's IDs! */
-  async del(obj :T) :Promise<string> {
-    const id = await this._del(obj)
-    this.events.fire({ action: 'del', id: id })
-    return id
-  }
-  /** Report that an item already stored has been modified, for example if a nested object/array has changed.
-   *
-   * The implementation may need to write the object to storage (or it may have already updated, in which case no store is needed). */
-  async mod(obj :T) :Promise<string> {
-    const id = await this._mod(obj)
-    this.events.fire({ action: 'mod', id: id })
-    return id
-  }
+  abstract del(obj :T) :Promise<string>
 }
 
 export class ArrayStore<T> extends AbstractStore<T> {
   /* TODO Later: ArrayStore is a bit inefficient, can it be removed so we can allow ListEditors to edit arrays directly? (maybe two ListEditor subclasses?)
    * Similarly, Editor just does two operations on targetStore (add/upd/mod), perhaps it can get an abstraction object?
    * For that abstraction, do *all* objects need an id/idx ? If not, can probably remove the .id and just use keys? */
-  private array
+  private readonly array
   constructor(array :T[]) { super(); this.array = array }
   private idx(obj :T) :number {
     const idx = this.array.findIndex(o => Object.is(o,obj))
@@ -89,20 +55,18 @@ export class ArrayStore<T> extends AbstractStore<T> {
     assert(rv)
     return Promise.resolve(rv)
   }
-  protected override _add(obj :T) {
+  override add(obj :T) {
     if (this.array.some(o => Object.is(o,obj))) throw new Error('Object already in store')
     return Promise.resolve( (this.array.push(obj)-1).toString() )
   }
-  protected override _upd(prevObj :T, newObj :T) {
+  override upd(prevObj :T, newObj :T) {
     const idx = this.idx(prevObj)
     this.array[idx] = newObj
     return Promise.resolve(idx.toString())
   }
-  protected override _del(obj :T) {
+  override del(obj :T) {
     const idx = this.idx(obj)
     this.array.splice(idx,1)
     return Promise.resolve(idx.toString())
   }
-  protected override _mod(obj :T) {
-    return Promise.resolve(this.idx(obj).toString()) }  // nothing else needed here
 }

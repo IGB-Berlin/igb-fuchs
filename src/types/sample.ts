@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
-import { DataObjectTemplate, DataObjectWithTemplate } from './common'
+import { DataObjectTemplate, DataObjectWithTemplate, isArrayOf } from './common'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
 import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
@@ -34,7 +34,7 @@ export function isSampleType(v :unknown) :v is SampleType {
 export interface ISample {
   type :SampleType
   description ?:string|null
-  measurements :IMeasurement[]
+  readonly measurements :IMeasurement[]
   notes ?:string|null
 }
 const sampleKeys = ['type','description','measurements','notes','template'] as const
@@ -55,14 +55,14 @@ export function isISample(o :unknown) :o is ISample {
 export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> implements ISample {
   type :SampleType
   description :string
-  measurements :Measurement[]
+  readonly measurements :Measurement[]
   notes :string
   readonly template :SampleTemplate|null
   constructor(o :ISample|null, template :SampleTemplate|null) {
     super()
     this.type = o?.type ?? 'undefined'
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.measurements = o ? o.measurements.map(m => new Measurement(m)) : []
+    this.measurements = o===null ? [] : isArrayOf(Measurement, o.measurements) ? o.measurements : o.measurements.map(m => new Measurement(m))
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.template = template
   }
@@ -119,7 +119,7 @@ export interface ISampleTemplate {
   /* TODO: More fields in sample template? like amount? (e.g. in case only a sample is taken back to the lab without measurements)
    * Or "other type" for a freeform type definition?
    * Also, the help text for Sample.notes says that quality notes could be recorded there, but we should probably have a machine-readable field! */
-  measurementTypes :IMeasurementType[]
+  readonly measurementTypes :IMeasurementType[]
 }
 export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
   if (!o || typeof o !== 'object') return false
@@ -135,12 +135,12 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   type :SampleType
   description :string
   /** The typical measurement types performed on this sample. */
-  measurementTypes :MeasurementType[]
+  readonly measurementTypes :MeasurementType[]
   constructor(o :ISampleTemplate|null) {
     super()
     this.type = o?.type ?? 'undefined'
     this.description =  o && 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.measurementTypes = o ? o.measurementTypes.map(m => new MeasurementType(m)) : []
+    this.measurementTypes = o===null ? [] : isArrayOf(MeasurementType, o.measurementTypes) ? o.measurementTypes : o.measurementTypes.map(m => new MeasurementType(m))
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample Template':'samp-temp') }
   override validate(_others :SampleTemplate[]) {

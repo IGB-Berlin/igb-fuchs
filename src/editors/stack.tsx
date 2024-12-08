@@ -26,7 +26,6 @@ interface StackAble {  // the only bits of the Editor class we care about
   readonly fullTitle :string
   readonly unsavedChanges :boolean
   requestClose() :Promise<boolean>
-  close() :void
 }
 
 interface HistoryState { stackLen :number }
@@ -78,7 +77,7 @@ export class EditorStack {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack
     this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
-      requestClose: () => Promise.resolve(false), close: () => { throw new Error('shouldn\'t happen') } })
+      requestClose: () => { throw new Error('shouldn\'t happen') } })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -166,7 +165,6 @@ export class EditorStack {
     assert(del)
     assert(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)  // paranoia
     this.el.removeChild(del.el)
-    del.close()
     // display the element underneath
     const top = this.stack.at(-1)
     assert(top)

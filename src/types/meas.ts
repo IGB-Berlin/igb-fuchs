@@ -40,7 +40,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   get template() { return this.type }
   constructor(o :IMeasurement|null) {
     super()
-    this.type = new MeasurementType(o?.type??null)
+    this.type = o?.type instanceof MeasurementType ? o.type : new MeasurementType(o?.type??null)
     this.time = o?.time ?? NO_TIMESTAMP
     this.value = o?.value ?? ''
   }

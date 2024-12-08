@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp, DataObjectWithTemplate, timestampsEqual } from './common'
+import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp,
+  DataObjectWithTemplate, timestampsEqual, isArrayOf } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
@@ -32,9 +33,9 @@ export interface ISamplingLocation {
   actualCoords :IWgs84Coordinates
   startTime :Timestamp
   endTime :Timestamp
-  samples :ISample[]
+  readonly samples :ISample[]
   notes ?:string|null
-  photos ?:string[]
+  readonly photos :string[]
 }
 const samplingLocationKeys = ['name','description','nominalCoords','actualCoords','startTime','endTime','samples','notes','photos','template'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
@@ -66,10 +67,10 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   get actCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.actualCoords) }
   startTime :Timestamp
   endTime :Timestamp
-  samples :Sample[]
+  readonly samples :Sample[]
   notes :string
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
-  photos :string[]
+  readonly photos :string[]
   readonly template :SamplingLocationTemplate|null
   constructor(o :ISamplingLocation|null, template :SamplingLocationTemplate|null) {
     super()
@@ -79,7 +80,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null).toJSON('actualCoords')
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
-    this.samples = o ? o.samples.map(s => new Sample(s, null)) : []
+    this.samples = o===null ? [] : isArrayOf(Sample, o.samples) ? o.samples : o.samples.map(s => new Sample(s, null))
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.photos = o && 'photos' in o ? o.photos : []
     this.template = template
@@ -123,10 +124,10 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     const rv :ISamplingLocation = { name: this.name,
       nominalCoords: this.nominalCoords, actualCoords: this.actualCoords,
       startTime: this.startTime, endTime: this.endTime,
-      samples: this.samples.map((s,si) => s.toJSON(si.toString())) }
+      samples: this.samples.map((s,si) => s.toJSON(si.toString())),
+      photos: Array.from(this.photos) }
     if (this.description.trim().length) rv.description = this.description
     if (this.notes.trim().length) rv.notes = this.notes
-    if (this.photos.length) rv.photos = this.photos
     return rv
   }
   override extractTemplate() :SamplingLocationTemplate {
@@ -158,7 +159,7 @@ export interface ISamplingLocationTemplate {
   name :string
   description ?:string|null
   nominalCoords :IWgs84Coordinates
-  samples :ISampleTemplate[]
+  readonly samples :ISampleTemplate[]
 }
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   if (!o || typeof o !== 'object') return false
@@ -177,13 +178,13 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   nominalCoords :IWgs84Coordinates
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
-  samples :SampleTemplate[]
+  readonly samples :SampleTemplate[]
   constructor(o :ISamplingLocationTemplate|null) {
     super()
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description : ''
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
-    this.samples = o ? o.samples.map(s => new SampleTemplate(s)) : []
+    this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
   override validate(others :SamplingLocationTemplate[]) {
@@ -216,7 +217,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override templateToObject() :SamplingLocation {
     const rv :ISamplingLocation = { name: this.name,
       nominalCoords: this.nominalCoords, actualCoords: this.nominalCoords,
-      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [] }
+      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] }
     if (this.description.trim().length) rv.description = this.description.trim()
     return new SamplingLocation(rv, this)
   }

@@ -19,20 +19,18 @@ import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { ListEditorForTemp } from './list-edit'
+import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { setRemove } from '../types/set'
-import { GlobalContext } from '../main'
 import { i18n, tr } from '../i18n'
-import { Editor } from './base'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
-  protected override readonly initObj :Readonly<SampleTemplate>
   protected override readonly form2obj :()=>Readonly<SampleTemplate>
-  protected override readonly onClose :()=>void
+  protected override newObj() { return new SampleTemplate(null) }
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
-    super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SampleTemplate(null)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
+    super(parent, targetStore, targetObj)
+    const obj = this.initObj
 
     const inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select">
@@ -48,11 +46,8 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditorForTemp(this.ctx, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
+    const measEdit = new ListEditorForTemp(this, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
-    measStore.events.add(() => this.reportMod())
-    measEdit.watchEnable(this)
-    this.onClose = () => measEdit.close()
 
     this.form2obj = () => new SampleTemplate({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',

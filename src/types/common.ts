@@ -15,7 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { Class } from '../utils'
 import { tr } from '../i18n'
+
+export function isArrayOf<T extends object>(cls :Class<T>, o :unknown) :o is T[] {
+  return Array.isArray(o) && o.every(e => e instanceof cls) }
 
 export type HasId = { readonly id :string }
 export function hasId(o :unknown) :o is HasId {

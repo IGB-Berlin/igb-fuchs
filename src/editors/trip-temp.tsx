@@ -22,19 +22,17 @@ import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
+import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
-import { GlobalContext } from '../main'
-import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
-  protected override readonly initObj :Readonly<SamplingTripTemplate>
   protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
-  protected override readonly onClose :()=>void
+  protected override newObj() { return new SamplingTripTemplate(null) }
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
-    super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingTripTemplate(null)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
+    super(parent, targetStore, targetObj)
+    const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
@@ -46,18 +44,12 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
      * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
      */
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorForTemp(this.ctx, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
+    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
-    locStore.events.add(() => this.reportMod())
-    locEdit.watchEnable(this)
 
     const sampStore = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditorForTemp(this.ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
-    sampStore.events.add(() => this.reportMod())
-    sampEdit.watchEnable(this)
-
-    this.onClose = () => { locEdit.close(); sampEdit.close() }
 
     this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
       name: inpName.value, description: inpDesc.value.trim(),

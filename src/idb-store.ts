@@ -176,7 +176,8 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
         badCount++
       }
     }
-    console.debug('IDB getAllAsync',this.storeName,'got',goodCount,'bad',badCount)
+    if (badCount)
+      console.error('IDB getAllAsync',this.storeName,'got',goodCount,'bad',badCount)
   }
   override async getAll(except :I|null): Promise<[string,O][]> {
     const rv :[string,O][] = []
@@ -202,13 +203,14 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     } else console.warn('IDB', this.storeName, 'object at key', key, 'didn\'t pass type checker', obj)
     return null
   }
-  protected override async _add(obj :I) {
+  override async add(obj :I) {
     const rv = await this.db.add(this.storeName, obj)
     console.debug('IDB add', this.storeName, obj.id)
     if (this.cbModified) await this.cbModified()
     return rv
   }
-  protected override async _upd(prevObj :I, newObj :I) {
+  override async upd(prevObj :I, newObj :I) {
+    if (prevObj.id !== newObj.id) throw new Error(`prevObj.id!==newObj.id: '${prevObj.id}'!=='${newObj.id}'`)
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(prevObj.id)
     if (!cur) throw new Error(`Key ${prevObj.id} not found`)
@@ -217,10 +219,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     if (this.cbModified) await this.cbModified()
     return newObj.id
   }
-  protected override _mod(obj :I) {
-    return this._upd(obj, obj)
-  }
-  protected override async _del(obj :I) {
+  override async del(obj :I) {
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(obj.id)
     if (!cur) throw new Error(`Key ${obj.id} not found`)

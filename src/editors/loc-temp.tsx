@@ -23,19 +23,17 @@ import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
+import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
-import { GlobalContext } from '../main'
-import { Editor } from './base'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  protected override readonly initObj :Readonly<SamplingLocationTemplate>
   protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
-  protected override readonly onClose :()=>void
+  protected override newObj() { return new SamplingLocationTemplate(null) }
 
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
-    super(ctx, targetStore, targetObj)
-    const obj = this.initObj = targetObj!==null ? targetObj : new SamplingLocationTemplate(null)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
+    super(parent, targetStore, targetObj)
+    const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
@@ -44,11 +42,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorForTemp(this.ctx, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
-    sampStore.events.add(() => this.reportMod())
-    sampEdit.watchEnable(this)
-    this.onClose = () => sampEdit.close()
 
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value,

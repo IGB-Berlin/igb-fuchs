@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
-import { CustomChangeEvent } from '../events'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { assert } from '../utils'
@@ -27,45 +27,45 @@ import { tr } from '../i18n'
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
  * act as submit buttons, so always remember to add `type="button"`!! */
 
+export interface EditorParent {
+  ctx :GlobalContext
+  el :HTMLElement
+}
+
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
-  new (ctx :GlobalContext, targetStore :AbstractStore<B>, targetObj :B|null): E }
+  new (parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null): E }
 
 export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
-  /** The initial object being edited: either `savedObj`, or a newly created object.
-   *
-   * This exists because when creating a new object, this base class cannot create new objects,
-   * so this base class has to leave it up to the subclasses to do so. */
-  protected abstract readonly initObj :Readonly<B>
+  /** Return a brand new object of the type being edited by the editor. */
+  protected abstract newObj() :B
   /** Returns an object with its fields populated from the current form state. */
   protected abstract readonly form2obj :()=>Readonly<B>
-  /** Perform any cleanup the subclass might need to do. */
-  protected abstract readonly onClose :()=>void
 
-  get fullTitle() { return this.initObj.typeName('full') }
-  get briefTitle() { return this.initObj.typeName('short') }
-
-  protected readonly ctx
+  readonly ctx
+  protected readonly parent
   /** The store in which the object with being edited resides. */
   private readonly targetStore
-  /** The event hub of the store in which the object being edited resides. */
-  get targetEvents() { return this.targetStore.events }
-
   /** The object being edited, if it is stored in `targetStore`, or `null` if creating a new object.
    *
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
   private savedObj :Readonly<B>|null = null
-  get isSaved() { return this.savedObj!==null }
+  get isBrandNew() { return this.savedObj===null }
+
+  /** The initial object being edited: either `savedObj`, or a newly created object. */
+  protected readonly initObj :B
+  get fullTitle() { return this.initObj.typeName('full') }
+  get briefTitle() { return this.initObj.typeName('short') }
 
   /** The HTML element holding the editor UI. */
   get el() :HTMLElement { return this.form }
-  private readonly form :HTMLFormElement
-  private readonly btnSaveClose :HTMLElement
-  private readonly elWarnList :HTMLElement
-  private readonly elWarnAlert :HTMLElement
-  private readonly elErrDetail :HTMLElement
-  private readonly elErrAlert :HTMLElement
+  private readonly form
+  private readonly btnSaveClose
+  private readonly elWarnList
+  private readonly elWarnAlert
+  private readonly elErrDetail
+  private readonly elErrAlert
 
   /** Construct a new editor.
    *
@@ -75,10 +75,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @param targetStore The store in which the object to be edited lives or is to be added to.
    * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
    */
-  constructor(ctx :GlobalContext, targetStore :AbstractStore<B>, targetObj :B|null) {
-    this.ctx = ctx
+  constructor(parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null) {
+    this.parent  = parent
+    this.ctx = parent.ctx
     this.targetStore = targetStore
     this.savedObj = targetObj
+    this.initObj = targetObj === null ? this.newObj() : targetObj
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
     const btnSave = <button type="button" class="btn btn-outline-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
@@ -122,10 +124,16 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
-  /** To be called by subclasses to report when any of the lists they're editing have changed. */
-  protected async reportMod() {
-    if (this.savedObj!==null) await this.targetStore.mod(this.savedObj)
-    else console.warn('reportMod ignored because savedObj is null')
+  /** Only to be called by ListEditor when bubbling change events. */
+  async selfUpdate() {
+    if (this.savedObj===null) throw new Error('selfUpdate not allowed when not yet saved')
+    console.debug('Updating',this.savedObj,'...')
+    const savedObjBefore = this.savedObj
+    const id = await this.targetStore.upd(this.savedObj, this.savedObj)
+    assert(Object.is(savedObjBefore, this.savedObj))  // paranoia left over from debugging
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: id }))
+    this.el.dispatchEvent(new CustomChangeEvent())
+    console.debug('... saved with id',id)
   }
 
   private prevSaveClickObjState :Readonly<B>|null = null  // for doSave
@@ -161,7 +169,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.elErrAlert.classList.add('d-none')
 
     // So next, check warnings
-    const warnings = curObj.warningsCheck(!this.savedObj && !andClose)
+    const warnings = curObj.warningsCheck(this.isBrandNew && !andClose)
     if (warnings.length) {
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
@@ -187,21 +195,21 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     // Actually save the object
     try {
       // Are there actually any changes to save?
-      if ( !this.savedObj ) {  // Yes, this is a new object.
-        // add() will fire event listeners, some of which need to access this.savedObj, so set that first.
+      if ( this.savedObj===null ) {  // Yes, this is a new object.
         console.debug('Adding',curObj,'...')
+        const newId = await this.targetStore.add(curObj)
         this.savedObj = curObj
-        const rv = await this.targetStore.add(curObj)
-        console.debug('... added with id',rv)
+        this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
         this.el.dispatchEvent(new CustomChangeEvent())
+        console.debug('... added with id',newId)
       }
       else if ( !this.savedObj.equals(curObj) ) {  // Yes, the saved object differs from the current form.
         console.debug('Saving',curObj,'...')
-        const prevObj = this.savedObj
+        const id = await this.targetStore.upd(this.savedObj, curObj)
         this.savedObj = curObj
-        const rv = await this.targetStore.upd(prevObj, curObj)
-        console.debug('... saved with id',rv)
+        this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: id }))
         this.el.dispatchEvent(new CustomChangeEvent())
+        console.debug('... saved with id',id)
       }
       else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
     }
@@ -234,11 +242,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     return true
   }
 
-  /** Close out this editor after a successful `requestClose`. */
-  close() {
-    this.onClose()
-  }
-
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
   protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
@@ -250,10 +253,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting
     if (helpText)
       input.setAttribute('aria-describedby', helpId)
-    if (input instanceof HTMLDivElement)
-      input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
-    else {
-      input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))
+    if (input instanceof HTMLDivElement)  // custom <div> containing e.g. <input>s
+      input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
+    else { // <input>, <textarea>, <select>
+      input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
       input.classList.add('form-control')
     }
     return <div class="row mb-3">

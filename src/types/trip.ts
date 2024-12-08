@@ -16,7 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate,
-  validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual, HasId } from './common'
+  validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual, HasId,
+  isArrayOf } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
@@ -36,7 +37,7 @@ export interface ISamplingTrip extends HasId {
   persons ?:string|null
   weather ?:string|null
   notes ?:string|null
-  locations :ISamplingLocation[]
+  readonly locations :ISamplingLocation[]
 }
 const samplingTripKeys = ['id','name','description','startTime','endTime','lastModified','persons','weather','notes','locations','template'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
@@ -70,7 +71,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   persons :string
   weather :string
   notes :string
-  locations :SamplingLocation[]
+  readonly locations :SamplingLocation[]
   readonly template :SamplingTripTemplate|null
   constructor(o :ISamplingTrip|null, template :SamplingTripTemplate|null) {
     super()
@@ -83,7 +84,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     this.persons = o && 'persons' in o && o.persons!==null ? o.persons.trim() : ''
     this.weather = o && 'weather' in o && o.weather!==null ? o.weather.trim() : ''
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.locations = o ? o.locations.map(l => new SamplingLocation(l, null)) : []
+    this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l, null))
     this.template = template
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
@@ -166,8 +167,8 @@ export interface ISamplingTripTemplate extends HasId {
   readonly id :string
   name :string
   description ?:string|null
-  locations :ISamplingLocationTemplate[]
-  commonSamples :ISampleTemplate[]
+  readonly locations :ISamplingLocationTemplate[]
+  readonly commonSamples :ISampleTemplate[]
   //TODO: Checklist (Packliste)
 }
 export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
@@ -187,16 +188,16 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   name :string
   description :string
   /** The typical sampling locations on this trip. */
-  locations :SamplingLocationTemplate[]
+  readonly locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */
-  commonSamples :SampleTemplate[]
+  readonly commonSamples :SampleTemplate[]
   constructor(o :ISamplingTripTemplate|null) {
     super()
     this.id = o===null ? IdbStorage.newTripTemplateId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.locations = o ? o.locations.map(l => new SamplingLocationTemplate(l)) : []
-    this.commonSamples = o ? o.commonSamples.map(s => new SampleTemplate(s)) : []
+    this.locations = o===null ? [] : isArrayOf(SamplingLocationTemplate, o.locations) ? o.locations :o.locations.map(l => new SamplingLocationTemplate(l))
+    this.commonSamples = o===null ? [] : isArrayOf(SampleTemplate, o.commonSamples) ? o.commonSamples : o.commonSamples.map(s => new SampleTemplate(s))
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
   override validate(others :SamplingTripTemplate[]) {
