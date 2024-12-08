@@ -144,12 +144,26 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @returns `true` if this editor can and should be closed, `false` otherwise.
    */
   private async doSave(andClose :boolean) :Promise<boolean> {
+    this.btnSaveClose.classList.remove('btn-success', 'btn-warning')
+    const showError = (msg :string) => {
+      this.btnSaveClose.classList.add('btn-warning')
+      this.elWarnAlert.classList.add('d-none')
+      this.elErrDetail.innerText = msg
+      this.elErrAlert.classList.remove('d-none')
+      this.elErrAlert.scrollIntoView({ behavior: 'smooth' })
+      this.prevSaveClickObjState = null
+    }
+
+    // Check if the form passes validation
     this.form.classList.add('was-validated')
-    if (!this.form.checkValidity()) return false
+    if (!this.form.checkValidity()) {
+      showError(tr('form-invalid'))
+      return false
+    }
+    // Form passed validation, so get the resulting object
     const curObj = this.form2obj()
 
     // Check for errors and warnings
-    this.btnSaveClose.classList.remove('btn-success', 'btn-warning')
     const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
     try {
       /* There are a few cases that aren't covered by the form validation, for example:
@@ -158,12 +172,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       curObj.validate(otherObjs)
     }
     catch (ex) {
-      this.btnSaveClose.classList.add('btn-warning')
-      this.elWarnAlert.classList.add('d-none')
-      this.elErrDetail.innerText = String(ex)
-      this.elErrAlert.classList.remove('d-none')
-      this.elErrAlert.scrollIntoView({ behavior: 'smooth' })
-      this.prevSaveClickObjState = null
+      showError(String(ex))
       return false
     }  // else, there were no validation errors
     this.elErrAlert.classList.add('d-none')

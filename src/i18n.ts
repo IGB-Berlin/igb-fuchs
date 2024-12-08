@@ -125,6 +125,9 @@ const translations = {
   'save-error-txt': [
     'Es ist beim Speichern ein Fehler aufgetreten, die Daten wurden möglicherweise nicht gespeichert. Wahrscheinlich muss die Applikation neu geladen werden.',
     'There was an error while saving the data. Your data may not be saved. It is likely you will have to reload the application.' ],
+  'form-invalid': [
+    'Ein oder mehrere obige Eingaben sind nicht gültig.',
+    'One or more inputs above are not valid.' ],
 
   // list editor
   'list-editor-disabled-new': [
