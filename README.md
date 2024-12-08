@@ -11,10 +11,10 @@ The name is a German acronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**y
 Alpha Version
 -------------
 
-This is an **alpha testing version** in the early stages, which certainly still contains bugs.
+This is an **early alpha testing version** which certainly still contains bugs.
 
-Please assume that **ANY DATA IS NOT SECURE**.
-You should always perform regular backups via the "Export" function, **however,**
+**DATA MAY BE LOST.**
+You should always perform regular backups via the "Export" function, **however**,
 it is very likely that you will not be able to restore these backups when new versions of this app are released.
 
 As soon as the testing phase is completed and the data format has been stabilized, this message will be updated accordingly.
