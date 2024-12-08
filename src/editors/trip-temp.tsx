@@ -25,6 +25,7 @@ import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
+import { makeTextAreaAutoHeight } from '../utils'
 
 export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
   protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
@@ -36,7 +37,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
-    //TODO: Checklist
+    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="1">{obj.checklist.trim()}</textarea>)
+    makeTextAreaAutoHeight(inpCheck)
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved
      * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.
@@ -53,12 +55,13 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
     this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(),
+      name: inpName.value, description: inpDesc.value.trim(), checklist: inpCheck.value.trim(),
       locations: obj.locations, commonSamples: obj.commonSamples })
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
     ])

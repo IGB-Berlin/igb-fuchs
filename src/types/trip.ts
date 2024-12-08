@@ -21,8 +21,8 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
+import { dataSetsEqual, setsEqual } from './set'
 import { IdbStorage } from '../idb-store'
-import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
@@ -36,10 +36,12 @@ export interface ISamplingTrip extends HasId {
   persons ?:string|null
   weather ?:string|null
   notes ?:string|null
+  /** Which items from `.template.checklist` have been checked. Items in this list that are not in the other are ignored; only exact string matches are considered. */
+  readonly checkedTasks ?:string[]|null
   readonly locations :ISamplingLocation[]
   readonly template ?:ISamplingTripTemplate|null
 }
-const samplingTripKeys = ['id','name','startTime','endTime','lastModified','persons','weather','notes','locations','template'] as const
+const samplingTripKeys = ['id','name','startTime','endTime','lastModified','persons','weather','notes','checkedTasks','locations','template'] as const
 type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
 export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
   return !!( o && typeof o === 'object'
@@ -52,6 +54,7 @@ export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
     && ( !('persons' in o) || o.persons===null || typeof o.persons === 'string' )
     && ( !('weather' in o) || o.weather===null || typeof o.weather === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
+    && ( !('checkedTasks' in o) || o.checkedTasks===null || Array.isArray(o.checkedTasks) && o.checkedTasks.every(t => typeof t === 'string') )
     && ( !('template' in o) || o.template===null || isISamplingTripTemplate(o.template) )
   )
 }
@@ -69,6 +72,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   persons :string
   weather :string
   notes :string
+  readonly checkedTasks :string[]
   readonly locations :SamplingLocation[]
   readonly template :SamplingTripTemplate|null
   constructor(o :ISamplingTrip|null) {
@@ -81,6 +85,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     this.persons = o && 'persons' in o && o.persons!==null ? o.persons.trim() : ''
     this.weather = o && 'weather' in o && o.weather!==null ? o.weather.trim() : ''
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
+    this.checkedTasks = o && 'checkedTasks' in o && o.checkedTasks ? o.checkedTasks : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l))
     this.template = o && 'template' in o ? ( o.template instanceof SamplingTripTemplate ? o.template : new SamplingTripTemplate(o.template) ) : null
   }
@@ -103,6 +108,13 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     /*TODO: All objects that have templates can warn if their templates' show unused sub-templates
      * (for example, SamplingTrip should warn if .template.locations.length, since we plan to delete those as they get used) */
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
+    if (!isBrandNew && this.template) {
+      let count = 0
+      for (const c of this.template.checklistItems)
+        if (!this.checkedTasks.includes(c))
+          count++
+      if (count) rv.push(i18n.t('check-not-completed', { count: count }))
+    }
     return rv
   }
   override equals(o: unknown) {
@@ -115,6 +127,11 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && this.persons.trim() === ( o.persons?.trim() ?? '' )
       && this.weather.trim() === ( o.weather?.trim() ?? '' )
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
+      /* TODO Later: I'm not entirely certain that comparing checkedTasks is the best thing when
+       * comparing two SamplingTrips, but at the moment it's needed for the dirty check (the
+       * trip won't be saved if the only thing the user changes is the check states).
+       * Need to think about this some more. */
+      && setsEqual(this.checkedTasks, o.checkedTasks??[])
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l)))
       // not comparing template
   }
@@ -124,6 +141,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       ...( isTimestampSet(this.lastModified) && { lastModified: this.lastModified } ),
       ...( this.persons.trim().length && { persons: this.persons.trim() } ),
       ...( this.weather.trim().length && { weather: this.weather.trim() } ),
+      ...( this.checkedTasks.length && { checkedTasks: this.checkedTasks } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }
@@ -188,6 +206,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   readonly id :string
   name :string
   description :string
+  //TODO: this should be a string array; the fact it's entered via a textarea is something the editor should take care of
   checklist :string
   /** The typical sampling locations on this trip. */
   readonly locations :SamplingLocationTemplate[]
@@ -210,6 +229,9 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
+    //TODO: also check for duplicate checklist items, since those won't be represented properly
+    if (this.checklist.trim().length && this.checklist.trim().split(/\r?\n/).some(l => !l.trim().length))
+      rv.push(tr('checklist-empty-lines'))
     if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
     return rv
   }
@@ -241,5 +263,8 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
+  }
+  get checklistItems() :string[] {
+    return this.checklist.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length)
   }
 }

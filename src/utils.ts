@@ -22,3 +22,14 @@ export function assert(condition: unknown, msg?: string): asserts condition {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Class<T> = new (...args :any[]) => T
+
+export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
+  // someday: https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing
+  const update = () => {
+    el.style.setProperty('overflow-y', 'hidden')
+    el.style.setProperty('height', '') // trick to allow shrinking
+    el.style.setProperty('height', `${el.scrollHeight}px`)
+  }
+  el.addEventListener('input', update)
+  setTimeout(update)
+}

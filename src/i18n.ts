@@ -202,6 +202,12 @@ const translations = {
     'Abfahrtszeit vom Messpunkt bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'Departure time from the sampling location / end of measurements. Timezone is that of this device (usually local time)' ],
   'loc-notes-help': ['Optionale Notizen zum Messpunkt im Allgemeinen.', 'Optional notes about the sampling location in general.'],
+  'checklist-help': [
+    'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
+    'Checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
+  'check-not-completed': [
+    { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
+    { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
 
   // editor: trip template
   'trip-desc-help': [
@@ -218,6 +224,13 @@ const translations = {
     +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
     'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.'
     +' If individual sampling locations have different samples defined, these override the samples in this section.' ],
+  'Checklist': ['Checkliste'],
+  'checklist-temp-help': [
+    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
+    'Every line in this input becomes one item on the checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
+  'checklist-empty-lines': [
+    'Die Checkliste enthält leere Zeilen.',
+    'The checklist contains empty lines.' ],
 
   // editor: trip
   'Start time': ['Anfangs-Zeit'],

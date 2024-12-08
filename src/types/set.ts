@@ -18,6 +18,13 @@
 
 type HasEquals = { equals(other :unknown) :boolean }
 
+/** Compare to arrays as if they were `Set`s. Arrays may not contain duplicated items. */
+export function setsEqual<T>(a :T[], b :T[]) :boolean {
+  // Set.difference() is only available as of 2024, we're currently targeting a slightly older version that didn't have it yet
+  const s = new Set<T>(a)
+  return b.every(e => s.delete(e)) && !s.size
+}
+
 /** Compares two arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same;
  * the objects must provide an `equals` method. */
 export function dataSetsEqual<T extends HasEquals>(a :T[], b :T[]) :boolean {

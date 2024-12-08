@@ -27,6 +27,8 @@ import { SamplingTrip } from '../types/trip'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
+let _checkId = 0
+
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
   protected override readonly form2obj :()=>Readonly<SamplingTrip>
   protected override newObj() { return new SamplingTrip(null) }
@@ -37,12 +39,28 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
-    //TODO: Checklist (from template; hide if empty)
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
+
+    const checks = obj.template?.checklistItems ?? []
+    const checkStates :{ [key :string]: boolean } = Object.fromEntries(checks.map(c => [c, obj.checkedTasks.includes(c) ]))
+    const grpCheck = safeCastElement(HTMLDivElement,
+      <div><ul class="list-group custom-checklist">
+        {checks.map(c => {
+          const id = `checklistCheckbox${_checkId++}`
+          const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id} />)
+          cb.checked = checkStates[c] ?? false
+          const li = <li class="list-group-item">{cb}<label class="form-check-label" for={id}>{c}</label></li>
+          cb.addEventListener('change', () => checkStates[c] = cb.checked )
+          li.addEventListener('click', event => { if (event.target===li) cb.click() })
+          return li
+        })}
+      </ul></div>)
+    const rowCheck = this.makeRow(grpCheck, tr('Checklist'), tr('checklist-help'), null)
+    if (!checks.length) rowCheck.classList.add('d-none')
 
     const getPlannedLocs = async () => {
       if (!obj.template) return []
@@ -75,12 +93,14 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     this.form2obj = () => new SamplingTrip({ id: obj.id, template: obj.template,
       name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
       lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),
-      notes: inpNotes.value.trim(), locations: obj.locations })
+      notes: inpNotes.value.trim(), locations: obj.locations,
+      checkedTasks: Object.entries(checkStates).flatMap(([k,v]) => v ? [k] : []) })
 
     const tzOff = getTzOffsetStr(new Date())
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
+      rowCheck,
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpEnd.el, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
