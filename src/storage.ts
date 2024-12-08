@@ -30,10 +30,12 @@ export abstract class AbstractStore<T> {
   abstract del(obj :T) :Promise<string>
 }
 
+/** An `AbstractStore` backed by an array.
+ *
+ * This class's implementation is a little inefficient, but considering that the arrays we expect
+ * to be editing in this application shouldn't get *that* big, that's probably not a problem.
+ */
 export class ArrayStore<T> extends AbstractStore<T> {
-  /* TODO Later: ArrayStore is a bit inefficient, can it be removed so we can allow ListEditors to edit arrays directly? (maybe two ListEditor subclasses?)
-   * Similarly, Editor just does two operations on targetStore (add/upd/mod), perhaps it can get an abstraction object?
-   * For that abstraction, do *all* objects need an id/idx ? If not, can probably remove the .id and just use keys? */
   private readonly array
   constructor(array :T[]) { super(); this.array = array }
   private idx(obj :T) :number {
