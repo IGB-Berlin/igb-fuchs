@@ -299,9 +299,9 @@ export class IdbStorage {
       for await (const cur of trans.objectStore(storeName)) {
         if (cur.key in data[storeName])
           console.error('Export: duplicate key, the former will be clobbered:', data[storeName][cur.key], cur.value)
-        // NOTE we're intentionally not type checking here, to allow export of objects after schema changes
-        //TODO: Use toJSON on export (when possible)
-        data[storeName][cur.key] = cur.value
+        data[storeName][cur.key] = isISamplingTrip(cur.value) ? new SamplingTrip(cur.value).toJSON('')
+          : isISamplingTripTemplate(cur.value) ? new SamplingTripTemplate(cur.value).toJSON('')
+            : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
     return data
   }
