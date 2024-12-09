@@ -31,7 +31,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
   const allTypes :MeasurementType[] = deduplicatedSet( trip.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
   const measCols = allTypes.map(t => t.typeId)
   // collisions between these column names and measurements aren't possible as long as these names don't have "[]" in them:
-  const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType'].concat(measCols).concat(['Notes'])
+  const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality'].concat(measCols).concat(['Notes'])
 
   /* ********** ********** Process the trip ********** ********** */
   // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?
@@ -60,7 +60,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
     return loc.samples.map((samp,si) => {
       /* ********** ********** Process the sample ********** ********** */
-      // sample: type, description, measurements[], notes, template?
+      // sample: type, quality, description, measurements[], notes, template?
 
       const rowNotes = [samp.notes.trim()]
         .concat( li ? [] : tripNotes )  // append trip notes on the very first row
@@ -77,6 +77,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
         Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
         Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
         SampleType: samp.type,
+        SubjectiveQuality: samp.subjectiveQuality,
         Notes: rowNotes,
       }
 

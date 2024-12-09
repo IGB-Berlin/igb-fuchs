@@ -87,8 +87,12 @@ body[data-selected-language="en"] [lang="de"] {
 body[data-selected-language="de"] [lang="en"] {
   display: none;
 }
-body[data-hide-help="true"] .hideable-help {
-  display: none;
+body[data-hide-help="true"] {
+  .hideable-help { display: none; }
+  .hideable-help-inline { display: none; }
+}
+body:not([data-hide-help="true"]) .hideable-help-inline {
+  display: inline;
 }
 
 // The following overrides the Bootstrap defaults for validated forms

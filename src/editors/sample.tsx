@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isSampleType, Sample, sampleTypes } from '../types/sample'
+import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { ListEditorWithTemp } from './list-edit'
@@ -42,6 +42,44 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
         })}
       </select>)
 
+    const inpQualGood = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
+    const inpQualQuest = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityQuest" value="questionable" aria-describedby="helpQualityQuest" />)
+    const inpQualBad = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityBad" value="bad" aria-describedby="helpQualityBad" />)
+    const grpQuality = safeCastElement(HTMLDivElement,
+      <div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualGood) inpQualGood.click() }}> {inpQualGood}
+          <label class="form-check-label text-success-emphasis" for="radioQualityGood"><i class="bi-check-lg"/> {tr('qf-good')}</label>
+          <div id="helpQualityGood" class="form-text hideable-help-inline ms-3">{tr('qf-desc-good')}</div>
+        </div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualQuest) inpQualQuest.click() }}> {inpQualQuest}
+          <label class="form-check-label text-warning-emphasis" for="radioQualityQuest"><i class="bi-question-diamond"/> {tr('qf-questionable')}</label>
+          <div id="helpQualityQuest" class="form-text hideable-help-inline ms-3">{tr('qf-desc-quest')}</div>
+        </div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualBad) inpQualBad.click() }}> {inpQualBad}
+          <label class="form-check-label text-danger-emphasis" for="radioQualityBad"><i class="bi-exclamation-triangle" /> {tr('qf-bad')}</label>
+          <div id="helpQualityBad" class="form-text hideable-help-inline ms-3">{tr('qf-desc-bad')}</div>
+        </div>
+      </div>)
+    switch(obj.subjectiveQuality) {
+    case 'good': inpQualGood.checked = true; break
+    case 'questionable': inpQualQuest.checked = true; break
+    case 'bad': inpQualBad.checked = true; break
+    case 'undefined': break
+    }
+    let quality :QualityFlag = obj.subjectiveQuality
+    const updQual = () => {
+      if (inpQualGood.checked) quality = 'good'
+      else if (inpQualQuest.checked) quality = 'questionable'
+      else if (inpQualBad.checked) quality = 'bad'
+      else quality = 'undefined'
+    }
+    inpQualGood.addEventListener('change', updQual)
+    inpQualQuest.addEventListener('change', updQual)
+    inpQualBad.addEventListener('change', updQual)
+
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
@@ -53,12 +91,13 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       template ? ()=>Promise.resolve(setRemove(template.measurementTypes, obj.measurements.map(m => m.extractTemplate()))) : null )
 
     this.form2obj = () => new Sample({ template: obj.template,
-      type: isSampleType(inpType.value) ? inpType.value : 'undefined',
+      type: isSampleType(inpType.value) ? inpType.value : 'undefined', subjectiveQuality: quality,
       notes: inpNotes.value.trim(), measurements: obj.measurements })
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
+      this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])

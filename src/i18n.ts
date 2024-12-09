@@ -271,6 +271,16 @@ const translations = {
   'samp-notes-help': [
     'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
     'Optional notes about the sample, e.g. quality, amount, etc.' ],
+  'Subjective Quality': ['Subjektive Qualität'],
+  'qf-desc-good': [
+    'Keine offensichtlich erkennbaren Qualitätsprobleme',
+    'No obviously identifiable quality problems' ],
+  'qf-desc-quest': [
+    'Mögliche Qualitätsprobleme, z.B. mögliche Verunreinigung, ungewöhnlicher Geruch, usw. (ggf. in "Notizen" spezifizieren)',
+    'Possible quality problems, e.g. possible contamination, unusual smell, etc. (describe in "Notes" if appropriate)' ],
+  'qf-desc-bad': [
+    'Eindeutige Qualitätsprobleme, z.B. zu geringe Probenmenge, offensichtliche Verunreinigung, usw. (ggf. in "Notizen" spezifizieren)',
+    'Obvious quality problems, e.g. too small sample amount, obvious contamination, etc. (describe in "Notes" if appropriate)' ],
 
   // editor: measurement
   'Timestamp': ['Zeitstempel'],
@@ -385,6 +395,7 @@ const translations = {
   'Invalid min/max value': ['Ungültiger Minimal-/Maximalwert'],
   'Invalid precision': ['Ungültige Anzahl der Nachkommastellen'],
   'Invalid sample type': ['Ungültiger Probentyp'],
+  'Invalid quality': ['Ungültige Qualitätsangabe'],
   'Invalid measurement type': ['Ungültiger Messtyp'],
   'invalid-latitude': [
     'Ungültiger Breitengrad, benötigt wird eine Zahl zwischen -90 und +90',
@@ -409,6 +420,9 @@ const translations = {
   'samp-type-undef': [
     'Art der Probe nicht festgelegt.',
     'Sample type not defined.' ],
+  'quality-undef': [
+    'Subjektive Qualität nicht angegeben.',
+    'Subjective quality not specified.' ],
   'times-order': [
     'Die End-Zeit liegt vor der Anfangs-Zeit.',
     'The end time is before the start time.' ],
@@ -431,6 +445,11 @@ const translations = {
   'st-fish': ['Fisch', 'Fish'],
   'st-insect': ['Insekt', 'Insect'],
   'st-data-logger': ['Datenlogger auslesen', 'Read out data logger'],
+  // quality flags (Remember to keep in sync with QualityFlag!)
+  'qf-undefined': ['(nicht aufgezeichnet)', '(not recorded)'],
+  'qf-good': ['Gut', 'Good'],
+  'qf-questionable': ['Fraglich', 'Questionable'],
+  'qf-bad': ['Schlecht', 'Bad'],
 
   // '': [''],
 } as const

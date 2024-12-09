@@ -24,27 +24,34 @@ import { assert } from '../utils'
 
 export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water', 'surface-water-flowing', 'surface-water-standing', 'ground-water', 'water-precipitation',
+  //TODO Later: Consider a SampleType "other"?
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger',
 ] as const
-
 type SampleType = typeof sampleTypes[number]
 export function isSampleType(v :unknown) :v is SampleType {
   return typeof v==='string' && sampleTypes.includes(v as SampleType) }
 
+export const qualityFlags = ['undefined',  // Remember to keep in sync with translations 'qf-*' !
+  'good', 'questionable', 'bad'] as const
+export type QualityFlag = typeof qualityFlags[number]
+export function isQualityFlag(v :unknown) :v is QualityFlag {
+  return typeof v==='string' && qualityFlags.includes(v as QualityFlag) }
+
 export interface ISample {
   type :SampleType
+  subjectiveQuality :QualityFlag
   notes ?:string|null
   readonly measurements :IMeasurement[]
   readonly template ?:ISampleTemplate|null
 }
-const sampleKeys = ['type','notes','measurements','template'] as const
+const sampleKeys = ['type','subjectiveQuality','notes','measurements','template'] as const
 type SampleKey = typeof sampleKeys[number] & keyof ISample
 export function isISample(o :unknown) :o is ISample {
   return !!( o && typeof o === 'object'
-    && 'type' in o && 'measurements' in o  // required keys
+    && 'type' in o && 'subjectiveQuality' in o && 'measurements' in o  // required keys
     && Object.keys(o).every(k => sampleKeys.includes(k as SampleKey))  // extra keys
     // type checks
-    && isSampleType(o.type)
+    && isSampleType(o.type) && isQualityFlag(o.subjectiveQuality)
     && Array.isArray(o.measurements) && o.measurements.every(m => isIMeasurement(m))
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
     && ( !('template' in o) || o.template===null || isISampleTemplate(o.template) )
@@ -54,22 +61,26 @@ export function isISample(o :unknown) :o is ISample {
 /** Records an actual sample taken. */
 export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> implements ISample {
   type :SampleType
+  subjectiveQuality :QualityFlag
   notes :string
   readonly measurements :Measurement[]
   readonly template :SampleTemplate|null
   constructor(o :ISample|null) {
     super()
     this.type = o?.type ?? 'undefined'
+    this.subjectiveQuality = o?.subjectiveQuality ?? 'undefined'
     this.measurements = o===null ? [] : isArrayOf(Measurement, o.measurements) ? o.measurements : o.measurements.map(m => new Measurement(m))
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.template = o && 'template' in o ? ( o.template instanceof SampleTemplate ? o.template : new SampleTemplate(o.template) ) :null
   }
   override validate(_others :Sample[]) {
-    if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} ${String(this.type)}`)
+    if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} '${String(this.type)}'`)
+    if (!isQualityFlag(this.subjectiveQuality)) throw new Error(`${tr('Invalid quality')} '${String(this.subjectiveQuality)}'`)
   }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
-    if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    if (!this.type.length || this.type==='undefined') rv.push(tr('samp-type-undef'))
+    if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
@@ -77,13 +88,13 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   }
   override equals(o: unknown) {
     return isISample(o)
-      && this.type === o.type
+      && this.type === o.type && this.subjectiveQuality === o.subjectiveQuality
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
       && dataSetsEqual(this.measurements, o.measurements.map(m => new Measurement(m)))
       // not comparing template
   }
   override toJSON(_key: string) :ISample {
-    return { type: this.type,
+    return { type: this.type, subjectiveQuality: this.subjectiveQuality,
       measurements: this.measurements.map((m,mi) => m.toJSON(mi.toString())),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ) }
   }
@@ -117,9 +128,6 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
 export interface ISampleTemplate {
   type :SampleType
   description ?:string|null
-  /* TODO: More fields in sample template? like amount? (e.g. in case only a sample is taken back to the lab without measurements)
-   * Or "other type" for a freeform type definition?
-   * Also, the help text for Sample.notes says that quality notes could be recorded there, but we should probably have a machine-readable field! */
   readonly measurementTypes :IMeasurementType[]
 }
 export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
@@ -169,7 +177,7 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
     return new SampleTemplate(clone)
   }
   override templateToObject() :Sample {
-    return new Sample({ template: this.deepClone(), type: this.type, measurements: [] })
+    return new Sample({ template: this.deepClone(), type: this.type, subjectiveQuality: 'undefined', measurements: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample Template':'samp-temp') }
   override summaryDisplay() { return sampSummary(this) }
