@@ -175,10 +175,11 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
   }
   get tripId() :string {
+    const n = this.name.trim().length ? this.name : '?'  // paranoia
     if (isTimestampSet(this.startTime)) {
       const dt = new Date(this.startTime)
-      return `${this.name} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
-    } else return this.name
+      return `${n} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
+    } else return n
   }
 }
 
