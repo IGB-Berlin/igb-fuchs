@@ -70,6 +70,8 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
     if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    const mtIds = this.measurements.map(m => m.type.typeId)
+    if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
     return rv
   }
@@ -146,6 +148,8 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   override warningsCheck() {
     const rv :string[] = []
     if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    const mtIds = this.measurementTypes.map(t => t.typeId)
+    if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     return rv
   }
   override equals(o: unknown) {

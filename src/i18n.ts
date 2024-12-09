@@ -160,6 +160,11 @@ const translations = {
   'new-meas-from-temp': [
     'Neue Messung aus Vorlage',
     'New Measurement from Template' ],
+  'meas-type-duplicate': [
+    'Bei Messungen mit gleichartigen Messtypen an einer Probe wird nur die neuste dieser Messungen im CSV Format exportiert.'
+    +' Hinweis: Wenn Messungen des gleichen Typs gewünscht sind, können auch mehrere Proben des gleichen Typs angelegt werden.',
+    'When one sample has multiple measurements of the same type, only the newest of these measurements will be exported in the CSV format.'
+    +' Hint: If multiple measurements of the same type are desired, multiple samples of the same type may be defined.' ],
 
   // editor: location (template) & coords
   'loc-desc-help': [

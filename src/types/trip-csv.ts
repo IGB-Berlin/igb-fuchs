@@ -29,7 +29,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( trip.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
-  const measCols = allTypes.map(t => `${t.name}[${ t.unit.trim().length ? t.unit : '?' }]`)
+  const measCols = allTypes.map(t => t.typeId)
   // collisions between these column names and measurements aren't possible as long as these names don't have "[]" in them:
   const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType'].concat(measCols).concat(['Notes'])
 
@@ -83,8 +83,6 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
       /* ********** ********** Process the measurements ********** ********** */
       // measurement: type, time, value.formattedValue()
       // type: name, unit, min, max, precision, description
-      /* TODO: Currently, if a sample has multiple measurements of the same type, only the newest one is exported.
-       * I need to handle this possibility via at *least* a warning, maybe even a validation error. */
       const ms = Array.from(samp.measurements)
       ms.sort((a,b) => b.time-a.time)
       allTypes.forEach((type,ti) => {

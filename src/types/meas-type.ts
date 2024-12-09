@@ -131,4 +131,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
         : this.precision===1 ? '[0-9]' : `[0-9]{1,${this.precision}}`  // one or more digits after decimal point
     return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
+  get typeId() {
+    return `${ this.name.trim().length ? this.name : '?' }[${ this.unit.trim().length ? this.unit : '?' }]`
+  }
 }
