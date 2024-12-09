@@ -45,7 +45,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    const checks = obj.template?.checklistItems ?? []
+    const checks = obj.template?.checklist ?? []
     const checkStates :{ [key :string]: boolean } = Object.fromEntries(checks.map(c => [c, obj.checkedTasks.includes(c) ]))
     const grpCheck = safeCastElement(HTMLDivElement,
       <div><ul class="list-group custom-checklist">

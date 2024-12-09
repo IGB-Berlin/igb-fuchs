@@ -231,6 +231,9 @@ const translations = {
   'checklist-empty-lines': [
     'Die Checkliste enthält leere Zeilen.',
     'The checklist contains empty lines.' ],
+  'checklist-duplicates': [
+    'Die Checkliste enthält Dopplungen.',
+    'The checklist contains duplicate items.' ],
 
   // editor: trip
   'Start time': ['Anfangs-Zeit'],

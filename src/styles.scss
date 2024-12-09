@@ -95,14 +95,7 @@ body[data-hide-help="true"] .hideable-help {
 .custom-checklist .list-group-item:has( .form-check-input:not(:checked) ) {
   background-color: var(--#{bs.$prefix}warning-bg-subtle);
 }
-.custom-checklist .form-check-input {
-  &:checked {
-    border-color: var(--#{bs.$prefix}success-border-subtle);
-    background-color: var(--#{bs.$prefix}form-valid-color);
-    & ~ .form-check-label { color: var(--#{bs.$prefix}success-text-emphasis) }
-  }
-  &:not(:checked) {
-    border-color: var(--#{bs.$prefix}warning-border-subtle);
-    & ~ .form-check-label { color: var(--#{bs.$prefix}warning-text-emphasis) }
-  }
+.custom-checklist .form-check-input:not(:checked) {
+  border-color: var(--#{bs.$prefix}warning-border-subtle);
+  & ~ .form-check-label { color: var(--#{bs.$prefix}warning-text-emphasis) }
 }

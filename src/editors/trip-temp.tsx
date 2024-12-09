@@ -37,7 +37,7 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
-    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="1">{obj.checklist.trim()}</textarea>)
+    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="1">{obj.checklist.join('\n')}</textarea>)
     makeTextAreaAutoHeight(inpCheck)
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved
@@ -55,7 +55,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
     this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(), checklist: inpCheck.value.trim(),
+      name: inpName.value, description: inpDesc.value.trim(),
+      checklist: inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
       locations: obj.locations, commonSamples: obj.commonSamples })
 
     this.initialize([

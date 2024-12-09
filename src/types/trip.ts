@@ -110,7 +110,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
     if (!isBrandNew && this.template) {
       let count = 0
-      for (const c of this.template.checklistItems)
+      for (const c of this.template.checklist)
         if (!this.checkedTasks.includes(c))
           count++
       if (count) rv.push(i18n.t('check-not-completed', { count: count }))
@@ -127,10 +127,9 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && this.persons.trim() === ( o.persons?.trim() ?? '' )
       && this.weather.trim() === ( o.weather?.trim() ?? '' )
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
-      /* TODO Later: I'm not entirely certain that comparing checkedTasks is the best thing when
+      /* NOTE: I'm not entirely certain that comparing checkedTasks is the best thing when
        * comparing two SamplingTrips, but at the moment it's needed for the dirty check (the
-       * trip won't be saved if the only thing the user changes is the check states).
-       * Need to think about this some more. */
+       * trip won't be saved if the only thing the user changes is the check states). */
       && setsEqual(this.checkedTasks, o.checkedTasks??[])
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l)))
       // not comparing template
@@ -162,7 +161,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     return new SamplingTripTemplate({ id: IdbStorage.newTripTemplateId(),
       name: this.name, locations: locs, commonSamples: common,
       ...( this.template?.description.trim().length && { description: this.template.description.trim() } ),
-      ...( this.template?.checklist.trim().length && { checklist: this.template.checklist.trim() } ) })
+      ...( this.template?.checklist.length && { checklist: Array.from(this.template.checklist) } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
   override summaryDisplay() :[string,string] {
@@ -183,7 +182,7 @@ export interface ISamplingTripTemplate extends HasId {
   readonly id :string
   name :string
   description ?:string|null
-  checklist ?:string|null
+  readonly checklist ?:string[]|null
   readonly locations :ISamplingLocationTemplate[]
   readonly commonSamples :ISampleTemplate[]
 }
@@ -198,7 +197,7 @@ export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate 
     && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocationTemplate(l))
     && Array.isArray(o.commonSamples) && o.commonSamples.every(s => isISampleTemplate(s))
     && ( !('description' in o) || o.description===null || typeof o.description === 'string' )
-    && ( !('checklist' in o) || o.checklist===null || typeof o.checklist === 'string' )
+    && ( !('checklist' in o) || o.checklist===null || Array.isArray(o.checklist) && o.checklist.every(c => typeof c === 'string') )
   )
 }
 
@@ -206,8 +205,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   readonly id :string
   name :string
   description :string
-  //TODO: this should be a string array; the fact it's entered via a textarea is something the editor should take care of
-  checklist :string
+  checklist :string[]
   /** The typical sampling locations on this trip. */
   readonly locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */
@@ -217,7 +215,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     this.id = o===null ? IdbStorage.newTripTemplateId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
-    this.checklist = o && 'checklist' in o && o.checklist!==null ? o.checklist.trim() : ''
+    this.checklist = o && 'checklist' in o && o.checklist ? o.checklist : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocationTemplate, o.locations) ? o.locations :o.locations.map(l => new SamplingLocationTemplate(l))
     this.commonSamples = o===null ? [] : isArrayOf(SampleTemplate, o.commonSamples) ? o.commonSamples : o.commonSamples.map(s => new SampleTemplate(s))
   }
@@ -229,9 +227,9 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   }
   override warningsCheck(isBrandNew :boolean) {
     const rv :string[] = []
-    //TODO: also check for duplicate checklist items, since those won't be represented properly
-    if (this.checklist.trim().length && this.checklist.trim().split(/\r?\n/).some(l => !l.trim().length))
-      rv.push(tr('checklist-empty-lines'))
+    const ck = this.checklist.map(c => c.trim())
+    if ( new Set(ck).size !== ck.length ) rv.push(tr('checklist-duplicates'))
+    if ( ck.some(c => !c.length) ) rv.push(tr('checklist-empty-lines'))
     if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
     return rv
   }
@@ -239,7 +237,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return isISamplingTripTemplate(o)
       && this.name === o.name
       && this.description.trim() === ( o.description?.trim() ?? '' )
-      && this.checklist.trim() === ( o.checklist?.trim() ?? '' )
+      && setsEqual(this.checklist, o.checklist??[])
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
       && dataSetsEqual(this.commonSamples, o.commonSamples.map(s => new SampleTemplate(s)))
   }
@@ -248,7 +246,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
       locations: this.locations.map((l,li) => l.toJSON(li.toString())),
       commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
       ...( this.description.trim().length && { description: this.description.trim() } ),
-      ...( this.checklist.trim().length && { checklist: this.checklist.trim() } ) }
+      ...( this.checklist.length && { checklist: Array.from(this.checklist) } ) }
   }
   override deepClone() :SamplingTripTemplate {
     const clone :unknown = JSON.parse(JSON.stringify(this))
@@ -257,14 +255,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   }
   override templateToObject() :SamplingTrip {
     return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: this,
-      name: this.name, locations: [],
+      name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
-  }
-  get checklistItems() :string[] {
-    return this.checklist.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length)
   }
 }
