@@ -53,10 +53,9 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
           const id = `checklistCheckbox${_checkId++}`
           const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id} />)
           cb.checked = checkStates[c] ?? false
-          const li = <li class="list-group-item">{cb}<label class="form-check-label" for={id}>{c}</label></li>
           cb.addEventListener('change', () => checkStates[c] = cb.checked )
-          li.addEventListener('click', event => { if (event.target===li) cb.click() })
-          return li
+          return <li class="list-group-item" onclick={(event :Event) => { if (event.target!==cb) cb.click() }}>
+            {cb}<label class="form-check-label" for={id}>{c}</label></li>
         })}
       </ul></div>)
     const rowCheck = this.makeRow(grpCheck, tr('Checklist'), tr('checklist-help'), null)

@@ -38,6 +38,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
+    //TODO Later: Make "Nominal Coords" in Location readonly (like description), then they shouldn't be required!
     const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
     const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
@@ -66,8 +67,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), tr('nom-coord-help'), tr('invalid-coords')),
-      this.makeRow(inpActCoords, tr('act-coord'), tr('act-coord-help'), tr('invalid-coords')),
+      this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
+      this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')}</>, tr('invalid-coords')),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpEnd.el, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
