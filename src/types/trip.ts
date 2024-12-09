@@ -262,7 +262,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return new SamplingTripTemplate(clone)
   }
   override templateToObject() :SamplingTrip {
-    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: this.deepClone(),
+    const t = this.deepClone()
+    // for locations that have no samples, use commonSamples:
+    for (const l of t.locations) if (!l.samples.length) l.samples.push(...t.commonSamples.map(s => s.deepClone()))
+    t.commonSamples.length = 0  // no longer needed
+    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: t,
       name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
   }

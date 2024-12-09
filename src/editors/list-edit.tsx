@@ -94,7 +94,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   }
 
   readonly ctx
-  private readonly parent
+  protected readonly parent
   protected readonly theStore
   private readonly editorClass
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
@@ -211,8 +211,9 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
   constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, dialogTitle :string|HTMLElement,
-    templateSource :()=>Promise<T[]>, planned :(()=>Promise<T[]>)|null) {
+    templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, dialogTitle, templateSource)
+    planned ??= []
 
     const theUl = <ul class="list-group"></ul>
     const myEl = <div class="mt-3 d-none">
@@ -220,14 +221,16 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
       {theUl}
     </div>
     const redrawList = async () => {
-      const temps = planned ? await planned() : []
-      myEl.classList.toggle('d-none', !temps.length)
-      theUl.replaceChildren(...temps.map(t => {
+      myEl.classList.toggle('d-none', !planned.length)
+      theUl.replaceChildren(...planned.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
         btnNew.addEventListener('click', async () => {
+          const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
+          assert(rm===t)  // paranoia
           const newObj = t.templateToObject()
           console.debug('Adding',newObj,'...')
           const newId = await this.theStore.add(newObj)
+          // this event also causes our parent editor to be told to selfUpdate, so the above change to the `planned` array is saved
           this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
           this.newEditor(newObj)
           console.debug('... added with id',newId)

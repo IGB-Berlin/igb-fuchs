@@ -56,7 +56,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const storage = await IdbStorage.open()
   if (!await storage.selfTest()) {
     noStorageAlert()
-    throw new Error('Storage not available, can\'t continue')
+    return
   }
   await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 

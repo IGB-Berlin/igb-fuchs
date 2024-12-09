@@ -49,10 +49,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
-    const template = obj.template
     const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
-      template ? ()=>Promise.resolve(setRemove(template.samples, obj.samples.map(s => s.extractTemplate()))) : null )
+      obj.template?.samples )
 
     this.form2obj = () => new SamplingLocation({
       template: obj.template, name: inpName.value,

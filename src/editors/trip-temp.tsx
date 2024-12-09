@@ -63,8 +63,8 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
-      locEdit.withBorder(tr('Sampling Locations')),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
+      locEdit.withBorder(tr('Sampling Locations')),
     ])
   }
 

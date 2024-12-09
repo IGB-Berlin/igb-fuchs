@@ -17,7 +17,6 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { timestampNow, VALID_NAME_RE } from '../types/common'
-import { SamplingLocationTemplate } from '../types/location'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
@@ -61,33 +60,13 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const rowCheck = this.makeRow(grpCheck, tr('Checklist'), tr('checklist-help'), null)
     if (!checks.length) rowCheck.classList.add('d-none')
 
-    const getPlannedLocs = async () => {
-      if (!obj.template) return []
-      /* We want to get a list of the locations planned in the trip template,
-       * remove the locations we already have records for (ignoring the number of samples),
-       * and populate any locations that have no samples from commonSamples.
-       * TODO: All of the "planned template" code should now use the object's template and (delete items from there as they are added!)
-       */
-      /* TODO Later: The location list should also be sorted by distance from our current location.
-       * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
-      const visitedLocs = obj.locations.map(l => l.extractTemplate().cloneNoSamples())
-      const plannedLocs :SamplingLocationTemplate[] = []
-      for(const loc of obj.template.locations) {
-        const locNoSamp = loc.cloneNoSamples()
-        if ( visitedLocs.findIndex(e => e.equals(locNoSamp)) < 0 ) {  // not seen before
-          const l = loc.deepClone()
-          if (!l.samples.length) l.samples.push(...obj.template.commonSamples)
-          plannedLocs.push(l)
-        }
-      }
-      return plannedLocs
-    }
-
+    /* TODO Later: The location list should also be sorted by distance from our current location.
+      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
     const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
-      getPlannedLocs )
+      obj.template?.locations )
 
     this.form2obj = () => new SamplingTrip({ id: obj.id, template: obj.template,
       name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,

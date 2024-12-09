@@ -85,10 +85,9 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurements)
-    const template = obj.template
     const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
-      template ? ()=>Promise.resolve(setRemove(template.measurementTypes, obj.measurements.map(m => m.extractTemplate()))) : null )
+      obj.template?.measurementTypes )
 
     this.form2obj = () => new Sample({ template: obj.template,
       type: isSampleType(inpType.value) ? inpType.value : 'undefined', subjectiveQuality: quality,
