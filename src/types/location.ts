@@ -212,7 +212,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     return new SamplingLocationTemplate(clone)
   }
   override templateToObject() :SamplingLocation {
-    return new SamplingLocation({ template: this, name: this.name,
+    return new SamplingLocation({ template: this.deepClone(), name: this.name,
       nominalCoords: this.nominalCoords, actualCoords: this.nominalCoords,
       startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] })
   }

@@ -101,7 +101,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     return new MeasurementType(clone)
   }
   override templateToObject() :Measurement {
-    return new Measurement({ type: this, time: timestampNow(), value: '' })
+    return new Measurement({ type: this.deepClone(), time: timestampNow(), value: '' })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement Type':'meas-type') }
   override summaryDisplay() :[string,string] {

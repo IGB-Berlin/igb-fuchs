@@ -129,7 +129,13 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
       /* NOTE: I'm not entirely certain that comparing checkedTasks is the best thing when
        * comparing two SamplingTrips, but at the moment it's needed for the dirty check (the
-       * trip won't be saved if the only thing the user changes is the check states). */
+       * trip won't be saved if the only thing the user changes is the check states).
+       *
+       * TODO: In general, comparing sets to be equal means that if the only thing the user
+       * changes in an edit is the order of items, the change won't be saved. On the other
+       * hand, we use .equals() in deduplicating templates, so do we want/need a little
+       * leniency in .equals() for that?
+       */
       && setsEqual(this.checkedTasks, o.checkedTasks??[])
       && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l)))
       // not comparing template
@@ -254,7 +260,7 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     return new SamplingTripTemplate(clone)
   }
   override templateToObject() :SamplingTrip {
-    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: this,
+    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: this.deepClone(),
       name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
   }

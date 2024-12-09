@@ -46,6 +46,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
    * For `DataObjectWithTemplate`s, the `template` attribute does not need to be cloned.
    */
   abstract deepClone() :B
+  //TODO Later: audit that all impls. of .toJSON(), .deepClone(), .templateToObject(), and .extractTemplate() *clone* objects
 
   /** Return the display name of this type. */
   abstract typeName(kind :'full'|'short') :string
