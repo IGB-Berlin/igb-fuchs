@@ -70,6 +70,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
         .filter(s => s.length).join('; ')
 
       // Time: Time of first measurement, or time of location arrival
+      //TODO Later: use the sorted `ms` array below to actually get the *earliest* time, not the one from the first measurement
       const time :Timestamp = samp.measurements.find(m => isValidAndSetTs(m.time))?.time
         ?? ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
 
