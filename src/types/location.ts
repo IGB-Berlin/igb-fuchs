@@ -89,12 +89,12 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck(isBrandNew :boolean) {
+  override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    if (!skipInitWarns && !isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
-    if (!isBrandNew && !this.samples.length) rv.push(tr('No samples'))
+    if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
     if (distM > MAX_NOM_ACT_DIST_M)
       rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
@@ -187,10 +187,10 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck(isBrandNew :boolean) {
+  override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     //TODO Later: The "No Samples" warning is a little annoying if building a Trip with commonSamples
-    if (!isBrandNew && !this.samples.length) rv.push(tr('No samples'))
+    if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv
   }
   override equals(o: unknown) {

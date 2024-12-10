@@ -50,7 +50,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     validateTimestamp(this.time)
     if (!this.value.match(this.type.validPattern)) throw new Error(tr('Invalid value'))
   }
-  override warningsCheck(_isBrandNew :boolean) {
+  override warningsCheck() {
     const rv = []
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
     if (this.value.match(this.type.validPattern)) {

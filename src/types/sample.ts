@@ -76,13 +76,13 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} '${String(this.type)}'`)
     if (!isQualityFlag(this.subjectiveQuality)) throw new Error(`${tr('Invalid quality')} '${String(this.subjectiveQuality)}'`)
   }
-  override warningsCheck(isBrandNew :boolean) {
+  override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!this.type.length || this.type==='undefined') rv.push(tr('samp-type-undef'))
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
-    if (!isBrandNew && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
+    if (!skipInitWarns && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
     return rv
   }
   override equals(o: unknown) {

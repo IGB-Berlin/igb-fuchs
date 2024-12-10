@@ -98,18 +98,15 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     if (others.some(o => o.tripId === this.tripId))
       throw new Error(tr('duplicate-trip-id'))
   }
-  override warningsCheck(isBrandNew :boolean) {
+  override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    /* TODO Later: The Trip and Location .endTime warnings on Save are a little annoying, maybe a checkbox "auto update on save"?
-     * Maybe smart-enable checkboxes only when: For trips, if the date is still today, and for locations, if the trip doesn't have an end time set yet?
-     * Also, when creating a new Trip and Location from scratch, the end time warnings are annoying too, but isBrandNew prevents them even on the second save */
-    if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+    if (!skipInitWarns && !isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
     /*TODO: All objects that have templates can warn if their templates' show unused sub-templates
      * (for example, SamplingTrip should warn if .template.locations.length, since we plan to delete those as they get used) */
-    if (!isBrandNew && !this.locations.length) rv.push(tr('No sampling locations'))
-    if (!isBrandNew && this.template) {
+    if (!skipInitWarns && !this.locations.length) rv.push(tr('No sampling locations'))
+    if (!skipInitWarns && this.template) {
       let count = 0
       for (const c of this.template.checklist)
         if (!this.checkedTasks.includes(c))
@@ -225,12 +222,12 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck(isBrandNew :boolean) {
+  override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     const ck = this.checklist.map(c => c.trim())
     if ( new Set(ck).size !== ck.length ) rv.push(tr('checklist-duplicates'))
     if ( ck.some(c => !c.length) ) rv.push(tr('checklist-empty-lines'))
-    if (!isBrandNew && !this.locations.length) rv.push(tr('no-trip-loc'))
+    if (!skipInitWarns && !this.locations.length) rv.push(tr('no-trip-loc'))
     return rv
   }
   override equals(o: unknown) {

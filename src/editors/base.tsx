@@ -39,8 +39,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   /** Return a brand new object of the type being edited by the editor. */
   protected abstract newObj() :B
-  /** Returns an object with its fields populated from the current form state. */
-  protected abstract readonly form2obj :()=>Readonly<B>
+  /** Returns an object with its fields populated from the current form state.
+   *
+   * @param saving Whether the object is in the process of being saved,
+   *  as opposed to a dirty check.
+   */
+  protected abstract readonly form2obj :(saving :boolean)=>Readonly<B>
 
   readonly ctx
   protected readonly parent
@@ -137,6 +141,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   private prevSaveClickObjState :Readonly<B>|null = null  // for doSave
+  private prevSaveWarnings :string[] = []  // for doSave
   /** Perform a save of the object being edited.
    *
    * @param andClose Whether the "Save & Close" button was clicked, but
@@ -152,6 +157,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.elErrAlert.classList.remove('d-none')
       this.elErrAlert.scrollIntoView({ behavior: 'smooth' })
       this.prevSaveClickObjState = null
+      this.prevSaveWarnings = []
     }
 
     // Check if the form passes validation
@@ -161,7 +167,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       return false
     }
     // Form passed validation, so get the resulting object
-    const curObj = this.form2obj()
+    const curObj = this.form2obj(true)
 
     // Check for errors and warnings
     const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
@@ -178,15 +184,17 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.elErrAlert.classList.add('d-none')
 
     // So next, check warnings
-    const warnings = curObj.warningsCheck(this.isBrandNew && !andClose)
+    const skipInitWarns = this.isBrandNew && !andClose
+    const warnings = curObj.warningsCheck(skipInitWarns)
     if (warnings.length) {
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
       this.elWarnAlert.classList.remove('d-none')
       this.elWarnAlert.scrollIntoView({ behavior: 'smooth' })
       if (andClose) {  // Button "Save & Close"
-        // Did the user click the "Save & Close" button a second time without making changes?
-        if (!curObj.equals(this.prevSaveClickObjState)) { // no, first time or changes were made
+        // Did the user click the "Save & Close" button a second time without making changes? (warnings may also change if isBrandNew changes)
+        if (!curObj.equals(this.prevSaveClickObjState) || warnings.length!==this.prevSaveWarnings.length
+          || warnings.some((w,i) => w!==this.prevSaveWarnings[i])) { // no, first time, changes were made, or different warnings
           // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
           this.btnSaveClose.setAttribute('disabled','disabled')
           setTimeout(() => this.btnSaveClose.removeAttribute('disabled'), 700)
@@ -200,6 +208,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.elWarnAlert.classList.add('d-none')
     }
     this.prevSaveClickObjState = curObj
+    this.prevSaveWarnings = warnings
 
     // Actually save the object
     try {
@@ -220,7 +229,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         this.el.dispatchEvent(new CustomChangeEvent())
         console.debug('... saved with id',id)
       }
-      else console.debug('No save needed, saved', this.savedObj, 'vs. cur', curObj)
+      else console.debug('No save needed, saved state', this.savedObj, 'vs. current', curObj)
     }
     catch (ex) {
       console.log(ex)
@@ -231,14 +240,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   }
 
   /** Whether there are any unsaved changes. */
-  get unsavedChanges() :boolean { return !this.form2obj().equals(this.savedObj ?? this.initObj) }
+  get unsavedChanges() :boolean { return !this.form2obj(false).equals(this.savedObj ?? this.initObj) }
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this.
    *
    * @returns `true` if this editor can and should be closed, `false` otherwise.
    */
   async requestClose() :Promise<boolean> {
     // Has the user made any changes?
-    const curObj = this.form2obj()
+    const curObj = this.form2obj(false)
     const prevObj = this.savedObj ?? this.initObj
     if ( !curObj.equals(prevObj) ) {
       console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)

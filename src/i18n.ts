@@ -242,6 +242,9 @@ const translations = {
   'checklist-duplicates': [
     'Die Checkliste enthält Dopplungen.',
     'The checklist contains duplicate items.' ],
+  'auto-set-end-time': [
+    'Beim Speichern End-Zeit automatisch auf aktuelle Uhrzeit setzen',
+    'Automatically set end time to current time when saving' ],
 
   // editor: trip
   'Start time': ['Anfangs-Zeit'],

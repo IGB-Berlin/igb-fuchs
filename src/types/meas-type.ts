@@ -73,7 +73,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck(_isBrandNew :boolean) {
+  override warningsCheck() {
     const rv :string[] = []
     if (!Number.isFinite(this.min)) rv.push(tr('No minimum value'))
     if (!Number.isFinite(this.max)) rv.push(tr('No maximum value'))

@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { timestampNow, VALID_NAME_RE } from '../types/common'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
@@ -29,7 +29,7 @@ import { tr } from '../i18n'
 let _checkId = 0
 
 export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
-  protected override readonly form2obj :()=>Readonly<SamplingTrip>
+  protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingTrip>
   protected override newObj() { return new SamplingTrip(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
@@ -38,8 +38,21 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
+
+    const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
+    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    rowEnd.classList.remove('mb-3')
+    const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoTripEnd" />)
+    if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
+    const rowAutoEnd = <div class="row mb-3">
+      <div class="col-sm-3"></div>
+      <div class="col-sm-9"><div class="form-check"> {cbAutoEnd}
+        <label class="form-check-label" for="checkAutoTripEnd">{tr('auto-set-end-time')}</label>
+      </div></div>
+    </div>
+
     const inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={obj.persons.trim()} />)
     const inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={obj.weather.trim()} />)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
@@ -69,19 +82,21 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       obj.template?.locations )
 
-    this.form2obj = () => new SamplingTrip({ id: obj.id, template: obj.template,
-      name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
-      lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),
-      notes: inpNotes.value.trim(), locations: obj.locations,
-      checkedTasks: Object.entries(checkStates).flatMap(([k,v]) => v ? [k] : []) })
+    this.form2obj = (saving :boolean) => {
+      if (saving && cbAutoEnd.checked) inpEnd.timestamp = timestampNow()
+      return new SamplingTrip({ id: obj.id, template: obj.template,
+        name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
+        lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),
+        notes: inpNotes.value.trim(), locations: obj.locations,
+        checkedTasks: Object.entries(checkStates).flatMap(([k,v]) => v ? [k] : []) })
+    }
 
-    const tzOff = getTzOffsetStr(new Date())
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       rowCheck,
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      this.makeRow(inpEnd.el, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      rowEnd, rowAutoEnd,
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')} {tr('notes-help')}</>, null),
