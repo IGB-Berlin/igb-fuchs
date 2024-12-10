@@ -102,7 +102,8 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     /* TODO Later: The Trip and Location .endTime warnings on Save are a little annoying, maybe a checkbox "auto update on save"?
-     * Maybe smart-enable checkboxes only when: For trips, if the date is still today, and for locations, if the trip doesn't have an end time set yet? */
+     * Maybe smart-enable checkboxes only when: For trips, if the date is still today, and for locations, if the trip doesn't have an end time set yet?
+     * Also, when creating a new Trip and Location from scratch, the end time warnings are annoying too, but isBrandNew prevents them even on the second save */
     if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
     /*TODO: All objects that have templates can warn if their templates' show unused sub-templates

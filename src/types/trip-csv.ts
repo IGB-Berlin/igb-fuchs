@@ -29,9 +29,10 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( trip.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
-  const measCols = allTypes.map(t => t.typeId)
-  // collisions between these column names and measurements aren't possible as long as these names don't have "[]" in them:
-  const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality'].concat(measCols).concat(['Notes'])
+  const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
+  // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
+  const measCols = allTypes.map(t => columns.includes(t.typeId) ? t.typeId+'[]' : t.typeId)
+  columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
 
   /* ********** ********** Process the trip ********** ********** */
   // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?
@@ -63,7 +64,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
       // sample: type, quality, description, measurements[], notes, template?
 
       const rowNotes = [samp.notes.trim()]
-        .concat( li ? [] : tripNotes )  // append trip notes on the very first row
+        .concat( li||si ? [] : tripNotes )  // append trip notes on the very first row
         .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
         .filter(s => s.length).join('; ')
 

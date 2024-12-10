@@ -132,6 +132,8 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
   get typeId() {
+    if ( this.name.trim().length && ( this.unit.trim() === this.name.trim() || this.unit.trim().toLowerCase() === 'unitless'
+      || this.unit.trim().toLowerCase() === 'dimensionless' ) ) return this.name  // e.g. `ph` instead of `ph[pH]`
     return `${ this.name.trim().length ? this.name : '?' }[${ this.unit.trim().length ? this.unit : '?' }]`
   }
 }

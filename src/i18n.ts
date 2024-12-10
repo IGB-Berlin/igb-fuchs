@@ -140,8 +140,9 @@ const translations = {
     'Examples: "Temperature", "pH", "Conductivity", "O2 relative", etc.' ],
   'Unit': ['Messeinheit'],
   'unit-help': [
-    'Einheit des gemessenen Werts.',
-    'The unit of the measurement value.' ],
+    // the reason we do the following is so "units" stays a required field
+    'Einheit des gemessenen Werts. Wenn der Messwert keine Einheiten hat, hier "unitless", "dimensionless", oder den Namen nochmals eingeben.',
+    'The unit of the measurement value. If the value has no units, enter either "unitless", "dimensionless", or enter the name again.' ],
   'Minimum': ['Minimalwert'],
   'min-help': [
     'Messwerte dieses Typs sollten diesen Wert nicht unterschreiten. (Die Einstellung "Nachkommastellen" wirkt sich auf dieses Eingabefeld aus.)',
