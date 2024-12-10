@@ -70,7 +70,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
 
       // Time: Time of first measurement, or time of location arrival
       const time :Timestamp = samp.measurements.find(m => isValidAndSetTs(m.time))?.time
-        ?? isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP
+        ?? ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
 
       const row :CsvRow = {  // REMEMBER to keep in sync with `columns` above!
         Timestamp: isValidAndSetTs(time) ? new Date(time).toISOString() : '',
