@@ -148,14 +148,14 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   override extractTemplate() :SamplingTripTemplate {
     /* If all location templates have the same set of samples, then we
      * can deduplicate them into the trip template's `commonSamples`. */
-    const locs = this.locations.map(l => l.extractTemplate())
-    const l0 = locs[0]
+    const locTemps = this.locations.map(l => l.extractTemplate())
+    const l0 = locTemps[0]
     const allLocsHaveSameSamples =
-      l0 && locs.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
-    if (allLocsHaveSameSamples) locs.forEach(l => l.samples.length = 0)
-    const common = allLocsHaveSameSamples ? l0.samples : []
+      l0 && locTemps.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
+    const commonSamples = allLocsHaveSameSamples ? Array.from(l0.samples) : []
+    if (allLocsHaveSameSamples) locTemps.forEach(l => l.samples.length = 0)
     return new SamplingTripTemplate({ id: IdbStorage.newTripTemplateId(),
-      name: this.name, locations: locs, commonSamples: common,
+      name: this.name, locations: locTemps, commonSamples: commonSamples,
       ...( this.template?.description.trim().length && { description: this.template.description.trim() } ),
       ...( this.template?.checklist.length && { checklist: Array.from(this.template.checklist) } ) })
   }

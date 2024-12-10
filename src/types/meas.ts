@@ -69,7 +69,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   override deepClone() :Measurement {
     return new Measurement({ type: this.type.deepClone(), time: this.time, value: this.value })
   }
-  override extractTemplate() :MeasurementType { return this.type }
+  override extractTemplate() :MeasurementType { return this.type.deepClone() }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Measurement':'meas') }
   override summaryDisplay() :[string,null] {
     return [ `${this.type.name} = ${this.value} ${this.type.unit}`, null ]

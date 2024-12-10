@@ -18,7 +18,7 @@
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp,
   DataObjectWithTemplate, timestampsEqual, isArrayOf } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
-import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
+import { IWgs84Coordinates, Wgs84Coordinates, areWgs84CoordsValid, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
 import { assert } from '../utils'
 import { i18n, tr } from '../i18n'
@@ -136,9 +136,10 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   }
   override extractTemplate() :SamplingLocationTemplate {
     return new SamplingLocationTemplate({
-      name: this.name, nominalCoords: this.nominalCoords,
+      name: this.name,
+      nominalCoords: areWgs84CoordsValid(this.nomCoords) ? this.nomCoords.deepClone() : this.actCoords.deepClone(),
       samples: this.samples.map(s => s.extractTemplate()),
-      ...( this.template?.description.trim().length && { description: this.template.description } ) })
+      ...( this.template?.description.trim().length && { description: this.template.description.trim() } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
   override summaryDisplay() { return locSummary(this) }
@@ -220,7 +221,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override templateToObject() :SamplingLocation {
     return new SamplingLocation({ template: this.deepClone(), name: this.name,
-      nominalCoords: this.nominalCoords, actualCoords: this.nominalCoords,
+      nominalCoords: this.nomCoords.deepClone(), actualCoords: this.nomCoords.deepClone(),
       startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
