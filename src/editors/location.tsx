@@ -63,10 +63,12 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     // see notes in trip-temp.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, tr('new-samp-from-temp'),
+      //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
       obj.template?.samples )
 
     this.form2obj = (saving :boolean) => {
+      //TODO NEXT: This now causes issues with the new warnings logic: If there are warnings, the object changes on each save
       if (saving && cbAutoEnd.checked) inpEnd.timestamp = timestampNow()
       return new SamplingLocation({
         template: obj.template, name: inpName.value,

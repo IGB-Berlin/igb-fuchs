@@ -168,6 +168,7 @@ export class EditorStack {
     // display the element underneath
     const top = this.stack.at(-1)
     assert(top)
+    //TODO Later: Consider hiding warnings when re-showing an editor after a child editor gets saved
     top.el.classList.remove('d-none')
     this.redrawNavbar()
     top.el.scrollIntoView({ block: 'start', behavior: 'smooth' })

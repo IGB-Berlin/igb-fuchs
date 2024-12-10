@@ -210,12 +210,9 @@ const translations = {
     'Abfahrtszeit vom Messpunkt bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'Departure time from the sampling location / end of measurements. Timezone is that of this device (usually local time)' ],
   'loc-notes-help': ['Optionale Notizen zum Messpunkt im Allgemeinen.', 'Optional notes about the sampling location in general.'],
-  'checklist-help': [
-    'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
-    'Checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
-  'check-not-completed': [
-    { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
-    { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
+  'planed-samp-remain': [
+    { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
+    { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
 
   // editor: trip template
   'trip-desc-help': [
@@ -265,6 +262,15 @@ const translations = {
   'new-trip-from-temp': [
     'Neue Messfahrt aus Vorlage',
     'New Sampling Trip from Template' ],
+  'checklist-help': [
+    'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
+    'Checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
+  'check-not-completed': [
+    { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
+    { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
+  'planed-loc-remain': [
+    { zero: 'Alle geplanten Messpunkte gespeichert', one: 'Ein geplanter Messpunkt übrig', other: '%{count} geplante Messpunkte übrig' },
+    { zero: 'All planned sampling locations saved', one: 'One planned sampling location left', other: '%{count} planned sampling locations left' } ],
 
   // editor: sample (template)
   'Sample Type': ['Art der Probe'],
@@ -287,6 +293,9 @@ const translations = {
   'qf-desc-bad': [
     'Eindeutige Qualitätsprobleme, z.B. zu geringe Probenmenge, offensichtliche Verunreinigung, usw. (ggf. in "Notizen" spezifizieren)',
     'Obvious quality problems, e.g. too small sample amount, obvious contamination, etc. (describe in "Notes" if appropriate)' ],
+  'planed-meas-remain': [
+    { zero: 'Alle geplanten Messungen gespeichert', one: 'Eine geplante Messung übrig', other: '%{count} geplante Messungen übrig' },
+    { zero: 'All planned measurements saved', one: 'One planned measurement left', other: '%{count} planned measurements left' } ],
 
   // editor: measurement
   'Timestamp': ['Zeitstempel'],

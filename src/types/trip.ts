@@ -101,17 +101,18 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    if (!skipInitWarns && !isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
-    /*TODO: All objects that have templates can warn if their templates' show unused sub-templates
-     * (for example, SamplingTrip should warn if .template.locations.length, since we plan to delete those as they get used) */
-    if (!skipInitWarns && !this.locations.length) rv.push(tr('No sampling locations'))
-    if (!skipInitWarns && this.template) {
-      let count = 0
-      for (const c of this.template.checklist)
-        if (!this.checkedTasks.includes(c))
-          count++
-      if (count) rv.push(i18n.t('check-not-completed', { count: count }))
+    if (!skipInitWarns) {
+      if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+      if (this.template) {
+        let taskCount = 0
+        for (const c of this.template.checklist)
+          if (!this.checkedTasks.includes(c))
+            taskCount++
+        if (taskCount) rv.push(i18n.t('check-not-completed', { count: taskCount }))
+        if (this.template.locations.length) rv.push(i18n.t('planed-loc-remain', { count: this.template.locations.length }))
+      } // else, no template
+      else if (!this.locations.length) rv.push(tr('No sampling locations'))
     }
     return rv
   }

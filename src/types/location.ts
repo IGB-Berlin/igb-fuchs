@@ -85,19 +85,26 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.actCoords.validate([])
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
-    //TODO: All duplicates checks shouldn't just be run on their parents, but on the global templates too - and be case insensitive!
+    /* TODO: All duplicates checks shouldn't just be run on their parents, but on the global templates too - and be case insensitive!
+     * However, that may not be correct for Measurement Types and other objects: for example, there can be several "Temperature" types
+     * with different min/max ranges! Perhaps just warn for those? */
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
-    if (!skipInitWarns && !isTimestampSet(this.endTime)) rv.push(tr('No end time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
-    if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
     if (distM > MAX_NOM_ACT_DIST_M)
       rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+    if (!skipInitWarns) {
+      if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
+      if (this.template) {
+        if (this.template.samples.length) rv.push(i18n.t('planed-samp-remain', { count: this.template.samples.length }))
+      } // else, no template
+      else if (!this.samples.length) rv.push(tr('No samples'))
+    }
     return rv
   }
   override equals(o :unknown) {
@@ -153,6 +160,7 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
 export interface ISamplingLocationTemplate {
   name :string
   description ?:string|null
+  //TODO Later: consider adding a checklist with tasks to complete at each location? (e.g. cleaning sensors, ...)
   nominalCoords :IWgs84Coordinates
   readonly samples :ISampleTemplate[]
 }
@@ -189,7 +197,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
-    //TODO Later: The "No Samples" warning is a little annoying if building a Trip with commonSamples
+    //TODO Later: The "No Samples" warning is a little annoying if building a Trip with commonSamples (but we'd need access to our parent to check...?)
     if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv
   }

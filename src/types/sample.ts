@@ -82,7 +82,12 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
-    if (!skipInitWarns && !this.measurements.length) rv.push(tr('No measurements'))  //TODO Later: only warn if the template defines measurements?
+    if (!skipInitWarns) {
+      if (this.template) {
+        if (this.template.measurementTypes.length) rv.push(i18n.t('planed-meas-remain', { count: this.template.measurementTypes.length }))
+      } // else, no template
+      else if (!this.measurements.length) rv.push(tr('No measurements'))
+    }
     return rv
   }
   override equals(o: unknown) {
