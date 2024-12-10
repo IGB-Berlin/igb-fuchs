@@ -18,7 +18,6 @@
 import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
 import { DataObjectTemplate, DataObjectWithTemplate, isArrayOf } from './common'
 import { IMeasurement, isIMeasurement, Measurement } from './meas'
-import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
@@ -90,8 +89,8 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     return isISample(o)
       && this.type === o.type && this.subjectiveQuality === o.subjectiveQuality
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
-      && dataSetsEqual(this.measurements, o.measurements.map(m => new Measurement(m)))
-      // not comparing template
+      && this.measurements.length === o.measurements.length && this.measurements.every((m,i) => m.equals(o.measurements[i]))
+    // not comparing template
   }
   override toJSON(_key: string) :ISample {
     return { type: this.type, subjectiveQuality: this.subjectiveQuality,
@@ -164,7 +163,7 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
     return isISampleTemplate(o)
       && this.type === o.type
       && this.description.trim() === ( o.description?.trim() ?? '' )
-      && dataSetsEqual(this.measurementTypes, o.measurementTypes.map(m => new MeasurementType(m)))
+      && this.measurementTypes.length === o.measurementTypes.length && this.measurementTypes.every((t,i) => t.equals(o.measurementTypes[i]))
   }
   override toJSON(_key: string) :ISampleTemplate {
     return { type: this.type,

@@ -15,22 +15,14 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-
-type HasEquals = { equals(other :unknown) :boolean }
-
-/** Compare to arrays as if they were `Set`s. Arrays may not contain duplicated items. */
-export function setsEqual<T>(a :T[], b :T[]) :boolean {
-  // Set.difference() is only available as of 2024, we're currently targeting a slightly older version that didn't have it yet
-  const s = new Set<T>(a)
-  return b.every(e => s.delete(e)) && !s.size
-}
+import { HasEquals } from './common'
 
 /** Compares two arrays of objects as sets (i.e. order doesn't matter!), returning `true` if they are the same;
  * the objects must provide an `equals` method. */
 export function dataSetsEqual<T extends HasEquals>(a :T[], b :T[]) :boolean {
+  if (a.length!==b.length) return false
   const x :T[] = Array.from(a)
   const y :T[] = Array.from(b)
-  if (x.length!==y.length) return false
   for (let i = x.length-1; i>=0; i--) {
     if (!y.length) return false
     for (let j = y.length-1; j>=0; j--) {  // expensive search

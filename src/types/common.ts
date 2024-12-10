@@ -25,6 +25,8 @@ export type HasId = { readonly id :string }
 export function hasId(o :unknown) :o is HasId {
   return !!( o && typeof o === 'object' && 'id' in o && typeof o.id === 'string' ) }
 
+export type HasEquals = { equals(other :unknown) :boolean }
+
 export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
 export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary {

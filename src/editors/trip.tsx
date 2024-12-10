@@ -61,7 +61,8 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     if (!checks.length) rowCheck.classList.add('d-none')
 
     /* TODO Later: The location list should also be sorted by distance from our current location.
-      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
+     * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
+    // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
     // see notes in trip-temp.tsx about this:
     const locStore = new ArrayStore(obj.locations)
     const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),

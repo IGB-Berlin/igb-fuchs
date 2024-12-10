@@ -21,7 +21,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
-import { dataSetsEqual, setsEqual } from './set'
+import { dataSetsEqual } from './set'
 import { IdbStorage } from '../idb-store'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
@@ -128,19 +128,10 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && this.persons.trim() === ( o.persons?.trim() ?? '' )
       && this.weather.trim() === ( o.weather?.trim() ?? '' )
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
-      /* NOTE: I'm not entirely certain that comparing checkedTasks is the best thing when
-       * comparing two SamplingTrips, but at the moment it's needed for the dirty check (the
-       * trip won't be saved if the only thing the user changes is the check states, also
-       * imports won't detect the differences).
-       *
-       * TODO: In general, comparing sets to be equal means that if the only thing the user
-       * changes in an edit is the order of items, the change won't be saved. On the other
-       * hand, we use .equals() in deduplicating templates, so do we want/need a little
-       * leniency in .equals() for that?
-       */
-      && setsEqual(this.checkedTasks, o.checkedTasks??[])
-      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocation(l)))
-      // not comparing template
+      && ( !o.checkedTasks && !this.checkedTasks.length
+        || this.checkedTasks.length === o.checkedTasks?.length && this.checkedTasks.every((t,i) => t===o.checkedTasks?.[i]) )
+      && this.locations.length === o.locations.length && this.locations.every((l,i) => l.equals(o.locations[i]))
+    // not comparing template
   }
   override toJSON(_key: string): ISamplingTrip {
     return { id: this.id, name: this.name, startTime: this.startTime, endTime: this.endTime,
@@ -244,11 +235,13 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
   }
   override equals(o: unknown) {
     return isISamplingTripTemplate(o)
+      // not comparing id
       && this.name === o.name
       && this.description.trim() === ( o.description?.trim() ?? '' )
-      && setsEqual(this.checklist, o.checklist??[])
-      && dataSetsEqual(this.locations, o.locations.map(l => new SamplingLocationTemplate(l)))
-      && dataSetsEqual(this.commonSamples, o.commonSamples.map(s => new SampleTemplate(s)))
+      && ( !o.checklist && !this.checklist.length
+        || this.checklist.length === o.checklist?.length && this.checklist.every((t,i) => t===o.checklist?.[i]) )
+      && this.locations.length === o.locations.length && this.locations.every((l,i) => l.equals(o.locations[i]))
+      && this.commonSamples.length === o.commonSamples.length && this.commonSamples.every((s,i) => s.equals(o.commonSamples[i]))
   }
   override toJSON(_key: string): ISamplingTripTemplate {
     return { id: this.id, name: this.name,

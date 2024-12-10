@@ -61,10 +61,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     return rv
   }
   override equals(o: unknown) {
-    return isIMeasurement(o)
-    && this.type.equals(o.type)
-    && this.time === o.time
-    && this.value === o.value
+    return isIMeasurement(o) && this.type.equals(o.type) && this.time === o.time && this.value === o.value
   }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value }

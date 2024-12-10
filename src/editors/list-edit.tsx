@@ -184,6 +184,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
   protected abstract makeNew(t :T) :B
   protected postNew(_obj :B) {}
   private btnTemp
+  //TODO Later: templateSource no longer needs to be a promise I think
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>

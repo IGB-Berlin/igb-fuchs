@@ -20,7 +20,6 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
-import { dataSetsEqual } from './set'
 import { assert } from '../utils'
 import { i18n, tr } from '../i18n'
 
@@ -109,9 +108,10 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       && timestampsEqual(this.startTime, o.startTime)
       && timestampsEqual(this.endTime, o.endTime)
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
-      // not comparing photos (?)
-      && dataSetsEqual(this.samples, o.samples.map(s => new Sample(s)))
-      // not comparing template
+      && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
+      && ( !o.photos && !this.photos.length
+        || this.photos.length === o.photos?.length && this.photos.every((p,i) => p===o.photos?.[i]) )
+    // not comparing template
   }
   override toJSON(_key :string) :ISamplingLocation {
     return { name: this.name,
@@ -198,7 +198,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
       && this.name===o.name
       && this.description.trim() === (o.description?.trim() ?? '')
       && this.nomCoords.equals(o.nominalCoords)
-      && dataSetsEqual(this.samples, o.samples.map(s => new SampleTemplate(s)))
+      && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
   }
   override toJSON(_key: string): ISamplingLocationTemplate {
     return {
