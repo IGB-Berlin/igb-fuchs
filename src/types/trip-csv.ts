@@ -19,11 +19,14 @@ import { areWgs84CoordsValid, EMPTY_COORDS, IWgs84Coordinates, WGS84_PRECISION }
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { unparse as papaUnparse } from 'papaparse'
 import { MeasurementType } from './meas-type'
+import { distanceBearing } from '../geo-func'
 import { deduplicatedSet } from './set'
 import { SamplingTrip } from './trip'
 import { assert } from '../utils'
 
 type CsvRow = { [key :string]: string }
+
+const MAX_NOM_ACT_DIST_CSV_M = 50
 
 export function tripToCsvFile(trip :SamplingTrip) :File {
 
@@ -50,14 +53,19 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
     // coords: wgs84lat, wgs84lon
 
     // Coordinates: Either the actual coordinates, the nominal coordinates, or (if available) the location template's nominal coordinates
-    const coords :IWgs84Coordinates = areWgs84CoordsValid(loc.actCoords) ? loc.actCoords
-      : areWgs84CoordsValid(loc.nomCoords) ? loc.nomCoords
-        : loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords
-          : EMPTY_COORDS
+    const nomCoords = areWgs84CoordsValid(loc.nomCoords) ? loc.nomCoords
+      : loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords
+        : EMPTY_COORDS
+    const actCoords = areWgs84CoordsValid(loc.actCoords) ? loc.actCoords : EMPTY_COORDS
+    const coords :IWgs84Coordinates = areWgs84CoordsValid(actCoords) ? actCoords : nomCoords
 
     const locNotes :string[] = [
       loc.notes.trim().length ? `Location Notes: ${loc.notes.trim()}` : '',
-      //TODO Later: Report nominal coords if different from actual coords
+      // if the actual coordinates are off from the nominal coordinates by a bit, report the nominal coordinates too
+      areWgs84CoordsValid(actCoords) && areWgs84CoordsValid(nomCoords)
+        && distanceBearing(actCoords, nomCoords).distKm*1000 > MAX_NOM_ACT_DIST_CSV_M
+        ? 'Nominal Sampling Location Coordinates (WGS84 Lat,Lon): '
+          +`${nomCoords.wgs84lat.toFixed(WGS84_PRECISION)},${nomCoords.wgs84lon.toFixed(WGS84_PRECISION)}` : '',
     ]
 
     return loc.samples.map((samp,si) => {
