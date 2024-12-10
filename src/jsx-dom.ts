@@ -46,7 +46,7 @@ export function jsx(tag: Tag, props: Props, ...children: Children) :JSX.Element 
         el.setAttribute(key, val.toString())
     }
     else if ( typeof val === 'boolean' ) {
-      el.setAttribute(key, key)
+      if (val) el.setAttribute(key, key)
     }
     else throw new Error(`can't handle ${key}=${val.toString()} (type=${typeof val})`)
   })

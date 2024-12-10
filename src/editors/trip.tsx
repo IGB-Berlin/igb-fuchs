@@ -63,9 +63,8 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       <div><ul class="list-group custom-checklist">
         {checks.map(c => {
           const id = `checklistCheckbox${_checkId++}`
-          const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id} />)
-          cb.checked = checkStates[c] ?? false
-          cb.addEventListener('change', () => checkStates[c] = cb.checked )
+          const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
+            checked={!!checkStates[c]} onchange={()=>checkStates[c]=cb.checked} />)
           const li = <li class="list-group-item" onclick={(event: Event) => { if (event.target===li) cb.click() } }>
             {cb}<label class="form-check-label" for={id}>{c}</label></li>
           return li
@@ -84,7 +83,10 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
       obj.template?.locations )
 
     this.form2obj = (saving :boolean) => {
-      if (saving && cbAutoEnd.checked) inpEnd.timestamp = timestampNow()
+      if (saving && cbAutoEnd.checked) {
+        inpEnd.timestamp = timestampNow()
+        cbAutoEnd.checked = false
+      }
       return new SamplingTrip({ id: obj.id, template: obj.template,
         name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
         lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),

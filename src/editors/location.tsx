@@ -68,8 +68,10 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       obj.template?.samples )
 
     this.form2obj = (saving :boolean) => {
-      //TODO NEXT: This now causes issues with the new warnings logic: If there are warnings, the object changes on each save
-      if (saving && cbAutoEnd.checked) inpEnd.timestamp = timestampNow()
+      if (saving && cbAutoEnd.checked) {
+        inpEnd.timestamp = timestampNow()
+        cbAutoEnd.checked = false
+      }
       return new SamplingLocation({
         template: obj.template, name: inpName.value,
         nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
