@@ -19,11 +19,11 @@ import { ISamplingTrip, ISamplingTripTemplate, isISamplingTrip, isISamplingTripT
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'
+import { hasId, timestampNow } from './types/common'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
 import { AbstractStore} from './storage'
-import { hasId } from './types/common'
 import { i18n, tr } from './i18n'
 import { assert } from './utils'
 
@@ -205,6 +205,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     return null
   }
   override async add(obj :I) {
+    if (isISamplingTrip(obj)) obj.lastModified = timestampNow()
     const rv = await this.db.add(this.storeName, obj)
     console.debug('IDB add', this.storeName, obj.id)
     if (this.cbModified) await this.cbModified()
@@ -215,6 +216,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(prevObj.id)
     if (!cur) throw new Error(`Key ${prevObj.id} not found`)
+    if (isISamplingTrip(newObj)) newObj.lastModified = timestampNow()
     await Promise.all([ trans.done, cur.update(newObj) ])
     console.debug('IDB upd', this.storeName, prevObj.id, newObj.id)
     if (this.cbModified) await this.cbModified()

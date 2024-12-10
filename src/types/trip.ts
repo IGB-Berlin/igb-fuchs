@@ -31,7 +31,6 @@ export interface ISamplingTrip extends HasId {
   name :string
   startTime :Timestamp
   endTime :Timestamp
-  //TODO Later: more consistently update trip's lastModified
   lastModified ?:Timestamp|null
   persons ?:string|null
   weather ?:string|null
