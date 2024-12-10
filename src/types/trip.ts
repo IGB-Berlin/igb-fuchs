@@ -136,7 +136,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       ...( isTimestampSet(this.lastModified) && { lastModified: this.lastModified } ),
       ...( this.persons.trim().length && { persons: this.persons.trim() } ),
       ...( this.weather.trim().length && { weather: this.weather.trim() } ),
-      ...( this.checkedTasks.length && { checkedTasks: this.checkedTasks } ),
+      ...( this.checkedTasks.length && { checkedTasks: Array.from(this.checkedTasks) } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }

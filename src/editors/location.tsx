@@ -20,7 +20,6 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
-import { Wgs84Coordinates } from '../types/coords'
 import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
 import { Editor, EditorParent } from './base'
@@ -39,9 +38,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
     //TODO Later: Make "Nominal Coords" in Location readonly (like description), then they shouldn't be required!
-    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
-    const actCoords = obj.actCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const actCoords = obj.actCoords.deepClone()  // don't modify the original object directly!
     const inpActCoords = makeCoordinateEditor(actCoords)
 
     const tzOff = getTzOffsetStr(new Date())
@@ -74,8 +73,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       }
       return new SamplingLocation({
         template: obj.template, name: inpName.value,
-        nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
-        actualCoords: new Wgs84Coordinates(actCoords).deepClone(),
+        nominalCoords: nomCoords.deepClone(),
+        actualCoords: actCoords.deepClone(),
         startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
         samples: obj.samples, notes: inpNotes.value.trim(),
         photos: [], /*TODO Later*/ })

@@ -70,8 +70,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   constructor(o :ISamplingLocation|null) {
     super()
     this.name = o?.name ?? ''
-    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
-    this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null).toJSON('actualCoords')
+    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
+    this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null)
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
@@ -122,7 +122,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   }
   override toJSON(_key :string) :ISamplingLocation {
     return { name: this.name,
-      nominalCoords: this.nominalCoords, actualCoords: this.actualCoords,
+      nominalCoords: this.nomCoords.toJSON('nominalCoords'), actualCoords: this.actCoords.toJSON('actualCoords'),
       startTime: this.startTime, endTime: this.endTime,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
@@ -186,7 +186,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     super()
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description : ''
-    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null).toJSON('nominalCoords')
+    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
   }
   override validate(others :SamplingLocationTemplate[]) {
@@ -209,8 +209,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
       && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
   }
   override toJSON(_key: string): ISamplingLocationTemplate {
-    return {
-      name: this.name, nominalCoords: this.nominalCoords,
+    return { name: this.name, nominalCoords: this.nomCoords.toJSON('nominalCoords'),
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
       ...( this.description.trim().length && { description: this.description.trim() } ) }
   }

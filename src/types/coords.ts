@@ -70,5 +70,5 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
   }
   override toJSON(_key :string) :IWgs84Coordinates {
     return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
-  override deepClone() { return new Wgs84Coordinates(this.toJSON('')) }
+  override deepClone() { return new Wgs84Coordinates(this) }
 }

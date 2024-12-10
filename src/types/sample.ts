@@ -100,7 +100,8 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override toJSON(_key: string) :ISample {
     return { type: this.type, subjectiveQuality: this.subjectiveQuality,
       measurements: this.measurements.map((m,mi) => m.toJSON(mi.toString())),
-      ...( this.notes.trim().length && { notes: this.notes.trim() } ) }
+      ...( this.notes.trim().length && { notes: this.notes.trim() } ),
+      ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }
   override deepClone() :Sample {
     const clone :unknown = JSON.parse(JSON.stringify(this))

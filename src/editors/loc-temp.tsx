@@ -18,7 +18,6 @@
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
-import { Wgs84Coordinates } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
 import { ListEditorForTemp } from './list-edit'
@@ -37,7 +36,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
-    const nomCoords = obj.nomCoords.deepClone().toJSON('')  // don't modify the original object directly!
+    const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
 
     // see notes in trip-temp.tsx about this:
@@ -48,7 +47,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value,
         description: inpDesc.value.trim(),
-        nominalCoords: new Wgs84Coordinates(nomCoords).deepClone(),
+        nominalCoords: nomCoords.deepClone(),
         samples: obj.samples })
 
     this.initialize([
