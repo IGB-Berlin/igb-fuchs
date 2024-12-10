@@ -17,8 +17,11 @@
  */
 
 export function assert(condition: unknown, msg?: string): asserts condition {
-  if (!condition) throw new Error(msg)
-}
+  if (!condition) throw new Error(msg) }
+
+/** Exactly the same as `assert`, but label paranoid checks as such (i.e. they could be removed someday) */
+export function paranoia(condition: unknown, msg?: string): asserts condition {
+  if (!condition) throw new Error(msg) }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Class<T> = new (...args :any[]) => T

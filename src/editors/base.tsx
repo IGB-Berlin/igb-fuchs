@@ -19,9 +19,9 @@ import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
+import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
-import { assert } from '../utils'
 import { tr } from '../i18n'
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
@@ -130,7 +130,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     console.debug('Updating',this.savedObj,'...')
     const savedObjBefore = this.savedObj
     const id = await this.targetStore.upd(this.savedObj, this.savedObj)
-    assert(Object.is(savedObjBefore, this.savedObj))  // paranoia left over from debugging
+    paranoia(Object.is(savedObjBefore, this.savedObj))  // paranoia left over from debugging
     this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: id }))
     this.el.dispatchEvent(new CustomChangeEvent())
     console.debug('... saved with id',id)

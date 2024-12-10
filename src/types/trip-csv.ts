@@ -43,6 +43,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
     trip.weather.trim().length ? `Weather: ${trip.weather.trim()}` : '',
   ]
 
+  //TODO Later: Consider sorting csv rows by timestamp
   const data :CsvRow[] = trip.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
     // location: name, description, nominalCoords, actualCoords, startTime, endTime, samples[], notes, photos[], template?

@@ -133,6 +133,8 @@ const translations = {
   'list-editor-disabled-new': [
     'Bitte zunächst speichern, um hier Änderungen zu ermöglichen.',
     'Please first save to allow changes here.' ],
+  'Move up': ['Nach oben'],
+  'Move down': ['Nach unten'],
 
   // editor: meas-type
   'meas-name-help': [

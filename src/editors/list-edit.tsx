@@ -16,14 +16,14 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
+import { AbstractStore, OrderedStore } from '../storage'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
+import { jsx, jsxFragment } from '../jsx-dom'
 import { Editor, EditorClass } from './base'
 import { CustomStoreEvent } from '../events'
-import { AbstractStore } from '../storage'
+import { assert, paranoia } from '../utils'
 import { GlobalContext } from '../main'
-import { assert } from '../utils'
-import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 interface ListEditorParent {
@@ -123,14 +123,35 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.selId = id
       this.enable()
     }
-    //TODO: Buttons to change order
     const theUl = <ul class="list-group mb-2"></ul>
     const redrawList = async (selAfter :string|null = null) => {
       const theList = await this.theStore.getAll(null)
       els.length = theList.length
       if (theList.length) {
-        Array.from(theList).forEach(([id,item],i) =>
-          els[i]=<li class="list-group-item cursor-pointer" data-id={id} onclick={()=>selectItem(id)}>{item.summaryAsHtml(false)}</li> )
+        Array.from(theList).forEach(([id,item],i) => {
+          let content :HTMLElement = item.summaryAsHtml(false)
+          if (this.theStore instanceof OrderedStore) {
+            const btnUp = <button type="button" class="btn btn-sm btn-secondary me-1" title={tr('Move up')}><i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
+            if (!i) btnUp.setAttribute('disabled','disabled')
+            const btnDown = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move down')}><i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
+            if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
+            content = <><div class="me-auto">{content}</div>{btnUp}{btnDown} </>
+            btnUp.addEventListener('click', async event => {
+              event.stopPropagation()
+              assert(this.theStore instanceof OrderedStore)
+              const newId = this.theStore.move(id, 'up')
+              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
+            })
+            btnDown.addEventListener('click', async event => {
+              event.stopPropagation()
+              assert(this.theStore instanceof OrderedStore)
+              const newId = this.theStore.move(id, 'down')
+              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
+            })
+          }
+          els[i] = <li class="list-group-item d-flex justify-content-between align-items-start cursor-pointer"
+            data-id={id} onclick={()=>selectItem(id)}>{content}</li>
+        } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
       selectItem(selAfter, true)
@@ -150,7 +171,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         /* REMEMBER deletion may change some object's ids!
          * Redrawing the list is handled via the event listener below. */
         const oldId = await this.theStore.del(selItem)
-        assert(delId === oldId, `${delId}!==${oldId}`)  // paranoia
+        paranoia(delId === oldId, `${delId}!==${oldId}`)
         this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
         console.debug('... deleted id',oldId)
         break }
@@ -184,7 +205,6 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
   protected abstract makeNew(t :T) :B
   protected postNew(_obj :B) {}
   private btnTemp
-  //TODO Later: templateSource no longer needs to be a promise I think
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
@@ -227,7 +247,7 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
         const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
         btnNew.addEventListener('click', async () => {
           const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
-          assert(rm===t)  // paranoia
+          paranoia(rm===t)
           const newObj = t.templateToObject()
           console.debug('Adding',newObj,'...')
           const newId = await this.theStore.add(newObj)

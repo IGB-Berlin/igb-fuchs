@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CustomChangeEvent } from '../events'
-import { assert } from '../utils'
+import { assert, paranoia } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
@@ -154,7 +154,7 @@ export class EditorStack {
   }
   back(e :StackAble) {
     console.debug('Editor requested its pop', e.briefTitle)
-    assert(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor (paranoia)
+    paranoia(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor
     history.go(-1)  // handled by popstate event
   }
   private pop(e :StackAble) {
@@ -163,7 +163,7 @@ export class EditorStack {
     // pop and remove the top element
     const del = this.stack.pop()
     assert(del)
-    assert(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)  // paranoia
+    paranoia(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)
     this.el.removeChild(del.el)
     // display the element underneath
     const top = this.stack.at(-1)

@@ -183,6 +183,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     const rv :[string,O][] = []
     // Array.fromAsync() was added in 2024, so wait a while before we use that...
     for await (const r of this.getAllAsync(except)) rv.push(r)
+    //TODO Later: consider sorting .getAll results
     return rv
   }
   override async get(key :string) :Promise<O> {
