@@ -23,8 +23,7 @@ import { assert } from '../utils'
 
 export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water', 'surface-water-flowing', 'surface-water-standing', 'ground-water', 'water-precipitation',
-  //TODO: SampleTypes "Sonde auslesen", "andere arbeiten (reinigung)", "other"
-  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger',
+  'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger', 'probe', 'other'
 ] as const
 type SampleType = typeof sampleTypes[number]
 export function isSampleType(v :unknown) :v is SampleType {
@@ -38,12 +37,13 @@ export function isQualityFlag(v :unknown) :v is QualityFlag {
 
 export interface ISample {
   type :SampleType
+  shortDesc ?:string|null
   subjectiveQuality :QualityFlag
   notes ?:string|null
   readonly measurements :IMeasurement[]
   readonly template ?:ISampleTemplate|null
 }
-const sampleKeys = ['type','subjectiveQuality','notes','measurements','template'] as const
+const sampleKeys = ['type','shortDesc','subjectiveQuality','notes','measurements','template'] as const
 type SampleKey = typeof sampleKeys[number] & keyof ISample
 export function isISample(o :unknown) :o is ISample {
   return !!( o && typeof o === 'object'
@@ -52,6 +52,7 @@ export function isISample(o :unknown) :o is ISample {
     // type checks
     && isSampleType(o.type) && isQualityFlag(o.subjectiveQuality)
     && Array.isArray(o.measurements) && o.measurements.every(m => isIMeasurement(m))
+    && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
     && ( !('template' in o) || o.template===null || isISampleTemplate(o.template) )
   )
@@ -60,6 +61,7 @@ export function isISample(o :unknown) :o is ISample {
 /** Records an actual sample taken. */
 export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> implements ISample {
   type :SampleType
+  shortDesc :string
   subjectiveQuality :QualityFlag
   notes :string
   readonly measurements :Measurement[]
@@ -67,6 +69,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   constructor(o :ISample|null) {
     super()
     this.type = o?.type ?? 'undefined'
+    this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
     this.subjectiveQuality = o?.subjectiveQuality ?? 'undefined'
     this.measurements = o===null ? [] : isArrayOf(Measurement, o.measurements) ? o.measurements : o.measurements.map(m => new Measurement(m))
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
@@ -79,6 +82,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!this.type.length || this.type==='undefined') rv.push(tr('samp-type-undef'))
+    if (this.type==='other' && !this.shortDesc.trim().length) rv.push(tr('samp-other-no-desc'))
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
@@ -91,8 +95,9 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     return rv
   }
   override equals(o: unknown) {
-    return isISample(o)
-      && this.type === o.type && this.subjectiveQuality === o.subjectiveQuality
+    return isISample(o) && this.type === o.type
+      && this.shortDesc.trim() === ( o.shortDesc?.trim() ?? '' )
+      && this.subjectiveQuality === o.subjectiveQuality
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
       && this.measurements.length === o.measurements.length && this.measurements.every((m,i) => m.equals(o.measurements[i]))
     // not comparing template
@@ -100,6 +105,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override toJSON(_key: string) :ISample {
     return { type: this.type, subjectiveQuality: this.subjectiveQuality,
       measurements: this.measurements.map((m,mi) => m.toJSON(mi.toString())),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }
@@ -111,6 +117,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override extractTemplate() :SampleTemplate {
     return new SampleTemplate({ type: this.type,
       measurementTypes: this.measurements.map(m => m.extractTemplate()),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample':'Sample') }
@@ -125,34 +132,40 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
     assert(m0)
     m += ': '+m0.summaryDisplay()[0]
   }
-  return [ i18n.t('st-'+samp.type, {defaultValue:samp.type}), m ]
+  return [ i18n.t('st-'+samp.type, {defaultValue:samp.type}) + ( samp.shortDesc.trim().length ? ' / '+samp.shortDesc.trim() : '' ), m ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
 
 export interface ISampleTemplate {
   type :SampleType
-  //TODO: Short description or name ("WTW", "EXO") ("Kurzbeschreibung")
+  shortDesc ?:string|null
   instructions ?:string|null
   readonly measurementTypes :IMeasurementType[]
 }
+const sampleTemplateKeys = ['type','shortDesc','instructions','measurementTypes'] as const
+type SampleTemplateKey = typeof sampleTemplateKeys[number] & keyof ISample
 export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
   return !!( o && typeof o === 'object'
-    && 'type' in o && 'measurementTypes' in o && ( Object.keys(o).length===2 || Object.keys(o).length===3 && 'instructions' in o )  // keys
+    && 'type' in o && 'measurementTypes' in o  // required keys
+    && Object.keys(o).every(k => sampleTemplateKeys.includes(k as SampleTemplateKey))  // extra keys
     && isSampleType(o.type)
     && Array.isArray(o.measurementTypes) && o.measurementTypes.every(m => isIMeasurementType(m))
+    && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
   )
 }
 
 export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> implements ISampleTemplate {
   type :SampleType
+  shortDesc :string
   instructions :string
   /** The typical measurement types performed on this sample. */
   readonly measurementTypes :MeasurementType[]
   constructor(o :ISampleTemplate|null) {
     super()
     this.type = o?.type ?? 'undefined'
+    this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
     this.instructions =  o && 'instructions' in o && o.instructions!==null ? o.instructions.trim() : ''
     this.measurementTypes = o===null ? [] : isArrayOf(MeasurementType, o.measurementTypes) ? o.measurementTypes : o.measurementTypes.map(m => new MeasurementType(m))
   }
@@ -162,19 +175,21 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   override warningsCheck() {
     const rv :string[] = []
     if (this.type==='undefined') rv.push(tr('samp-type-undef'))
+    if (this.type==='other' && !this.shortDesc.trim().length) rv.push(tr('samp-other-no-desc'))
     const mtIds = this.measurementTypes.map(t => t.typeId)
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     return rv
   }
   override equals(o: unknown) {
-    return isISampleTemplate(o)
-      && this.type === o.type
+    return isISampleTemplate(o) && this.type === o.type
+      && this.shortDesc.trim() === ( o.shortDesc?.trim() ?? '' )
       && this.instructions.trim() === ( o.instructions?.trim() ?? '' )
       && this.measurementTypes.length === o.measurementTypes.length && this.measurementTypes.every((t,i) => t.equals(o.measurementTypes[i]))
   }
   override toJSON(_key: string) :ISampleTemplate {
     return { type: this.type,
       measurementTypes: this.measurementTypes.map((m, mi) => m.toJSON(mi.toString())),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ) }
   }
   override deepClone() :SampleTemplate {
@@ -183,7 +198,8 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
     return new SampleTemplate(clone)
   }
   override templateToObject() :Sample {
-    return new Sample({ template: this.deepClone(), type: this.type, subjectiveQuality: 'undefined', measurements: [] })
+    return new Sample({ template: this.deepClone(), type: this.type,
+      shortDesc: this.shortDesc, subjectiveQuality: 'undefined', measurements: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample Template':'samp-temp') }
   override summaryDisplay() { return sampSummary(this) }

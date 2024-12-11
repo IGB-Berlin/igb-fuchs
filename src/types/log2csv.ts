@@ -75,7 +75,8 @@ export function samplingLogToCsv(log :SamplingLog) :File {
       /* ********** ********** Process the sample ********** ********** */
       // sample: type, quality, description, measurements[], notes, template?
 
-      const rowNotes = [samp.notes.trim()]
+      const rowNotes = [samp.notes.trim(),
+        samp.shortDesc.trim().length ? `Sample: ${samp.shortDesc.trim()}` : '' ]
         .concat( li||si ? [] : logNotes )  // append log notes on the very first row
         .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
         .filter(s => s.length).join('; ')

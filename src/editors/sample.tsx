@@ -36,11 +36,13 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       <select class="form-select">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call removes type safety
-          const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t})}</option>
+          const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t}) + (t==='other'?` - ${tr('specify-in-desc')}!`:'')}</option>
           if (obj.type===t) opt.setAttribute('selected','selected')
           return opt
         })}
       </select>)
+
+    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
 
     const inpQualGood = safeCastElement(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
@@ -91,11 +93,13 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       obj.template?.measurementTypes )
 
     this.form2obj = () => new Sample({ template: obj.template,
-      type: isSampleType(inpType.value) ? inpType.value : 'undefined', subjectiveQuality: quality,
+      type: isSampleType(inpType.value) ? inpType.value : 'undefined',
+      shortDesc: inpDesc.value.trim(), subjectiveQuality: quality,
       notes: inpNotes.value.trim(), measurements: obj.measurements })
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Short Description'), <>{tr('short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),

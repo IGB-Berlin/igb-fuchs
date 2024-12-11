@@ -274,6 +274,11 @@ const translations = {
 
   // editor: sample (template)
   'Sample Type': ['Art der Probe'],
+  'Short Description': ['Kurzbeschreibung'],
+  'short-desc-help': [
+    'Optionale Kurzbeschreibung, die beim Identifizieren der Probe helfen soll. Wird im CSV-Format mit exportiert.',
+    'Optional short description, intended to help identify this sample. Included in the export in CSV format.' ],
+  'specify-in-desc': ['specify in Short Description', 'in Kurzbeschreibung angeben'],
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
@@ -442,6 +447,9 @@ const translations = {
   'times-order': [
     'Die End-Zeit liegt vor der Anfangs-Zeit.',
     'The end time is before the start time.' ],
+  'samp-other-no-desc': [
+    'Probentyp "Andere" ausgewählt, aber keine Kurzbeschreibung hinterlegt',
+    'Sample type "other" selected, but no short description entered' ],
 
   // settings
   'Settings': ['Einstellungen'],
@@ -461,6 +469,8 @@ const translations = {
   'st-fish': ['Fisch', 'Fish'],
   'st-insect': ['Insekt', 'Insect'],
   'st-data-logger': ['Datenlogger auslesen', 'Read out data logger'],
+  'st-probe': ['Sonde auslesen', 'Read out probe data'],
+  'st-other': ['Andere', 'Other'],
   // quality flags (Remember to keep in sync with QualityFlag!)
   'qf-undefined': ['(nicht aufgezeichnet)', '(not recorded)'],
   'qf-good': ['Gut', 'Good'],

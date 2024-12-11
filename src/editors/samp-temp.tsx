@@ -36,12 +36,13 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
       <select class="form-select">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call removes type safety
-          const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t})}</option>
+          const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t}) + (t==='other'?` - ${tr('specify-in-desc')}!`:'')}</option>
           if (obj.type===t) opt.setAttribute('selected','selected')
           return opt
         })}
       </select>)
 
+    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
     // see notes in procedure.tsx about this:
@@ -51,10 +52,12 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     this.form2obj = () => new SampleTemplate({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
+      shortDesc: inpDesc.value.trim(),
       instructions: inpInst.value.trim(), measurementTypes: obj.measurementTypes })
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(inpDesc, tr('Short Description'), <>{tr('short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])
