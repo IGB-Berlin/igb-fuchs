@@ -36,7 +36,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
     const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="1">{obj.checklist.join('\n')}</textarea>)
     makeTextAreaAutoHeight(inpCheck)
 
@@ -55,14 +55,14 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
     this.form2obj = () => new SamplingProcedure({ id: obj.id,
-      name: inpName.value, description: inpDesc.value.trim(),
+      name: inpName.value, instructions: inpInst.value.trim(),
       checklist: inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
       locations: obj.locations, commonSamples: obj.commonSamples })
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('proc-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')}</>, null),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
       locEdit.withBorder(tr('Sampling Locations')),
     ])

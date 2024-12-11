@@ -155,7 +155,7 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     if (allLocsHaveSameSamples) locTemps.forEach(l => l.samples.length = 0)
     return new SamplingProcedure({ id: IdbStorage.newSamplingProcedureId(),
       name: this.name, locations: locTemps, commonSamples: commonSamples,
-      ...( this.template?.description.trim().length && { description: this.template.description.trim() } ),
+      ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ),
       ...( this.template?.checklist.length && { checklist: Array.from(this.template.checklist) } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Log':'Log') }
@@ -177,12 +177,12 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
 export interface ISamplingProcedure extends HasId {
   readonly id :string
   name :string
-  description ?:string|null
+  instructions ?:string|null
   readonly checklist ?:string[]|null
   readonly locations :ISamplingLocationTemplate[]
   readonly commonSamples :ISampleTemplate[]
 }
-const samplingProcedureKeys = ['id','name','description','checklist','locations','commonSamples'] as const
+const samplingProcedureKeys = ['id','name','instructions','checklist','locations','commonSamples'] as const
 type SamplingProcedureKey = typeof samplingProcedureKeys[number] & keyof ISamplingProcedure
 export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
   return !!( o && typeof o === 'object'
@@ -192,7 +192,7 @@ export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
     && typeof o.id === 'string' && typeof o.name === 'string'
     && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocationTemplate(l))
     && Array.isArray(o.commonSamples) && o.commonSamples.every(s => isISampleTemplate(s))
-    && ( !('description' in o) || o.description===null || typeof o.description === 'string' )
+    && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
     && ( !('checklist' in o) || o.checklist===null || Array.isArray(o.checklist) && o.checklist.every(c => typeof c === 'string') )
   )
 }
@@ -200,7 +200,7 @@ export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
 export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, SamplingLog> implements ISamplingProcedure {
   readonly id :string
   name :string
-  description :string
+  instructions :string
   checklist :string[]
   /** The typical sampling locations in this procedure. */
   readonly locations :SamplingLocationTemplate[]
@@ -210,7 +210,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
     super()
     this.id = o===null ? IdbStorage.newSamplingProcedureId() : o.id
     this.name = o?.name ?? ''
-    this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
+    this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions.trim() : ''
     this.checklist = o && 'checklist' in o && o.checklist ? o.checklist : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocationTemplate, o.locations) ? o.locations :o.locations.map(l => new SamplingLocationTemplate(l))
     this.commonSamples = o===null ? [] : isArrayOf(SampleTemplate, o.commonSamples) ? o.commonSamples : o.commonSamples.map(s => new SampleTemplate(s))
@@ -233,7 +233,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
     return isISamplingProcedure(o)
       // not comparing id
       && this.name === o.name
-      && this.description.trim() === ( o.description?.trim() ?? '' )
+      && this.instructions.trim() === ( o.instructions?.trim() ?? '' )
       && ( !o.checklist && !this.checklist.length
         || this.checklist.length === o.checklist?.length && this.checklist.every((t,i) => t===o.checklist?.[i]) )
       && this.locations.length === o.locations.length && this.locations.every((l,i) => l.equals(o.locations[i]))
@@ -243,7 +243,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
     return { id: this.id, name: this.name,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())),
       commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
-      ...( this.description.trim().length && { description: this.description.trim() } ),
+      ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ),
       ...( this.checklist.length && { checklist: Array.from(this.checklist) } ) }
   }
   override deepClone() :SamplingProcedure {

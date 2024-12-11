@@ -63,10 +63,10 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const lblRange = <span></span>
     const lblPrc = <span></span>
 
-    /* TODO: Disallow edits to "Description" in general,
+    /* TODO: Disallow edits to "Instruction" in general,
      * - change help text and the terminology ("instructions"?) to reflect that
-     * - Don't display description when empty (CSS :has and :empty?) */
-    const typeDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
+     * - Don't display instructions when empty (CSS :has and :empty?) */
+    const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const inpTime = new DateTimeInput(obj.time, true)
 
@@ -79,7 +79,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       else lblRange.replaceChildren(<em>({tr('not specified')})</em>)
       const p = measType[0].precision
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
-      typeDesc.value = measType[0].description
+      typeInst.value = measType[0].instructions
       inpValue.pattern = measType[0].validPattern
       grpType.dispatchEvent(new CustomChangeEvent())
       this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: '0' }))  // essentially a bubbling of the event (see above)
@@ -95,7 +95,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
-      this.makeRow(typeDesc, tr('Description'), <>{tr('meas-desc-help')}</>, null),
+      this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
   }

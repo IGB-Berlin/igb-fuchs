@@ -108,14 +108,14 @@ const translations = {
     +'Names must be unique across all entries of the same kind (sampling location, measurement type, etc.).'
   ],
   'Notes': ['Notizen'],
-  'Description': ['Beschreibung'],
+  'Instructions': ['Anleitung'],
   'notes-help': [
     'Notizen dienen der Aufzeichnung und Auswertung von Messungen und werden im CSV-Format mit exportiert.',
     'Notes serve the recording and analysis of measurements and are included in the export in CSV format.' ],
-  'desc-help': [
-    'Beschreibungen dienen der Hilfe bei Durchführung der Messungen, und sind daher im CSV Export nicht enthalten.',
-    'Descriptions serve to help conduct measurements, and are therefore not exported in the CSV format.' ],
-  'desc-see-notes': [
+  'inst-help': [
+    'Anleitungen dienen der Hilfe bei Durchführung der Messungen, und sind daher im CSV Export nicht enthalten.',
+    'Instructions serve to help conduct measurements, and are therefore not exported in the CSV format.' ],
+  'inst-see-notes': [
     'Siehe auch das Feld "Notizen".',
     'See also the field "Notes".'],
   'duplicate-name': [
@@ -157,9 +157,9 @@ const translations = {
   'precision-help': [
     'Die Anzahl der Nachkommastellen, die im Messwert erlaubt sind.',
     'The number of decimal places allowed after the decimal point in the measurement value.' ],
-  'meas-type-desc-help': [
-    'Optionale Beschreibung, z.B. bei besonderen Messverfahren.',
-    'Optional description, for example for special measurement procedures.' ],
+  'meas-type-inst-help': [
+    'Optionale Anleitung, z.B. bei besonderen Messverfahren.',
+    'Optional instructions, for example for special measurement procedures.' ],
   'new-meas-from-temp': [
     'Neue Messung aus Vorlage',
     'New Measurement from Template' ],
@@ -170,9 +170,9 @@ const translations = {
     +' Hint: If multiple measurements of the same type are desired, multiple samples of the same type may be defined.' ],
 
   // editor: location (template) & coords
-  'loc-desc-help': [
-    'Optionale Beschreibung der Messstelle, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
-    'Optional description of the sampling location, for example to help in finding or reaching it, etc.' ],
+  'loc-inst-help': [
+    'Optionale Anleitung für die Messstelle, z.B. zusätzliche Arbeitsschritte, oder auch Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
+    'Optional instructions for the sampling location, for example, additional steps to perform, or help in finding or reaching it, etc.' ],
   'Lat': ['Lat'],
   'Lon': ['Lon'],
   'Latitude': ['Breitengrad'],
@@ -215,9 +215,9 @@ const translations = {
     { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
 
   // editor: sampling procedure
-  'proc-desc-help': [
-    'Optionale Beschreibung der Messprozedur, z.B. mitzunehmende Geräte und Materialien, usw.',
-    'Optional description of the sampling procedure, e.g. equipment and materials to take, etc.' ],
+  'proc-inst-help': [
+    'Optionale zusätzliche Anleitung für die Messprozedur, z.B. vorzubereitende Geräte und Materialien, usw.',
+    'Optional additional instructions for the sampling procedure, e.g. equipment and materials to prepare, etc.' ],
   'new-loc-from-temp': [
     'Neue Messstelle aus Vorlage',
     'New Sampling Location from Template' ],
@@ -277,9 +277,9 @@ const translations = {
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
-  'samp-desc-help': [
-    'Optionale Beschreibung der Probenahme, z.B. Menge, Filterung, usw.',
-    'Optional description of the sample procedure, e.g. amount, filtering, etc.' ],
+  'samp-inst-help': [
+    'Optionale Anleitung für die Probenahme, z.B. Menge, Filterung, usw.',
+    'Optional instructions for the sample procedure, e.g. amount, filtering, etc.' ],
   'samp-notes-help': [
     'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
     'Optional notes about the sample, e.g. quality, amount, etc.' ],
@@ -307,9 +307,9 @@ const translations = {
   'no units': ['keine Einheit'],
   'not specified': ['nicht angegeben'],
   'precision': ['Erlaubte Nachkommastellen:', 'Allowed digits after decimal:'],
-  'meas-desc-help': [
-    'Beschreibung des Messtyps. Dieses Feld wird aus der "Messtyp" Maske kopiert und kann hier nicht bearbeitet werden.',
-    'Description of the measurement type. This field is copied from the "measurement type" input and cannot be edited here.' ],
+  'meas-inst-help': [
+    'Anleitung für diesen Messtyp. Dieses Feld wird aus der "Messtyp" Maske kopiert und kann hier nicht bearbeitet werden.',
+    'Instructions for this measurement type. This field is copied from the "measurement type" input and cannot be edited here.' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],

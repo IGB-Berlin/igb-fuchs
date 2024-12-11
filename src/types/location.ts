@@ -139,7 +139,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       name: this.name,
       nominalCoords: areWgs84CoordsValid(this.nomCoords) ? this.nomCoords.deepClone() : this.actCoords.deepClone(),
       samples: this.samples.map(s => s.extractTemplate()),
-      ...( this.template?.description.trim().length && { description: this.template.description.trim() } ) })
+      ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
   override summaryDisplay() { return locSummary(this) }
@@ -161,7 +161,7 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
 
 export interface ISamplingLocationTemplate {
   name :string
-  description ?:string|null
+  instructions ?:string|null
   //TODO Later: consider adding a checklist with tasks to complete at each location? (e.g. cleaning sensors, ...)
   // However, when SampleType "other" is implemented, checklist items can be represented as samples, so checklist might not be needed
   nominalCoords :IWgs84Coordinates
@@ -170,17 +170,17 @@ export interface ISamplingLocationTemplate {
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   return !!( o && typeof o === 'object'
     && 'name' in o && 'nominalCoords' in o && 'samples' in o // keys
-    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'description' in o )
+    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'instructions' in o )
     // type checks
     && typeof o.name === 'string' && isIWgs84Coordinates(o.nominalCoords)
     && Array.isArray(o.samples) && o.samples.every(s => isISampleTemplate(s))
-    && ( !('description' in o) || o.description===null || typeof o.description === 'string' )
+    && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
   )
 }
 
 export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {
   name :string
-  description :string
+  instructions :string
   nominalCoords :IWgs84Coordinates
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
@@ -188,7 +188,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   constructor(o :ISamplingLocationTemplate|null) {
     super()
     this.name = o?.name ?? ''
-    this.description = o && 'description' in o && o.description!==null ? o.description : ''
+    this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions : ''
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
   }
@@ -207,14 +207,14 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override equals(o: unknown) {
     return isISamplingLocationTemplate(o)
       && this.name===o.name
-      && this.description.trim() === (o.description?.trim() ?? '')
+      && this.instructions.trim() === (o.instructions?.trim() ?? '')
       && this.nomCoords.equals(o.nominalCoords)
       && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
   }
   override toJSON(_key: string): ISamplingLocationTemplate {
     return { name: this.name, nominalCoords: this.nomCoords.toJSON('nominalCoords'),
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
-      ...( this.description.trim().length && { description: this.description.trim() } ) }
+      ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ) }
   }
   override deepClone() :SamplingLocationTemplate {
     const clone :unknown = JSON.parse(JSON.stringify(this))

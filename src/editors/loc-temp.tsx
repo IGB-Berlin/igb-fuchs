@@ -35,7 +35,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
 
@@ -46,13 +46,13 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value,
-        description: inpDesc.value.trim(),
+        instructions: inpInst.value.trim(),
         nominalCoords: nomCoords.deepClone(),
         samples: obj.samples })
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('loc-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
       sampEdit.withBorder(tr('Samples')),
     ])

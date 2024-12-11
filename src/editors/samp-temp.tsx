@@ -42,7 +42,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
         })}
       </select>)
 
-    const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
     // see notes in procedure.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
@@ -51,11 +51,11 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     this.form2obj = () => new SampleTemplate({
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      description: inpDesc.value.trim(), measurementTypes: obj.measurementTypes })
+      instructions: inpInst.value.trim(), measurementTypes: obj.measurementTypes })
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('samp-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])
   }
