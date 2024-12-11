@@ -3,10 +3,11 @@ IGB-FUCHS
 
 **<https://fuchs.igb-berlin.de>**
 
-This is an Electronic Lab Notebook for Fieldwork developed at the
-Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB).
+IGB-FUCHS is an Electronic Lab Notebook with a focus on fieldwork, developed at
+the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in Berlin.
 
-The name is a German acronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem".
+The name means "fox" in German (a smart animal that knows its way around fields)
+and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem".
 
 Alpha Version
 -------------

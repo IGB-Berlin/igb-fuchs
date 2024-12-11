@@ -2,7 +2,7 @@ cff-version: 1.2.0
 title: IGB-FUCHS
 message: If you use this software, please cite it using the metadata from this file.
 type: software
-abstract: An Electronic Lab Notebook for Fieldwork.
+abstract: IGB-FUCHS is an Electronic Lab Notebook with a focus on fieldwork, developed at IGB Berlin.
 url: 'https://fuchs.igb-berlin.de'
 repository-code: 'https://gitlab.igb-berlin.de/haukex/igb-fuchs'
 repository: 'https://github.com/IGB-Berlin/igb-fuchs'
