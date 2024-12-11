@@ -20,8 +20,8 @@ import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { unparse as papaUnparse } from 'papaparse'
 import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
+import { SamplingLog } from './sampling'
 import { deduplicatedSet } from './set'
-import { SamplingLog } from './trip'
 import { assert } from '../utils'
 
 type CsvRow = { [key :string]: string }

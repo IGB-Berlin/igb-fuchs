@@ -17,7 +17,7 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
-import { SamplingProcedure } from '../types/trip'
+import { SamplingProcedure } from '../types/sampling'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
 import { ListEditorForTemp } from './list-edit'

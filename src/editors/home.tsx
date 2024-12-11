@@ -16,12 +16,12 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorWithTemp } from './list-edit'
+import { SamplingProcedureEditor } from './procedure'
 import { makeImportExport } from '../import-export'
+import { samplingLogToCsv } from '../types/log2csv'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { samplingLogToCsv } from '../types/trip-csv'
-import { SamplingProcedureEditor } from './trip-temp'
-import { SamplingLog } from '../types/trip'
-import { SamplingLogEditor } from './trip'
+import { SamplingLog } from '../types/sampling'
+import { SamplingLogEditor } from './samp-log'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { shareFile } from '../share'

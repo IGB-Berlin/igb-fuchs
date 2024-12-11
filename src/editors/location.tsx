@@ -59,7 +59,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    // see notes in trip-temp.tsx about this:
+    // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, tr('new-samp-from-temp'),
       //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?

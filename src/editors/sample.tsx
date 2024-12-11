@@ -83,7 +83,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.description.trim()??''}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    // see notes in trip-temp.tsx about this:
+    // see notes in procedure.tsx about this:
     const measStore = new ArrayStore(obj.measurements)
     //TODO Later: Would it be possible to enter the measurements directly in the sample editor?
     const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor, tr('new-meas-from-temp'),

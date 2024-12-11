@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { ISamplingLog, ISamplingProcedure, isISamplingLog, isISamplingProcedure, SamplingLog, SamplingProcedure } from './types/trip'
+import { ISamplingLog, ISamplingProcedure, isISamplingLog, isISamplingProcedure, SamplingLog, SamplingProcedure } from './types/sampling'
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'

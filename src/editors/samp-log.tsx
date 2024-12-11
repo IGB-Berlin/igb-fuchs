@@ -21,8 +21,8 @@ import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { ListEditorWithTemp } from './list-edit'
+import { SamplingLog } from '../types/sampling'
 import { Editor, EditorParent } from './base'
-import { SamplingLog } from '../types/trip'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
@@ -76,7 +76,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     /* TODO Later: The location list should also be sorted by distance from our current location.
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
-    // see notes in trip-temp.tsx about this:
+    // see notes in procedure.tsx about this:
     const locStore = new ArrayStore(obj.locations)
     const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),

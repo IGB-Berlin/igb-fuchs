@@ -44,7 +44,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     const inpDesc = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.description.trim()}</textarea>)
 
-    // see notes in trip-temp.tsx about this:
+    // see notes in procedure.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
     const measEdit = new ListEditorForTemp(this, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))

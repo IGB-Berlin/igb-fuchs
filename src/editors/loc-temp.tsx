@@ -39,7 +39,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords)
 
-    // see notes in trip-temp.tsx about this:
+    // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
