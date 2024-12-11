@@ -96,8 +96,8 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       rowCheck,
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
