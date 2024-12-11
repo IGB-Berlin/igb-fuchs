@@ -23,7 +23,7 @@ import { assert } from '../utils'
 
 export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
   'surface-water', 'surface-water-flowing', 'surface-water-standing', 'ground-water', 'water-precipitation',
-  //TODO Later: Consider a SampleType "other"?
+  //TODO: SampleTypes "Sonde auslesen", "andere arbeiten (reinigung)", "other"
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger',
 ] as const
 type SampleType = typeof sampleTypes[number]
@@ -132,6 +132,7 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
 
 export interface ISampleTemplate {
   type :SampleType
+  //TODO: description or name ("WTW", "EXO") ("Kurzbeschreibung")
   description ?:string|null
   readonly measurementTypes :IMeasurementType[]
 }

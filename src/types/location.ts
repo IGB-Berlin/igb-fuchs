@@ -146,6 +146,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
 }
 
 function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,string] {
+  //TODO Later: Displaying "no samples" is a little confusing when editing a template that has commonSamples, maybe just omit "no samples"? (and the same for measurements)
   let samp = i18n.t('samples', {count:loc.samples.length})
   if (loc.samples.length===1) {
     const s0 = loc.samples[0]
@@ -162,6 +163,7 @@ export interface ISamplingLocationTemplate {
   name :string
   description ?:string|null
   //TODO Later: consider adding a checklist with tasks to complete at each location? (e.g. cleaning sensors, ...)
+  // However, when SampleType "other" is implemented, checklist items can be represented as samples, so checklist might not be needed
   nominalCoords :IWgs84Coordinates
   readonly samples :ISampleTemplate[]
 }

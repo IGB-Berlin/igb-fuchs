@@ -38,6 +38,7 @@ export class EditorStack {
   private readonly stack :StackAble[] = []
   private readonly origTitle = document.title
   private redrawNavbar() {
+    //TODO Later: Would be good if e.g. sampling location name were still shown on the "sample" page and so on (to know where one is)
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
         const link = <a class="nav-link text-nowrap" href='#' title={s.fullTitle}>{s.briefTitle}</a>

@@ -85,6 +85,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     // see notes in trip-temp.tsx about this:
     const measStore = new ArrayStore(obj.measurements)
+    //TODO Later: Would it be possible to enter the measurements directly in the sample editor?
     const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
       obj.template?.measurementTypes )

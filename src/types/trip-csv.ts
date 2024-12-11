@@ -25,6 +25,7 @@ import { SamplingTrip } from './trip'
 import { assert } from '../utils'
 
 type CsvRow = { [key :string]: string }
+type RowWithKey = [number, CsvRow]
 
 const MAX_NOM_ACT_DIST_CSV_M = 50
 
@@ -38,6 +39,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
   columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
 
   /* ********** ********** Process the trip ********** ********** */
+  //TODO: The following field lists will need updating when things get renamed
   // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?
   const tripNotes :string[] = [
     `Trip: ${trip.name}` + (isValidAndSetTs(trip.startTime) ? ` [${new Date(trip.startTime).toISOString()}]` : ''),
@@ -46,8 +48,8 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
     trip.weather.trim().length ? `Weather: ${trip.weather.trim()}` : '',
   ]
 
-  //TODO Later: Consider sorting csv rows by timestamp
-  const data :CsvRow[] = trip.locations.flatMap((loc,li) => {
+  //TODO Later: Show error when there are no locations in an export
+  const data :RowWithKey[] = trip.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
     // location: name, description, nominalCoords, actualCoords, startTime, endTime, samples[], notes, photos[], template?
     // coords: wgs84lat, wgs84lon
@@ -68,6 +70,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
           +`${nomCoords.wgs84lat.toFixed(WGS84_PRECISION)},${nomCoords.wgs84lon.toFixed(WGS84_PRECISION)}` : '',
     ]
 
+    //TODO Later: Always emit one row per location even when there are no samples, so the notes get recorded
     return loc.samples.map((samp,si) => {
       /* ********** ********** Process the sample ********** ********** */
       // sample: type, quality, description, measurements[], notes, template?
@@ -77,13 +80,9 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
         .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
         .filter(s => s.length).join('; ')
 
-      // Time: Time of first measurement, or time of location arrival
-      //TODO Later: use the sorted `ms` array below to actually get the *earliest* time, not the one from the first measurement
-      const time :Timestamp = samp.measurements.find(m => isValidAndSetTs(m.time))?.time
-        ?? ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
-
+      // Prepare the row
       const row :CsvRow = {  // REMEMBER to keep in sync with `columns` above!
-        Timestamp: isValidAndSetTs(time) ? new Date(time).toISOString() : '',
+        // Timestamp is set below
         Location: loc.name,
         Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
         Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
@@ -93,22 +92,38 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
       }
 
       /* ********** ********** Process the measurements ********** ********** */
-      // measurement: type, time, value.formattedValue()
+      // measurement: type, time, value
       // type: name, unit, min, max, precision, description
+
+      /* Gather measurements; sort newest measurement first b/c if there are multiple
+       * measurements of the same type, only the newest one is exported (is documented in UI) */
       const ms = Array.from(samp.measurements)
       ms.sort((a,b) => b.time-a.time)
+
+      let firstMeasTime = +Infinity
       allTypes.forEach((type,ti) => {
         const meas = ms.find(m => type.equals(m.type))
         const key = measCols[ti]
         assert(key)
         row[key] = meas?.value ?? ''
+        if (meas && meas.time < firstMeasTime) firstMeasTime = meas.time
       })
 
-      return row  /* ***** Done with row ***** */
+      // Time: Time of first measurement, or time of location arrival
+      const time :Timestamp = isValidAndSetTs(firstMeasTime) ? firstMeasTime
+        : ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
+      row['Timestamp'] = isValidAndSetTs(time) ? new Date(time).toISOString() : ''
+
+      const kRow :RowWithKey = [isValidAndSetTs(time) ? time : NO_TIMESTAMP, row]
+      return kRow  /* ***** Done with row ***** */
     })
   })
 
+  // sort rows by key (timestamp)
+  //TODO Later: This sort can cause the Trip and location notes to move to rows other than the first
+  data.sort((a,b) => a[0]-b[0])
+
   // https://www.papaparse.com/docs#json-to-csv
-  return new File([papaUnparse(data, { columns: columns, newline: '\r\n' } )],
+  return new File([papaUnparse(data.map(r=>r[1]), { columns: columns, newline: '\r\n' } )],
     trip.tripId+'.csv', { type: 'text/csv', endings: 'transparent', lastModified: trip.lastModified })
 }

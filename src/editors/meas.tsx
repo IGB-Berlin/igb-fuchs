@@ -54,6 +54,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
     //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
+    //TODO Later: Auto focus the measurement input - and perhaps highlight it for user friendliness?
     const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
       pattern={obj.type.validPattern} value={obj.value} required />)
     inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
