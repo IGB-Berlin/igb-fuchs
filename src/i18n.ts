@@ -278,7 +278,7 @@ const translations = {
   'short-desc-help': [
     'Optionale Kurzbeschreibung, die beim Identifizieren der Probe helfen soll. Wird im CSV-Format mit exportiert.',
     'Optional short description, intended to help identify this sample. Included in the export in CSV format.' ],
-  'specify-in-desc': ['specify in Short Description', 'in Kurzbeschreibung angeben'],
+  'specify-in-desc': ['in Kurzbeschreibung angeben', 'specify in Short Description'],
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
