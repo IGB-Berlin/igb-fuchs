@@ -99,7 +99,7 @@ const translations = {
     +'Namen dürfen nur Buchstaben (inkl. deutsche Umlaute und ß), Zahlen, sowie Leerzeichen und die Sonderzeichen Punkt (.), '
     +'Bindestrich (-), Unterstrich (_), und Klammern "()" enthalten.\nNamen dürfen nicht auf Leerzeichen oder einem Punkt enden.\n'
     +'Namen werden nicht übersetzt, daher wird empfohlen, englische Namen zu verwenden.\n'
-    +'Namen dürfen nur einmal pro Datentyp (Messpunkt, Messtyp, usw.) verwendet werden.',
+    +'Namen dürfen nur einmal pro Datentyp (Messstelle, Messtyp, usw.) verwendet werden.',
     'Names must begin with a letter or number and must be at least two characters long in total.\n'
     +'Names may not begin with: "CON", "PRN", "AUX", "NUL", or "COM" or "LPT" followed by a number.\n'
     +'Names may include letters (incl. German umlauts and ß), numbers, and spaces as well as the special characters period (.), '
@@ -171,7 +171,7 @@ const translations = {
 
   // editor: location (template) & coords
   'loc-desc-help': [
-    'Optionale Beschreibung des Messpunkts, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
+    'Optionale Beschreibung der Messstelle, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
     'Optional description of the sampling location, for example to help in finding or reaching it, etc.' ],
   'Lat': ['Lat'],
   'Lon': ['Lon'],
@@ -204,12 +204,12 @@ const translations = {
   'Use current location': ['Aktuellen Standort verwenden'],
   'Show on map': ['Auf Karte zeigen'],
   'loc-start-time-help': [
-    'Ankunftszeit am Messpunkt bzw. Beginn der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'Ankunftszeit an der Messstelle bzw. Beginn der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'Arrival time at the sampling location / beginning of measurements. Timezone is that of this device (usually local time)' ],
   'loc-end-time-help': [
-    'Abfahrtszeit vom Messpunkt bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'Abfahrtszeit von der Messstelle bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'Departure time from the sampling location / end of measurements. Timezone is that of this device (usually local time)' ],
-  'loc-notes-help': ['Optionale Notizen zum Messpunkt im Allgemeinen.', 'Optional notes about the sampling location in general.'],
+  'loc-notes-help': ['Optionale Notizen zur Messstelle im Allgemeinen.', 'Optional notes about the sampling location in general.'],
   'planed-samp-remain': [
     { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
     { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
@@ -219,14 +219,14 @@ const translations = {
     'Optionale Beschreibung der Messprozedur, z.B. mitzunehmende Geräte und Materialien, usw.',
     'Optional description of the sampling procedure, e.g. equipment and materials to take, etc.' ],
   'new-loc-from-temp': [
-    'Neuer Messpunkt aus Vorlage',
+    'Neue Messstelle aus Vorlage',
     'New Sampling Location from Template' ],
   'common-samples': [
     'Gleichartige Proben',
     'Uniform Samples' ],
   'common-samples-help': [
-    'Wenn an allen Messpunkten der Messprozedur die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
-    +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
+    'Wenn an allen Messstellen der Messprozedur die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
+    +' Wenn für einzelne Messstellen andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
     'If the same samples with the same measurements are to be taken at all locations in this procedure, they can be defined here.'
     +' If individual sampling locations have different samples defined, these override the samples in this section.' ],
   'Checklist': ['Checkliste'],
@@ -269,7 +269,7 @@ const translations = {
     { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
     { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
   'planed-loc-remain': [
-    { zero: 'Alle geplanten Messpunkte gespeichert', one: 'Ein geplanter Messpunkt übrig', other: '%{count} geplante Messpunkte übrig' },
+    { zero: 'Alle geplanten Messstellen gespeichert', one: 'Eine geplante Messstelle übrig', other: '%{count} geplante Messstellen übrig' },
     { zero: 'All planned sampling locations saved', one: 'One planned sampling location left', other: '%{count} planned sampling locations left' } ],
 
   // editor: sample (template)
@@ -356,9 +356,9 @@ const translations = {
   'Sampling Logs': ['Messprotokolle'],
   'Sampling Procedure': ['Messprozedur'],
   'Sampling Procedures': ['Messprozeduren'],
-  'Sampling Location': ['Messpunkt'],
-  'Sampling Locations': ['Messpunkte'],
-  'Sampling Location Template': ['Messpunkt-Vorlage'],
+  'Sampling Location': ['Messstelle'],
+  'Sampling Locations': ['Messstellen'],
+  'Sampling Location Template': ['Messstellen-Vorlage'],
   'Sample': ['Probe'],
   'Samples': ['Proben'],
   'Sample Template': ['Vorlage für Probe'],
@@ -367,7 +367,7 @@ const translations = {
   'Measurement Type': ['Messtyp'],
   'Coordinates': ['Koordinaten'],
   'sampling-locations': [
-    { zero: 'keine Messpunkte', one: 'ein Messpunkt', other: '%{count} Messpunkte' },
+    { zero: 'keine Messstellen', one: 'eine Messstelle', other: '%{count} Messstellen' },
     { zero: 'no sampling locations', one: 'one sampling location', other: '%{count} sampling locations' } ],
   'measurements': [
     { zero: 'keine Messungen', one: 'eine Messung', other: '%{count} Messungen' },
@@ -380,17 +380,17 @@ const translations = {
   'Logs': ['Protokolle'],
   'Log': ['Protokoll'],
   'Procedure': ['Prozedur'],
-  'Location': ['Messpunkt'],
-  'loc-temp': ['Messpunkt-Vorl.', 'Location Templ.'],
+  'Location': ['Messstelle'],
+  'loc-temp': ['Messstell.-Vorl.', 'Location Templ.'],
   'meas': ['Messung', 'Meas.'],
   'meas-type': ['Messtyp', 'Meas. Type'],
   'Coords': ['Koord.'],
-  'samp-temp': ['Messpunkt-Vorl.', 'Sample Templ.'],
+  'samp-temp': ['Proben-Vorl.', 'Sample Templ.'],
 
   // types problems
   'No start time': ['Keine Anfangs-Zeit'],
   'No end time': ['Keine End-Zeit'],
-  'No sampling locations': ['Keine Messpunkte'],
+  'No sampling locations': ['Keine Messstellen'],
   'No samples': ['Keine Proben'],
   'No units': ['Keine Messeinheit'],
   'No minimum value': ['Kein Minimalwert'],
@@ -399,7 +399,7 @@ const translations = {
   'No timestamp': ['Kein Zeitstempel'],
   'No measurement value': ['Kein Messwert'],
   'No measurements': ['Keine Messungen'],
-  'no-samp-log-loc': ['Keine Messpunkte in der Prozedur', 'No sampling locations in this procedure'],
+  'no-samp-log-loc': ['Keine Messstellen in der Prozedur', 'No sampling locations in this procedure'],
   'invalid-id': ['Ungültiger Identifikator', 'Invalid identifier'],
   'Invalid name': ['Ungültiger Name'],
   'Invalid timestamp': ['Ungültiger Zeitstempel'],
