@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorWithTemp } from './list-edit'
-import { SamplingProcedureEditor } from './procedure'
+import { SamplingProcedureEditor } from './samp-proc'
 import { makeImportExport } from '../import-export'
 import { samplingLogToCsv } from '../types/log2csv'
 import { jsx, safeCastElement } from '../jsx-dom'
