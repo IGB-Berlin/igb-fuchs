@@ -54,10 +54,8 @@ export function samplingLogToCsv(log :SamplingLog) :File {
     // location: name, description, nominalCoords, actualCoords, startTime, endTime, samples[], notes, photos[], template?
     // coords: wgs84lat, wgs84lon
 
-    // Coordinates: Either the actual coordinates, the nominal coordinates, or (if available) the location template's nominal coordinates
-    const nomCoords = areWgs84CoordsValid(loc.nomCoords) ? loc.nomCoords
-      : loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords
-        : EMPTY_COORDS
+    // Coordinates: Either the actual coordinates, or (if available) the location template's nominal coordinates
+    const nomCoords = loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords : EMPTY_COORDS
     const actCoords = areWgs84CoordsValid(loc.actCoords) ? loc.actCoords : EMPTY_COORDS
     const coords :IWgs84Coordinates = areWgs84CoordsValid(actCoords) ? actCoords : nomCoords
 

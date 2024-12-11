@@ -22,6 +22,7 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
+import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
@@ -37,11 +38,10 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
-    //TODO Later: Make "Nominal Coords" in Location readonly (like instructions), then they shouldn't be required!
-    const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords)
+    const nomCoords = obj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
+    const inpNomCoords = makeCoordinateEditor(nomCoords, true)
     const actCoords = obj.actCoords.deepClone()  // don't modify the original object directly!
-    const inpActCoords = makeCoordinateEditor(actCoords)
+    const inpActCoords = makeCoordinateEditor(actCoords, false)
 
     const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
@@ -73,7 +73,6 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       }
       return new SamplingLocation({
         template: obj.template, name: inpName.value,
-        nominalCoords: nomCoords.deepClone(),
         actualCoords: actCoords.deepClone(),
         startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
         samples: obj.samples, notes: inpNotes.value.trim(),
@@ -83,7 +82,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
+      this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')}</>, null),
       this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')}</>, tr('invalid-coords')),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,

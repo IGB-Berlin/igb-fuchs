@@ -37,7 +37,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords)
+    const inpNomCoords = makeCoordinateEditor(nomCoords, false)
 
     // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)

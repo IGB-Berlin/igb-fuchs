@@ -21,15 +21,17 @@ import { CustomChangeEvent } from '../events'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
-export function makeCoordinateEditor(coord :IWgs84Coordinates) :HTMLDivElement {
+export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean) :HTMLDivElement {
 
-  const btnGetCoords = <button class="btn btn-outline-primary" type="button" title={tr('Use current location')}>
+  const btnGetCoords = <button class="btn btn-outline-primary" type="button" title={tr('Use current location')} disabled={readonly}>
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
   const inpLat = safeCastElement(HTMLInputElement,
-    <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)} required
+    <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)}
+      required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
   const inpLon = safeCastElement(HTMLInputElement,
-    <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)} required
+    <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)}
+      required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>

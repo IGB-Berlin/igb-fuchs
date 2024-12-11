@@ -18,7 +18,7 @@
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp,
   DataObjectWithTemplate, timestampsEqual, isArrayOf } from './common'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
-import { IWgs84Coordinates, Wgs84Coordinates, areWgs84CoordsValid, isIWgs84Coordinates } from './coords'
+import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
 import { assert } from '../utils'
 import { i18n, tr } from '../i18n'
@@ -27,7 +27,6 @@ const MAX_NOM_ACT_DIST_M = 200
 
 export interface ISamplingLocation {
   name :string
-  nominalCoords :IWgs84Coordinates
   actualCoords :IWgs84Coordinates
   startTime :Timestamp
   endTime :Timestamp
@@ -36,14 +35,14 @@ export interface ISamplingLocation {
   readonly photos ?:string[]
   readonly template ?:ISamplingLocationTemplate|null
 }
-const samplingLocationKeys = ['name','nominalCoords','actualCoords','startTime','endTime','notes','samples','photos','template'] as const
+const samplingLocationKeys = ['name','actualCoords','startTime','endTime','notes','samples','photos','template'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   return !!( o && typeof o === 'object'
-    && 'name' in o && 'nominalCoords' in o && 'actualCoords' in o && 'startTime' in o && 'endTime' in o && 'samples' in o  // required keys
+    && 'name' in o && 'actualCoords' in o && 'startTime' in o && 'endTime' in o && 'samples' in o  // required keys
     && Object.keys(o).every(k => samplingLocationKeys.includes(k as SamplingLocationKey))  // extra keys
     // type checks
-    && typeof o.name === 'string' && isIWgs84Coordinates(o.nominalCoords) && isIWgs84Coordinates(o.actualCoords)
+    && typeof o.name === 'string' && isIWgs84Coordinates(o.actualCoords)
     && isTimestamp(o.startTime) && isTimestamp(o.endTime)
     && Array.isArray(o.samples) && o.samples.every(s => isISample(s))
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
@@ -55,9 +54,6 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 /** Records and actual sampling point. */
 export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
   name :string
-  nominalCoords :IWgs84Coordinates
-  get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
-  /** If the actual sample was taken at a slightly different location from the nominal location. */
   actualCoords :IWgs84Coordinates
   get actCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.actualCoords) }
   startTime :Timestamp
@@ -70,7 +66,6 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   constructor(o :ISamplingLocation|null) {
     super()
     this.name = o?.name ?? ''
-    this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null)
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
@@ -81,8 +76,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   }
   override validate(others :SamplingLocation[]) {
     validateName(this.name)
-    this.nomCoords.validate([])  // b/c the coords don't have their own Editor
-    this.actCoords.validate([])
+    this.actCoords.validate([])  // b/c the coords don't have their own Editor
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
     /* TODO: All duplicates checks shouldn't just be run on their parents, but on the global templates too - and be case insensitive!
@@ -95,9 +89,11 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     const rv :string[] = []
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
-    const distM = distanceBearing(this.actualCoords, this.nominalCoords).distKm*1000
-    if (distM > MAX_NOM_ACT_DIST_M)
-      rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+    if (this.template) {
+      const distM = distanceBearing(this.actualCoords, this.template.nominalCoords).distKm*1000
+      if (distM > MAX_NOM_ACT_DIST_M)
+        rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+    }
     if (!skipInitWarns) {
       if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
       if (this.template) {
@@ -110,7 +106,6 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   override equals(o :unknown) {
     return isISamplingLocation(o)
       && this.name === o.name
-      && this.nomCoords.equals(o.nominalCoords)
       && this.actCoords.equals(o.actualCoords)
       && timestampsEqual(this.startTime, o.startTime)
       && timestampsEqual(this.endTime, o.endTime)
@@ -122,7 +117,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   }
   override toJSON(_key :string) :ISamplingLocation {
     return { name: this.name,
-      nominalCoords: this.nomCoords.toJSON('nominalCoords'), actualCoords: this.actCoords.toJSON('actualCoords'),
+      actualCoords: this.actCoords.toJSON('actualCoords'),
       startTime: this.startTime, endTime: this.endTime,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
@@ -137,7 +132,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   override extractTemplate() :SamplingLocationTemplate {
     return new SamplingLocationTemplate({
       name: this.name,
-      nominalCoords: areWgs84CoordsValid(this.nomCoords) ? this.nomCoords.deepClone() : this.actCoords.deepClone(),
+      nominalCoords: this.actCoords.deepClone(),
       samples: this.samples.map(s => s.extractTemplate()),
       ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ) })
   }
@@ -194,7 +189,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override validate(others :SamplingLocationTemplate[]) {
     validateName(this.name)
-    this.nomCoords.validate([])
+    this.nomCoords.validate([])  // b/c the coords don't have their own Editor
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
@@ -223,7 +218,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override templateToObject() :SamplingLocation {
     return new SamplingLocation({ template: this.deepClone(), name: this.name,
-      nominalCoords: this.nomCoords.deepClone(), actualCoords: this.nomCoords.deepClone(),
+      actualCoords: this.nomCoords.deepClone(),
       startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
