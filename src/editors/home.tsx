@@ -65,7 +65,7 @@ export function makeHomePage(ctx :GlobalContext) {
   return <div class="p-3">
     <div class="accordion" id="homeAccordion">
       {makeAcc(tr('Sampling Logs'), stEdit.el)}
-      {makeAcc(tr('Sampling Procedures'), ttEdit.el)}
+      {makeAcc(`${tr('Sampling Procedures')} (${tr('Log Templates')})`, ttEdit.el)}
       {makeAcc(tr('import-export'), inpExp)}
       {makeAcc(tr('Settings'), settings)}
     </div>
