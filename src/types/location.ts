@@ -193,10 +193,10 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
-  override warningsCheck(skipInitWarns :boolean) {
+  override warningsCheck(_skipInitWarns :boolean) {
     const rv :string[] = []
     //TODO Later: The "No Samples" warning is a little annoying if building a Procedure with commonSamples (but we'd need access to our parent to check...?)
-    if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
+    // temporarily disabled: if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv
   }
   override equals(o: unknown) {
