@@ -26,6 +26,8 @@ import { assert } from './utils'
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
 
+//TODO: Can we redirect from http to https version here?
+
 if (module.hot) module.hot.accept()  // for the parcel development environment
 
 // register the Service Worker (if possible)
