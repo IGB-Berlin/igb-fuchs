@@ -56,18 +56,18 @@ const translations = {
     'Es gab beim Import der Daten folgende Fehler:',
     'The following errors occurred during import of the data:' ],
   'import-success': ['Import erfolgreich!', 'Import successful!'],
-  'import-trip-info': [
-    { zero: 'Keine Messfahrten importiert.', one: 'Eine Messfahrt importiert.', other: '%{count} Messfahrten importiert.' },
-    { zero: 'No sampling trips imported.', one: 'One sampling trip imported.', other: '%{count} sampling trips imported.' } ],
-  'import-temp-info': [
-    { zero: 'Keine Messfahrt-Vorlagen importiert.', one: 'Eine Messfahrt-Vorlage importiert.', other: '%{count} Messfahrt-Vorlagen importiert.' },
-    { zero: 'No sampling trip templates imported.', one: 'One sampling trip template imported.', other: '%{count} sampling trip templates imported.' } ],
-  'import-bad-trip': [
-    'Das Objekt mit folgendem Schlüssel wurde nicht als Messfahrt erkannt:',
-    'The object with the following key was not recognized as a sampling trip:' ],
-  'import-bad-temp': [
-    'Das Objekt mit folgendem Schlüssel wurde nicht als Messfahrt-Vorlage erkannt:',
-    'The object with the following key was not recognized as as sampling trip template:' ],
+  'import-logs-info': [
+    { zero: 'Keine Messprotokolle importiert.', one: 'Ein Messprotokoll importiert.', other: '%{count} Messprotokolle importiert.' },
+    { zero: 'No sampling logs imported.', one: 'One sampling log imported.', other: '%{count} sampling logs imported.' } ],
+  'import-proc-info': [
+    { zero: 'Keine Messprozeduren importiert.', one: 'Eine Messprozedur importiert.', other: '%{count} Messprozeduren importiert.' },
+    { zero: 'No sampling procedures imported.', one: 'One sampling procedure imported.', other: '%{count} sampling procedures imported.' } ],
+  'import-bad-log': [
+    'Das Objekt mit folgendem Schlüssel wurde nicht als Messprotokoll erkannt:',
+    'The object with the following key was not recognized as a sampling log:' ],
+  'import-bad-proc': [
+    'Das Objekt mit folgendem Schlüssel wurde nicht als Messprozedur erkannt:',
+    'The object with the following key was not recognized as as sampling procedure:' ],
   'import-bad-explain': [
     'Dies kann z.B. dann passieren, wenn man einen älteren exportierten Datensatz in eine neuere Version der App lädt.'
     +' Ggf. muss der Datensatz manuell bearbeitet und ins neue Format gebracht werden, um ihn zu importieren.',
@@ -214,10 +214,10 @@ const translations = {
     { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
     { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
 
-  // editor: trip template
-  'trip-desc-help': [
-    'Optionale Beschreibung der Messfahrt, z.B. mitzunehmende Geräte und Materialien, usw.',
-    'Optional description of the sampling trip, e.g. equipment and materials to take, etc.' ],
+  // editor: sampling procedure
+  'proc-desc-help': [
+    'Optionale Beschreibung der Messprozedur, z.B. mitzunehmende Geräte und Materialien, usw.',
+    'Optional description of the sampling procedure, e.g. equipment and materials to take, etc.' ],
   'new-loc-from-temp': [
     'Neuer Messpunkt aus Vorlage',
     'New Sampling Location from Template' ],
@@ -225,14 +225,14 @@ const translations = {
     'Gleichartige Proben',
     'Uniform Samples' ],
   'common-samples-help': [
-    'Wenn an allen Messpunkten der Messfahrt die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
+    'Wenn an allen Messpunkten der Messprozedur die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
     +' Wenn für einzelne Messpunkte andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
-    'If the same samples with the same measurements are to be taken at all locations on this trip, they can be defined here.'
+    'If the same samples with the same measurements are to be taken at all locations in this procedure, they can be defined here.'
     +' If individual sampling locations have different samples defined, these override the samples in this section.' ],
   'Checklist': ['Checkliste'],
   'checklist-temp-help': [
-    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
-    'Every line in this input becomes one item on the checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
+    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Kontrollliste zur Hilfe bei der Vorbereitung dieser Messprozedur. Die Checkliste ist im CSV Export nicht enthalten.',
+    'Every line in this input becomes one item on the checklist for help in preparation of this sampling procedure. The checklist is not exported in the CSV format.' ],
   'checklist-empty-lines': [
     'Die Checkliste enthält leere Zeilen.',
     'The checklist contains empty lines.' ],
@@ -243,28 +243,28 @@ const translations = {
     'Beim Speichern End-Zeit automatisch auf aktuelle Uhrzeit setzen',
     'Automatically set end time to current time when saving' ],
 
-  // editor: trip
+  // editor: sampling log
   'Start time': ['Anfangs-Zeit'],
-  'trip-start-time-help': [
-    'Wann die Messfahrt begann. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'When the sampling trip began. Timezone is that of this device (usually local time)' ],
+  'log-start-time-help': [
+    'Wann das Messprotokoll begann. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the sampling log began. Timezone is that of this device (usually local time)' ],
   'End time': ['End-Zeit'],
-  'trip-end-time-help': [
-    'Wann die Messfahrt endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'When the sampling trip ended. Timezone is that of this device (usually local time)' ],
+  'log-end-time-help': [
+    'Wann das Messprotokoll endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the sampling log ended. Timezone is that of this device (usually local time)' ],
   'Persons': ['Personen'],
   'persons-help': ['Welche Personen an der Probenahme beteiligt waren.', 'Who was involved in the sampling.'],
   'Weather': ['Wetter'],
-  'weather-help': ['Wie das Wetter während der Probenahme war.', 'How the weather during the sampling trip was.'],
-  'trip-notes-help': ['Optionale Notizen zur Messfahrt im Allgemeinen.', 'Optional notes about the sampling trip in general.'],
+  'weather-help': ['Wie das Wetter während der Probenahme war.', 'How the weather during the sampling was.'],
+  'log-notes-help': ['Optionale Notizen zum Messprotokoll im Allgemeinen.', 'Optional notes about the sampling log in general.'],
   'Now': ['Jetzt'],
   'Use current date and time': ['Aktuelles Datum und Uhrzeit verwenden'],
-  'new-trip-from-temp': [
-    'Neue Messfahrt aus Vorlage',
-    'New Sampling Trip from Template' ],
+  'new-log-from-proc': [
+    'Neues Messprotokoll aus Messprozedur',
+    'New Sampling Log from Procedure' ],
   'checklist-help': [
-    'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messfahrt. Die Checkliste ist im CSV Export nicht enthalten.',
-    'Checklist for help in preparation of this sampling trip. The checklist is not exported in the CSV format.' ],
+    'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messprozedur. Die Checkliste ist im CSV Export nicht enthalten.',
+    'Checklist for help in preparation of this sampling procedure. The checklist is not exported in the CSV format.' ],
   'check-not-completed': [
     { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
     { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
@@ -352,10 +352,10 @@ const translations = {
     'I understand - don\'t show this warning for 7 days' ],
 
   // types
-  'Sampling Trip': ['Messfahrt'],
-  'Sampling Trips': ['Messfahrten'],
-  'Sampling Trip Template': ['Messfahrt-Vorlage'],
-  'Sampling Trip Templates': ['Messfahrt-Vorlagen'],
+  'Sampling Log': ['Messprotokoll'],
+  'Sampling Logs': ['Messprotokolle'],
+  'Sampling Procedure': ['Messprozedur'],
+  'Sampling Procedures': ['Messprozeduren'],
   'Sampling Location': ['Messpunkt'],
   'Sampling Locations': ['Messpunkte'],
   'Sampling Location Template': ['Messpunkt-Vorlage'],
@@ -377,9 +377,9 @@ const translations = {
     { zero: 'no samples', one: 'one sample', other: '%{count} samples' } ],
   // partially abbrev. for breadcrumbs
   'Templates': ['Vorlagen'],
-  'Trips': ['Fahrten'],
-  'Trip': ['Messfahrt'],
-  'trip-temp': ['Fahrt-Vorl.', 'Trip Templ.'],
+  'Logs': ['Protokolle'],
+  'Log': ['Protokoll'],
+  'Procedure': ['Prozedur'],
   'Location': ['Messpunkt'],
   'loc-temp': ['Messpunkt-Vorl.', 'Location Templ.'],
   'meas': ['Messung', 'Meas.'],
@@ -399,7 +399,7 @@ const translations = {
   'No timestamp': ['Kein Zeitstempel'],
   'No measurement value': ['Kein Messwert'],
   'No measurements': ['Keine Messungen'],
-  'no-trip-loc': ['Keine Messpunkte in der Vorlage', 'No sampling locations in this template'],
+  'no-samp-log-loc': ['Keine Messpunkte in der Prozedur', 'No sampling locations in this procedure'],
   'invalid-id': ['Ungültiger Identifikator', 'Invalid identifier'],
   'Invalid name': ['Ungültiger Name'],
   'Invalid timestamp': ['Ungültiger Zeitstempel'],
@@ -427,11 +427,11 @@ const translations = {
   'meas-below-min': [
     'Der Messwert liegt unter dem Minimalwert',
     'The measurement value is below the minimum' ],
-  'duplicate-trip-id': [
-    'Es existiert bereits eine Messfahrt mit diesem Namen an demselben Anfangs-Datum.'
-    +' Bitte die Messfahrt ergänzen (Namen oder Datum), um diese zwei Messfahrten zu unterscheiden.',
-    'There is already a sampling trip with this name on the same start date.'
-    +' Please modify the sampling trip (name or date) to differentiate these two sampling trips.' ],
+  'duplicate-log-id': [
+    'Es existiert bereits ein Messprotokoll mit diesem Namen an demselben Anfangs-Datum.'
+    +' Bitte as Messprotokoll ergänzen (Namen oder Datum), um diese zwei Protokolle zu unterscheiden.',
+    'There is already a sampling log with this name on the same start date.'
+    +' Please modify the sampling log (name or date) to differentiate these two logs.' ],
   'samp-type-undef': [
     'Art der Probe nicht festgelegt.',
     'Sample type not defined.' ],

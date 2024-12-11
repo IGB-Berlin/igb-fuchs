@@ -26,7 +26,7 @@ import { IdbStorage } from '../idb-store'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
-export interface ISamplingTrip extends HasId {
+export interface ISamplingLog extends HasId {
   readonly id :string
   name :string
   startTime :Timestamp
@@ -38,14 +38,14 @@ export interface ISamplingTrip extends HasId {
   /** Which items from `.template.checklist` have been checked. Items in this list that are not in the other are ignored; only exact string matches are considered. */
   readonly checkedTasks ?:string[]|null
   readonly locations :ISamplingLocation[]
-  readonly template ?:ISamplingTripTemplate|null
+  readonly template ?:ISamplingProcedure|null
 }
-const samplingTripKeys = ['id','name','startTime','endTime','lastModified','persons','weather','notes','checkedTasks','locations','template'] as const
-type SamplingTripKey = typeof samplingTripKeys[number] & keyof ISamplingTrip
-export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
+const samplingLogKeys = ['id','name','startTime','endTime','lastModified','persons','weather','notes','checkedTasks','locations','template'] as const
+type SamplingLogKey = typeof samplingLogKeys[number] & keyof ISamplingLog
+export function isISamplingLog(o :unknown) :o is ISamplingLog {
   return !!( o && typeof o === 'object'
     && 'id' in o && 'name' in o && 'startTime' in o && 'endTime' in o && 'locations' in o  // required keys
-    && Object.keys(o).every(k => samplingTripKeys.includes(k as SamplingTripKey))  // extra keys
+    && Object.keys(o).every(k => samplingLogKeys.includes(k as SamplingLogKey))  // extra keys
     // type checks
     && typeof o.id === 'string' && typeof o.name === 'string' && isTimestamp(o.startTime) && isTimestamp(o.endTime)
     && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocation(l))
@@ -54,14 +54,13 @@ export function isISamplingTrip(o :unknown) :o is ISamplingTrip {
     && ( !('weather' in o) || o.weather===null || typeof o.weather === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
     && ( !('checkedTasks' in o) || o.checkedTasks===null || Array.isArray(o.checkedTasks) && o.checkedTasks.every(t => typeof t === 'string') )
-    && ( !('template' in o) || o.template===null || isISamplingTripTemplate(o.template) )
+    && ( !('template' in o) || o.template===null || isISamplingProcedure(o.template) )
   )
 }
 /* TODO Later: For the future, when this project is released and changes happen to the schema,
  * there should be a Migrator class that upgrades/converts older objects to newer ones. */
 
-/** Records an entire sampling trip. */
-export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingTripTemplate> implements ISamplingTrip {
+export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingProcedure> implements ISamplingLog {
   readonly id :string
   name :string
   startTime :Timestamp
@@ -73,10 +72,10 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
   notes :string
   readonly checkedTasks :string[]
   readonly locations :SamplingLocation[]
-  readonly template :SamplingTripTemplate|null
-  constructor(o :ISamplingTrip|null) {
+  readonly template :SamplingProcedure|null
+  constructor(o :ISamplingLog|null) {
     super()
-    this.id = o===null ? IdbStorage.newSamplingTripId() : o.id
+    this.id = o===null ? IdbStorage.newSamplingLogId() : o.id
     this.name = o?.name ?? ''
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
@@ -86,16 +85,16 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.checkedTasks = o && 'checkedTasks' in o && o.checkedTasks ? o.checkedTasks : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l))
-    this.template = o && 'template' in o ? ( o.template instanceof SamplingTripTemplate ? o.template : new SamplingTripTemplate(o.template) ) : null
+    this.template = o && 'template' in o ? ( o.template instanceof SamplingProcedure ? o.template : new SamplingProcedure(o.template) ) : null
   }
-  override validate(others :SamplingTrip[]) {
+  override validate(others :SamplingLog[]) {
     validateId(this.id)
     validateName(this.name)
     validateTimestamp(this.startTime)
     validateTimestamp(this.endTime)
     validateTimestamp(this.lastModified)
-    if (others.some(o => o.tripId === this.tripId))
-      throw new Error(tr('duplicate-trip-id'))
+    if (others.some(o => o.logId === this.logId))
+      throw new Error(tr('duplicate-log-id'))
   }
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
@@ -116,7 +115,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
     return rv
   }
   override equals(o: unknown) {
-    return isISamplingTrip(o)
+    return isISamplingLog(o)
       // not comparing ids
       && this.name === o.name
       && timestampsEqual(this.startTime, o.startTime)
@@ -130,7 +129,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       && this.locations.length === o.locations.length && this.locations.every((l,i) => l.equals(o.locations[i]))
     // not comparing template
   }
-  override toJSON(_key: string): ISamplingTrip {
+  override toJSON(_key: string): ISamplingLog {
     return { id: this.id, name: this.name, startTime: this.startTime, endTime: this.endTime,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())),
       ...( isTimestampSet(this.lastModified) && { lastModified: this.lastModified } ),
@@ -140,31 +139,31 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }
-  override deepClone() :SamplingTrip {
+  override deepClone() :SamplingLog {
     const clone :unknown = JSON.parse(JSON.stringify(this))
-    assert(isISamplingTrip(clone))
-    return new SamplingTrip(clone)
+    assert(isISamplingLog(clone))
+    return new SamplingLog(clone)
   }
-  override extractTemplate() :SamplingTripTemplate {
+  override extractTemplate() :SamplingProcedure {
     /* If all location templates have the same set of samples, then we
-     * can deduplicate them into the trip template's `commonSamples`. */
+     * can deduplicate them into the Procedure's `commonSamples`. */
     const locTemps = this.locations.map(l => l.extractTemplate())
     const l0 = locTemps[0]
     const allLocsHaveSameSamples =
       l0 && locTemps.slice(1).every( l => dataSetsEqual( l0.samples, l.samples ) )
     const commonSamples = allLocsHaveSameSamples ? Array.from(l0.samples) : []
     if (allLocsHaveSameSamples) locTemps.forEach(l => l.samples.length = 0)
-    return new SamplingTripTemplate({ id: IdbStorage.newTripTemplateId(),
+    return new SamplingProcedure({ id: IdbStorage.newSamplingProcedureId(),
       name: this.name, locations: locTemps, commonSamples: commonSamples,
       ...( this.template?.description.trim().length && { description: this.template.description.trim() } ),
       ...( this.template?.checklist.length && { checklist: Array.from(this.template.checklist) } ) })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip':'Trip') }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Log':'Log') }
   override summaryDisplay() :[string,string] {
     const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
   }
-  get tripId() :string {
+  get logId() :string {
     const n = this.name.trim().length ? this.name : '?'  // paranoia
     if (isTimestampSet(this.startTime)) {
       const dt = new Date(this.startTime)
@@ -175,7 +174,7 @@ export class SamplingTrip extends DataObjectWithTemplate<SamplingTrip, SamplingT
 
 /* ********** ********** ********** Template ********** ********** ********** */
 
-export interface ISamplingTripTemplate extends HasId {
+export interface ISamplingProcedure extends HasId {
   readonly id :string
   name :string
   description ?:string|null
@@ -183,12 +182,12 @@ export interface ISamplingTripTemplate extends HasId {
   readonly locations :ISamplingLocationTemplate[]
   readonly commonSamples :ISampleTemplate[]
 }
-const samplingTripTemplateKeys = ['id','name','description','checklist','locations','commonSamples'] as const
-type SamplingTripTemplateKey = typeof samplingTripTemplateKeys[number] & keyof ISamplingTripTemplate
-export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate {
+const samplingProcedureKeys = ['id','name','description','checklist','locations','commonSamples'] as const
+type SamplingProcedureKey = typeof samplingProcedureKeys[number] & keyof ISamplingProcedure
+export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
   return !!( o && typeof o === 'object'
     && 'id' in o && 'name' in o && 'locations' in o && 'commonSamples' in o  // required keys
-    && Object.keys(o).every(k => samplingTripTemplateKeys.includes(k as SamplingTripTemplateKey))  // extra keys
+    && Object.keys(o).every(k => samplingProcedureKeys.includes(k as SamplingProcedureKey))  // extra keys
     // type checks
     && typeof o.id === 'string' && typeof o.name === 'string'
     && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocationTemplate(l))
@@ -198,25 +197,25 @@ export function isISamplingTripTemplate(o :unknown) :o is ISamplingTripTemplate 
   )
 }
 
-export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplate, SamplingTrip> implements ISamplingTripTemplate {
+export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, SamplingLog> implements ISamplingProcedure {
   readonly id :string
   name :string
   description :string
   checklist :string[]
-  /** The typical sampling locations on this trip. */
+  /** The typical sampling locations in this procedure. */
   readonly locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */
   readonly commonSamples :SampleTemplate[]
-  constructor(o :ISamplingTripTemplate|null) {
+  constructor(o :ISamplingProcedure|null) {
     super()
-    this.id = o===null ? IdbStorage.newTripTemplateId() : o.id
+    this.id = o===null ? IdbStorage.newSamplingProcedureId() : o.id
     this.name = o?.name ?? ''
     this.description = o && 'description' in o && o.description!==null ? o.description.trim() : ''
     this.checklist = o && 'checklist' in o && o.checklist ? o.checklist : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocationTemplate, o.locations) ? o.locations :o.locations.map(l => new SamplingLocationTemplate(l))
     this.commonSamples = o===null ? [] : isArrayOf(SampleTemplate, o.commonSamples) ? o.commonSamples : o.commonSamples.map(s => new SampleTemplate(s))
   }
-  override validate(others :SamplingTripTemplate[]) {
+  override validate(others :SamplingProcedure[]) {
     validateId(this.id)
     validateName(this.name)
     if (others.some(o => o.name === this.name))
@@ -227,11 +226,11 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
     const ck = this.checklist.map(c => c.trim())
     if ( new Set(ck).size !== ck.length ) rv.push(tr('checklist-duplicates'))
     if ( ck.some(c => !c.length) ) rv.push(tr('checklist-empty-lines'))
-    if (!skipInitWarns && !this.locations.length) rv.push(tr('no-trip-loc'))
+    if (!skipInitWarns && !this.locations.length) rv.push(tr('no-samp-log-loc'))
     return rv
   }
   override equals(o: unknown) {
-    return isISamplingTripTemplate(o)
+    return isISamplingProcedure(o)
       // not comparing id
       && this.name === o.name
       && this.description.trim() === ( o.description?.trim() ?? '' )
@@ -240,28 +239,28 @@ export class SamplingTripTemplate extends DataObjectTemplate<SamplingTripTemplat
       && this.locations.length === o.locations.length && this.locations.every((l,i) => l.equals(o.locations[i]))
       && this.commonSamples.length === o.commonSamples.length && this.commonSamples.every((s,i) => s.equals(o.commonSamples[i]))
   }
-  override toJSON(_key: string): ISamplingTripTemplate {
+  override toJSON(_key: string): ISamplingProcedure {
     return { id: this.id, name: this.name,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())),
       commonSamples: this.commonSamples.map((s,si) => s.toJSON(si.toString())),
       ...( this.description.trim().length && { description: this.description.trim() } ),
       ...( this.checklist.length && { checklist: Array.from(this.checklist) } ) }
   }
-  override deepClone() :SamplingTripTemplate {
+  override deepClone() :SamplingProcedure {
     const clone :unknown = JSON.parse(JSON.stringify(this))
-    assert(isISamplingTripTemplate(clone))
-    return new SamplingTripTemplate(clone)
+    assert(isISamplingProcedure(clone))
+    return new SamplingProcedure(clone)
   }
-  override templateToObject() :SamplingTrip {
+  override templateToObject() :SamplingLog {
     const t = this.deepClone()
     // for locations that have no samples, use commonSamples:
     for (const l of t.locations) if (!l.samples.length) l.samples.push(...t.commonSamples.map(s => s.deepClone()))
     t.commonSamples.length = 0  // no longer needed
-    return new SamplingTrip({ id: IdbStorage.newSamplingTripId(), template: t,
+    return new SamplingLog({ id: IdbStorage.newSamplingLogId(), template: t,
       name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Trip Template':'trip-temp') }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Procedure':'Procedure') }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
   }

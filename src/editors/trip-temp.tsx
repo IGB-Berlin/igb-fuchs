@@ -17,7 +17,7 @@
  */
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
-import { SamplingTripTemplate } from '../types/trip'
+import { SamplingProcedure } from '../types/trip'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
 import { ListEditorForTemp } from './list-edit'
@@ -27,11 +27,11 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 import { makeTextAreaAutoHeight } from '../utils'
 
-export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripTemplate> {
-  protected override readonly form2obj :()=>Readonly<SamplingTripTemplate>
-  protected override newObj() { return new SamplingTripTemplate(null) }
+export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
+  protected override readonly form2obj :()=>Readonly<SamplingProcedure>
+  protected override newObj() { return new SamplingProcedure(null) }
 
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTripTemplate>, targetObj :SamplingTripTemplate|null) {
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
@@ -54,14 +54,14 @@ export class TripTemplateEditor extends Editor<TripTemplateEditor, SamplingTripT
     const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
-    this.form2obj = () => new SamplingTripTemplate({ id: obj.id,
+    this.form2obj = () => new SamplingProcedure({ id: obj.id,
       name: inpName.value, description: inpDesc.value.trim(),
       checklist: inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
       locations: obj.locations, commonSamples: obj.commonSamples })
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')}</>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('proc-desc-help')} {tr('desc-help')}</>, null),
       this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
       sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
       locEdit.withBorder(tr('Sampling Locations')),

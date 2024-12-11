@@ -200,7 +200,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
-    //TODO Later: The "No Samples" warning is a little annoying if building a Trip with commonSamples (but we'd need access to our parent to check...?)
+    //TODO Later: The "No Samples" warning is a little annoying if building a Procedure with commonSamples (but we'd need access to our parent to check...?)
     if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv
   }

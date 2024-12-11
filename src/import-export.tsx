@@ -23,7 +23,7 @@ import { assert } from './utils'
 import { tr } from './i18n'
 
 export function makeImportExport(ctx :GlobalContext) :HTMLElement {
-  //TODO: This can be expanded a lot, e.g. exporting individual trip templates would be very useful
+  //TODO: This can be expanded a lot, e.g. exporting individual Procedures would be very useful
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
     <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)

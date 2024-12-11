@@ -88,7 +88,8 @@ export class EditorStack {
       /* Instead of looking at .unsavedChanges, we currently want to prevent any navigation while any editor
        * is open, because that will drop the object's .template associations, which is an annoying user
        * experience. I have a note elsewhere that I could think about persisting that, but that's low-priority.
-       * For now, the advice to users is to stay on this page for the entire measurement trip. */
+       * For now, the advice to users is to stay on this page for the entire measurement procedure.
+       * TODO Later: Now that template associations are better, can we change the above again? */
       if ( this.stack.length>1 /*this.stack.some(s => s.unsavedChanges*)*/ ) {
         event.preventDefault()
         // eslint-disable-next-line @typescript-eslint/no-deprecated

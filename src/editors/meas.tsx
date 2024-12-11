@@ -89,6 +89,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     this.form2obj = () => new Measurement({ type: measType[0],
       value: inpValue.value, time: inpTime.timestamp })
 
+    //TODO Later: Consider a "Next" button
     //TODO Later: Should back button be disallowed until measurement value is entered? (or should back button delete a blank measurement created from template??)
     this.initialize([
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),

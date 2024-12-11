@@ -18,10 +18,10 @@
 import { ListEditor, ListEditorWithTemp } from './list-edit'
 import { makeImportExport } from '../import-export'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { tripToCsvFile } from '../types/trip-csv'
-import { TripTemplateEditor } from './trip-temp'
-import { SamplingTrip } from '../types/trip'
-import { SamplingTripEditor } from './trip'
+import { samplingLogToCsv } from '../types/trip-csv'
+import { SamplingProcedureEditor } from './trip-temp'
+import { SamplingLog } from '../types/trip'
+import { SamplingLogEditor } from './trip'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { shareFile } from '../share'
@@ -52,11 +52,11 @@ export function makeHomePage(ctx :GlobalContext) {
   const dummyParent = { ctx: ctx, el: null, isBrandNew: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
-  const stEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingTrips, SamplingTripEditor, tr('new-trip-from-temp'),
-    async () => (await ctx.storage.tripTemplates.getAll(null)).map(([_,t])=>t), null)
-  stEdit.addButton(btnShare, (obj :SamplingTrip) => shareFile(tripToCsvFile(obj)))
+  const stEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, tr('new-log-from-proc'),
+    async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
+  stEdit.addButton(btnShare, (obj :SamplingLog) => shareFile(samplingLogToCsv(obj)))
 
-  const ttEdit = new ListEditor(dummyParent, ctx.storage.tripTemplates, TripTemplateEditor)
+  const ttEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor)
 
   const inpExp = makeImportExport(ctx)
 
@@ -64,8 +64,8 @@ export function makeHomePage(ctx :GlobalContext) {
 
   return <div class="p-3">
     <div class="accordion" id="homeAccordion">
-      {makeAcc(tr('Sampling Trips'), stEdit.el)}
-      {makeAcc(tr('Sampling Trip Templates'), ttEdit.el)}
+      {makeAcc(tr('Sampling Logs'), stEdit.el)}
+      {makeAcc(tr('Sampling Procedures'), ttEdit.el)}
       {makeAcc(tr('import-export'), inpExp)}
       {makeAcc(tr('Settings'), settings)}
     </div>

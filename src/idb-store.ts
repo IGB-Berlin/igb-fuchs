@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { ISamplingTrip, ISamplingTripTemplate, isISamplingTrip, isISamplingTripTemplate, SamplingTrip, SamplingTripTemplate } from './types/trip'
+import { ISamplingLog, ISamplingProcedure, isISamplingLog, isISamplingProcedure, SamplingLog, SamplingProcedure } from './types/trip'
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'
@@ -30,8 +30,8 @@ import { assert } from './utils'
 const IDB_NAME = 'IGB-FUCHS'
 
 interface AllData {
-  samplingTrips: { [key :string]: ISamplingTrip }
-  tripTemplates: { [key :string]: ISamplingTripTemplate }
+  samplingLogs: { [key :string]: ISamplingLog }
+  samplingProcedures: { [key :string]: ISamplingProcedure }
 }
 
 interface ImportResults {
@@ -56,8 +56,8 @@ class DummyObj implements IDummyObj {
 
 interface MyDB extends DBSchema {
   selfTest :{ key :string, value :IDummyObj  },
-  samplingTrips :{ key :string, value :ISamplingTrip },
-  tripTemplates :{ key :string, value :ISamplingTripTemplate },
+  samplingLogs :{ key :string, value :ISamplingLog },
+  samplingProcedures :{ key :string, value :ISamplingProcedure },
   filesTest :{ key :string, value :File },
   files :{ key :string, value :File },
   general :{ key :string, value :ISettings },
@@ -149,7 +149,7 @@ class FileStore {
   }
 }
 
-class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O extends I> extends AbstractStore<O> {
+class TypedIdStore<I extends ISamplingLog|ISamplingProcedure|IDummyObj, O extends I> extends AbstractStore<O> {
   private readonly db
   private readonly storeName
   private readonly typeChecker
@@ -205,7 +205,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     return null
   }
   override async add(obj :I) {
-    if (isISamplingTrip(obj)) obj.lastModified = timestampNow()
+    if (isISamplingLog(obj)) obj.lastModified = timestampNow()
     const rv = await this.db.add(this.storeName, obj)
     console.debug('IDB add', this.storeName, obj.id)
     if (this.cbModified) await this.cbModified()
@@ -216,7 +216,7 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
     const trans = this.db.transaction(this.storeName, 'readwrite')
     const cur = await trans.store.openCursor(prevObj.id)
     if (!cur) throw new Error(`Key ${prevObj.id} not found`)
-    if (isISamplingTrip(newObj)) newObj.lastModified = timestampNow()
+    if (isISamplingLog(newObj)) newObj.lastModified = timestampNow()
     await Promise.all([ trans.done, cur.update(newObj) ])
     console.debug('IDB upd', this.storeName, prevObj.id, newObj.id)
     if (this.cbModified) await this.cbModified()
@@ -236,15 +236,15 @@ class TypedIdStore<I extends ISamplingTrip|ISamplingTripTemplate|IDummyObj, O ex
 export class IdbStorage {
   // https://github.com/jakearchibald/idb#readme
 
-  static newTripTemplateId() { return 'tripTemplate-'+crypto.randomUUID() }
-  static newSamplingTripId() { return 'samplingTrip-'+crypto.randomUUID() }
+  static newSamplingProcedureId() { return 'procedure-'+crypto.randomUUID() }
+  static newSamplingLogId() { return 'sampLog-'+crypto.randomUUID() }
 
   static async open() {
     return new IdbStorage( await openDB<MyDB>(IDB_NAME, 1, {
       upgrade(db) {
         db.createObjectStore('selfTest', { keyPath: 'id' })
-        db.createObjectStore('tripTemplates', { keyPath: 'id' })
-        db.createObjectStore('samplingTrips', { keyPath: 'id' })
+        db.createObjectStore('samplingProcedures', { keyPath: 'id' })
+        db.createObjectStore('samplingLogs', { keyPath: 'id' })
         db.createObjectStore('filesTest', {})
         db.createObjectStore('files', {})
         db.createObjectStore('general', {})
@@ -255,16 +255,16 @@ export class IdbStorage {
   private readonly db
   private readonly selfTestStore
   private readonly fileTestStore
-  readonly tripTemplates
-  readonly samplingTrips
+  readonly samplingProcedures
+  readonly samplingLogs
   readonly fileStore
   readonly settings
   private constructor(db :IDBPDatabase<MyDB>) {
     this.db = db
     this.selfTestStore = new TypedIdStore(db, 'selfTest', isIDummyObj, (o:IDummyObj)=>new DummyObj(o), null)
     this.fileTestStore = new FileStore(db, 'filesTest')
-    this.tripTemplates = new TypedIdStore(db, 'tripTemplates', isISamplingTripTemplate, (o:ISamplingTripTemplate)=>new SamplingTripTemplate(o), ()=>this.updateTemplates())
-    this.samplingTrips = new TypedIdStore(db, 'samplingTrips', isISamplingTrip, (o:ISamplingTrip)=>new SamplingTrip(o), ()=>this.updateTemplates())
+    this.samplingProcedures = new TypedIdStore(db, 'samplingProcedures', isISamplingProcedure, (o:ISamplingProcedure)=>new SamplingProcedure(o), ()=>this.updateTemplates())
+    this.samplingLogs = new TypedIdStore(db, 'samplingLogs', isISamplingLog, (o:ISamplingLog)=>new SamplingLog(o), ()=>this.updateTemplates())
     this.fileStore = new FileStore(db, 'files')
     this.settings = new Settings(db)
   }
@@ -281,30 +281,30 @@ export class IdbStorage {
 
   async updateTemplates() :Promise<void> {  // this function is expensive
     const startMs = performance.now()
-    const allTripTs = await this.tripTemplates.getAll(null)
-    const allLoc = allTripTs.flatMap(([_,t]) => t.locations)
-      .concat( ( await this.samplingTrips.getAll(null) ).flatMap(([_,t]) =>
+    const allProcedures = await this.samplingProcedures.getAll(null)
+    const allLocTemps = allProcedures.flatMap(([_,t]) => t.locations)
+      .concat( ( await this.samplingLogs.getAll(null) ).flatMap(([_,t]) =>
         t.locations.map(l => new SamplingLocation(l).extractTemplate())) )
     // locations - no samples: assume users are just interested in the coordinates, not the samples at each location (helps deduplication!)
-    this._allLocTemps = deduplicatedSet( allLoc.map(l => new SamplingLocationTemplate(l).cloneNoSamples()) )
-    this._allSampTemps = deduplicatedSet( allLoc.flatMap(l => l.samples.map(s => new SampleTemplate(s).deepClone()))
-      .concat( allTripTs.flatMap(([_,t]) => t.commonSamples.map(s => new SampleTemplate(s)) ) ) )
+    this._allLocTemps = deduplicatedSet( allLocTemps.map(l => new SamplingLocationTemplate(l).cloneNoSamples()) )
+    this._allSampTemps = deduplicatedSet( allLocTemps.flatMap(l => l.samples.map(s => new SampleTemplate(s).deepClone()))
+      .concat( allProcedures.flatMap(([_,t]) => t.commonSamples.map(s => new SampleTemplate(s)) ) ) )
     this._allMeasTemps = deduplicatedSet( this._allSampTemps.flatMap(s => s.measurementTypes.map(m => m.deepClone())) )
     const durMs = performance.now() - startMs
     if (durMs>50) console.log('updateTemplates took', durMs, 'ms')
   }
 
   async export() :Promise<AllData> {
-    const data :AllData = { samplingTrips: {}, tripTemplates: {} }
-    const stores = ['samplingTrips', 'tripTemplates'] as const
+    const data :AllData = { samplingLogs: {}, samplingProcedures: {} }
+    const stores = ['samplingLogs', 'samplingProcedures'] as const
     const trans = this.db.transaction(stores, 'readonly')
     await Promise.all(stores.map(async storeName => {
       for await (const cur of trans.objectStore(storeName)) {
         if (cur.key in data[storeName])
           console.error('Export: duplicate key, the former will be clobbered:', data[storeName][cur.key], cur.value)
         // use .toJSON here because, unlike the objects, it'll omit unused fields for cleaner JSON
-        data[storeName][cur.key] = isISamplingTrip(cur.value) ? new SamplingTrip(cur.value).toJSON('')
-          : isISamplingTripTemplate(cur.value) ? new SamplingTripTemplate(cur.value).toJSON('')
+        data[storeName][cur.key] = isISamplingLog(cur.value) ? new SamplingLog(cur.value).toJSON('')
+          : isISamplingProcedure(cur.value) ? new SamplingProcedure(cur.value).toJSON('')
             : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
     return data
@@ -320,43 +320,44 @@ export class IdbStorage {
     if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
     const rv :ImportResults = { info: [], errors: [] }
 
-    if ('samplingTrips' in data && data.samplingTrips && typeof data.samplingTrips==='object') {
+    if ('samplingLogs' in data && data.samplingLogs && typeof data.samplingLogs==='object') {
       let counter = 0
-      await Promise.all(Object.entries(data.samplingTrips).map(async ([k,v]) => {
-        if (!isISamplingTrip(v)) { rv.errors.push(`${tr('import-bad-trip')}: ${k} (${tr('import-bad-explain')})`); return }
+      await Promise.all(Object.entries(data.samplingLogs).map(async ([k,v]) => {
+        //TODO: Write the following import errors to console for debugging
+        if (!isISamplingLog(v)) { rv.errors.push(`${tr('import-bad-log')}: ${k} (${tr('import-bad-explain')})`); return }
         if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
         try {
-          const imp = new SamplingTrip(v)
-          const have = await this.samplingTrips.tryGet(v.id)
+          const imp = new SamplingLog(v)
+          const have = await this.samplingLogs.tryGet(v.id)
           if (have) {
             if (have.equals(v)) { counter++ }  // nothing needed, but just report it as imported b/c I think that's better info for the user (?)
             else if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-              await this.samplingTrips.add(imp); counter++ }
+              await this.samplingLogs.add(imp); counter++ }
           }
-          else { await this.samplingTrips.add(imp); counter++ }
+          else { await this.samplingLogs.add(imp); counter++ }
         } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
       }))
-      rv.info.push(i18n.t('import-trip-info', { count: counter }))
-    } else rv.errors.push('No samplingTrips in file, or bad format.')
+      rv.info.push(i18n.t('import-logs-info', { count: counter }))
+    } else rv.errors.push('No samplingLogs in file, or bad format.')
 
-    if ('tripTemplates' in data && data.tripTemplates && typeof data.tripTemplates==='object') {
+    if ('samplingProcedures' in data && data.samplingProcedures && typeof data.samplingProcedures==='object') {
       let counter = 0
-      await Promise.all(Object.entries(data.tripTemplates).map(async ([k,v]) => {
-        if (!isISamplingTripTemplate(v)) { rv.errors.push(`${tr('import-bad-temp')}: ${k} (${tr('import-bad-explain')})`); return }
+      await Promise.all(Object.entries(data.samplingProcedures).map(async ([k,v]) => {
+        if (!isISamplingProcedure(v)) { rv.errors.push(`${tr('import-bad-proc')}: ${k} (${tr('import-bad-explain')})`); return }
         if (v.id!==k) rv.errors.push(`Key mismatch: key=${k}, id=${v.id}, using id`)
         try {
-          const imp = new SamplingTripTemplate(v)
-          const have = await this.tripTemplates.tryGet(v.id)
+          const imp = new SamplingProcedure(v)
+          const have = await this.samplingProcedures.tryGet(v.id)
           if (have) {
             if (have.equals(v)) { counter++ }
             else if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-              await this.tripTemplates.add(imp); counter++ }
+              await this.samplingProcedures.add(imp); counter++ }
           }
-          else { await this.tripTemplates.add(imp); counter++ }
+          else { await this.samplingProcedures.add(imp); counter++ }
         } catch (ex) { rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
       }))
-      rv.info.push(i18n.t('import-temp-info', { count: counter }))
-    } else rv.errors.push('No tripTemplates in file, or bad format.')
+      rv.info.push(i18n.t('import-proc-info', { count: counter }))
+    } else rv.errors.push('No samplingProcedures in file, or bad format.')
 
     return rv
   }

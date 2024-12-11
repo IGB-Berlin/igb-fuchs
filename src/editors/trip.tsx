@@ -22,17 +22,17 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { ListEditorWithTemp } from './list-edit'
 import { Editor, EditorParent } from './base'
-import { SamplingTrip } from '../types/trip'
+import { SamplingLog } from '../types/trip'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 let _checkId = 0
 
-export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip> {
-  protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingTrip>
-  protected override newObj() { return new SamplingTrip(null) }
+export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
+  protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingLog>
+  protected override newObj() { return new SamplingLog(null) }
 
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingTrip>, targetObj :SamplingTrip|null) {
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
@@ -42,14 +42,14 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
     const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
-    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <>{tr('trip-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <>{tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-3')
-    const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoTripEnd" />)
+    const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
     if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
     const rowAutoEnd = <div class="row mb-3">
       <div class="col-sm-3"></div>
       <div class="col-sm-9"><div class="form-check"> {cbAutoEnd}
-        <label class="form-check-label" for="checkAutoTripEnd">{tr('auto-set-end-time')}</label>
+        <label class="form-check-label" for="checkAutoLogEnd">{tr('auto-set-end-time')}</label>
       </div></div>
     </div>
 
@@ -87,7 +87,7 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
         inpEnd.timestamp = timestampNow()
         cbAutoEnd.checked = false
       }
-      return new SamplingTrip({ id: obj.id, template: obj.template,
+      return new SamplingLog({ id: obj.id, template: obj.template,
         name: inpName.value, startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
         lastModified: timestampNow(), persons: inpPersons.value.trim(), weather: inpWeather.value.trim(),
         notes: inpNotes.value.trim(), locations: obj.locations,
@@ -96,13 +96,13 @@ export class SamplingTripEditor extends Editor<SamplingTripEditor, SamplingTrip>
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Description'), <>{tr('trip-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
+      this.makeRow(inpDesc, tr('Description'), <>{tr('proc-desc-help')} {tr('desc-help')} {tr('desc-see-notes')}</>, null),
       rowCheck,
-      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('trip-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('trip-notes-help')} {tr('notes-help')}</>, null),
+      this.makeRow(inpNotes, tr('Notes'), <>{tr('log-notes-help')} {tr('notes-help')}</>, null),
       locEdit.withBorder(tr('Sampling Locations')),
     ])
   }

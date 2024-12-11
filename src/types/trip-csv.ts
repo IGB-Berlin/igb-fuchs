@@ -21,7 +21,7 @@ import { unparse as papaUnparse } from 'papaparse'
 import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
 import { deduplicatedSet } from './set'
-import { SamplingTrip } from './trip'
+import { SamplingLog } from './trip'
 import { assert } from '../utils'
 
 type CsvRow = { [key :string]: string }
@@ -29,27 +29,27 @@ type RowWithKey = [number, CsvRow]
 
 const MAX_NOM_ACT_DIST_CSV_M = 50
 
-export function tripToCsvFile(trip :SamplingTrip) :File {
+export function samplingLogToCsv(log :SamplingLog) :File {
 
   // Gather measurement types to generate column headers
-  const allTypes :MeasurementType[] = deduplicatedSet( trip.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
+  const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
   const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
   // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
   const measCols = allTypes.map(t => columns.includes(t.typeId) ? t.typeId+'[]' : t.typeId)
   columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
 
-  /* ********** ********** Process the trip ********** ********** */
+  /* ********** ********** Process the log ********** ********** */
   //TODO: The following field lists will need updating when things get renamed
   // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?
-  const tripNotes :string[] = [
-    `Trip: ${trip.name}` + (isValidAndSetTs(trip.startTime) ? ` [${new Date(trip.startTime).toISOString()}]` : ''),
-    trip.notes.trim().length ? `Trip Notes: ${trip.notes.trim()}` : '',
-    trip.persons.trim().length ? `Persons: ${trip.persons.trim()}` : '',
-    trip.weather.trim().length ? `Weather: ${trip.weather.trim()}` : '',
+  const logNotes :string[] = [
+    `Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${new Date(log.startTime).toISOString()}]` : ''),
+    log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
+    log.persons.trim().length ? `Persons: ${log.persons.trim()}` : '',
+    log.weather.trim().length ? `Weather: ${log.weather.trim()}` : '',
   ]
 
   //TODO Later: Show error when there are no locations in an export
-  const data :RowWithKey[] = trip.locations.flatMap((loc,li) => {
+  const data :RowWithKey[] = log.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
     // location: name, description, nominalCoords, actualCoords, startTime, endTime, samples[], notes, photos[], template?
     // coords: wgs84lat, wgs84lon
@@ -76,7 +76,7 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
       // sample: type, quality, description, measurements[], notes, template?
 
       const rowNotes = [samp.notes.trim()]
-        .concat( li||si ? [] : tripNotes )  // append trip notes on the very first row
+        .concat( li||si ? [] : logNotes )  // append log notes on the very first row
         .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
         .filter(s => s.length).join('; ')
 
@@ -120,10 +120,10 @@ export function tripToCsvFile(trip :SamplingTrip) :File {
   })
 
   // sort rows by key (timestamp)
-  //TODO Later: This sort can cause the Trip and location notes to move to rows other than the first
+  //TODO Later: This sort can cause the Log and Location notes to move to rows other than the first
   data.sort((a,b) => a[0]-b[0])
 
   // https://www.papaparse.com/docs#json-to-csv
   return new File([papaUnparse(data.map(r=>r[1]), { columns: columns, newline: '\r\n' } )],
-    trip.tripId+'.csv', { type: 'text/csv', endings: 'transparent', lastModified: trip.lastModified })
+    log.logId+'.csv', { type: 'text/csv', endings: 'transparent', lastModified: log.lastModified })
 }
