@@ -55,6 +55,7 @@ export class GlobalContext {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  //TODO: The following can already throw errors, try/catch it (instead of selfTest)
   const storage = await IdbStorage.open()
   if (!await storage.selfTest()) {
     noStorageAlert()

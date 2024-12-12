@@ -38,6 +38,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    //TODO Later: Users request a bigger "Navigate to" button
     const nomCoords = obj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
     const actCoords = obj.actCoords.deepClone()  // don't modify the original object directly!

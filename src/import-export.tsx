@@ -42,6 +42,7 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     //TODO Later: Perhaps include a date in the filename
     shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-fuchs.json', { type: 'application/json' } ) ) )
 
+  //TODO: Import needs to update the ListEditors on the Home page
   inpImportFile.addEventListener('change', async () => {
     const files = inpImportFile.files
     if (!files || files.length!==1) return

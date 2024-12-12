@@ -158,8 +158,8 @@ export interface ISamplingLocationTemplate {
   name :string
   //TODO: shortDesc (name is usually ID, short desc can be full name)
   instructions ?:string|null
-  //TODO Later: consider adding a checklist with tasks to complete at each location? (e.g. cleaning sensors, ...)
-  // However, when SampleType "other" is implemented, checklist items can be represented as samples, so checklist might not be needed
+  /* TODO Later: Add a checklist with tasks to complete at each location (e.g. cleaning sensors, ...)
+   * Users request that the checklist shows up at the bottom of the page along with the other samples that need to be taken */
   nominalCoords :IWgs84Coordinates
   readonly samples :ISampleTemplate[]
 }
