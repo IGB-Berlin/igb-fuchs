@@ -27,6 +27,7 @@ import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
 export interface ISamplingLog extends HasId {
+  //TODO Later: Would be good if a log knew whether it has been exported or not, to warn users both of unexported data but also making changes to already exported data
   readonly id :string
   name :string
   startTime :Timestamp
