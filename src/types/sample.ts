@@ -83,9 +83,10 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!this.type.length || this.type==='undefined') rv.push(tr('samp-type-undef'))
-    //TODO Later: If quality isn't good, require entry in notes
     if (this.type==='other' && !this.shortDesc.trim().length) rv.push(tr('samp-other-no-desc'))
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
+    if (!(!this.subjectiveQuality.length || this.subjectiveQuality==='undefined' || this.subjectiveQuality==='good')
+      && !this.notes.trim().length) rv.push(tr('qual-no-notes'))
     const mtIds = this.measurements.map(m => m.type.typeId)
     /* TODO Later: Multiple measurements of the same type are sometimes taken to have an average - if only few, users could
      * solve this with types "Temp1" "Temp2" "Temp3" - could we also provide an average calculator in this app? */

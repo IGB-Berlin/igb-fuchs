@@ -320,6 +320,9 @@ const translations = {
   'qf-desc-bad': [
     'Eindeutige Qualitätsprobleme, z.B. zu geringe Probenmenge, offensichtliche Verunreinigung, usw. (ggf. in "Notizen" spezifizieren)',
     'Obvious quality problems, e.g. too small sample amount, obvious contamination, etc. (describe in "Notes" if appropriate)' ],
+  'qual-no-notes': [
+    'Subjektive Qualität als "Fraglich" oder "Schlecht" angegeben - bitte genaueres in Notizen beschreiben.',
+    'Subjective quality marked as "Questionable" or "Bad" - please provide details in the "Notes".' ],
   'planed-meas-remain': [
     { zero: 'Alle geplanten Messungen gespeichert', one: 'Eine geplante Messung übrig', other: '%{count} geplante Messungen übrig' },
     { zero: 'All planned measurements saved', one: 'One planned measurement left', other: '%{count} planned measurements left' } ],
