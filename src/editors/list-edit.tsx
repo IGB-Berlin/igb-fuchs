@@ -33,8 +33,17 @@ interface ListEditorParent {
   selfUpdate() :Promise<void>
 }
 
+interface ILETexts {
+  title :string
+  help ?:string|HTMLElement|undefined
+}
+interface ILETextsWithTemp extends ILETexts {
+  planned: string
+}
+
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
+  readonly elWithBorder :HTMLElement
 
   private readonly btnDiv
   private readonly extraButtons :HTMLButtonElement[] = []
@@ -97,7 +106,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   protected readonly parent
   protected readonly theStore
   private readonly editorClass
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>) {
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
@@ -177,6 +186,12 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         break }
       }
     })
+    this.elWithBorder = <div class="border rounded my-3 p-3">
+      <div class={texts.help?'fs-5':'mb-3 fs-5'}>{texts.title}</div>
+      {texts.help?<div class="form-text mb-3 hideable-help">{texts.help}</div>:''}
+      {this.el}
+    </div>
+
     //TODO Later: Double click an entry to edit
     this.btnEdit.addEventListener('click', async () => {
       if (this.selId===null) return  // shouldn't happen
@@ -192,22 +207,15 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     if (this.parent.el)  // see notes in .enable()
       this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.enable())
   }
-
-  withBorder(title :string, help :string|null = null) {
-    return <div class="border rounded my-3 p-3">
-      <div class={help===null?'mb-3 fs-5':'fs-5'}>{title}</div>
-      {help===null?'':<div class="form-text mb-3 hideable-help">{help}</div>}
-      {this.el}
-    </div>
-  }
 }
 
 abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
   protected abstract makeNew(t :T) :B
   protected postNew(_obj :B) {}
   private btnTemp
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
-    super(parent, theStore, editorClass)
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, texts :ILETexts,
+    dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
+    super(parent, theStore, editorClass, texts)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
@@ -232,21 +240,20 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
-  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, dialogTitle :string|HTMLElement,
-    templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
-    super(parent, theStore, editorClass, dialogTitle, templateSource)
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, texts :ILETextsWithTemp,
+    dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
+    super(parent, theStore, editorClass, texts, dialogTitle, templateSource)
     planned ??= []
 
     const theUl = <ul class="list-group"></ul>
     const myEl = <div class="mt-3 d-none">
-      <div class="mb-2">{dialogTitle}</div>
+      <div class="mb-2 fs-5">{texts.planned}</div>
       {theUl}
     </div>
     const redrawList = async () => {
       myEl.classList.toggle('d-none', !planned.length)
       theUl.replaceChildren(...planned.map((t,ti) => {
-        //TODO Later: Make label as "planned" items more clear, and better term for "New" ("Start"?)
-        const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-copy"/> {tr('New')}</button>
+        const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {
           const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
           paranoia(rm===t)

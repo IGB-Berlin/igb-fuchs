@@ -52,11 +52,12 @@ export function makeHomePage(ctx :GlobalContext) {
   const dummyParent = { ctx: ctx, el: null, isBrandNew: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
-  const stEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, tr('new-log-from-proc'),
-    async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
+  const stEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor,
+    { title:tr('saved-pl')+' '+tr('Sampling Logs'), planned:tr('planned-pl')+' '+tr('Sampling Logs') },
+    tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
   stEdit.addButton(btnShare, (obj :SamplingLog) => shareFile(samplingLogToCsv(obj)))
 
-  const ttEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor)
+  const ttEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, {title:tr('Sampling Procedures')})
 
   const inpExp = makeImportExport(ctx)
 

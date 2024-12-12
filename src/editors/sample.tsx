@@ -88,7 +88,8 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     // see notes in procedure.tsx about this:
     const measStore = new ArrayStore(obj.measurements)
     //TODO Later: Would it be possible to enter the measurements directly in the sample editor?
-    const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor, tr('new-meas-from-temp'),
+    const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor,
+      { title:tr('saved-pl')+' '+tr('Measurements'), planned:tr('planned-pl')+' '+tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
       obj.template?.measurementTypes )
 
@@ -103,7 +104,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
-      measEdit.withBorder(tr('Measurements')),
+      measEdit.elWithBorder,
     ])
   }
 }

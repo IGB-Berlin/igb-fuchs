@@ -66,7 +66,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor,
+      { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
       //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
       obj.template?.samples )
@@ -119,7 +120,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
-      sampEdit.withBorder(tr('Samples')),
+      sampEdit.elWithBorder,
       taskEditor,
     ])
   }

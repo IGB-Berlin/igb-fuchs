@@ -41,6 +41,7 @@ const translations = {
   'From Template': ['Aus Vorlage'],
   'Export CSV': ['CSV Export.'],
   'Information': ['Informationen'],
+  'Start': ['Starten'],
 
   // import-export
   'import-export': ['Daten-Import/-Export', 'Data Import/Export'],
@@ -130,6 +131,8 @@ const translations = {
     'One or more inputs above are not valid.' ],
 
   // list editor
+  'saved-pl': ['Gespeicherte', 'Saved'],
+  'planned-pl': ['Geplante', 'Planned'],
   'list-editor-disabled-new': [
     'Bitte zunächst speichern, um hier Änderungen zu ermöglichen.',
     'Please first save to allow changes here.' ],

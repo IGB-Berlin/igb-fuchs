@@ -45,7 +45,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
 
     this.form2obj = () =>
@@ -60,7 +60,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
       this.makeRow(inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
-      sampEdit.withBorder(tr('Samples')),
+      sampEdit.elWithBorder,
     ])
   }
 }

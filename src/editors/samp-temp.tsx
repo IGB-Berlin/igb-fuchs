@@ -47,7 +47,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     // see notes in procedure.tsx about this:
     const measStore = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditorForTemp(this, measStore, MeasTypeEditor, tr('new-meas-from-temp'),
+    const measEdit = new ListEditorForTemp(this, measStore, MeasTypeEditor, {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
 
     this.form2obj = () => new SampleTemplate({
@@ -59,7 +59,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')}</>, null),
-      measEdit.withBorder(tr('Measurements')),
+      measEdit.elWithBorder,
     ])
   }
 

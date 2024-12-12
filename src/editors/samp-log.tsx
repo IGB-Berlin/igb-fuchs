@@ -82,7 +82,8 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
     // see notes in procedure.tsx about this:
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor, tr('new-loc-from-temp'),
+    const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor,
+      { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       obj.template?.locations )
 
@@ -107,7 +108,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('log-notes-help')} {tr('notes-help')}</>, null),
-      locEdit.withBorder(tr('Sampling Locations')),
+      locEdit.elWithBorder,
     ])
   }
 }

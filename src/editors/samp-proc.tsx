@@ -47,11 +47,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
      * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
      */
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor, tr('new-loc-from-temp'),
+    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor,
+      {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
 
     const sampStore = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, {title:tr('Sampling Locations')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
     this.form2obj = () => new SamplingProcedure({ id: obj.id,
@@ -63,8 +64,8 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')}</>, null),
-      sampEdit.withBorder(tr('common-samples'), tr('common-samples-help')),
-      locEdit.withBorder(tr('Sampling Locations')),
+      sampEdit.elWithBorder,
+      locEdit.elWithBorder,
     ])
   }
 
