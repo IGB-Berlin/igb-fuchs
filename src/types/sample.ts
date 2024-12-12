@@ -82,6 +82,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     if (!this.type.length || this.type==='undefined') rv.push(tr('samp-type-undef'))
+    //TODO Later: If quality isn't good, require entry in notes
     if (this.type==='other' && !this.shortDesc.trim().length) rv.push(tr('samp-other-no-desc'))
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
