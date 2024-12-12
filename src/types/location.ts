@@ -156,6 +156,7 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
 
 export interface ISamplingLocationTemplate {
   name :string
+  //TODO: shortDesc (name is usually ID, short desc can be full name)
   instructions ?:string|null
   //TODO Later: consider adding a checklist with tasks to complete at each location? (e.g. cleaning sensors, ...)
   // However, when SampleType "other" is implemented, checklist items can be represented as samples, so checklist might not be needed
