@@ -136,7 +136,7 @@ function sampSummary(samp :Sample|SampleTemplate) :[string,string] {
     const m0 = meas[0]
     assert(m0)
     m += ': '+m0.summaryDisplay()[0]
-  }
+  } else if (!meas.length) m = ''
   return [ i18n.t('st-'+samp.type, {defaultValue:samp.type}) + ( samp.shortDesc.trim().length ? ' / '+samp.shortDesc.trim() : '' ), m ]
 }
 

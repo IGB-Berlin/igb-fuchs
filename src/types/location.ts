@@ -161,16 +161,20 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
 }
 
 function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,string] {
-  //TODO Later: Displaying "no samples" is a little confusing when editing a template that has commonSamples, maybe just omit "no samples"? (and the same for measurements)
-  //TODO Later: Display task count in template summary?
   let samp = i18n.t('samples', {count:loc.samples.length})
   if (loc.samples.length===1) {
     const s0 = loc.samples[0]
     assert(s0)
     const ss = s0.summaryDisplay()
     samp = ss[0]+': '+ss[1]
-  }
-  return [ loc.name + ( loc.shortDesc.trim().length ? ' / '+loc.shortDesc.trim() : '' ), samp /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
+  } else if (!loc.samples.length) samp = ''
+  const ts = loc instanceof SamplingLocationTemplate && loc.tasklist.length
+    ? i18n.t('tasks', {count:loc.tasklist.length})
+    : loc instanceof SamplingLocation && loc.completedTasks.length
+      ? i18n.t('comp-tasks', {count:loc.completedTasks.length}) : ''
+  return [ loc.name + ( loc.shortDesc.trim().length ? ' / '+loc.shortDesc.trim() : '' ),
+    [samp, ts].filter(s => s.length).join('; ')
+    /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
