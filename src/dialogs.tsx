@@ -32,7 +32,8 @@ export function noStorageAlert() {
             {tr('Error: No Storage Available')}</h1>
         </div>
         <div class="modal-body">
-          {tr('alert-no-storage-text')}
+          <p>{tr('alert-no-storage-text')}</p>
+          <p class="mb-0">{tr('alert-no-storage-alpha')}</p>
         </div>
       </div>
     </div>

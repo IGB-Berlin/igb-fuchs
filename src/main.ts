@@ -55,13 +55,13 @@ export class GlobalContext {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  //TODO: The following can already throw errors, try/catch it (instead of selfTest)
-  const storage = await IdbStorage.open()
-  if (!await storage.selfTest()) {
+  let storage :IdbStorage
+  try { storage = await IdbStorage.open() }
+  catch (ex) {
+    console.error(ex)
     noStorageAlert()
     return
   }
-  await storage.updateTemplates()  // need to call this once ourselves on start; will be called automatically on changes
 
   const igbLogo = document.getElementById('igbLogo')
   assert(igbLogo instanceof HTMLElement)

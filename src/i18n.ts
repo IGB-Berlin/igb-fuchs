@@ -341,6 +341,9 @@ const translations = {
     'Your browser has not made any storage available. This app cannot be used in "private browsing" mode,'
     +' and make sure you don\'t have any browser plugins enabled that may block content (ad blockers etc.).'
     +' If you do, you need to disable them for this app.' ],
+  'alert-no-storage-alpha': [
+    'Dies ist eine Alpha-Testversion, daher müssen ggf. alle gespeicherten Daten für die Adresse "fuchs.igb-berlin.de" gelöscht werden, um diesen Fehler zu beheben.',
+    'This is an early alpha testing version. Therefore, you may need to delete all saved data for the address "fuchs.igb-berlin.de" to fix this error.' ],
   'internal-error': [
     'Ein interner Fehler ist aufgetreten. Bitte diesen Fehler melden, inklusive einer Beschreibung der Schritte, wie es zu diesem Fehler kam - am besten wie er reproduziert werden kann.',
     'An internal error occurred. Please report this error, including a description of the steps before the error occurred - the best thing is a series of steps of how the error can be reproduced.' ],
