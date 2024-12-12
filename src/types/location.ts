@@ -27,6 +27,7 @@ const MAX_NOM_ACT_DIST_M = 200
 
 export interface ISamplingLocation {
   name :string
+  shortDesc ?:string|null
   actualCoords :IWgs84Coordinates
   startTime :Timestamp
   endTime :Timestamp
@@ -35,7 +36,7 @@ export interface ISamplingLocation {
   readonly photos ?:string[]
   readonly template ?:ISamplingLocationTemplate|null
 }
-const samplingLocationKeys = ['name','actualCoords','startTime','endTime','notes','samples','photos','template'] as const
+const samplingLocationKeys = ['name','shortDesc','actualCoords','startTime','endTime','notes','samples','photos','template'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   return !!( o && typeof o === 'object'
@@ -45,6 +46,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
     && typeof o.name === 'string' && isIWgs84Coordinates(o.actualCoords)
     && isTimestamp(o.startTime) && isTimestamp(o.endTime)
     && Array.isArray(o.samples) && o.samples.every(s => isISample(s))
+    && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
     && ( !('photos' in o) || Array.isArray(o.photos) && o.photos.every(p => typeof p === 'string') )
     && ( !('template' in o) || o.template===null || isISamplingLocationTemplate(o.template) )
@@ -54,6 +56,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 /** Records and actual sampling point. */
 export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
   name :string
+  shortDesc :string
   actualCoords :IWgs84Coordinates
   get actCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.actualCoords) }
   startTime :Timestamp
@@ -66,6 +69,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   constructor(o :ISamplingLocation|null) {
     super()
     this.name = o?.name ?? ''
+    this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
     this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null)
     this.startTime = o?.startTime ?? NO_TIMESTAMP
     this.endTime = o?.endTime ?? NO_TIMESTAMP
@@ -104,8 +108,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     return rv
   }
   override equals(o :unknown) {
-    return isISamplingLocation(o)
-      && this.name === o.name
+    return isISamplingLocation(o) && this.name === o.name
+      && this.shortDesc.trim() === ( o.shortDesc?.trim() ?? '' )
       && this.actCoords.equals(o.actualCoords)
       && timestampsEqual(this.startTime, o.startTime)
       && timestampsEqual(this.endTime, o.endTime)
@@ -120,6 +124,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       actualCoords: this.actCoords.toJSON('actualCoords'),
       startTime: this.startTime, endTime: this.endTime,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.photos.length && { photos: Array.from(this.photos) } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
@@ -134,6 +139,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       name: this.name,
       nominalCoords: this.actCoords.deepClone(),
       samples: this.samples.map(s => s.extractTemplate()),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
@@ -149,33 +155,37 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
     const ss = s0.summaryDisplay()
     samp = ss[0]+': '+ss[1]
   }
-  return [ loc.name, samp /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
+  return [ loc.name + ( loc.shortDesc.trim().length ? ' / '+loc.shortDesc.trim() : '' ), samp /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
 }
 
 /* ********** ********** ********** Template ********** ********** ********** */
 
 export interface ISamplingLocationTemplate {
   name :string
-  //TODO: shortDesc (name is usually ID, short desc can be full name)
+  shortDesc ?:string|null
   instructions ?:string|null
   /* TODO Later: Add a checklist with tasks to complete at each location (e.g. cleaning sensors, ...)
    * Users request that the checklist shows up at the bottom of the page along with the other samples that need to be taken */
   nominalCoords :IWgs84Coordinates
   readonly samples :ISampleTemplate[]
 }
+const locationTemplateKeys = ['name','shortDesc','instructions','nominalCoords','samples'] as const
+type LocationTemplateKey = typeof locationTemplateKeys[number] & keyof ISample
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   return !!( o && typeof o === 'object'
-    && 'name' in o && 'nominalCoords' in o && 'samples' in o // keys
-    && ( Object.keys(o).length===3 || Object.keys(o).length===4 && 'instructions' in o )
+    && 'name' in o && 'nominalCoords' in o && 'samples' in o  // required keys
+    && Object.keys(o).every(k => locationTemplateKeys.includes(k as LocationTemplateKey))  // extra keys
     // type checks
     && typeof o.name === 'string' && isIWgs84Coordinates(o.nominalCoords)
     && Array.isArray(o.samples) && o.samples.every(s => isISampleTemplate(s))
+    && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
   )
 }
 
 export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {
   name :string
+  shortDesc :string
   instructions :string
   nominalCoords :IWgs84Coordinates
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
@@ -184,6 +194,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   constructor(o :ISamplingLocationTemplate|null) {
     super()
     this.name = o?.name ?? ''
+    this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
     this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions : ''
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
@@ -201,8 +212,8 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     return rv
   }
   override equals(o: unknown) {
-    return isISamplingLocationTemplate(o)
-      && this.name===o.name
+    return isISamplingLocationTemplate(o) && this.name===o.name
+      && this.shortDesc.trim() === ( o.shortDesc?.trim() ?? '' )
       && this.instructions.trim() === (o.instructions?.trim() ?? '')
       && this.nomCoords.equals(o.nominalCoords)
       && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
@@ -210,6 +221,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override toJSON(_key: string): ISamplingLocationTemplate {
     return { name: this.name, nominalCoords: this.nomCoords.toJSON('nominalCoords'),
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
+      ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ) }
   }
   override deepClone() :SamplingLocationTemplate {
@@ -219,7 +231,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override templateToObject() :SamplingLocation {
     return new SamplingLocation({ template: this.deepClone(), name: this.name,
-      actualCoords: this.nomCoords.deepClone(),
+      shortDesc: this.shortDesc, actualCoords: this.nomCoords.deepClone(),
       startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }

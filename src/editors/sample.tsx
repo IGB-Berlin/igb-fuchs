@@ -99,7 +99,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('short-desc-help')}</>, null),
+      this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),

@@ -37,6 +37,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
     //TODO Later: Users request a bigger "Navigate to" button
     const nomCoords = obj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
@@ -72,16 +73,16 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
         inpEnd.timestamp = timestampNow()
         cbAutoEnd.checked = false
       }
-      return new SamplingLocation({
-        template: obj.template, name: inpName.value,
-        actualCoords: actCoords.deepClone(),
+      return new SamplingLocation({ template: obj.template, name: inpName.value,
+        shortDesc: inpDesc.value, actualCoords: actCoords.deepClone(),
         startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
         samples: obj.samples, notes: inpNotes.value.trim(),
-        photos: [], /*TODO Later*/ })
+        photos: [/*TODO Later*/] })
     }
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')}</>, null),
       this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')}</>, tr('invalid-coords')),

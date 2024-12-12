@@ -57,7 +57,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('short-desc-help')}</>, null),
+      this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')}</>, null),
       measEdit.withBorder(tr('Measurements')),
     ])

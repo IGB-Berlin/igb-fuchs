@@ -170,6 +170,11 @@ const translations = {
     +' Hint: If multiple measurements of the same type are desired, multiple samples of the same type may be defined.' ],
 
   // editor: location (template) & coords
+  'loc-short-desc-help': [
+    'Optionale Kurzbeschreibung, die beim Identifizieren der Messstelle helfen soll - z.B. kann der Name eine kurze Identifikationsnummer'
+    +' sein und diese Kurzbeschreibung ein ausgeschriebener Name der Stelle, oder umgekehrt. Wird im CSV-Format nicht mit exportiert.',
+    'Optional short description, intended to help identify this sampling location - for example, the "Name" can be a short identifier'
+    +' and this short description can be the full name of the sampling location, or vice versa. Not included in the export in CSV format.' ],
   'loc-inst-help': [
     'Optionale Anleitung für die Messstelle, z.B. zusätzliche Arbeitsschritte, oder auch Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
     'Optional instructions for the sampling location, for example, additional steps to perform, or help in finding or reaching it, etc.' ],
@@ -275,7 +280,7 @@ const translations = {
   // editor: sample (template)
   'Sample Type': ['Art der Probe'],
   'Short Description': ['Kurzbeschreibung'],
-  'short-desc-help': [
+  'samp-short-desc-help': [
     'Optionale Kurzbeschreibung, die beim Identifizieren der Probe helfen soll. Wird im CSV-Format mit exportiert.',
     'Optional short description, intended to help identify this sample. Included in the export in CSV format.' ],
   'specify-in-desc': ['in Kurzbeschreibung angeben', 'specify in Short Description'],
@@ -389,12 +394,13 @@ const translations = {
   'Logs': ['Protokolle'],
   'Log': ['Protokoll'],
   'Procedure': ['Prozedur'],
-  'Location': ['Messstelle'],
-  'loc-temp': ['Messstell.-Vorl.', 'Location Templ.'],
-  'meas': ['Messung', 'Meas.'],
-  'meas-type': ['Messtyp', 'Meas. Type'],
+  'Location': ['Stelle'],
+  'loc-temp': ['Stell.-Vorl.', 'Loc.Templ.'],
+  'meas': ['Mess.', 'Meas.'],
+  'meas-type': ['Typ', 'Meas.Type'],
   'Coords': ['Koord.'],
-  'samp-temp': ['Proben-Vorl.', 'Sample Templ.'],
+  'samp': ['Probe', 'Samp.'],
+  'samp-temp': ['Proben-Vorl.', 'Samp.Templ.'],
 
   // types problems
   'No start time': ['Keine Anfangs-Zeit'],
