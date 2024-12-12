@@ -20,12 +20,12 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingProcedure } from '../types/sampling'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
+import { makeTextAreaAutoHeight } from '../utils'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
-import { makeTextAreaAutoHeight } from '../utils'
 
 export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
   protected override readonly form2obj :()=>Readonly<SamplingProcedure>
@@ -37,7 +37,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
-    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="1">{obj.checklist.join('\n')}</textarea>)
+    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.checklist.join('\n')}</textarea>)
     makeTextAreaAutoHeight(inpCheck)
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved

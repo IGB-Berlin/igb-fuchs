@@ -218,6 +218,23 @@ const translations = {
   'planed-samp-remain': [
     { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
     { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
+  'Task List': ['Aufgabenliste'],
+  'tasklist-temp-help': [
+    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Aufgabenliste an dieser Messstelle. Erledigte Aufgaben sind im CSV Export enthalten.',
+    'Every line in this input becomes one item on the task list at this sampling location. Completed tasks are exported in the CSV format.' ],
+  'tasklist-empty-lines': [
+    'Die Aufgabenliste enthält leere Zeilen.',
+    'The task list contains empty lines.' ],
+  'tasklist-duplicates': [
+    'Die Aufgabenliste enthält Dopplungen.',
+    'The task list contains duplicate items.' ],
+  'tasklist-help': [
+    'Aufgaben, die an dieser Messstelle zu erledigen sind. Erledigte Aufgaben sind im CSV Export enthalten.',
+    'Tasks that are to be completed at this sampling location. Completed tasks are exported in the CSV format.' ],
+  'task-not-completed': [
+    { zero: 'Alle Aufgaben erledigt', one: 'Eine Aufgabe nicht erledigt', other: '%{count} Aufgaben nicht erledigt' },
+    { zero: 'All tasks complete', one: 'One task not completed', other: '%{count} tasks not completed' } ],
+  'Completed': ['Erledigt'],
 
   // editor: sampling procedure
   'proc-inst-help': [

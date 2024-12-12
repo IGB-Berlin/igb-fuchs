@@ -19,6 +19,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SampleTemplateEditor } from './samp-temp'
+import { makeTextAreaAutoHeight } from '../utils'
 import { makeCoordinateEditor } from './coords'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
@@ -39,6 +40,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords, false)
+    const inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.tasklist.join('\n')}</textarea>)
+    makeTextAreaAutoHeight(inpTasks)
 
     // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
@@ -47,6 +50,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
 
     this.form2obj = () =>
       new SamplingLocationTemplate({ name: inpName.value, shortDesc: inpDesc.value,
+        tasklist: inpTasks.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
         instructions: inpInst.value.trim(),  nominalCoords: nomCoords.deepClone(),
         samples: obj.samples })
 
@@ -55,6 +59,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
+      this.makeRow(inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
       sampEdit.withBorder(tr('Samples')),
     ])
   }

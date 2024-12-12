@@ -20,8 +20,8 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
-import { assert } from '../utils'
 import { i18n, tr } from '../i18n'
+import { assert } from '../utils'
 
 const MAX_NOM_ACT_DIST_M = 200
 
@@ -33,10 +33,12 @@ export interface ISamplingLocation {
   endTime :Timestamp
   notes ?:string|null
   readonly samples :ISample[]
+  /** Which items from `.template.tasklist` have been marked completed. Items in this list that are not in the other are ignored; only exact string matches are considered. */
+  readonly completedTasks ?:string[]|null
   readonly photos ?:string[]
   readonly template ?:ISamplingLocationTemplate|null
 }
-const samplingLocationKeys = ['name','shortDesc','actualCoords','startTime','endTime','notes','samples','photos','template'] as const
+const samplingLocationKeys = ['name','shortDesc','actualCoords','startTime','endTime','notes','samples','completedTasks','photos','template'] as const
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   return !!( o && typeof o === 'object'
@@ -48,6 +50,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
     && Array.isArray(o.samples) && o.samples.every(s => isISample(s))
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
+    && ( !('completedTasks' in o) || o.completedTasks===null || Array.isArray(o.completedTasks) && o.completedTasks.every(t => typeof t === 'string') )
     && ( !('photos' in o) || Array.isArray(o.photos) && o.photos.every(p => typeof p === 'string') )
     && ( !('template' in o) || o.template===null || isISamplingLocationTemplate(o.template) )
   )
@@ -63,6 +66,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   endTime :Timestamp
   notes :string
   readonly samples :Sample[]
+  readonly completedTasks :string[]
   /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
   readonly photos :string[]
   readonly template :SamplingLocationTemplate|null
@@ -75,6 +79,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.endTime = o?.endTime ?? NO_TIMESTAMP
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.samples = o===null ? [] : isArrayOf(Sample, o.samples) ? o.samples : o.samples.map(s => new Sample(s))
+    this.completedTasks = o && 'completedTasks' in o && o.completedTasks ? o.completedTasks : []
     this.photos = o && 'photos' in o ? o.photos : []
     this.template = o && 'template' in o ? ( o.template instanceof SamplingLocationTemplate ? o.template : new SamplingLocationTemplate(o.template) ) : null
   }
@@ -101,6 +106,11 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     if (!skipInitWarns) {
       if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
       if (this.template) {
+        let taskCount = 0
+        for (const c of this.template.tasklist)
+          if (!this.completedTasks.includes(c))
+            taskCount++
+        if (taskCount) rv.push(i18n.t('task-not-completed', { count: taskCount }))
         if (this.template.samples.length) rv.push(i18n.t('planed-samp-remain', { count: this.template.samples.length }))
       } // else, no template
       else if (!this.samples.length) rv.push(tr('No samples'))
@@ -115,6 +125,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       && timestampsEqual(this.endTime, o.endTime)
       && this.notes.trim() === ( o.notes?.trim() ?? '' )
       && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
+      && ( !o.completedTasks && !this.completedTasks.length
+        || this.completedTasks.length === o.completedTasks?.length && this.completedTasks.every((t,i) => t===o.completedTasks?.[i]) )
       && ( !o.photos && !this.photos.length
         || this.photos.length === o.photos?.length && this.photos.every((p,i) => p===o.photos?.[i]) )
     // not comparing template
@@ -126,6 +138,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
       ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
+      ...( this.completedTasks.length && { completedTasks: Array.from(this.completedTasks) } ),
       ...( this.photos.length && { photos: Array.from(this.photos) } ),
       ...( this.template!==null && { template: this.template.toJSON('template') } ) }
   }
@@ -140,7 +153,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       nominalCoords: this.actCoords.deepClone(),
       samples: this.samples.map(s => s.extractTemplate()),
       ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
-      ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ) })
+      ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ),
+      ...( this.template?.tasklist.length && { tasklist: Array.from(this.template.tasklist) } ) })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
   override summaryDisplay() { return locSummary(this) }
@@ -148,6 +162,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
 
 function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,string] {
   //TODO Later: Displaying "no samples" is a little confusing when editing a template that has commonSamples, maybe just omit "no samples"? (and the same for measurements)
+  //TODO Later: Display task count in template summary?
   let samp = i18n.t('samples', {count:loc.samples.length})
   if (loc.samples.length===1) {
     const s0 = loc.samples[0]
@@ -164,12 +179,11 @@ export interface ISamplingLocationTemplate {
   name :string
   shortDesc ?:string|null
   instructions ?:string|null
-  /* TODO Later: Add a checklist with tasks to complete at each location (e.g. cleaning sensors, ...)
-   * Users request that the checklist shows up at the bottom of the page along with the other samples that need to be taken */
   nominalCoords :IWgs84Coordinates
   readonly samples :ISampleTemplate[]
+  readonly tasklist ?:string[]|null
 }
-const locationTemplateKeys = ['name','shortDesc','instructions','nominalCoords','samples'] as const
+const locationTemplateKeys = ['name','shortDesc','instructions','nominalCoords','samples','tasklist'] as const
 type LocationTemplateKey = typeof locationTemplateKeys[number] & keyof ISample
 export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationTemplate {
   return !!( o && typeof o === 'object'
@@ -180,6 +194,7 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
     && Array.isArray(o.samples) && o.samples.every(s => isISampleTemplate(s))
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
+    && ( !('tasklist' in o) || o.tasklist===null || Array.isArray(o.tasklist) && o.tasklist.every(c => typeof c === 'string') )
   )
 }
 
@@ -191,6 +206,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
   readonly samples :SampleTemplate[]
+  readonly tasklist :string[]
   constructor(o :ISamplingLocationTemplate|null) {
     super()
     this.name = o?.name ?? ''
@@ -198,6 +214,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions : ''
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
+    this.tasklist = o && 'tasklist' in o && o.tasklist ? o.tasklist : []
   }
   override validate(others :SamplingLocationTemplate[]) {
     validateName(this.name)
@@ -207,6 +224,9 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   }
   override warningsCheck(_skipInitWarns :boolean) {
     const rv :string[] = []
+    const ts = this.tasklist.map(c => c.trim())
+    if ( new Set(ts).size !== ts.length ) rv.push(tr('tasklist-duplicates'))
+    if ( ts.some(t => !t.length) ) rv.push(tr('tasklist-empty-lines'))
     //TODO Later: The "No Samples" warning is a little annoying if building a Procedure with commonSamples (but we'd need access to our parent to check...?)
     // temporarily disabled: if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv
@@ -217,12 +237,15 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
       && this.instructions.trim() === (o.instructions?.trim() ?? '')
       && this.nomCoords.equals(o.nominalCoords)
       && this.samples.length === o.samples.length && this.samples.every((s,i) => s.equals(o.samples[i]))
+      && ( !o.tasklist && !this.tasklist.length
+        || this.tasklist.length === o.tasklist?.length && this.tasklist.every((t,i) => t===o.tasklist?.[i]) )
   }
   override toJSON(_key: string): ISamplingLocationTemplate {
     return { name: this.name, nominalCoords: this.nomCoords.toJSON('nominalCoords'),
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
       ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
-      ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ) }
+      ...( this.instructions.trim().length && { instructions: this.instructions.trim() } ),
+      ...( this.tasklist.length && { tasklist: Array.from(this.tasklist) } ) }
   }
   override deepClone() :SamplingLocationTemplate {
     const clone :unknown = JSON.parse(JSON.stringify(this))
@@ -232,13 +255,14 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override templateToObject() :SamplingLocation {
     return new SamplingLocation({ template: this.deepClone(), name: this.name,
       shortDesc: this.shortDesc, actualCoords: this.nomCoords.deepClone(),
-      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], photos: [] })
+      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], completedTasks: [], photos: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
   override summaryDisplay() { return locSummary(this) }
   cloneNoSamples() :SamplingLocationTemplate {
     const clone = this.deepClone()
     clone.samples.length = 0
+    clone.tasklist.length = 0  // treat tasks like samples
     return clone
   }
 }

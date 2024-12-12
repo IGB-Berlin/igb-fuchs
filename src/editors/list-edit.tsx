@@ -246,7 +246,7 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
       myEl.classList.toggle('d-none', !planned.length)
       theUl.replaceChildren(...planned.map((t,ti) => {
         //TODO Later: Make label as "planned" items more clear, and better term for "New" ("Start"?)
-        const btnNew = <button type="button" class="btn btn-info text-nowrap"><i class="bi-copy"/> {tr('New')}</button>
+        const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3"><i class="bi-copy"/> {tr('New')}</button>
         btnNew.addEventListener('click', async () => {
           const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
           paranoia(rm===t)

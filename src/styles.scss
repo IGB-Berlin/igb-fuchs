@@ -96,10 +96,36 @@ body:not([data-hide-help="true"]) .hideable-help-inline {
 }
 
 // The following overrides the Bootstrap defaults for validated forms
-.custom-checklist .list-group-item:has( .form-check-input:not(:checked) ) {
-  background-color: var(--#{bs.$prefix}warning-bg-subtle);
+.custom-checklist {
+  .list-group-item:has( .form-check-input:not(:checked) ) {
+    background-color: var(--#{bs.$prefix}warning-bg-subtle);
+  }
+  .form-check-input:not(:checked) {
+    border-color: var(--#{bs.$prefix}warning-border-subtle);
+    & ~ .form-check-label { color: var(--#{bs.$prefix}warning-text-emphasis) }
+  }
 }
-.custom-checklist .form-check-input:not(:checked) {
-  border-color: var(--#{bs.$prefix}warning-border-subtle);
-  & ~ .form-check-label { color: var(--#{bs.$prefix}warning-text-emphasis) }
+
+.custom-tasklist {
+  .custom-cb-btn {
+    padding: bs.$btn-padding-y bs.$btn-padding-x;
+    border-width: var(--#{bs.$prefix}border-width);
+    border-style: var(--#{bs.$prefix}border-style);
+    border-radius: var(--#{bs.$prefix}border-radius);
+
+    background-color: var(--#{bs.$prefix}warning-bg-subtle);
+    border-color: var(--#{bs.$prefix}warning-border-subtle);
+    .form-check-input:not(:checked) {
+      border-color: var(--#{bs.$prefix}warning-border-subtle);
+      & ~ .form-check-label {
+        color: var(--#{bs.$prefix}warning-text-emphasis);
+      }
+    }
+
+    &:has( > .form-check-input:checked ) {
+      background-color: var(--#{bs.$prefix}success-bg-subtle);
+      border-color: var(--#{bs.$prefix}success-border);
+      color: var(--#{bs.$prefix}success-text-emphasis);
+    }
+  }
 }

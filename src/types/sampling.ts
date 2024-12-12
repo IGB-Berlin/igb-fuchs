@@ -21,8 +21,8 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
-import { dataSetsEqual } from './set'
 import { IdbStorage } from '../idb-store'
+import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
@@ -202,7 +202,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
   readonly id :string
   name :string
   instructions :string
-  checklist :string[]
+  readonly checklist :string[]
   /** The typical sampling locations in this procedure. */
   readonly locations :SamplingLocationTemplate[]
   /** This array is used when the location template's samples array is empty. */

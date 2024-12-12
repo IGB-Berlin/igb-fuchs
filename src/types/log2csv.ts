@@ -39,8 +39,7 @@ export function samplingLogToCsv(log :SamplingLog) :File {
   columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
 
   /* ********** ********** Process the log ********** ********** */
-  //TODO: The following field lists will need updating when things get renamed
-  // trip: id, tripId, name, description, startTime, endTime, lastModified, persons, weather, notes, locations[], template?
+  // SamplingLog: id, logId, name, startTime, endTime, lastModified, persons, weather, notes, checkedTasks[], locations[], template?
   const logNotes :string[] = [
     `Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${new Date(log.startTime).toISOString()}]` : ''),
     log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
@@ -51,8 +50,8 @@ export function samplingLogToCsv(log :SamplingLog) :File {
   //TODO Later: Show error when there are no locations in an export
   const data :RowWithKey[] = log.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
-    // location: name, description, nominalCoords, actualCoords, startTime, endTime, samples[], notes, photos[], template?
-    // coords: wgs84lat, wgs84lon
+    // SamplingLocation: name, shortDesc, actualCoords, startTime, endTime, notes, samples[], completedTasks[], photos[], template?
+    // Wgs84Coordinates: wgs84lat, wgs84lon
 
     // Coordinates: Either the actual coordinates, or (if available) the location template's nominal coordinates
     const nomCoords = loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords : EMPTY_COORDS
@@ -66,12 +65,13 @@ export function samplingLogToCsv(log :SamplingLog) :File {
         && distanceBearing(actCoords, nomCoords).distKm*1000 > MAX_NOM_ACT_DIST_CSV_M
         ? 'Nominal Sampling Location Coordinates (WGS84 Lat,Lon): '
           +`${nomCoords.wgs84lat.toFixed(WGS84_PRECISION)},${nomCoords.wgs84lon.toFixed(WGS84_PRECISION)}` : '',
+      loc.completedTasks.length ? `Completed Tasks: ${loc.completedTasks.join(', ')}` :''
     ]
 
     //TODO Later: Always emit one row per location even when there are no samples, so the notes get recorded
     return loc.samples.map((samp,si) => {
       /* ********** ********** Process the sample ********** ********** */
-      // sample: type, quality, description, measurements[], notes, template?
+      // Sample: type, shortDesc, subjectiveQuality, notes, measurements[], template?
 
       const rowNotes = [samp.notes.trim(),
         samp.shortDesc.trim().length ? `Sample: ${samp.shortDesc.trim()}` : '' ]
@@ -91,8 +91,8 @@ export function samplingLogToCsv(log :SamplingLog) :File {
       }
 
       /* ********** ********** Process the measurements ********** ********** */
-      // measurement: type, time, value
-      // type: name, unit, min, max, precision, description
+      // Measurement: type, time, value
+      // MeasurementType: typeId, name, unit, min, max, precision, instructions
 
       /* Gather measurements; sort newest measurement first b/c if there are multiple
        * measurements of the same type, only the newest one is exported (is documented in UI) */
