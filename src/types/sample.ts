@@ -85,6 +85,8 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     if (this.type==='other' && !this.shortDesc.trim().length) rv.push(tr('samp-other-no-desc'))
     if (!this.subjectiveQuality.length || this.subjectiveQuality==='undefined') rv.push(tr('quality-undef'))
     const mtIds = this.measurements.map(m => m.type.typeId)
+    /* TODO Later: Multiple measurements of the same type are sometimes taken to have an average - if only few, users could
+     * solve this with types "Temp1" "Temp2" "Temp3" - could we also provide an average calculator in this app? */
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     if (!skipInitWarns) {
       if (this.template) {
