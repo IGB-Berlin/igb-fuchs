@@ -29,6 +29,7 @@ type SampleType = typeof sampleTypes[number]
 export function isSampleType(v :unknown) :v is SampleType {
   return typeof v==='string' && sampleTypes.includes(v as SampleType) }
 
+//TODO Later: "Subjective quality" maybe there's a better term b/c some ppl use it for completed tasks (also perhaps rename "Good" to indicate "Success")
 export const qualityFlags = ['undefined',  // Remember to keep in sync with translations 'qf-*' !
   'good', 'questionable', 'bad'] as const
 export type QualityFlag = typeof qualityFlags[number]
