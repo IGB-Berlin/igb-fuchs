@@ -67,7 +67,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
           const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
             checked={!!checkStates[c]} onchange={()=>{
               checkStates[c] = cb.checked
-              grpCheck.dispatchEvent(new CustomChangeEvent())
+              this.el.dispatchEvent(new CustomChangeEvent())
             }} />)
           const li = <li class="list-group-item" onclick={(event: Event) => { if (event.target===li) cb.click() } }>
             {cb}<label class="form-check-label" for={id}>{c}</label></li>

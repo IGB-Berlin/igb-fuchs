@@ -83,7 +83,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
             <input class="form-check-input me-2" type="checkbox" autocomplete="off"
               id={id} checked={!!taskStates[c]} onchange={()=>{
                 taskStates[c] = cb.checked
-                taskEditor.dispatchEvent(new CustomChangeEvent())
+                this.el.dispatchEvent(new CustomChangeEvent())
               }} />)
           const btn = <div class="custom-cb-btn" onclick={(event: Event) => { if (event.target===btn) cb.click() } }>
             {cb}<label class="form-check-label" for={id}>{tr('Completed')}</label></div>
