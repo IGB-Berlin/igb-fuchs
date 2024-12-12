@@ -98,6 +98,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       shortDesc: inpDesc.value.trim(), subjectiveQuality: quality,
       notes: inpNotes.value.trim(), measurements: obj.measurements })
 
+    /* TODO Later: Consider a "Next" button to proceed to next sample? (same for locations?) */
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
