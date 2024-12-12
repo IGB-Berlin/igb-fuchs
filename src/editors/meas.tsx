@@ -34,6 +34,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
+    //TODO Later: Accidentally starting a measurement, then there's no way to cancel it
     const measType :[MeasurementType] = [obj.type]
     const mtStore = new ArrayStore(measType)
 
