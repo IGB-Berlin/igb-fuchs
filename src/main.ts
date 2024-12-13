@@ -26,7 +26,9 @@ import { assert } from './utils'
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
 
-//TODO: Can we redirect from http to https version here?
+// GitHub pages doesn't automatically redirect to HTTPS, but we need it for certain JS APIs to work (e.g. crypto)
+if (location.protocol.toLowerCase() === 'http:' && location.hostname.toLowerCase() !== 'localhost')
+  location.replace( 'https:' + location.href.substring(location.protocol.length) )
 
 if (module.hot) module.hot.accept()  // for the parcel development environment
 
