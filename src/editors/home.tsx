@@ -37,7 +37,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
       </button>
     </h2>
     <div id={_accId} class="accordion-collapse collapse" data-bs-parent="#homeAccordion">
-      <div class="accordion-body p-2 p-sm-4">
+      <div class="accordion-body pt-2 pb-3 px-2 p-sm-4">
         {body}
       </div>
     </div>
