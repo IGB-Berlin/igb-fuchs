@@ -122,7 +122,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
-      sampEdit.elWithBorder,
+      sampEdit.elWithTitle,
       taskEditor,
     ])
   }

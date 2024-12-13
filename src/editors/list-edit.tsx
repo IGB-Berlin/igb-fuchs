@@ -43,7 +43,7 @@ interface ILETextsWithTemp extends ILETexts {
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   readonly el :HTMLElement
-  readonly elWithBorder :HTMLElement
+  readonly elWithTitle :HTMLElement
 
   private readonly btnDiv
   private readonly extraButtons :HTMLButtonElement[] = []
@@ -186,7 +186,8 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         break }
       }
     })
-    this.elWithBorder = <div class="border rounded my-3 p-3">
+    this.elWithTitle = <div class="my-3">
+      <hr class="mt-4 mb-2" />
       <div class={texts.help?'fs-5':'mb-3 fs-5'}>{texts.title}</div>
       {texts.help?<div class="form-text mb-3 hideable-help">{texts.help}</div>:''}
       {this.el}

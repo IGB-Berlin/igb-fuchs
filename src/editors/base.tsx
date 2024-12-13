@@ -67,6 +67,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** The HTML element holding the editor UI. */
   get el() :HTMLElement { return this.form }
   private readonly form
+  private readonly elEndHr
   private readonly btnSaveClose
   private readonly elWarnList
   private readonly elWarnAlert
@@ -103,10 +104,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       {this.elErrDetail} <hr />
       <p class="mb-0">{tr('editor-err-info')}</p>
     </div>
+    this.elEndHr = <hr class="mt-4 mb-2" />
     this.form = safeCastElement(HTMLFormElement,
-      /* NOTE that title and contents are .insertBefore()d this.elWarnAlert! */
+      /* NOTE that title and contents are .insertBefore()d this.elEndHr! */
       <form novalidate class="editor-form p-3">
-        {this.elWarnAlert} {this.elErrAlert}
+        {this.elEndHr} {this.elWarnAlert} {this.elErrAlert}
         <div class="d-flex flex-row justify-content-end flex-wrap"> {btnBack} {btnSave} {this.btnSaveClose} </div>
       </form>)
     btnBack.addEventListener('click', () => this.ctx.stack.back(this))
@@ -125,8 +127,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   /** To be called by subclasses when they're ready to be shown. */
   protected initialize(formContents :HTMLElement[]) {
-    this.form.insertBefore(<legend class="mb-3">{this.fullTitle}</legend>, this.elWarnAlert)
-    formContents.forEach(e => this.form.insertBefore(e, this.elWarnAlert))
+    this.form.insertBefore(<legend class="mb-3">{this.fullTitle}</legend>, this.elEndHr)
+    formContents.forEach(e => this.form.insertBefore(e, this.elEndHr))
     this.ctx.stack.push(this)
   }
 

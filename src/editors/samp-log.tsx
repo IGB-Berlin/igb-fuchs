@@ -110,7 +110,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('log-notes-help')} {tr('notes-help')}</>, null),
-      locEdit.elWithBorder,
+      locEdit.elWithTitle,
     ])
   }
 }

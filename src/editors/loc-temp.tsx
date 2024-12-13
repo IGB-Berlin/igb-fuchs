@@ -62,7 +62,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
       this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')}</>, null),
       this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
       this.makeRow(inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
-      sampEdit.elWithBorder,
+      sampEdit.elWithTitle,
     ])
   }
 }

@@ -107,7 +107,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
       this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
-      measEdit.elWithBorder,
+      measEdit.elWithTitle,
     ])
   }
 }
