@@ -32,6 +32,7 @@ import { CustomChangeEvent } from '../events'
 let _taskId = 0
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingLocation>
   protected override newObj() { return new SamplingLocation(null) }
 
@@ -110,6 +111,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
         completedTasks: Object.entries(taskStates).flatMap(([k,v]) => v ? [k] : []),
         photos: [/*TODO Later*/] })
     }
+    this.currentName = () => inpName.value
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),

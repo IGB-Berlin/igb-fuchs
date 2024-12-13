@@ -45,6 +45,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    *  as opposed to a dirty check.
    */
   protected abstract readonly form2obj :(saving :boolean)=>Readonly<B>
+  /** Return the current name of the element being edited. */
+  abstract currentName() :string
 
   readonly ctx
   protected readonly parent

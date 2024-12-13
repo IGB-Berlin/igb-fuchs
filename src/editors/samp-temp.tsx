@@ -25,6 +25,7 @@ import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :()=>Readonly<SampleTemplate>
   protected override newObj() { return new SampleTemplate(null) }
 
@@ -54,6 +55,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
       shortDesc: inpDesc.value.trim(),
       instructions: inpInst.value.trim(), measurementTypes: obj.measurementTypes })
+    this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
 
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),

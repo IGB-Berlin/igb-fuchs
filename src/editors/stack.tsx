@@ -24,6 +24,7 @@ interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
   readonly briefTitle :string
   readonly fullTitle :string
+  currentName() :string
   readonly unsavedChanges :boolean
   requestClose() :Promise<boolean>
 }
@@ -38,10 +39,9 @@ export class EditorStack {
   private readonly stack :StackAble[] = []
   private readonly origTitle = document.title
   private redrawNavbar() {
-    //TODO Later: Would be good if e.g. sampling location name were still shown on the "sample" page and so on (to know where one is)
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
-        const link = <a class="nav-link text-nowrap" href='#' title={s.fullTitle}>{s.briefTitle}</a>
+        const link = <a class="nav-link text-nowrap" href='#'>{s.briefTitle}</a>
         if (i===this.stack.length-1) {
           link.classList.add('active')
           link.setAttribute('aria-current','page')
@@ -68,6 +68,8 @@ export class EditorStack {
       const s = this.stack[i]
       assert(s)
       l.classList.toggle('link-warning', s.unsavedChanges)
+      l.setAttribute('title', i ? `${s.fullTitle}: "${s.currentName()}"` : s.fullTitle)
+      l.innerText = i ? `${s.briefTitle}: "${s.currentName()}"` : s.briefTitle
       if (s.unsavedChanges) anyUnsaved = true
     })
     // I think the following is a mis-detection by eslint?
@@ -78,7 +80,7 @@ export class EditorStack {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack
     this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
-      requestClose: () => { throw new Error('shouldn\'t happen') } })
+      currentName: () => '', requestClose: () => { throw new Error('shouldn\'t happen') } })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -131,7 +133,7 @@ export class EditorStack {
     history.scrollRestoration = 'manual'
   }
   push(e :StackAble) {
-    console.debug('Stack push', e.briefTitle)
+    console.debug('Stack push', e.briefTitle, e.currentName())
     assert(this.stack.length)
     // hide current top element
     const top = this.stack.at(-1)
@@ -150,17 +152,17 @@ export class EditorStack {
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
   }
   back(e :StackAble) {
-    console.debug('Editor requested its pop', e.briefTitle)
+    console.debug('Editor requested its pop', e.briefTitle, e.currentName())
     paranoia(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor
     history.go(-1)  // handled by popstate event
   }
   private pop(e :StackAble) {
-    console.debug('Stack pop', e.briefTitle)
+    console.debug('Stack pop', e.briefTitle, e.currentName())
     assert(this.stack.length>1)
     // pop and remove the top element
     const del = this.stack.pop()
     assert(del)
-    paranoia(del.el===e.el, `Should have popped ${e.briefTitle} but TOS was ${del.briefTitle}`)
+    paranoia(del.el===e.el, `Should have popped ${e.briefTitle}/${e.currentName()} but TOS was ${del.briefTitle}/${del.currentName()}`)
     this.el.removeChild(del.el)
     // display the element underneath
     const top = this.stack.at(-1)

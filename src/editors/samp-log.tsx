@@ -30,6 +30,7 @@ import { tr } from '../i18n'
 let _checkId = 0
 
 export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingLog>
   protected override newObj() { return new SamplingLog(null) }
 
@@ -98,6 +99,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
         notes: inpNotes.value.trim(), locations: obj.locations,
         checkedTasks: Object.entries(checkStates).flatMap(([k,v]) => v ? [k] : []) })
     }
+    this.currentName = () => inpName.value
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),

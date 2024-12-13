@@ -28,6 +28,7 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
+  override readonly currentName :()=>string
   protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
   protected override newObj() { return new SamplingLocationTemplate(null) }
 
@@ -53,6 +54,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
         tasklist: inpTasks.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
         instructions: inpInst.value.trim(),  nominalCoords: nomCoords.deepClone(),
         samples: obj.samples })
+    this.currentName = () => inpName.value
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),

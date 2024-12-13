@@ -25,6 +25,7 @@ import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :()=>Readonly<Sample>
   protected override newObj() { return new Sample(null) }
 
@@ -97,6 +98,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
       shortDesc: inpDesc.value.trim(), subjectiveQuality: quality,
       notes: inpNotes.value.trim(), measurements: obj.measurements })
+    this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
 
     /* TODO Later: Consider a "Next" button to proceed to next sample? (same for locations?) */
     this.initialize([

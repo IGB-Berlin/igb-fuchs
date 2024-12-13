@@ -27,6 +27,7 @@ import { Measurement } from '../types/meas'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :()=>Readonly<Measurement>
   protected override newObj() { return new Measurement(null) }
 
@@ -88,6 +89,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     this.form2obj = () => new Measurement({ type: measType[0],
       value: inpValue.value, time: inpTime.timestamp })
+    this.currentName = () => measType[0].name
 
     this.initialize([
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),

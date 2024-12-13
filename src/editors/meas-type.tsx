@@ -23,6 +23,7 @@ import { AbstractStore } from '../storage'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :()=>Readonly<MeasurementType>
   protected override newObj() { return new MeasurementType(null) }
 
@@ -49,6 +50,7 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
       precision: Number.isFinite(inpPrc.valueAsNumber) && inpPrc.valueAsNumber>=0 ? inpPrc.valueAsNumber : NaN,
       instructions: inpInst.value.trim() })
+    this.currentName = () => inpName.value
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),

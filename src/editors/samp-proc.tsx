@@ -28,6 +28,7 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
+  override readonly currentName :()=>string
   protected override readonly form2obj :()=>Readonly<SamplingProcedure>
   protected override newObj() { return new SamplingProcedure(null) }
 
@@ -59,6 +60,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
       name: inpName.value, instructions: inpInst.value.trim(),
       checklist: inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
       locations: obj.locations, commonSamples: obj.commonSamples })
+    this.currentName = () => inpName.value
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
