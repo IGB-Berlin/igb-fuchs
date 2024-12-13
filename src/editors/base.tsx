@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { assert, makeTextAreaAutoHeight, paranoia } from '../utils'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
-import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { tr } from '../i18n'
@@ -281,6 +281,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
       input.classList.add('form-control')
     }
+    if (input instanceof HTMLTextAreaElement) makeTextAreaAutoHeight(input)
     return <div class="row mb-3">
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
       <div class="col-sm-9">

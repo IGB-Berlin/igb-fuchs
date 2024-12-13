@@ -19,7 +19,6 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SampleTemplateEditor } from './samp-temp'
-import { makeTextAreaAutoHeight } from '../utils'
 import { makeCoordinateEditor } from './coords'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
@@ -42,7 +41,6 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
     const inpNomCoords = makeCoordinateEditor(nomCoords, false)
     const inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.tasklist.join('\n')}</textarea>)
-    makeTextAreaAutoHeight(inpTasks)
 
     // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)

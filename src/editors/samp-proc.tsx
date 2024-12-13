@@ -20,7 +20,6 @@ import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingProcedure } from '../types/sampling'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
-import { makeTextAreaAutoHeight } from '../utils'
 import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
@@ -39,7 +38,6 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.checklist.join('\n')}</textarea>)
-    makeTextAreaAutoHeight(inpCheck)
 
     /* We want to edit the original object's arrays directly, because we want changes there to be saved
      * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.
