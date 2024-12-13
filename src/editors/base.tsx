@@ -89,7 +89,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.savedObj = targetObj
     this.initObj = targetObj === null ? this.newObj() : targetObj
 
-    this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
+    this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap fw-semibold"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
     const btnSave = <button type="button" class="btn btn-outline-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
     const btnBack = <button type="button" class="btn btn-outline-secondary mt-1 text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
     this.elWarnList = <ul></ul>
@@ -127,7 +127,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
   /** To be called by subclasses when they're ready to be shown. */
   protected initialize(formContents :HTMLElement[]) {
-    this.form.insertBefore(<legend class="mb-3">{this.fullTitle}</legend>, this.elEndHr)
+    this.form.insertBefore(<h4 class="mb-3">{this.fullTitle}</h4>, this.elEndHr)
     formContents.forEach(e => this.form.insertBefore(e, this.elEndHr))
     this.ctx.stack.push(this)
   }

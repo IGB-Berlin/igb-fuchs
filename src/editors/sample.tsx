@@ -34,7 +34,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     const obj = this.initObj
 
     const inpType = safeCastElement(HTMLSelectElement,
-      <select class="form-select">
+      <select class="form-select fw-semibold">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call removes type safety
           const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t}) + (t==='other'?` - ${tr('specify-in-desc')}!`:'')}</option>

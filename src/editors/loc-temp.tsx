@@ -36,7 +36,7 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!

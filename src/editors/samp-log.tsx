@@ -38,7 +38,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
 
     const tzOff = getTzOffsetStr(new Date())

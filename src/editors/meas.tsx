@@ -38,7 +38,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const measType :[MeasurementType] = [obj.type]
     const mtStore = new ArrayStore(measType)
 
-    const inpType = safeCastElement(HTMLInputElement, <input class="form-control" type="text" value="" readonly required /> )
+    const inpType = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
     btnTypeEdit.addEventListener('click', () => {
       const ed = new MeasTypeEditor(this, mtStore, measType[0])
@@ -56,7 +56,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
     //TODO Later: Auto focus the measurement input - and perhaps highlight it for user friendliness?
-    const inpValue = safeCastElement(HTMLInputElement, <input class="form-control" type="text"
+    const inpValue = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold font-monospace"
       pattern={obj.type.validPattern} value={obj.value} required />)
     inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>

@@ -158,7 +158,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
               this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
             })
           }
-          els[i] = <li class="list-group-item d-flex justify-content-between align-items-start cursor-pointer"
+          els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer"
             data-id={id} onclick={()=>selectItem(id)}>{content}</li>
         } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
@@ -188,7 +188,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     })
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
-      <div class={texts.help?'fs-5':'mb-3 fs-5'}>{texts.title}</div>
+      <h5 class={texts.help?'mb-1':'mb-3'}>{texts.title}</h5>
       {texts.help?<div class="form-text mb-3 hideable-help">{texts.help}</div>:''}
       {this.el}
     </div>

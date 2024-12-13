@@ -36,7 +36,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.checklist.join('\n')}</textarea>)
     makeTextAreaAutoHeight(inpCheck)

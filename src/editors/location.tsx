@@ -40,7 +40,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_NAME_RE.source} value={obj.name} />)
+    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
     //TODO Later: Users request a bigger "Navigate to" button
