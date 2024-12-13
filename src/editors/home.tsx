@@ -37,7 +37,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
       </button>
     </h2>
     <div id={_accId} class="accordion-collapse collapse" data-bs-parent="#homeAccordion">
-      <div class="accordion-body">
+      <div class="accordion-body p-2 p-sm-4">
         {body}
       </div>
     </div>
@@ -63,7 +63,7 @@ export function makeHomePage(ctx :GlobalContext) {
 
   const settings = makeSettings(ctx)
 
-  return <div class="p-3">
+  return <div class="p-2 p-sm-3">
     <div class="accordion" id="homeAccordion">
       {makeAcc(tr('Sampling Logs'), stEdit.el)}
       {makeAcc(`${tr('Sampling Procedures')} (${tr('Log Templates')})`, ttEdit.el)}

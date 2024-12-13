@@ -31,7 +31,7 @@ export class CustomChangeEvent extends CustomEvent<never> {
 
 interface StoreEventDetails {
   action :'add'|'upd'|'del'
-  id :string
+  id :string|null
 }
 /** A custom event for reporting that an `AbstractStore` has been changed.
  *

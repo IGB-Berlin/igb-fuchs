@@ -62,8 +62,19 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   }
 }
 
+.text-bg-tertiary {
+  color: var(--#{bs.$prefix}body-color);
+  background-color: var(--#{bs.$prefix}tertiary-bg);
+}
 .cursor-pointer {
   cursor: pointer;
+}
+.cursor-auto {
+  cursor: auto;
+}
+
+.mini-meas-edit {
+  min-width: 4em !important;
 }
 
 // Inject arrows between nav-links

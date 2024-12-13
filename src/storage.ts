@@ -44,7 +44,7 @@ export class ArrayStore<T> extends OrderedStore<T> {
   private readonly array
   constructor(array :T[]) { super(); this.array = array }
   private idx(obj :T) :number {
-    const idx = this.array.findIndex(o => Object.is(o,obj))
+    const idx = this.array.findIndex(o => Object.is(obj,o))
     if (idx<0) throw new Error('Object not found in store')
     assert(idx<this.array.length)
     return idx
@@ -55,7 +55,7 @@ export class ArrayStore<T> extends OrderedStore<T> {
     return idx
   }
   override getAll(except :T|null) {
-    return Promise.resolve(this.array.filter(o => except===null || !Object.is(o,except)).map((o,i) => {
+    return Promise.resolve(this.array.filter(o => except===null || !Object.is(except,o)).map((o,i) => {
       const rv :[string,T] = [i.toString(),o]
       return rv
     }))
@@ -66,7 +66,7 @@ export class ArrayStore<T> extends OrderedStore<T> {
     return Promise.resolve(rv)
   }
   override add(obj :T) {
-    if (this.array.some(o => Object.is(o,obj))) throw new Error('Object already in store')
+    if (this.array.some(o => Object.is(obj,o))) throw new Error('Object already in store')
     return Promise.resolve( (this.array.push(obj)-1).toString() )
   }
   override upd(prevObj :T, newObj :T) {

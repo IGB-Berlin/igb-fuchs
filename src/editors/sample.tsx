@@ -17,13 +17,11 @@
  */
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { AbstractStore, ArrayStore } from '../storage'
-import { ListEditorWithTemp } from './list-edit'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
-import { MeasurementEditor } from './meas'
+import { MeasListEditor } from './meas-list'
+import { AbstractStore } from '../storage'
 import { makeHelpButton } from '../help'
-import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
@@ -31,6 +29,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
   protected override readonly form2obj :()=>Readonly<Sample>
   protected override newObj() { return new Sample(null) }
 
+  private readonly measEdit :MeasListEditor
   constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
@@ -103,16 +102,12 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    //TODO Later: Would it be possible to enter the measurements directly in the sample editor?
-    const measEdit = new ListEditorWithTemp(this, new ArrayStore(obj.measurements), MeasurementEditor,
-      { title:tr('saved-pl')+' '+tr('Measurements'), planned:tr('planned-pl')+' '+tr('Measurements')}, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
-      obj.template?.measurementTypes )
+    this.measEdit = new MeasListEditor(this, obj)
 
     this.form2obj = () => new Sample({ template: obj.template,
       type: isSampleType(inpType.value) ? inpType.value : 'undefined',
       shortDesc: inpDesc.value.trim(), subjectiveQuality: quality,
-      notes: inpNotes.value.trim(), measurements: obj.measurements })
+      notes: inpNotes.value.trim(), measurements: this.measEdit.measurements })
     this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
 
     /* TODO Later: Consider a "Next" button to proceed to next sample? (same for locations?) */
@@ -122,7 +117,13 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       rowInst,
       this.makeRow(grpQuality, subjQualTitle, null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
-      measEdit.elWithTitle,
+      this.measEdit.elWithTitle,
     ])
+  }
+  protected override customWarnings() :string[] {
+    return this.measEdit.customWarnings()
+  }
+  protected override async onClose() {
+    await this.measEdit.close()
   }
 }

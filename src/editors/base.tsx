@@ -145,6 +145,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     console.debug('... saved with id',id)
   }
 
+  private resetWarningsErrors() {
+    this.btnSaveClose.classList.remove('btn-warning')
+    this.btnSaveClose.classList.add('btn-success')
+    this.elWarnAlert.classList.add('d-none')
+    this.elErrAlert.classList.add('d-none')
+    this.prevSaveClickObjState = null
+    this.prevSaveWarnings = []
+  }
   private prevSaveClickObjState :Readonly<B>|null = null  // for doSave
   private prevSaveWarnings :string[] = []  // for doSave
   /** Perform a save of the object being edited.
@@ -171,6 +179,15 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       showError(tr('form-invalid'))
       return false
     }
+
+    // Get custom validation stuff
+    const customWarn :string[] = []
+    try { customWarn.push(...this.customWarnings()) }
+    catch (ex) {
+      showError(String(ex))
+      return false
+    }
+
     // Form passed validation, so get the resulting object
     const curObj = this.form2obj(true)
 
@@ -190,7 +207,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
 
     // So next, check warnings
     const skipInitWarns = this.isBrandNew && !andClose
-    const warnings = curObj.warningsCheck(skipInitWarns)
+    const warnings = curObj.warningsCheck(skipInitWarns).concat(customWarn)
     if (warnings.length) {
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
@@ -244,6 +261,16 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     return andClose
   }
 
+  shown() {
+    // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
+    this.resetWarningsErrors()
+}
+
+  /** Close this editor. To be called by the EditorStack. */
+  async close() { await this.onClose() }
+  /** Optional hook that subclasses can override, called when the editor is closed. */
+  protected async onClose() {}
+
   /** Whether there are any unsaved changes. */
   get unsavedChanges() :boolean { return !this.form2obj(false).equals(this.savedObj ?? this.initObj) }
   /** Requests the closing of the current editor (e.g the "Back" button); the user may cancel this.
@@ -264,6 +291,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     }
     return true
   }
+
+  /** Can be overridden by subclasses to provide custom validation errors/warnings for their forms.
+   * Errors are provided by throwing one, warnings are returned as an array of strings. */
+  protected customWarnings() :string[] { return [] }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
@@ -288,7 +319,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       [helpId, btnHelp] = makeHelp(divHelp)
       input.setAttribute('aria-describedby', helpId)
     }
-    return <div class="row mb-3">
+    return <div class="row mb-2 mb-sm-3">
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">
         {label}
         {btnHelp}

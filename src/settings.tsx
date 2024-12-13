@@ -33,7 +33,7 @@ export function makeSettings(ctx :GlobalContext) :HTMLElement {
     await ctx.storage.settings.set('hideHelpTexts', inpHideHelp.checked)
     globalHideHelp(inpHideHelp.checked)
   })
-  return <div>
+  return <div class="p-2">
     <div class="form-check form-switch">
       {inpHideHelp}
       <label class="form-check-label" for="cbHideHelp">{tr('hide-help-texts')}</label>

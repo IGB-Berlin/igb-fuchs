@@ -103,6 +103,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     })
   }
 
+  /** So subclasses can override. */
+  protected contentFor(item :B) :HTMLElement { return item.summaryAsHtml(false) }
+
   readonly ctx
   protected readonly parent
   protected readonly theStore
@@ -139,13 +142,15 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       els.length = theList.length
       if (theList.length) {
         Array.from(theList).forEach(([id,item],i) => {
-          let content :HTMLElement = item.summaryAsHtml(false)
+          let content :HTMLElement = this.contentFor(item)
           if (this.theStore instanceof OrderedStore) {
-            const btnUp = <button type="button" class="btn btn-sm btn-secondary me-1" title={tr('Move up')}><i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
+            const btnUp = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move up')}>
+              <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
             if (!i) btnUp.setAttribute('disabled','disabled')
-            const btnDown = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move down')}><i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
+            const btnDown = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move down')}>
+              <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
             if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
-            content = <><div class="me-auto">{content}</div>{btnUp}{btnDown} </>
+            content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-row gap-1 flex-wrap justify-content-end">{btnUp}{btnDown}</div></>
             btnUp.addEventListener('click', async event => {
               event.stopPropagation()
               assert(this.theStore instanceof OrderedStore)
@@ -159,7 +164,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
               this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
             })
           }
-          els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer"
+          els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
             data-id={id} onclick={()=>selectItem(id)}>{content}</li>
         } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
@@ -213,10 +218,18 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   }
 }
 
-abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
+export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
   protected abstract makeNew(t :T) :B
   protected postNew(_obj :B) {}
   private btnTemp
+  protected async addNew(template :T) {
+    const newObj = this.makeNew(template)
+    console.debug('Adding',newObj,'...')
+    const newId = await this.theStore.add(newObj)
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
+    this.postNew(newObj)
+    console.debug('... added with id',newId)
+  }
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass, texts)
@@ -224,12 +237,7 @@ abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, 
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
       if (template===null) return
-      const newObj = this.makeNew(template)
-      console.debug('Adding',newObj,'...')
-      const newId = await this.theStore.add(newObj)
-      this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
-      this.postNew(newObj)
-      console.debug('... added with id',newId)
+      await this.addNew(template)
     })
     this.btnNew.insertAdjacentElement('beforebegin', this.btnTemp)
   }
@@ -254,20 +262,15 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
       <div class="mb-2 fs-5">{texts.planned}</div>
       {theUl}
     </div>
-    const redrawList = async () => {
+    const redrawPlanned = async () => {
       myEl.classList.toggle('d-none', !planned.length)
       theUl.replaceChildren(...planned.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {
           const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
           paranoia(rm===t)
-          const newObj = t.templateToObject()
-          console.debug('Adding',newObj,'...')
-          const newId = await this.theStore.add(newObj)
-          // this event also causes our parent editor to be told to selfUpdate, so the above change to the `planned` array is saved
-          this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
-          this.newEditor(newObj)
-          console.debug('... added with id',newId)
+          // this also fires an event that causes our parent editor to be told to selfUpdate, so the above change to the `planned` array is saved
+          await this.addNew(t)
         })
         return <li class="list-group-item d-flex justify-content-between align-items-center">
           <div class="me-auto">{t.summaryAsHtml(false)}</div>
@@ -275,10 +278,10 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
         </li>
       }))
     }
-    setTimeout(redrawList)
-    this.el.addEventListener(CustomStoreEvent.NAME, redrawList)
+    setTimeout(redrawPlanned)
+    this.el.addEventListener(CustomStoreEvent.NAME, redrawPlanned)
     this.el.appendChild(myEl)
   }
   protected override makeNew(t :T) :D { return t.templateToObject() }
-  protected override postNew(obj: D) { this.newEditor(obj) }
+  protected override postNew(obj :D) { this.newEditor(obj) }
 }

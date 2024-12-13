@@ -24,9 +24,11 @@ interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
   readonly briefTitle :string
   readonly fullTitle :string
-  currentName() :string
   readonly unsavedChanges :boolean
+  currentName() :string
   requestClose() :Promise<boolean>
+  close() :Promise<void>
+  shown() :void
 }
 
 interface HistoryState { stackLen :number }
@@ -80,7 +82,8 @@ export class EditorStack {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack
     this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
-      currentName: () => '', requestClose: () => { throw new Error('shouldn\'t happen') } })
+      currentName: () => '', requestClose: () => { throw new Error('shouldn\'t happen') },
+      close: () => { throw new Error('shouldn\'t happen') }, shown: () => {} })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -114,7 +117,7 @@ export class EditorStack {
             const top = this.stack.at(-1)
             assert(top)
             if (await top.requestClose())
-              this.pop(top)
+              await this.pop(top)
             else {
               /* The editor did not want to close (b/c there were warnings, validation errors,
                * or the user canceled, so we need to reject the history for that many editors. */
@@ -149,26 +152,28 @@ export class EditorStack {
     history.pushState(histState, '', null)
     // track changes in the new editor
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
+    e.shown()
   }
   back(e :StackAble) {
     console.debug('Editor requested its pop', e.briefTitle, e.currentName())
     paranoia(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor
     history.go(-1)  // handled by popstate event
   }
-  private pop(e :StackAble) {
+  private async pop(e :StackAble) {
     console.debug('Stack pop', e.briefTitle, e.currentName())
     assert(this.stack.length>1)
     // pop and remove the top element
     const del = this.stack.pop()
     assert(del)
     paranoia(del.el===e.el, `Should have popped ${e.briefTitle}/${e.currentName()} but TOS was ${del.briefTitle}/${del.currentName()}`)
+    await del.close()
     this.el.removeChild(del.el)
     // display the element underneath
     const top = this.stack.at(-1)
     assert(top)
-    //TODO Later: Consider hiding warnings when re-showing an editor after a child editor gets saved
     top.el.classList.remove('d-none')
     this.redrawNavbar()
     top.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    top.shown()
   }
 }

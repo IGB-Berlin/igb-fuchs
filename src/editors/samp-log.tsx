@@ -48,7 +48,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
     const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
-    rowEnd.classList.remove('mb-3')
+    rowEnd.classList.remove('mb-2','mb-sm-3')
     const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
     if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
     const rowAutoEnd = <div class="row mb-3">
