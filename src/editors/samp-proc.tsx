@@ -47,12 +47,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
      * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
      */
     const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor,
-      {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-loc-from-temp'),
+    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor, {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
 
     const sampStore = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, {title:tr('Sampling Locations')}, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor,
+      {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
 
     this.form2obj = () => new SamplingProcedure({ id: obj.id,
