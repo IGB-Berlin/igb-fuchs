@@ -216,6 +216,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     if (this.parent.el)  // see notes in .enable()
       this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.enable())
   }
+
+  highlightButton(_which :'new') {
+    this.btnNew.classList.remove('btn-outline-info')
+    this.btnNew.classList.add('btn-info')
+  }
 }
 
 export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
@@ -246,6 +251,14 @@ export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSu
     if (globalEnable) this.btnTemp.removeAttribute('disabled')
     else this.btnTemp.setAttribute('disabled', 'disabled')
     return globalEnable
+  }
+  override highlightButton(which: 'new'|'temp'): void {
+    switch(which) {
+    case 'new': super.highlightButton('new'); break
+    case 'temp':
+      this.btnTemp.classList.remove('btn-outline-info')
+      this.btnTemp.classList.add('btn-info')
+    }
   }
 }
 export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, T> {
