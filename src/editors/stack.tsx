@@ -143,7 +143,6 @@ export class EditorStack {
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
     this.redrawNavbar()
-    //TODO Later: The title is hidden under the sticky header
     e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     // save history state
     const histState :HistoryState = { stackLen: newLen }

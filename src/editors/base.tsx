@@ -105,7 +105,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     </div>
     this.form = safeCastElement(HTMLFormElement,
       /* NOTE that title and contents are .insertBefore()d this.elWarnAlert! */
-      <form novalidate class="p-3">
+      <form novalidate class="editor-form p-3">
         {this.elWarnAlert} {this.elErrAlert}
         <div class="d-flex flex-row justify-content-end flex-wrap"> {btnBack} {btnSave} {this.btnSaveClose} </div>
       </form>)

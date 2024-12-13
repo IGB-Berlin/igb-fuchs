@@ -84,6 +84,9 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   margin-left: auto;
   margin-right: auto;
 }
+.editor-form {
+  scroll-margin-top: 4em;
+}
 
 body[data-selected-language="en"] [lang="de"] {
   display: none;
