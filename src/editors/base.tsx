@@ -133,6 +133,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
+  shown() {
+    // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
+    this.resetWarningsErrors()
+  }
+
   /** Only to be called by ListEditor when bubbling change events. */
   async selfUpdate() {
     if (this.savedObj===null) throw new Error('selfUpdate not allowed when not yet saved')
@@ -144,6 +149,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.el.dispatchEvent(new CustomChangeEvent())
     console.debug('... saved with id',id)
   }
+
+  /** Can be overridden by subclasses to provide custom validation errors/warnings for their forms.
+   * Errors are provided by throwing one, warnings are returned as an array of strings. */
+  protected customWarnings() :string[] { return [] }
 
   private resetWarningsErrors() {
     this.btnSaveClose.classList.remove('btn-warning')
@@ -261,11 +270,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     return andClose
   }
 
-  shown() {
-    // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
-    this.resetWarningsErrors()
-}
-
   /** Close this editor. To be called by the EditorStack. */
   async close() { await this.onClose() }
   /** Optional hook that subclasses can override, called when the editor is closed. */
@@ -291,10 +295,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     }
     return true
   }
-
-  /** Can be overridden by subclasses to provide custom validation errors/warnings for their forms.
-   * Errors are provided by throwing one, warnings are returned as an array of strings. */
-  protected customWarnings() :string[] { return [] }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
