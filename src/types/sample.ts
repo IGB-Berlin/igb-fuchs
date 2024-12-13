@@ -204,7 +204,7 @@ export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> i
   }
   override templateToObject() :Sample {
     return new Sample({ template: this.deepClone(), type: this.type,
-      shortDesc: this.shortDesc, subjectiveQuality: 'undefined', measurements: [] })
+      shortDesc: this.shortDesc, subjectiveQuality: 'good', measurements: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sample Template':'samp-temp') }
   override summaryDisplay() { return sampSummary(this) }

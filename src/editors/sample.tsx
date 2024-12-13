@@ -20,6 +20,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { ListEditorWithTemp } from './list-edit'
 import { Editor, EditorParent } from './base'
+import { CustomChangeEvent } from '../events'
 import { MeasurementEditor } from './meas'
 import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
@@ -78,6 +79,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       else if (inpQualQuest.checked) quality = 'questionable'
       else if (inpQualBad.checked) quality = 'bad'
       else quality = 'undefined'
+      this.el.dispatchEvent(new CustomChangeEvent())
     }
     inpQualGood.addEventListener('change', updQual)
     inpQualQuest.addEventListener('change', updQual)
@@ -104,7 +106,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
       this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.elWithTitle,

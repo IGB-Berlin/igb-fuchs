@@ -23,8 +23,9 @@ import { tr } from '../i18n'
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean) :HTMLDivElement {
 
-  const btnGetCoords = <button class="btn btn-outline-primary" type="button" title={tr('Use current location')} disabled={readonly}>
+  const btnGetCoords = <button class="btn" type="button" title={tr('Use current location')} disabled={readonly}>
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
+  btnGetCoords.classList.add( readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)}
       required={!readonly} readonly={readonly}

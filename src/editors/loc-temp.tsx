@@ -57,8 +57,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')}</>, tr('invalid-coords')),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('coord-ref')}</>, tr('invalid-coords')),
       this.makeRow(inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
       sampEdit.elWithTitle,
     ])

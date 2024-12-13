@@ -44,7 +44,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
-    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <>{tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-3')
     const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
     if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
@@ -103,13 +103,13 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      rowCheck,
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
       this.makeRow(inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('log-notes-help')} {tr('notes-help')}</>, null),
+      rowCheck,
       locEdit.elWithTitle,
     ])
   }

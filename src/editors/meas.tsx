@@ -93,9 +93,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     this.initialize([
       this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
+      this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null),
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
-      this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
   }

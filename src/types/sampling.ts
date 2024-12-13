@@ -261,7 +261,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
       name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Procedure':'Procedure') }
+  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Procedure':'proc') }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
   }

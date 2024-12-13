@@ -63,7 +63,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('inst-help')}</>, null),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, null),
       sampEdit.elWithTitle,
       locEdit.elWithTitle,
     ])

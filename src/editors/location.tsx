@@ -75,8 +75,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const tasks = obj.template?.tasklist ?? []
     const taskStates :{ [key :string]: boolean } = Object.fromEntries(tasks.map(c => [c, obj.completedTasks.includes(c) ]))
-    const taskEditor = <div class="border rounded my-3 p-3">
-      <div class="fs-5">{tr('Task List')}</div>
+    const taskEditor = <div class="my-3">
+      <hr class="mt-4 mb-2" />
+      <h5>{tr('Task List')}</h5>
       <div class="form-text mb-3 hideable-help">{tr('tasklist-help')}</div>
       <ul class="list-group custom-tasklist">
         {tasks.map(c => {
@@ -116,9 +117,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('inst-help')} {tr('inst-see-notes')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')}</>, null),
-      this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')}</>, tr('invalid-coords')),
+      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
+      this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null),
+      this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('coord-ref')}</>, tr('invalid-coords')),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),

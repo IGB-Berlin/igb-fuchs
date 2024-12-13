@@ -174,13 +174,14 @@ const translations = {
 
   // editor: location (template) & coords
   'loc-short-desc-help': [
-    'Optionale Kurzbeschreibung, die beim Identifizieren der Messstelle helfen soll - z.B. kann der Name eine kurze Identifikationsnummer'
+    'Optionale Kurzbeschreibung, die beim Identifizieren der Messstelle helfen soll. Z.B. kann der Name eine kurze Identifikationsnummer'
     +' sein und diese Kurzbeschreibung ein ausgeschriebener Name der Stelle, oder umgekehrt. Wird im CSV-Format nicht mit exportiert.',
-    'Optional short description, intended to help identify this sampling location - for example, the "Name" can be a short identifier'
+    'Optional short description, intended to help identify this sampling location. For example, the "Name" can be a short identifier'
     +' and this short description can be the full name of the sampling location, or vice versa. Not included in the export in CSV format.' ],
-  'loc-inst-help': [
-    'Optionale Anleitung für die Messstelle, z.B. zusätzliche Arbeitsschritte, oder auch Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
-    'Optional instructions for the sampling location, for example, additional steps to perform, or help in finding or reaching it, etc.' ],
+  'loc-inst-temp-help': [
+    'Optionale Anleitung für die Messstelle, z.B. Hilfe zum Auffinden, mögliche Anfahrtswege, usw.',
+    'Optional instructions for the sampling location, for example, help in finding or reaching it, etc.' ],
+  'loc-inst-help': [ 'Anleitung für die Messstelle.', 'Instructions for the sampling location.' ],
   'Lat': ['Lat'],
   'Lon': ['Lon'],
   'Latitude': ['Breitengrad'],
@@ -199,12 +200,16 @@ const translations = {
     'Unexpected / unknown error when trying to access position.' ],
   'nom-coord': ['Soll-Koord.', 'Nominal Coord.'],
   'nom-coord-help': [
-    'Die Soll-Koordinaten geben den Ort an, an dem eine Probe im Normalfall genommen wird. (Referenzsystem EPSG:4326, "WGS84")',
-    'The nominal coordinates specify the place where a sample is normally taken. (Reference system EPSG:4326, "WGS84")' ],
+    'Die Soll-Koordinaten geben den Ort an, an dem eine Probe im Normalfall genommen wird.',
+    'The nominal coordinates specify the place where a sample is normally taken.' ],
   'act-coord': ['Ist-Koord.', 'Actual Coord.'],
   'act-coord-help': [
-    'Die Ist-Koordinaten geben den Ort an, an dem eine Probe in Wirklichkeit genommen wurde. (Referenzsystem EPSG:4326, "WGS84")',
-    'The actual coordinates specify the place where a sample was actually taken. (Reference system EPSG:4326, "WGS84")' ],
+    'Die Ist-Koordinaten geben den Ort an, an dem eine Probe in Wirklichkeit genommen wurde.',
+    'The actual coordinates specify the place where a sample was actually taken.' ],
+  'coord-help': [
+    'Koordinaten im format "Lat,Lon" (z.B. aus Google Maps) können in eins beider Felder mit Copy & Paste eingefügt werden.',
+    'Coordinates in the format "Lat,Lon" (e.g. from Google Maps) can be inserted into either field via Copy & Paste.' ],
+  'coord-ref': [ '(Referenzsystem EPSG:4326, "WGS84")', '(Reference system EPSG:4326, "WGS84")' ],
   'invalid-coords': [
     'Ungültige Koordinaten.',
     'Invalid coordinates.' ],
@@ -215,16 +220,18 @@ const translations = {
     'Ankunftszeit an der Messstelle bzw. Beginn der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'Arrival time at the sampling location / beginning of measurements. Timezone is that of this device (usually local time)' ],
   'loc-end-time-help': [
-    'Abfahrtszeit von der Messstelle bzw. Ende der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'Departure time from the sampling location / end of measurements. Timezone is that of this device (usually local time)' ],
+    'Ende der Messungen bzw. Abfahrtszeit von der Messstelle. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'End of measurements / departure time from the sampling location. Timezone is that of this device (usually local time)' ],
   'loc-notes-help': ['Optionale Notizen zur Messstelle im Allgemeinen.', 'Optional notes about the sampling location in general.'],
   'planed-samp-remain': [
     { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
     { zero: 'All planned samples saved', one: 'One planned sample left', other: '%{count} planned samples left' } ],
   'Task List': ['Aufgabenliste'],
   'tasklist-temp-help': [
-    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Aufgabenliste an dieser Messstelle. Erledigte Aufgaben sind im CSV Export enthalten.',
-    'Every line in this input becomes one item on the task list at this sampling location. Completed tasks are exported in the CSV format.' ],
+    'Optionale Aufgabenliste: Jede Zeile in dieser Eingabe wird zu einem Punkt auf der Liste der an dieser Messstelle zu erledigenden Aufgaben.'
+    +' Erledigte Aufgaben sind im CSV Export enthalten.',
+    'Optional task list: Every line in this input becomes one item on the list of tasks to complete at this sampling location.'
+    +' Completed tasks are exported in the CSV format.' ],
   'tasklist-empty-lines': [
     'Die Aufgabenliste enthält leere Zeilen.',
     'The task list contains empty lines.' ],
@@ -240,7 +247,7 @@ const translations = {
   'Completed': ['Erledigt'],
 
   // editor: sampling procedure
-  'proc-inst-help': [
+  'proc-inst-temp-help': [
     'Optionale zusätzliche Anleitung für die Messprozedur, z.B. vorzubereitende Geräte und Materialien, usw.',
     'Optional additional instructions for the sampling procedure, e.g. equipment and materials to prepare, etc.' ],
   'new-loc-from-temp': [
@@ -251,13 +258,15 @@ const translations = {
     'Uniform Samples' ],
   'common-samples-help': [
     'Wenn an allen Messstellen der Messprozedur die gleichen Proben mit den gleichen Messungen genommen werden, können diese hier festgelegt werden.'
-    +' Wenn für einzelne Messstellen andere Proben festgelegt werden, haben diese Vorrang vor den Proben in diesem Abschnitt.',
+    +' Wenn für einzelne Messstellen andere Proben festgelegt werden, haben sie Vorrang vor den Proben in diesem Abschnitt.',
     'If the same samples with the same measurements are to be taken at all locations in this procedure, they can be defined here.'
-    +' If individual sampling locations have different samples defined, these override the samples in this section.' ],
+    +' If individual sampling locations have different samples defined, they override the samples in this section.' ],
   'Checklist': ['Checkliste'],
   'checklist-temp-help': [
-    'Jede Zeile in dieser Eingabe wird ein Punkt auf der Kontrollliste zur Hilfe bei der Vorbereitung dieser Messprozedur. Die Checkliste ist im CSV Export nicht enthalten.',
-    'Every line in this input becomes one item on the checklist for help in preparation of this sampling procedure. The checklist is not exported in the CSV format.' ],
+    'Optionale Checkliste: Jede Zeile in dieser Eingabe wird zu einem Punkt auf der Kontrollliste zur Hilfe bei der Vorbereitung dieser Messprozedur.'
+    +' Die Checkliste ist im CSV Export nicht enthalten.',
+    'Optional checklist: Every line in this input becomes one item on the checklist for help in preparation of this sampling procedure.'
+    +' The checklist is not exported in the CSV format.' ],
   'checklist-empty-lines': [
     'Die Checkliste enthält leere Zeilen.',
     'The checklist contains empty lines.' ],
@@ -269,18 +278,21 @@ const translations = {
     'Automatically set end time to current time when saving' ],
 
   // editor: sampling log
+  'proc-inst-help': [
+    'Anleitung für die Messprozedur.',
+    'Instructions for the sampling procedure.' ],
   'Start time': ['Anfangs-Zeit'],
   'log-start-time-help': [
-    'Wann das Messprotokoll begann. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'When the sampling log began. Timezone is that of this device (usually local time)' ],
+    'Wann das Messprotokoll begonnen wurde. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the sampling log was started. Timezone is that of this device (usually local time)' ],
   'End time': ['End-Zeit'],
   'log-end-time-help': [
     'Wann das Messprotokoll endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
     'When the sampling log ended. Timezone is that of this device (usually local time)' ],
   'Persons': ['Personen'],
-  'persons-help': ['Welche Personen an der Probenahme beteiligt waren.', 'Who was involved in the sampling.'],
+  'persons-help': ['Optional. Welche Personen an der Probenahme beteiligt waren.', 'Optional. Who was involved in the sampling.'],
   'Weather': ['Wetter'],
-  'weather-help': ['Wie das Wetter während der Probenahme war.', 'How the weather during the sampling was.'],
+  'weather-help': ['Optional. Wie das Wetter während der Probenahme war.', 'Optional. How the weather during the sampling was.'],
   'log-notes-help': ['Optionale Notizen zum Messprotokoll im Allgemeinen.', 'Optional notes about the sampling log in general.'],
   'Now': ['Jetzt'],
   'Use current date and time': ['Aktuelles Datum und Uhrzeit verwenden'],
@@ -307,22 +319,25 @@ const translations = {
   'new-samp-from-temp': [
     'Neue Probe aus Vorlage',
     'New Sample from Template' ],
-  'samp-inst-help': [
+  'samp-inst-temp-help': [
     'Optionale Anleitung für die Probenahme, z.B. Menge, Filterung, usw.',
     'Optional instructions for the sample procedure, e.g. amount, filtering, etc.' ],
+  'samp-inst-help': [
+    'Anleitung für die Probenahme.',
+    'Instructions for the sample procedure.' ],
   'samp-notes-help': [
-    'Optionale Notizen zur Probe, z.B. Qualität, Menge, usw.',
-    'Optional notes about the sample, e.g. quality, amount, etc.' ],
+    'Optionale Notizen zur Probe, z.B. Menge, Kommentare zur Qualität, usw.',
+    'Optional notes about the sample, e.g. amount, comments about quality, etc.' ],
   'Subjective Quality': ['Subjektive Qualität'],
   'qf-desc-good': [
     'Keine offensichtlich erkennbaren Qualitätsprobleme',
     'No obviously identifiable quality problems' ],
   'qf-desc-quest': [
-    'Mögliche Qualitätsprobleme, z.B. mögliche Verunreinigung, ungewöhnlicher Geruch, usw. (ggf. in "Notizen" spezifizieren)',
-    'Possible quality problems, e.g. possible contamination, unusual smell, etc. (describe in "Notes" if appropriate)' ],
+    'Verdacht auf Qualitätsprobleme, z.B. mögliche Verunreinigung, ungewöhnlicher Geruch, usw. (in "Notizen" beschreiben)',
+    'Suspected quality problems, e.g. possible contamination, unusual smell, etc. (describe in "Notes")' ],
   'qf-desc-bad': [
-    'Eindeutige Qualitätsprobleme, z.B. zu geringe Probenmenge, offensichtliche Verunreinigung, usw. (ggf. in "Notizen" spezifizieren)',
-    'Obvious quality problems, e.g. too small sample amount, obvious contamination, etc. (describe in "Notes" if appropriate)' ],
+    'Eindeutige Qualitätsprobleme, z.B. zu geringe Probenmenge, offensichtliche Verunreinigung, usw. (in "Notizen" beschreiben)',
+    'Obvious quality problems, e.g. too small sample amount, obvious contamination, etc. (describe in "Notes")' ],
   'qual-no-notes': [
     'Subjektive Qualität als "Fraglich" oder "Schlecht" angegeben - bitte genaueres in Notizen beschreiben.',
     'Subjective quality marked as "Questionable" or "Bad" - please provide details in the "Notes".' ],
@@ -335,14 +350,14 @@ const translations = {
   'Value': ['Messwert'],
   'meas-value-help': [ 'Der gemessene Wert. Muss in dem Bereich liegen:', 'The measured value. Must be in the range:' ],
   'meas-time-help': ['Wann die Messung genommen bzw. aufgezeichnet wurde.', 'When the measurement was taken / recorded.'],
-  'meas-type-help': ['Messtyp', 'Type of the measurement'],
+  'meas-type-help': ['Messtyp.', 'Type of the measurement.'],
   'sel-meas-type': [ 'Messtyp Auswählen', 'Select Measurement Type' ],
   'no units': ['keine Einheit'],
   'not specified': ['nicht angegeben'],
   'precision': ['Erlaubte Nachkommastellen:', 'Allowed digits after decimal:'],
   'meas-inst-help': [
-    'Anleitung für diesen Messtyp. Dieses Feld wird aus der "Messtyp" Maske kopiert und kann hier nicht bearbeitet werden.',
-    'Instructions for this measurement type. This field is copied from the "measurement type" input and cannot be edited here.' ],
+    'Anleitung für diesen Messtyp. Dieses Feld wird aus dem "Messtyp" kopiert und kann hier nicht bearbeitet werden.',
+    'Instructions for this measurement type. This field is copied from the "measurement type" and cannot be edited here.' ],
 
   // dialogs
   'Unsaved Changes': ['Nicht gespeicherte Änderungen'],
@@ -386,6 +401,9 @@ const translations = {
   'beta-warning-dismiss': [
     'Ich verstehe - diese Warnung 7 Tage nicht anzeigen',
     'I understand - don\'t show this warning for 7 days' ],
+  'temp-copied-readonly': [
+    'Dieses Feld ist aus der Vorlage kopiert und kann hier nicht bearbeitet werden.',
+    'This field is copied from the template and cannot be edited here.' ],
 
   // types
   'Sampling Log': ['Messprotokoll'],
@@ -422,7 +440,7 @@ const translations = {
   'Templates': ['Vorlagen'],
   'Logs': ['Protokolle'],
   'Log': ['Protokoll'],
-  'Procedure': ['Prozedur'],
+  'proc': ['Proc.', 'Proz.'],
   'Location': ['Stelle'],
   'loc-temp': ['Stell.-Vorl.', 'Loc.Templ.'],
   'meas': ['Mess.', 'Meas.'],
