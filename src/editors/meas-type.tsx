@@ -33,9 +33,9 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
+    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={obj.precision} min="0" step="1" />)
     const inpMin = safeCastElement(HTMLInputElement, <input type="number" value={obj.min} step="1" />)
     const inpMax = safeCastElement(HTMLInputElement, <input type="number" value={obj.max} step="1" />)
-    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={obj.precision} min="0" step="1" />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
     const prcToStep = () => {

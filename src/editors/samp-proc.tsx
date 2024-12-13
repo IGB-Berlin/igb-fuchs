@@ -36,23 +36,16 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
     const obj = this.initObj
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
     const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.checklist.join('\n')}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
-    /* We want to edit the original object's arrays directly, because we want changes there to be saved
-     * immediately. So it's important that we propagate the change event to the parent via `reportMod` below.
-     * In addition, it's important we:
-     * - Enable the ListEditor to watch this editor so that it enables itself when appropriate (`watchEnable`)
-     * - Call the ListEditor's `close` (below) so that it can clean up (e.g. removing event listeners).
-     */
-    const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorForTemp(this, locStore, LocationTemplateEditor, {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
-
-    const sampStore = new ArrayStore(obj.commonSamples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor,
+    const sampEdit = new ListEditorForTemp(this, new ArrayStore(obj.commonSamples), SampleTemplateEditor,
       {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
+
+    const locEdit = new ListEditorForTemp(this, new ArrayStore(obj.locations), LocationTemplateEditor,
+      {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
 
     this.form2obj = () => new SamplingProcedure({ id: obj.id,
       name: inpName.value, instructions: inpInst.value.trim(),

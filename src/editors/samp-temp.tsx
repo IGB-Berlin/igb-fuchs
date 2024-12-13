@@ -46,9 +46,8 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
-    // see notes in procedure.tsx about this:
-    const measStore = new ArrayStore(obj.measurementTypes)
-    const measEdit = new ListEditorForTemp(this, measStore, MeasTypeEditor, {title:tr('Measurements')}, tr('new-meas-from-temp'),
+    const measEdit = new ListEditorForTemp(this, new ArrayStore(obj.measurementTypes), MeasTypeEditor,
+      {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
 
     this.form2obj = () => new SampleTemplate({

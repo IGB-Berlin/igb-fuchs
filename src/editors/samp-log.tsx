@@ -40,6 +40,9 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
+    if (!obj.template?.instructions.trim().length)
+      rowInst.classList.add('d-none')
 
     const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
@@ -81,9 +84,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     /* TODO Later: The location list should also be sorted by distance from our current location.
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
-    // see notes in procedure.tsx about this:
-    const locStore = new ArrayStore(obj.locations)
-    const locEdit = new ListEditorWithTemp(this, locStore, SamplingLocationEditor,
+    const locEdit = new ListEditorWithTemp(this, new ArrayStore(obj.locations), SamplingLocationEditor,
       { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       obj.template?.locations )
@@ -103,7 +104,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
 
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
+      rowInst,
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
       this.makeRow(inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),

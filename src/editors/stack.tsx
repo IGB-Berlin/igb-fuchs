@@ -68,8 +68,8 @@ export class EditorStack {
       const s = this.stack[i]
       assert(s)
       l.classList.toggle('link-warning', s.unsavedChanges)
-      l.setAttribute('title', i ? `${s.fullTitle}: "${s.currentName()}"` : s.fullTitle)
-      l.innerText = i ? `${s.briefTitle}: "${s.currentName()}"` : s.briefTitle
+      l.setAttribute('title', i ? `${s.fullTitle} "${s.currentName()}"` : s.fullTitle)
+      l.innerText = i ? `${s.briefTitle} "${s.currentName()}"` : s.briefTitle
       if (s.unsavedChanges) anyUnsaved = true
     })
     // I think the following is a mis-detection by eslint?

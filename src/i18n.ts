@@ -136,7 +136,7 @@ const translations = {
   'planned-pl': ['Geplante', 'Planned'],
   'list-editor-disabled-new': [
     'Bitte zunächst speichern, um hier Änderungen zu ermöglichen.',
-    'Please first save to allow changes here.' ],
+    'Please save first to allow changes here.' ],
   'Move up': ['Nach oben'],
   'Move down': ['Nach unten'],
 

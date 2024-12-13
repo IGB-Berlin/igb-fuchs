@@ -16,13 +16,13 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
+import { areWgs84CoordsValid, EMPTY_COORDS } from '../types/coords'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
-import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { setRemove } from '../types/set'
@@ -43,17 +43,26 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
+
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
+    if (!obj.template?.instructions.trim().length)
+      rowInst.classList.add('d-none')
+
     //TODO Later: Users request a bigger "Navigate to" button
     const nomCoords = obj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
+    const rowNomCoords = this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null)
+    if (!areWgs84CoordsValid(nomCoords))
+      rowNomCoords.classList.add('d-none')
+
     const actCoords = obj.actCoords.deepClone()  // don't modify the original object directly!
     const inpActCoords = makeCoordinateEditor(actCoords, false)
 
     const tzOff = getTzOffsetStr(new Date())
     const inpStart = new DateTimeInput(obj.startTime, true)
     const inpEnd = new DateTimeInput(obj.endTime, false)
-    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <>{tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-3')
     const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
     if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
@@ -66,7 +75,6 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
@@ -120,8 +128,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     this.initialize([
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null),
+      rowInst, rowNomCoords,
       this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('coord-ref')}</>, tr('invalid-coords')),
       this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,

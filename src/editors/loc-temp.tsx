@@ -42,7 +42,6 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpNomCoords = makeCoordinateEditor(nomCoords, false)
     const inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.tasklist.join('\n')}</textarea>)
 
-    // see notes in procedure.tsx about this:
     const sampStore = new ArrayStore(obj.samples)
     const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))

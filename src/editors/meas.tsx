@@ -37,7 +37,6 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     const measType :[MeasurementType] = [obj.type]
     const mtStore = new ArrayStore(measType)
-
     const inpType = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
     btnTypeEdit.addEventListener('click', () => {
@@ -54,6 +53,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     })
     const grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
+    const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
+    const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
+
     //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
     //TODO Later: Auto focus the measurement input - and perhaps highlight it for user friendliness?
     const inpValue = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold font-monospace"
@@ -63,11 +65,6 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {inpValue} {lblUnit} </div>)
     const lblRange = <span></span>
     const lblPrc = <span></span>
-
-    /* TODO: Disallow edits to "Instruction" in general,
-     * - change help text and the terminology ("instructions"?) to reflect that
-     * - Don't display instructions when empty (CSS :has and :empty?) */
-    const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
 
     const inpTime = new DateTimeInput(obj.time, true)
 
@@ -81,6 +78,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       const p = measType[0].precision
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
       typeInst.value = measType[0].instructions
+      rowInst.classList.toggle('d-none', !measType[0].instructions.trim().length)
       inpValue.pattern = measType[0].validPattern
       grpType.dispatchEvent(new CustomChangeEvent())
       this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: '0' }))  // essentially a bubbling of the event (see above)
@@ -92,8 +90,8 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     this.currentName = () => measType[0].name
 
     this.initialize([
-      this.makeRow(grpType, tr('meas-type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
-      this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null),
+      this.makeRow(grpType, tr('Measurement Type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
+      rowInst,
       this.makeRow(grpValue, tr('Value'),
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),

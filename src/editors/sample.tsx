@@ -47,6 +47,11 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
 
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
 
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
+    if (!obj.template?.instructions.trim().length)
+      rowInst.classList.add('d-none')
+
     const inpQualGood = safeCastElement(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
     const inpQualQuest = safeCastElement(HTMLInputElement,
@@ -96,13 +101,10 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       helpBad.classList.toggle('manual-help-show')
     })
 
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
-    // see notes in procedure.tsx about this:
-    const measStore = new ArrayStore(obj.measurements)
     //TODO Later: Would it be possible to enter the measurements directly in the sample editor?
-    const measEdit = new ListEditorWithTemp(this, measStore, MeasurementEditor,
+    const measEdit = new ListEditorWithTemp(this, new ArrayStore(obj.measurements), MeasurementEditor,
       { title:tr('saved-pl')+' '+tr('Measurements'), planned:tr('planned-pl')+' '+tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurements.map(m => m.extractTemplate()))),
       obj.template?.measurementTypes )
@@ -117,7 +119,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
+      rowInst,
       this.makeRow(grpQuality, subjQualTitle, null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.elWithTitle,
