@@ -24,10 +24,11 @@ import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
 import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
+import { CustomChangeEvent } from '../events'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
+import { makeHelp } from '../help'
 import { tr } from '../i18n'
-import { CustomChangeEvent } from '../events'
 
 let _taskId = 0
 
@@ -75,11 +76,13 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
 
     const tasks = obj.template?.tasklist ?? []
     const taskStates :{ [key :string]: boolean } = Object.fromEntries(tasks.map(c => [c, obj.completedTasks.includes(c) ]))
+    const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
+    const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
     const taskEditor = <div class="my-3">
       <hr class="mt-4 mb-2" />
-      <h5>{tr('Task List')}</h5>
-      <div class="form-text mb-3 hideable-help">{tr('tasklist-help')}</div>
-      <ul class="list-group custom-tasklist">
+      <h5 class="mb-0">{tr('Task List')} {taskHelpBtn}</h5>
+      {taskHelp}
+      <ul class="list-group custom-tasklist my-2">
         {tasks.map(c => {
           const id = `tasklistCheckbox${_taskId++}`
           const cb = safeCastElement(HTMLInputElement,

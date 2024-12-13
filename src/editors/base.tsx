@@ -22,6 +22,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
+import { makeHelp } from '../help'
 import { tr } from '../i18n'
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
@@ -267,14 +268,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
   protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
-    label :string, helpText :HTMLElement|string|null, invalidText :HTMLElement|string|null) :HTMLElement {
+    label :HTMLElement|string, helpText :HTMLElement|string|null, invalidText :HTMLElement|string|null) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
-    const helpId = inpId+'_Help'
     input.setAttribute('id', inpId)
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting
-    if (helpText)
-      input.setAttribute('aria-describedby', helpId)
     if (input instanceof HTMLDivElement)  // custom <div> containing e.g. <input>s
       input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
     else { // <input>, <textarea>, <select>
@@ -282,11 +280,22 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       input.classList.add('form-control')
     }
     if (input instanceof HTMLTextAreaElement) makeTextAreaAutoHeight(input)
+    let divHelp :HTMLDivElement|string = ''
+    let btnHelp :HTMLButtonElement|string = ''
+    if (helpText) {
+      divHelp = safeCastElement(HTMLDivElement, <div class="form-text">{helpText}</div>)
+      let helpId :string
+      [helpId, btnHelp] = makeHelp(divHelp)
+      input.setAttribute('aria-describedby', helpId)
+    }
     return <div class="row mb-3">
-      <label for={inpId} class="col-sm-3 col-form-label text-end-sm">{label}</label>
+      <label for={inpId} class="col-sm-3 col-form-label text-end-sm">
+        {label}
+        {btnHelp}
+      </label>
       <div class="col-sm-9">
         {input}
-        {helpText ? <div id={helpId} class="form-text hideable-help">{helpText}</div> : '' }
+        {divHelp}
         {invalidText ? <div class="invalid-feedback">{invalidText}</div> : ''}
       </div>
     </div>

@@ -16,6 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, safeCastElement } from './jsx-dom'
+import { globalHideHelp } from './help'
 import { GlobalContext } from './main'
 import { tr } from './i18n'
 
@@ -25,12 +26,12 @@ export function makeSettings(ctx :GlobalContext) :HTMLElement {
   setTimeout(async () => {
     if (await ctx.storage.settings.get('hideHelpTexts')) {
       inpHideHelp.checked = true
-      document.body.setAttribute('data-hide-help','true')
+      globalHideHelp(true)
     }
   })
   inpHideHelp.addEventListener('change', async () => {
     await ctx.storage.settings.set('hideHelpTexts', inpHideHelp.checked)
-    document.body.setAttribute('data-hide-help', inpHideHelp.checked ? 'true' : 'false')
+    globalHideHelp(inpHideHelp.checked)
   })
   return <div>
     <div class="form-check form-switch">

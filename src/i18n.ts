@@ -42,6 +42,7 @@ const translations = {
   'Export CSV': ['CSV Export.'],
   'Information': ['Informationen'],
   'Start': ['Starten'],
+  'Help': ['Hilfe'],
 
   // import-export
   'import-export': ['Daten-Import/-Export', 'Data Import/Export'],

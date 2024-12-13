@@ -22,6 +22,7 @@ import { ListEditorWithTemp } from './list-edit'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { MeasurementEditor } from './meas'
+import { makeHelpButton } from '../help'
 import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
@@ -52,19 +53,22 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityQuest" value="questionable" aria-describedby="helpQualityQuest" />)
     const inpQualBad = safeCastElement(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityBad" value="bad" aria-describedby="helpQualityBad" />)
+    const helpGood = <div id="helpQualityGood" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-good')}</div>
+    const helpQuest = <div id="helpQualityQuest" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-quest')}</div>
+    const helpBad = <div id="helpQualityBad" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-bad')}</div>
     const grpQuality = safeCastElement(HTMLDivElement,
       <div>
         <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualGood) inpQualGood.click() }}> {inpQualGood}
           <label class="form-check-label text-success-emphasis" for="radioQualityGood"><i class="bi-check-lg"/> {tr('qf-good')}</label>
-          <div id="helpQualityGood" class="form-text hideable-help-inline ms-3">{tr('qf-desc-good')}</div>
+          {helpGood}
         </div>
         <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualQuest) inpQualQuest.click() }}> {inpQualQuest}
           <label class="form-check-label text-warning-emphasis" for="radioQualityQuest"><i class="bi-question-diamond"/> {tr('qf-questionable')}</label>
-          <div id="helpQualityQuest" class="form-text hideable-help-inline ms-3">{tr('qf-desc-quest')}</div>
+          {helpQuest}
         </div>
         <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualBad) inpQualBad.click() }}> {inpQualBad}
           <label class="form-check-label text-danger-emphasis" for="radioQualityBad"><i class="bi-exclamation-triangle" /> {tr('qf-bad')}</label>
-          <div id="helpQualityBad" class="form-text hideable-help-inline ms-3">{tr('qf-desc-bad')}</div>
+          {helpBad}
         </div>
       </div>)
     switch(obj.subjectiveQuality) {
@@ -84,6 +88,13 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     inpQualGood.addEventListener('change', updQual)
     inpQualQuest.addEventListener('change', updQual)
     inpQualBad.addEventListener('change', updQual)
+    const btnQualHelp = makeHelpButton()
+    const subjQualTitle = <>{tr('Subjective Quality')} {btnQualHelp}</>
+    btnQualHelp.addEventListener('click', () => {
+      helpGood.classList.toggle('manual-help-show')
+      helpQuest.classList.toggle('manual-help-show')
+      helpBad.classList.toggle('manual-help-show')
+    })
 
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
@@ -107,7 +118,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null),
-      this.makeRow(grpQuality, tr('Subjective Quality'), null, null),
+      this.makeRow(grpQuality, subjQualTitle, null, null),
       this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       measEdit.elWithTitle,
     ])

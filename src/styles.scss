@@ -94,12 +94,12 @@ body[data-selected-language="en"] [lang="de"] {
 body[data-selected-language="de"] [lang="en"] {
   display: none;
 }
-body[data-hide-help="true"] {
-  .hideable-help { display: none; }
-  .hideable-help-inline { display: none; }
+
+body.hide-help-texts {
+  .manual-help:not(.manual-help-show) { display: none !important; }
 }
-body:not([data-hide-help="true"]) .hideable-help-inline {
-  display: inline;
+body:not(.hide-help-texts) {
+  .help-button { display: none; }
 }
 
 // The following overrides the Bootstrap defaults for validated forms
@@ -115,6 +115,7 @@ body:not([data-hide-help="true"]) .hideable-help-inline {
 
 .custom-tasklist {
   .custom-cb-btn {
+    text-wrap: nowrap;
     padding: bs.$btn-padding-y bs.$btn-padding-x;
     border-width: var(--#{bs.$prefix}border-width);
     border-style: var(--#{bs.$prefix}border-style);

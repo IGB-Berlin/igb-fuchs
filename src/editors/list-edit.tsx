@@ -24,6 +24,7 @@ import { Editor, EditorClass } from './base'
 import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
 import { GlobalContext } from '../main'
+import { makeHelp } from '../help'
 import { tr } from '../i18n'
 
 interface ListEditorParent {
@@ -132,7 +133,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       this.selId = id
       this.enable()
     }
-    const theUl = <ul class="list-group mb-2"></ul>
+    const theUl = <ul class="list-group my-2"></ul>
     const redrawList = async (selAfter :string|null = null) => {
       const theList = await this.theStore.getAll(null)
       els.length = theList.length
@@ -186,10 +187,12 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         break }
       }
     })
+    const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
+    const [_helpId, helpBtn] = makeHelp(helpDiv)
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
-      <h5 class={texts.help?'mb-1':'mb-3'}>{texts.title}</h5>
-      {texts.help?<div class="form-text mb-3 hideable-help">{texts.help}</div>:''}
+      <h5 class="mb-0">{texts.title} {texts.help?helpBtn:''}</h5>
+      {texts.help?helpDiv:''}
       {this.el}
     </div>
 

@@ -29,12 +29,12 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
   const el = <div class="p-3 d-flex flex-column">
     {btnExportAll}
-    <div class="mt-1 hideable-help text-secondary">{tr('export-help')}</div>
+    <div class="mt-1 text-secondary">{tr('export-help')}</div>
     <div class="mt-4 input-group">
       <label class="input-group-text btn btn-outline-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
       {inpImportFile}
     </div>
-    <div class="mt-1 hideable-help text-secondary">{tr('import-help')}</div>
+    <div class="mt-1 text-secondary">{tr('import-help')}</div>
   </div>
 
   //TODO Later: The "export all" button sometimes only works once on Chrome for Android?
