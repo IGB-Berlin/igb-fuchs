@@ -31,6 +31,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
   protected override readonly form2obj :()=>Readonly<Measurement>
   protected override newObj() { return new Measurement(null) }
 
+  private readonly inpValue
   constructor(parent :EditorParent, targetStore :AbstractStore<Measurement>, targetObj :Measurement|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
@@ -57,12 +58,11 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
 
     //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
-    //TODO Later: Auto focus the measurement input - and perhaps highlight it for user friendliness?
-    const inpValue = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold font-monospace"
+    this.inpValue = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold font-monospace"
       pattern={obj.type.validPattern} value={obj.value} required />)
-    inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
+    this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
-    const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {inpValue} {lblUnit} </div>)
+    const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {this.inpValue} {lblUnit} </div>)
     const lblRange = <span></span>
     const lblPrc = <span></span>
 
@@ -79,14 +79,14 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
       typeInst.value = measType[0].instructions
       rowInst.classList.toggle('d-none', !measType[0].instructions.trim().length)
-      inpValue.pattern = measType[0].validPattern
+      this.inpValue.pattern = measType[0].validPattern
       grpType.dispatchEvent(new CustomChangeEvent())
       this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: '0' }))  // essentially a bubbling of the event (see above)
     }
     typeChange()
 
     this.form2obj = () => new Measurement({ type: measType[0],
-      value: inpValue.value, time: inpTime.timestamp })
+      value: this.inpValue.value, time: inpTime.timestamp })
     this.currentName = () => measType[0].name
 
     this.initialize([
@@ -96,5 +96,9 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
         <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
+  }
+  override shown() {
+    super.shown()
+    this.inpValue.focus()
   }
 }
