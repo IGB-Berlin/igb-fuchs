@@ -59,7 +59,6 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
     const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
 
-    /* TODO Later: Tried inputmode="decimal", but that also suffers from bug #2 (Samsung numeric keyboard doesn't have minus). */
     this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control fw-semibold font-monospace" value={obj.value} required />)
     minusSignHack(this.inpValue)
