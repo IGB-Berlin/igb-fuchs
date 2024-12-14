@@ -314,7 +314,6 @@ export class IdbStorage {
   }
 
   async import(data :unknown) :Promise<ImportResults> {
-    //TODO: Exporting then importing immediately shouldn't cause overwrite warnings
     /* Note in this function I'm only translating those messages that are *likely* to happen.
      * I'm also not using a single transaction for everything because that wouldn't work; the
      * docs for `idb` say: "Do not await other things between the start and end of your
