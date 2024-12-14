@@ -27,8 +27,8 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj: ()=>Readonly<SamplingLocationTemplate>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new SamplingLocationTemplate(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {

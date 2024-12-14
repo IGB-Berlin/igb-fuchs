@@ -30,8 +30,8 @@ import { tr } from '../i18n'
 let _checkId = 0
 
 export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingLog>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new SamplingLog(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null) {

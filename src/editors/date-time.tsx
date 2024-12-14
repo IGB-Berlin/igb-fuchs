@@ -53,8 +53,8 @@ function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
  * On top of that, the inputs only have minute precision, and we can do better than that.
  */
 export class DateTimeInput {
-  readonly el :HTMLDivElement
-  private _ts :Timestamp
+  readonly el
+  private _ts
   private readonly input
   constructor(initialTs :Timestamp|null, required :boolean) {
     this._ts = isTimestamp(initialTs) && isValidAndSetTs(initialTs) ? initialTs : NO_TIMESTAMP

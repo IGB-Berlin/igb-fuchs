@@ -27,8 +27,8 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :()=>Readonly<SamplingProcedure>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new SamplingProcedure(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null) {

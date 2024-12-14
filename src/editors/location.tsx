@@ -33,8 +33,8 @@ import { tr } from '../i18n'
 let _taskId = 0
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :(saving :boolean)=>Readonly<SamplingLocation>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new SamplingLocation(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {

@@ -27,8 +27,8 @@ import { Measurement } from '../types/meas'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :()=>Readonly<Measurement>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new Measurement(null) }
 
   private readonly inpValue

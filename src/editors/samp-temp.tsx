@@ -25,8 +25,8 @@ import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :()=>Readonly<SampleTemplate>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new SampleTemplate(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {

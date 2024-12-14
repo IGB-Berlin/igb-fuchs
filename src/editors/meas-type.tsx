@@ -23,8 +23,8 @@ import { AbstractStore } from '../storage'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :()=>Readonly<MeasurementType>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new MeasurementType(null) }
 
   constructor(parent :EditorParent, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {

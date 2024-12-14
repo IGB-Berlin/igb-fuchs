@@ -30,11 +30,11 @@ import { Tooltip } from 'bootstrap'
 import { tr } from '../i18n'
 
 class MiniMeasEditor {
-  readonly el :HTMLElement
-  readonly meas :Measurement
-  private readonly sample :Sample
-  private readonly inp :HTMLInputElement
-  private readonly inpTooltip :Tooltip
+  readonly el
+  readonly meas
+  private readonly sample
+  private readonly inp
+  private readonly inpTooltip
   constructor(sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
     this.sample = sample
     this.meas = meas
@@ -123,7 +123,7 @@ class MiniMeasEditor {
 
 export class MeasListEditor extends ListEditorTemp<MeasurementEditor, MeasurementType, Measurement> {
   private sample
-  private editors :MiniMeasEditor[] = []
+  private readonly editors :MiniMeasEditor[] = []
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
     super(parent, new ArrayStore(sample.measurements), MeasurementEditor,
       { title:tr('Measurements'), help:tr('meas-list-help') }, tr('new-meas-from-temp'),

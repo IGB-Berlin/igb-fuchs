@@ -25,11 +25,11 @@ import { makeHelpButton } from '../help'
 import { i18n, tr } from '../i18n'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
-  override readonly currentName :()=>string
-  protected override readonly form2obj :()=>Readonly<Sample>
+  override readonly currentName
+  protected override readonly form2obj
   protected override newObj() { return new Sample(null) }
 
-  private readonly measEdit :MeasListEditor
+  private readonly measEdit
   constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
