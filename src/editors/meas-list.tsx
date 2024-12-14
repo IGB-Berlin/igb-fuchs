@@ -38,9 +38,10 @@ class MiniMeasEditor {
   constructor(sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
     this.sample = sample
     this.meas = meas
-    this.inp = safeCastElement(HTMLInputElement, <input type="text" size="5" class="form-control font-monospace z-2 mini-meas-edit"
-      title="-" pattern={meas.type.validPattern} value={meas.value} />)
-    this.inp.addEventListener('click', event => event.stopPropagation())
+    this.inp = safeCastElement(HTMLInputElement, <input type="text" size="5"
+      class="form-control font-monospace z-2 mini-meas-edit text-end"
+      title="-" pattern={meas.type.validPattern} value={meas.value} />)  // needs a title or Tooltip won't init
+    this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     let info :HTMLElement|string = ''
     if (meas.type.instructions.trim().length) {
       info = <button type="button" class="btn btn-outline-secondary text-bg-tertiary" data-bs-toggle="tooltip"
@@ -59,7 +60,7 @@ class MiniMeasEditor {
       let cks :string[]
       try { cks = this.checks() }
       catch (_) { return }
-      // Everything ok, go ahead and save
+      // Everything ok so far (though there may be warnings), go ahead and save
       this.meas.value = this.inp.value
       this.meas.time = timestampNow()
       await saveCallback()
@@ -67,7 +68,7 @@ class MiniMeasEditor {
     })
     this.inpTooltip = new Tooltip(this.inp)
     this.inp.addEventListener('input', () => this.inpTooltip.hide())
-    this.checks()
+    try { this.checks() } catch (_) { /* ignore; input field will be colored */ }
   }
   private color(state :'clear'|'good'|'warn'|'err') {
     this.inp.classList.toggle('bg-success-subtle', state==='good')
@@ -77,42 +78,45 @@ class MiniMeasEditor {
     this.inp.classList.toggle('bg-danger-subtle', state==='err')
     this.inp.classList.toggle('border-danger', state==='err')
   }
-  private updateTooltip() {
-    this.inpTooltip.setContent({ '.tooltip-inner': this.inp.title })
-    this.inpTooltip.enable()
+  private updateTooltip(txt :string|null) {
+    if (txt===null) {
+      this.inp.title = '-'
+      this.inpTooltip.disable()
+    }
+    else {
+      this.inp.title = txt
+      this.inpTooltip.setContent({ '.tooltip-inner': txt })
+      this.inpTooltip.enable()
+    }
   }
   checks() :string[] {
     this.color('clear')
     let cks :string[]
     try { cks = this.plainChecks() }
-    catch (ex) {
-      this.inp.title = tr('Error') + ': ' + String(ex)
-      this.updateTooltip()
+    catch (ex) {  // validation error
+      this.updateTooltip( tr('Error') + ': ' + String(ex) )
       this.color('err')
       throw ex
     }
-    if (cks.length) {
+    if (cks.length) {  // warnings
       this.color('warn')
-      this.inp.title = tr('Warnings')+': '+cks.join('; ')
-      this.updateTooltip()
+      this.updateTooltip( tr('Warnings')+': '+cks.join('; ') )
     }
-    else {
-      this.inp.title = ''
-      this.inpTooltip.disable()
-    }
+    else this.updateTooltip(null)
     return cks
   }
   private plainChecks() :string[] {
-    if (!this.inp.value.trim().length)
-      return [tr('No input')]
+    if (!this.inp.value.trim().length) return [tr('No input')]
     const newMeas = this.meas.deepClone()
     newMeas.value = this.inp.value
-    // throwing error on validation fail is correct
+    newMeas.time = timestampNow()
+    // the following may throw an error on validation fail, which we want
     newMeas.validate(this.sample.measurements.filter(m => m!==this.meas))
     return newMeas.warningsCheck()
   }
   async close() {
     this.inpTooltip.dispose()
+    this.inp.setAttribute('readonly','readonly')  // not really needed, just playing it safe
   }
 }
 
@@ -121,22 +125,23 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
   private editors :MiniMeasEditor[] = []
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
     super(parent, new ArrayStore(sample.measurements), MeasurementEditor,
-      {title:tr('Measurements'), help:tr('meas-list-help')}, tr('new-meas-from-temp'),
+      { title:tr('Measurements'), help:tr('meas-list-help') }, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate()))) )
     this.sample = sample
-    setTimeout(async ()=>{
+    setTimeout(async ()=>{  // Workaround to call async from constructor
+      // convert planned MeasurementTypes into Measurements
       if (this.sample.template) {
         const types = Array.from(this.sample.template.measurementTypes)
         this.sample.template.measurementTypes.length = 0
-        /* The following is very similar to .addNew(), except we only fire one event so there's only one redraw
-         * and we don't call .postNew() since that would open a new editor. */
+        /* The following is very similar to .addNew(), except we only fire one event so there's
+         * only one redraw and we don't call .postNew() since that would open a new editor. */
         for (const t of types) {
           const newMeas = t.templateToObject()
           console.debug('Adding',newMeas,'...')
           const newId = await this.theStore.add(newMeas)
           console.debug('... added with id',newId)
         }
-        if (types.length)
+        if (types.length)  // fire a single update event for all measurements
           this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: null }))
       }
     })
@@ -145,7 +150,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
   protected override postNew(obj :Measurement) { this.newEditor(obj) }
   /** See `Editor.customWarnings()`: Return array of warnings, or throw error on validation fail */
   customWarnings() :string[] {
-    return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.name}: ${c}`))
+    return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.typeId}: ${c}`))
   }
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search

@@ -347,8 +347,10 @@ const translations = {
     { zero: 'Alle geplanten Messungen gespeichert', one: 'Eine geplante Messung übrig', other: '%{count} geplante Messungen übrig' },
     { zero: 'All planned measurements saved', one: 'One planned measurement left', other: '%{count} planned measurements left' } ],
   'meas-list-help': [
-    'Messwerte können in der folgenden Liste direkt eingegeben werden. Achtung: Wenn ein Messwert rot hinterlegt wird, wurde er NICHT gespeichert.',
-    'Measurement values can be entered directly in the following list. Caution: When a measurement value is highlighted red, it was NOT saved.' ],
+    'Messwerte können in der folgenden Liste direkt eingegeben werden und werden bei fehlerfreier Eingabe automatisch gespeichert und'
+    +' der Zeitstempel wird automatisch aktualisiert. Achtung: Wenn ein Messwert rot hinterlegt wird, wurde er NICHT gespeichert.',
+    'Measurement values can be entered directly in the following list and are saved automatically when they are entered without errors,'
+    +' and the timestamp is automatically updated. Caution: When a measurement value is highlighted red, it was NOT saved.' ],
 
   // editor: measurement
   'Timestamp': ['Zeitstempel'],
