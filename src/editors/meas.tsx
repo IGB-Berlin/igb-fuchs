@@ -24,6 +24,7 @@ import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
+import { minusSignHack } from '../utils'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
@@ -57,10 +58,11 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
     const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
 
-    //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
-    this.inpValue = safeCastElement(HTMLInputElement, <input type="text"
-      class="form-control fw-semibold font-monospace" inputmode="decimal"
+    /* TODO Later: Tried inputmode="decimal", but that also suffers from bug #2 (Samsung numeric keyboard doesn't have minus). */
+    this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
+      class="form-control fw-semibold font-monospace"
       pattern={obj.type.validPattern} value={obj.value} required />)
+    minusSignHack(this.inpValue)
     this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
     const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {this.inpValue} {lblUnit} </div>)

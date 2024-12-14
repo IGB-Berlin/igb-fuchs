@@ -36,3 +36,24 @@ export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
   el.addEventListener('input', update)
   setTimeout(update)
 }
+
+/** Hacky workaround for the fact that Samsung mobile keyboards for
+ * `input type="number"` or `input type="text" inputmode="decimal"`
+ * don't show a minus sign; seems to be a known issue for many years.
+ *
+ * The better solution is for affected users to install a different keyboard.
+ */
+export function minusSignHack(el :HTMLInputElement) {
+  let prevKey = ''
+  el.addEventListener('keydown', event => {
+    if (event.key==='.' && prevKey==='.') {
+      const ss = el.selectionStart
+      if (ss && el.value.substring(ss-1, ss)==='.') {
+        el.value = el.value.substring(0, ss-1) + '-' + el.value.substring(ss)
+        el.setSelectionRange(ss, ss)
+      }
+      prevKey = ''
+      event.preventDefault()
+    } else prevKey=event.key
+  })
+}

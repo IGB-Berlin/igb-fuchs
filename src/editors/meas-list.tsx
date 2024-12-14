@@ -22,6 +22,7 @@ import { ListEditorTemp } from './list-edit'
 import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
 import { MeasurementEditor } from './meas'
+import { minusSignHack } from '../utils'
 import { setRemove } from '../types/set'
 import { Sample } from '../types/sample'
 import { SampleEditor } from './sample'
@@ -38,9 +39,10 @@ class MiniMeasEditor {
   constructor(sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
     this.sample = sample
     this.meas = meas
-    this.inp = safeCastElement(HTMLInputElement, <input type="text" size="5"
-      class="form-control font-monospace z-2 mini-meas-edit text-end"
+    this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
+      class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
       title="-" pattern={meas.type.validPattern} value={meas.value} />)  // needs a title or Tooltip won't init
+    minusSignHack(this.inp)
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     this.inp.addEventListener('dblclick', event => event.stopPropagation())
     let info :HTMLElement|string = ''

@@ -20,6 +20,7 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { AbstractStore } from '../storage'
+import { minusSignHack } from '../utils'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
@@ -35,7 +36,9 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     const inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
     const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={obj.precision} min="0" step="1" />)
     const inpMin = safeCastElement(HTMLInputElement, <input type="number" value={obj.min} step="1" />)
+    minusSignHack(inpMin)
     const inpMax = safeCastElement(HTMLInputElement, <input type="number" value={obj.max} step="1" />)
+    minusSignHack(inpMax)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
     const prcToStep = () => {
