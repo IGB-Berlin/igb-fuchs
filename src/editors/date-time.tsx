@@ -66,14 +66,15 @@ export class DateTimeInput {
       this.el.dispatchEvent(new CustomChangeEvent())
     })
     this.timestamp = this._ts
-    const btnNow = <button type="button" class="btn btn-outline-primary" title={tr('Use current date and time')}>
-      <i class="bi-clock me-1"/> {tr('Now')}</button>
-    //TODO Later: in order to prevent accidental clicks, open a menu for the "Now" and "curren position" buttons
+    const btnClock = <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown"
+      aria-expanded="false"><i class="bi-clock"/><span class="visually-hidden"> {tr('Time')}</span></button>
+    const btnNow = <button type="button" class="dropdown-item">{tr('Use current time')}</button>
     btnNow.addEventListener('click', () => {
       this.timestamp = Date.now()
       this.el.dispatchEvent(new CustomChangeEvent())
     })
-    this.el = safeCastElement(HTMLDivElement, <div class="input-group"> {btnNow} {this.input} </div>)
+    this.el = safeCastElement(HTMLDivElement,
+      <div class="input-group"> {btnClock}<ul class="dropdown-menu">{btnNow}</ul> {this.input} </div>)
   }
   set timestamp(value :Timestamp) {
     this._ts = value

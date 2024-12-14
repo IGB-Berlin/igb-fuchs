@@ -28,9 +28,14 @@ const VALID_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean) :HTMLDivElement {
 
-  const btnGetCoords = <button class="btn" type="button" title={tr('Use current location')} disabled={readonly}>
-    <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
-  btnGetCoords.classList.add( readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
+  const coordIcon = <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
+  const spinIcon = <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">{tr('Please wait')}</span>
+  </div>
+  const btnCoords = <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+    disabled={readonly}>{coordIcon}</button>
+  btnCoords.classList.add( readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
+  const btnGetCoords = <button type="button" class="dropdown-item">{tr('Use current location')}</button>
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
       value={Number.isFinite(coord.wgs84lat)?coord.wgs84lat.toFixed(WGS84_PRECISION):''}
@@ -45,9 +50,9 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
   minusSignHack(inpLon)
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>
-      <i class="bi-pin-map"/><span class="visually-hidden">{tr('Show on map')}</span></a>)
+      <i class="bi-pin-map"/><span class="visually-hidden"> {tr('Show on map')}</span></a>)
   const grp = <div class="input-group">
-    {btnGetCoords}
+    {btnCoords}<ul class="dropdown-menu">{btnGetCoords}</ul>
     <span class="input-group-text d-none d-sm-flex" title={tr('Latitude')}>{tr('Lat')}</span> {inpLat}
     <span class="input-group-text d-none d-sm-flex" title={tr('Longitude')}>{tr('Lon')}</span> {inpLon}
     {mapLink}
@@ -90,34 +95,38 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
     coordsUpdated(true)
   }
 
-  const getCoordsSpin = <div class="input-group-text">
-    <div class="spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">{tr('Please wait')}</span>
-    </div>
-  </div>
   let curAlert :Alert|null = null
   btnGetCoords.addEventListener('click', () => {
-    grp.replaceChild(getCoordsSpin, btnGetCoords)
-    navigator.geolocation.getCurrentPosition(pos => {
-      grp.replaceChild(btnGetCoords, getCoordsSpin)
-      setCoords(pos.coords.latitude, pos.coords.longitude)
-    }, err => {
-      grp.replaceChild(btnGetCoords, getCoordsSpin)
-      console.log('Failed to get current position', err)
-      if (curAlert) { curAlert.close(); curAlert = null }
-      const alertDiv = <div class="alert alert-warning alert-dismissible fade show mt-1" role="alert">
-        <i class="bi-exclamation-triangle-fill"/> { tr( err.code===err.PERMISSION_DENIED ? 'geo-permission-denied'
-          : err.code===err.POSITION_UNAVAILABLE ? 'geo-unavailable'
-            : err.code===err.TIMEOUT ? 'geo-timeout'
-              : 'geo-unknown-error' )}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      el.appendChild(alertDiv)
-      const bsAlert = Alert.getOrCreateInstance(alertDiv)
-      alertDiv.addEventListener('close.bs.alert', () => { if (curAlert===bsAlert) curAlert=null })
-      alertDiv.addEventListener('closed.bs.alert', () => bsAlert.dispose() )
-      curAlert = bsAlert
-    }, { maximumAge: 1000*30, timeout: 1000*10, enableHighAccuracy: true })
+    if (readonly) throw new Error('The control should be readonly, how was the button clicked?')
+    // if we were to immediately disable the button, the dropdown wouldn't auto-hide
+    setTimeout(()=>{
+      btnCoords.setAttribute('disabled', 'disabled')
+      btnCoords.replaceChildren(spinIcon)
+      const reenable = () => {
+        btnCoords.removeAttribute('disabled')
+        btnCoords.replaceChildren(coordIcon)
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        reenable()
+        setCoords(pos.coords.latitude, pos.coords.longitude)
+      }, err => {
+        reenable()
+        console.log('Failed to get current position', err)
+        if (curAlert) { curAlert.close(); curAlert = null }
+        const alertDiv = <div class="alert alert-warning alert-dismissible fade show mt-1" role="alert">
+          <i class="bi-exclamation-triangle-fill"/> { tr( err.code===err.PERMISSION_DENIED ? 'geo-permission-denied'
+            : err.code===err.POSITION_UNAVAILABLE ? 'geo-unavailable'
+              : err.code===err.TIMEOUT ? 'geo-timeout'
+                : 'geo-unknown-error' )}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        el.appendChild(alertDiv)
+        const bsAlert = Alert.getOrCreateInstance(alertDiv)
+        alertDiv.addEventListener('close.bs.alert', () => { if (curAlert===bsAlert) curAlert=null })
+        alertDiv.addEventListener('closed.bs.alert', () => bsAlert.dispose() )
+        curAlert = bsAlert
+      }, { maximumAge: 1000*30, timeout: 1000*10, enableHighAccuracy: true })
+    })
   })
 
   const pasteHandler = (event :ClipboardEvent) => {
@@ -136,8 +145,10 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
       }
     }
   }
-  inpLat.addEventListener('paste', pasteHandler)
-  inpLon.addEventListener('paste', pasteHandler)
+  if (!readonly) {
+    inpLat.addEventListener('paste', pasteHandler)
+    inpLon.addEventListener('paste', pasteHandler)
+  }
 
   return el
 }

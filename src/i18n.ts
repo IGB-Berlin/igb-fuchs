@@ -298,8 +298,8 @@ const translations = {
   'Weather': ['Wetter'],
   'weather-help': ['Optional. Wie das Wetter während der Probenahme war.', 'Optional. How the weather during the sampling was.'],
   'log-notes-help': ['Optionale Notizen zum Messprotokoll im Allgemeinen.', 'Optional notes about the sampling log in general.'],
-  'Now': ['Jetzt'],
-  'Use current date and time': ['Aktuelles Datum und Uhrzeit verwenden'],
+  'Time': ['Zeit'],
+  'Use current time': ['Aktuelle Zeit verwenden'],
   'new-log-from-proc': [
     'Neues Messprotokoll aus Messprozedur',
     'New Sampling Log from Procedure' ],
