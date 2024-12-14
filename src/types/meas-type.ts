@@ -132,9 +132,10 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
   get typeId() {
-    //TODO Later: Or just a dash instead of "unitless"?
-    if ( this.name.trim().length && ( this.unit.trim() === this.name.trim() || this.unit.trim().toLowerCase() === 'unitless'
-      || this.unit.trim().toLowerCase() === 'dimensionless' ) ) return this.name  // e.g. `ph` instead of `ph[pH]`
-    return `${ this.name.trim().length ? this.name : '?' }[${ this.unit.trim().length ? this.unit : '?' }]`
+    const n = this.name.trim()
+    const u = this.unit.trim()
+    // e.g. `ph` instead of `ph[pH]`:
+    return n.length && ( u === n || u.toLowerCase() === 'unitless' || u.toLowerCase() === 'dimensionless' || u === '-' )
+      ? this.name : `${ n.length ? this.name : '?' }[${ u.length ? this.unit : '?' }]`
   }
 }
