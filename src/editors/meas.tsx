@@ -58,7 +58,8 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
     const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
 
     //TODO Later: Consider inputmode="decimal", but check whether that will cause the input to suffer from bug #2 (Samsung numeric keyboard doesn't have minus)
-    this.inpValue = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold font-monospace"
+    this.inpValue = safeCastElement(HTMLInputElement, <input type="text"
+      class="form-control fw-semibold font-monospace" inputmode="decimal"
       pattern={obj.type.validPattern} value={obj.value} required />)
     this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
