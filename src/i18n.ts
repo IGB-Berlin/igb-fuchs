@@ -211,7 +211,7 @@ const translations = {
     'Die Ist-Koordinaten geben den Ort an, an dem eine Probe in Wirklichkeit genommen wurde.',
     'The actual coordinates specify the place where a sample was actually taken.' ],
   'coord-help': [
-    'Koordinaten im format "Lat,Lon" (z.B. aus Google Maps) können in eins beider Felder mit Copy & Paste eingefügt werden.',
+    'Koordinaten im Format "Lat,Lon" (z.B. aus Google Maps) können in eins beider Felder mit Copy & Paste eingefügt werden.',
     'Coordinates in the format "Lat,Lon" (e.g. from Google Maps) can be inserted into either field via Copy & Paste.' ],
   'coord-ref': [ '(Referenzsystem EPSG:4326, "WGS84")', '(Reference system EPSG:4326, "WGS84")' ],
   'invalid-coords': [

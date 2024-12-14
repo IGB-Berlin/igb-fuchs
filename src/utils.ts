@@ -41,6 +41,9 @@ export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
  * `input type="number"` or `input type="text" inputmode="decimal"`
  * don't show a minus sign; seems to be a known issue for many years.
  *
+ * Note this hack doesn't work on `input type="number"` because it needs
+ * to see the two decimals, but those inputs don't allow that.
+ *
  * The better solution is for affected users to install a different keyboard.
  */
 export function minusSignHack(el :HTMLInputElement) {

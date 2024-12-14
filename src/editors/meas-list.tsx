@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { makeValidNumberPat, timestampNow } from '../types/common'
 import { MeasurementType } from '../types/meas-type'
 import { jsx, safeCastElement } from '../jsx-dom'
-import { timestampNow } from '../types/common'
 import { ListEditorTemp } from './list-edit'
 import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
@@ -41,7 +41,7 @@ class MiniMeasEditor {
     this.meas = meas
     this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
-      title="-" pattern={meas.type.validPattern} value={meas.value} />)  // needs a title or Tooltip won't init
+      pattern={makeValidNumberPat(meas.type.precision)} value={meas.value} title="-" />)  // needs a title or Tooltip won't init
     minusSignHack(this.inp)
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     this.inp.addEventListener('dblclick', event => event.stopPropagation())

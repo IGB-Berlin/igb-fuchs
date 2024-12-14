@@ -19,6 +19,7 @@ import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { MeasurementType } from '../types/meas-type'
+import { makeValidNumberPat } from '../types/common'
 import { listSelectDialog } from './list-dialog'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
@@ -60,8 +61,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     /* TODO Later: Tried inputmode="decimal", but that also suffers from bug #2 (Samsung numeric keyboard doesn't have minus). */
     this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
-      class="form-control fw-semibold font-monospace"
-      pattern={obj.type.validPattern} value={obj.value} required />)
+      class="form-control fw-semibold font-monospace" value={obj.value} required />)
     minusSignHack(this.inpValue)
     this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
@@ -82,7 +82,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       lblPrc.innerText = Number.isFinite(p) && p>=0 ? `; ${tr('precision')} ${p}` : ''
       typeInst.value = measType[0].instructions
       rowInst.classList.toggle('d-none', !measType[0].instructions.trim().length)
-      this.inpValue.pattern = measType[0].validPattern
+      this.inpValue.pattern = makeValidNumberPat(measType[0].precision)
       grpType.dispatchEvent(new CustomChangeEvent())
       this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: '0' }))  // essentially a bubbling of the event (see above)
     }

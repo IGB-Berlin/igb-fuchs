@@ -62,14 +62,14 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.unit = o?.unit ?? ''
     this.min = o && 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
     this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
-    this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) && o.precision>=0 ? o.precision : NaN
+    this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) && o.precision>=0 ? Math.floor(o.precision) : NaN
     this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions.trim() : ''
   }
   override validate(others :MeasurementType[]) {
     validateName(this.name)
     if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`${tr('Invalid unit')}: ${this.unit}`)
     if (this.min>this.max) throw new Error(`${tr('Invalid min/max value')}: ${this.min}>${this.max}`)
-    if (this.precision<0) throw new Error(`${tr('Invalid precision')}: ${this.precision}<0`)
+    if (this.precision<0 || Math.floor(this.precision)!==this.precision) throw new Error(`${tr('Invalid precision')}: ${this.precision}`)
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
@@ -118,18 +118,6 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
           ? `<= ${mx}`
           : ''
     return detail
-  }
-  /** Return a step value ("1", "0.1", "0.01", etc.) either for the precision specified in the argument, or using this object's precision. */
-  precisionAsStep(pr ?:number) :string|undefined {
-    const p = pr===undefined ? this.precision : pr
-    return Number.isFinite(p) && p>=0 ? ( p ? '0.'+('1'.padStart(p,'0')) : '1' ) : undefined
-  }
-  /** Regular expression that can be used to validate measurement value inputs of this type. */
-  get validPattern() {
-    const after = !Number.isFinite(this.precision) || this.precision<0 ? '[0-9]+'
-      : this.precision===0 ? ''  // special case: just integers (see below)
-        : this.precision===1 ? '[0-9]' : `[0-9]{1,${this.precision}}`  // one or more digits after decimal point
-    return after.length ? `^[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})$` : '^[\\-\\+]?(?!0[0-9])[0-9]+$'
   }
   get typeId() {
     const n = this.name.trim()

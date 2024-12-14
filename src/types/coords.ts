@@ -31,7 +31,6 @@ export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
 
 /** <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm */
 export const WGS84_PRECISION = 6
-export const WGS84_PRC_STEP = '0.000001'
 
 export const EMPTY_COORDS :IWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN }
 export function areWgs84CoordsValid(c :IWgs84Coordinates) {

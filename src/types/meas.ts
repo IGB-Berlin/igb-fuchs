@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate, NO_TIMESTAMP } from './common'
+import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate, NO_TIMESTAMP, makeValidNumberPat } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
 import { tr } from '../i18n'
 
@@ -48,12 +48,12 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     try { this.type.validate([]) }
     catch (ex) { throw new Error(`${tr('Invalid measurement type')}: ${String(ex)}`) }
     validateTimestamp(this.time)
-    if (!this.value.match(this.type.validPattern)) throw new Error(tr('Invalid value'))
+    if (!this.value.match('^'+makeValidNumberPat(this.type.precision)+'$')) throw new Error(tr('Invalid value'))
   }
   override warningsCheck() {
     const rv = []
     if (!isTimestampSet(this.time)) rv.push(tr('No timestamp'))
-    if (this.value.match(this.type.validPattern)) {
+    if (this.value.match('^'+makeValidNumberPat(this.type.precision)+'$')) {
       const val = Number.parseFloat(this.value)
       if (Number.isFinite(this.type.min) && val < this.type.min) rv.push(`${tr('meas-below-min')}: ${this.value} < ${this.type.min}`)
       if (Number.isFinite(this.type.max) && val > this.type.max) rv.push(`${tr('meas-above-max')}: ${this.value} > ${this.type.max}`)

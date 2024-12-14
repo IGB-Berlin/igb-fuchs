@@ -18,6 +18,14 @@
 import { Class } from '../utils'
 import { tr } from '../i18n'
 
+export function makeValidNumberPat(precision ?:number|null) {
+  const p = Math.floor(precision ?? NaN)
+  const after = !Number.isFinite(p) || p<0 ? '[0-9]+'
+    : p===0 ? ''  // special case: just integers (see below)
+      : p===1 ? '[0-9]' : `[0-9]{1,${p}}`  // one or more digits after decimal point
+  return after.length ? `[\\-\\+]?(?:(?!0[0-9])[0-9]+(?:\\.${after})?|\\.${after})` : '[\\-\\+]?(?!0[0-9])[0-9]+'
+}
+
 export function isArrayOf<T extends object>(cls :Class<T>, o :unknown) :o is T[] {
   return Array.isArray(o) && o.every(e => e instanceof cls) }
 

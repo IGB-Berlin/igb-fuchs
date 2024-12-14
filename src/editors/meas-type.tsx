@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
+import { makeValidNumberPat, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { AbstractStore } from '../storage'
 import { minusSignHack } from '../utils'
@@ -34,25 +34,32 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
 
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
-    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={obj.precision} min="0" step="1" />)
-    const inpMin = safeCastElement(HTMLInputElement, <input type="number" value={obj.min} step="1" />)
+    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={Math.floor(obj.precision)} min="0" step="1" />)
+    // inpPrc can use type="number" b/c we don't need negative numbers there
+    const inpMin = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.min)?obj.min:''} />)
     minusSignHack(inpMin)
-    const inpMax = safeCastElement(HTMLInputElement, <input type="number" value={obj.max} step="1" />)
+    const inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.max)?obj.max:''} />)
     minusSignHack(inpMax)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
-    const prcToStep = () => {
-      const s = obj.precisionAsStep(inpPrc.valueAsNumber)
-      if (s) { inpMin.step = s; inpMax.step = s }
+    const prcToPat = () => {
+      const pat = makeValidNumberPat(inpPrc.valueAsNumber)
+      inpMin.pattern = pat
+      inpMax.pattern = pat
     }
-    inpPrc.addEventListener('change', prcToStep)
-    prcToStep()
+    inpPrc.addEventListener('change', prcToPat)
+    prcToPat()
 
-    this.form2obj = () => new MeasurementType({ name: inpName.value, unit: inpUnit.value,
-      min: Number.isFinite(inpMin.valueAsNumber) ? inpMin.valueAsNumber : -Infinity,
-      max: Number.isFinite(inpMax.valueAsNumber) ? inpMax.valueAsNumber : +Infinity,
-      precision: Number.isFinite(inpPrc.valueAsNumber) && inpPrc.valueAsNumber>=0 ? inpPrc.valueAsNumber : NaN,
-      instructions: inpInst.value.trim() })
+    this.form2obj = () => {
+      const prc = inpPrc.valueAsNumber
+      const min = Number.parseFloat(inpMin.value)
+      const max = Number.parseFloat(inpMax.value)
+      return new MeasurementType({ name: inpName.value, unit: inpUnit.value,
+        min: Number.isFinite(min) ? min : -Infinity,
+        max: Number.isFinite(max) ? max : +Infinity,
+        precision: Number.isFinite(prc) && prc>=0 ? Math.floor(prc) : NaN,
+        instructions: inpInst.value.trim() })
+    }
     this.currentName = () => inpName.value
 
     this.initialize([

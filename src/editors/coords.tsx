@@ -15,11 +15,16 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { IWgs84Coordinates, WGS84_PRC_STEP, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
+import { IWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
+import { makeValidNumberPat } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
+import { minusSignHack } from '../utils'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
+
+const _pat = makeValidNumberPat()
+const VALID_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
 
 export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean) :HTMLDivElement {
 
@@ -27,20 +32,24 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
     <i class="bi-crosshair"/><span class="visually-hidden">{tr('Use current location')}</span></button>
   btnGetCoords.classList.add( readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
   const inpLat = safeCastElement(HTMLInputElement,
-    <input type="number" min="-90" max="90" step={WGS84_PRC_STEP} value={coord.wgs84lat.toFixed(WGS84_PRECISION)}
+    <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
+      value={Number.isFinite(coord.wgs84lat)?coord.wgs84lat.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
+  minusSignHack(inpLat)
   const inpLon = safeCastElement(HTMLInputElement,
-    <input type="number" min="-180" max="180" step={WGS84_PRC_STEP} value={coord.wgs84lon.toFixed(WGS84_PRECISION)}
+    <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
+      value={Number.isFinite(coord.wgs84lon)?coord.wgs84lon.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
+  minusSignHack(inpLon)
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>
       <i class="bi-pin-map"/><span class="visually-hidden">{tr('Show on map')}</span></a>)
   const grp = <div class="input-group">
     {btnGetCoords}
-    <span class="input-group-text" title={tr('Latitude')}>{tr('Lat')}</span> {inpLat}
-    <span class="input-group-text" title={tr('Longitude')}>{tr('Lon')}</span> {inpLon}
+    <span class="input-group-text d-none d-sm-flex" title={tr('Latitude')}>{tr('Lat')}</span> {inpLat}
+    <span class="input-group-text d-none d-sm-flex" title={tr('Longitude')}>{tr('Lon')}</span> {inpLon}
     {mapLink}
   </div>
   const el = safeCastElement(HTMLDivElement, <div>{grp}</div>)
@@ -66,11 +75,11 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
   }
   coordsUpdated()
   inpLat.addEventListener('change', () => {
-    coord.wgs84lat = inpLat.valueAsNumber
+    coord.wgs84lat = Number.parseFloat(inpLat.value)
     coordsUpdated(true)
   })
   inpLon.addEventListener('change', () => {
-    coord.wgs84lon = inpLon.valueAsNumber
+    coord.wgs84lon = Number.parseFloat(inpLon.value)
     coordsUpdated(true)
   })
   const setCoords = (lat :number, lon :number) => {
@@ -114,7 +123,7 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
   const pasteHandler = (event :ClipboardEvent) => {
     const txt = event.clipboardData?.getData('text/plain')
     if (txt) {
-      const m = txt.match(/^\s*([-+]?[0-9]+(?:\.[0-9]+)?)\s*,\s*([-+]?[0-9]+(?:\.[0-9]+))?\s*$/)
+      const m = txt.match(VALID_COORD_RE)
       if (m) {
         const lat = Number.parseFloat(m[1] ?? '')
         const lon = Number.parseFloat(m[2] ?? '')
