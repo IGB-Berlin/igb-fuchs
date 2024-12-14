@@ -44,16 +44,16 @@ export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
  * The better solution is for affected users to install a different keyboard.
  */
 export function minusSignHack(el :HTMLInputElement) {
-  let prevKey = ''
-  el.addEventListener('keydown', event => {
-    if (event.key==='.' && prevKey==='.') {
+  let prevWasDot = false
+  el.addEventListener('input', event => {
+    if (!(event instanceof InputEvent)) return
+    if (event.data==='.' && prevWasDot) {
       const ss = el.selectionStart
-      if (ss && el.value.substring(ss-1, ss)==='.') {
-        el.value = el.value.substring(0, ss-1) + '-' + el.value.substring(ss)
-        el.setSelectionRange(ss, ss)
+      if (ss && ss>1 && el.value.substring(ss-2, ss)==='..') {
+        el.value = el.value.substring(0, ss-2) + '-' + el.value.substring(ss)
+        el.setSelectionRange(ss-1, ss-1)
       }
-      prevKey = ''
-      event.preventDefault()
-    } else prevKey=event.key
+      prevWasDot = false
+    } else prevWasDot = event.data==='.'
   })
 }
