@@ -42,6 +42,7 @@ class MiniMeasEditor {
       class="form-control font-monospace z-2 mini-meas-edit text-end"
       title="-" pattern={meas.type.validPattern} value={meas.value} />)  // needs a title or Tooltip won't init
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
+    this.inp.addEventListener('dblclick', event => event.stopPropagation())
     let info :HTMLElement|string = ''
     if (meas.type.instructions.trim().length) {
       info = <button type="button" class="btn btn-outline-secondary text-bg-tertiary" data-bs-toggle="tooltip"

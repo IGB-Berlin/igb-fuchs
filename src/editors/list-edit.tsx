@@ -165,7 +165,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
             })
           }
           els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
-            data-id={id} onclick={()=>selectItem(id)}>{content}</li>
+            data-id={id} onclick={()=>selectItem(id)} ondblclick={()=>this.newEditor(item)}>{content}</li>
         } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
@@ -201,7 +201,6 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
       {this.el}
     </div>
 
-    //TODO Later: Double click an entry to edit
     this.btnEdit.addEventListener('click', async () => {
       if (this.selId===null) return  // shouldn't happen
       this.newEditor(await this.theStore.get(this.selId))
