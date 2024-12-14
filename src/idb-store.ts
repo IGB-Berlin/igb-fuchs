@@ -183,7 +183,11 @@ class TypedIdStore<I extends ISamplingLog|ISamplingProcedure|IDummyObj, O extend
     const rv :[string,O][] = []
     // Array.fromAsync() was added in 2024, so wait a while before we use that...
     for await (const r of this.getAllAsync(except)) rv.push(r)
-    //TODO Later: consider sorting .getAll results
+    const o = rv[0]?.[1]
+    if (o instanceof SamplingLog)
+      rv.sort((a,b) => (a[1] as SamplingLog).logId.localeCompare((b[1] as SamplingLog).logId))
+    else if (o instanceof SamplingProcedure)
+      rv.sort((a,b) => (a[1] as SamplingProcedure).name.localeCompare((b[1] as SamplingProcedure).name))
     return rv
   }
   override async get(key :string) :Promise<O> {
