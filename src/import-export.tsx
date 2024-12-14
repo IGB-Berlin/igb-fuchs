@@ -16,6 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
+import { CustomStoreEvent } from './events'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
 import { shareFile } from './share'
@@ -42,7 +43,6 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     //TODO Later: Perhaps include a date in the filename
     shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-fuchs.json', { type: 'application/json' } ) ) )
 
-  //TODO: Import needs to update the ListEditors on the Home page
   inpImportFile.addEventListener('change', async () => {
     const files = inpImportFile.files
     if (!files || files.length!==1) return
@@ -59,6 +59,7 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     else await infoDialog('info', tr('Import Data'),
       <><p><strong class="text-success">{tr('import-success')}</strong></p>
         {infos}</>)
+    el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
     inpImportFile.value = ''
   })
 

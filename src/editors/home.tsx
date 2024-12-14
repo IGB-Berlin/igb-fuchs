@@ -22,9 +22,11 @@ import { samplingLogToCsv } from '../types/log2csv'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { SamplingLog } from '../types/sampling'
 import { SamplingLogEditor } from './samp-log'
+import { CustomStoreEvent } from '../events'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { shareFile } from '../share'
+import { assert } from '../utils'
 import { tr } from '../i18n'
 
 let _accId = 0
@@ -61,6 +63,12 @@ export function makeHomePage(ctx :GlobalContext) {
   const procEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, {title:tr('Sampling Procedures')})
 
   const inpExp = makeImportExport(ctx)
+  // inform the list editors of the import so they update themselves
+  inpExp.addEventListener(CustomStoreEvent.NAME, event => {
+    assert(event instanceof CustomStoreEvent)
+    logEdit.el.dispatchEvent(new CustomStoreEvent(event.detail))
+    procEdit.el.dispatchEvent(new CustomStoreEvent(event.detail))
+  })
 
   const settings = makeSettings(ctx)
 
