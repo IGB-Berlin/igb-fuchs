@@ -69,7 +69,8 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     validateName(this.name)
     if (!this.unit.match(VALID_UNIT_RE)) throw new Error(`${tr('Invalid unit')}: ${this.unit}`)
     if (this.min>this.max) throw new Error(`${tr('Invalid min/max value')}: ${this.min}>${this.max}`)
-    if (this.precision<0 || Math.floor(this.precision)!==this.precision) throw new Error(`${tr('Invalid precision')}: ${this.precision}`)
+    if (this.precision<0 || !isNaN(this.precision) && Math.floor(this.precision)!==this.precision)
+      throw new Error(`${tr('Invalid precision')}: ${this.precision}`)
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
   }
