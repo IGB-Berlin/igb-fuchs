@@ -20,35 +20,41 @@ import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { SamplingProcedureEditor } from './editors/samp-proc'
 import { SamplingLogEditor } from './editors/samp-log'
+import { samplingLogToCsv } from './types/log2csv'
 import { CustomStoreEvent } from './events'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
+import * as zip from '@zip.js/zip.js'
 import { shareFile } from './share'
 import { assert } from './utils'
 import { tr } from './i18n'
-import { samplingLogToCsv } from './types/log2csv'
+
+async function zipFiles(name :string, files :File[]) {
+  const zw = new zip.ZipWriter(new zip.BlobWriter('application/zip'))
+  await Promise.all( files.map(f => zw.add(f.name, new zip.BlobReader(f)) ) )
+  return new File([await zw.close()], name, { type: 'application/zip' })
+}
 
 export function makeImportExport(ctx :GlobalContext,
   logEdit: ListEditorWithTemp<SamplingLogEditor, SamplingProcedure, SamplingLog>,
   procEdit: ListEditor<SamplingProcedureEditor, SamplingProcedure>) :HTMLElement {
-  //TODO: This can be expanded a lot, e.g. exporting individual Procedures would be very useful
+  //TODO Later: Could offer a function for selecting multiple logs/procedures to export
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
     <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
   const el = <div class="p-3 d-flex flex-column">
-    {btnExportAll}
-    <div class="mt-1 text-secondary">{tr('export-help')}</div>
-    <div class="mt-4 input-group">
+    <div class="mt-1 mb-4">{tr('export-help')}</div>
+    <div class="mt-1 input-group">
       <label class="input-group-text btn btn-outline-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
       {inpImportFile}
     </div>
-    <div class="mt-1 text-secondary">{tr('import-help')}</div>
+    <div class="mt-1 text-secondary mb-4">{tr('import-help')}</div>
+    {btnExportAll}
+    <div class="mt-1 text-secondary">{tr('export-all-help')}</div>
   </div>
 
   //TODO Later: The "export all" button sometimes only works once on Chrome for Android?
-  btnExportAll.addEventListener('click', async () =>
-    //TODO Later: Perhaps include a date in the filename
-    shareFile( new File( [JSON.stringify( await ctx.storage.export(), null, 2 )], 'igb-fuchs.json', { type: 'application/json' } ) ) )
+  btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
   inpImportFile.addEventListener('change', async () => {
     const files = inpImportFile.files
@@ -72,9 +78,17 @@ export function makeImportExport(ctx :GlobalContext,
     inpImportFile.value = ''
   })
 
-  const btnShare = safeCastElement(HTMLButtonElement,
-    <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
-  logEdit.addButton(btnShare, (obj :SamplingLog) => shareFile(samplingLogToCsv(obj)))
+  procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
+    [tr('export-as-json'), (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
+  ])
+
+  logEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
+    [tr('export-as-csv'), (s :SamplingLog) => shareFile(samplingLogToCsv(s))],
+    [tr('export-as-json'), (s :SamplingLog) => shareFile(ctx.storage.exportOne(s))],
+    [tr('export-as-zip'), async (s :SamplingLog) =>
+      await shareFile( await zipFiles( ctx.storage.filenameForZip(s), [
+        samplingLogToCsv(s), ctx.storage.exportOne(s) ])) ],
+  ])
 
   return el
 }

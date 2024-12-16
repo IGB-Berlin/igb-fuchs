@@ -31,6 +31,14 @@ const dateToLocalString = (date :Date) :string =>
   `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
     +`T${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 
+// I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
+/** Turn a date into a string suitable for use in a filename (local time). */
+export const dateToLocalFilenameString = (date :Date) :string =>
+  `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}-`
+    +date.getHours().toString().padStart(2, '0')
+    +date.getMinutes().toString().padStart(2, '0')
+    +date.getSeconds().toString().padStart(2, '0')
+
 function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
   const t = el.valueAsNumber
   if (!Number.isFinite(t)) return null

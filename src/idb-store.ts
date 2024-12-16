@@ -19,6 +19,7 @@ import { ISamplingLog, ISamplingProcedure, isISamplingLog, isISamplingProcedure,
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'
+import { dateToLocalFilenameString } from './editors/date-time'
 import { hasId, timestampNow } from './types/common'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
@@ -28,8 +29,11 @@ import { i18n, tr } from './i18n'
 import { assert } from './utils'
 
 const IDB_NAME = 'IGB-FUCHS'
+const JSON_COMMENT = 'This is a data file for IGB-FUCHS: https://fuchs.igb-berlin.de/'
 
-interface AllData {
+interface JsonFileFormat {
+  _comment :typeof JSON_COMMENT,
+  version :0,
   samplingLogs: { [key :string]: ISamplingLog }
   samplingProcedures: { [key :string]: ISamplingProcedure }
 }
@@ -301,8 +305,8 @@ export class IdbStorage {
     if (durMs>50) console.log('updateTemplates took', durMs, 'ms')
   }
 
-  async export() :Promise<AllData> {
-    const data :AllData = { samplingLogs: {}, samplingProcedures: {} }
+  async export() :Promise<File> {
+    const data :JsonFileFormat = { _comment: JSON_COMMENT, version: 0, samplingLogs: {}, samplingProcedures: {} }
     const stores = ['samplingLogs', 'samplingProcedures'] as const
     const trans = this.db.transaction(stores, 'readonly')
     await Promise.all(stores.map(async storeName => {
@@ -314,7 +318,24 @@ export class IdbStorage {
           : isISamplingProcedure(cur.value) ? new SamplingProcedure(cur.value).toJSON('')
             : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
-    return data
+    const filename = `fuchs-export_${dateToLocalFilenameString(new Date())}.json`
+    return new File( [JSON.stringify( data, null, 2 )], filename, { type: 'application/json' } )
+  }
+
+  // This could be static but whatever
+  exportOne(obj :SamplingProcedure|SamplingLog) :File {
+    const data :JsonFileFormat = { _comment: JSON_COMMENT, version: 0, samplingLogs: {}, samplingProcedures: {} }
+    if (obj instanceof SamplingProcedure) data.samplingProcedures[obj.id] = obj
+    else data.samplingLogs[obj.id] = obj
+    const name = obj instanceof SamplingLog ? 'log_'+obj.logId : 'procedure_'+obj.name
+    const filename = `fuchs-${name}_${dateToLocalFilenameString(new Date())}.json`
+    return new File( [JSON.stringify( data, null, 2 )], filename, { type: 'application/json' } )
+  }
+
+  // This could be static but whatever
+  /** This is just here so that all the filename generation code is in one place (see `export` and `exportOne`) */
+  filenameForZip(obj :SamplingLog) :string {
+    return `fuchs-log_${obj.logId}_${dateToLocalFilenameString(new Date())}.zip`
   }
 
   async import(data :unknown) :Promise<ImportResults> {
@@ -326,6 +347,19 @@ export class IdbStorage {
      * Since we may need to `await` overwrite confirmation dialogs, it would fail. */
     if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
     const rv :ImportResults = { info: [], errors: [] }
+
+    let ver :number = -1
+    if ('version' in data) {
+      if (typeof data.version === 'number') {
+        if (Math.floor(data.version)!==data.version)  // not an int
+          rv.errors.push(`Version not an integer: '${data.version}'`)
+        else ver = data.version
+      } else rv.errors.push(`Version isn't (stored as) a number: '${String(data.version)}'`)
+    } else ver = 0  // versions up to v0.0.3-alpha didn't include `version: 0` in data
+    if (ver!==0) {
+      rv.errors.push(`Import failed: Unsupported data version ${String(ver)}`)
+      return rv
+    }
 
     if ('samplingLogs' in data && data.samplingLogs && typeof data.samplingLogs==='object') {
       let counter = 0

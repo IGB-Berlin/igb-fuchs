@@ -16,10 +16,10 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, OrderedStore } from '../storage'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
-import { jsx, jsxFragment } from '../jsx-dom'
 import { Editor, EditorClass } from './base'
 import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
@@ -83,13 +83,24 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     return !this.parent.isBrandNew
   }
 
-  addButton(btn :HTMLButtonElement, onclick :(sel :B)=>void) {
-    this.extraButtons.push(btn)
-    this.btnDiv.appendChild(btn)
-    btn.addEventListener('click', async () => {
-      if (this.selId===null) return  // shouldn't happen
-      onclick( await this.theStore.get(this.selId) )
-    })
+  addDropdown(title :string|HTMLElement, items :[string|HTMLElement, (sel:B)=>unknown][]) {
+    const b = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap ms-3 mt-1"
+        data-bs-toggle="dropdown" aria-expanded="false"> {title}</button>)
+    const d = <div class="dropdown"> {b}
+      <ul class="dropdown-menu">
+        {items.map(([t, cb]) => {
+          const btn = <button type="button" class="dropdown-item">{t}</button>
+          btn.addEventListener('click', async () => {
+            if (this.selId===null) return  // shouldn't happen
+            return cb( await this.theStore.get(this.selId) )
+          })
+          return <li>{btn}</li>
+        })}
+      </ul>
+    </div>
+    this.extraButtons.push(b)
+    this.btnDiv.appendChild(d)
   }
 
   protected newEditor(obj :B|null) {

@@ -39,7 +39,6 @@ const translations = {
   'Understood': ['Verstanden'],
   'Select': ['Auswählen'],
   'From Template': ['Aus Vorlage'],
-  'Export CSV': ['CSV Export.'],
   'Information': ['Informationen'],
   'Start': ['Starten'],
   'Help': ['Hilfe'],
@@ -47,10 +46,20 @@ const translations = {
   'Caution': ['Achtung'],
 
   // import-export
+  'Export': ['Export'],
+  'Export CSV': ['CSV Export.'],
+  'export-as-csv': ['Als CSV exportieren', 'Export as CSV'],
+  'export-as-json': ['Als JSON exportieren (für Import)', 'Export as JSON (for Import)'],
+  'export-as-zip': ['Als ZIP exportieren (CSV+JSON)', 'Export as ZIP (CSV+JSON)'],
   'import-export': ['Daten-Import/-Export', 'Data Import/Export'],
   'Export All Data': ['Alle Daten Exportieren'],
   'Import Data': ['Daten Importieren'],
   'export-help': [
+    'Einzelne Messprozeduren und -protokolle können über den jeweiligen "Export" Knopf exportiert werden.'
+    +' Im JSON Format exportierte Dateien können dann hier wieder importiert werden.',
+    'Individual sampling procedures and logs can be exported by the associated "Export" button.'
+    +' Files exported in the JSON format can then be imported here.' ],
+  'export-all-help': [
     'Mit dieser Funktion werden sämtliche Daten dieser Seite/App ins JSON-Format exportiert.',
     'This function allows you to export all data from this page/app in the JSON format.' ],
   'import-help': [
