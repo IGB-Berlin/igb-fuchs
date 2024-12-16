@@ -38,10 +38,11 @@ function isHistoryState(o :unknown) :o is HistoryState {
 /* TODO Later: Users ask if we can perhaps come up with a color scheme where each type of page
  * has a different color (or color gradient) so that it's easier to identify what object level
  * we're currently on. The nestings are:
- * - Log -> Location -> Sample -> Meas. -> Type
- * - Procedure -> Location -> Sample -> Meas. Type
- * - Procedure -> Sample -> Meas. Type
- *  */
+ * - Log       -> Location -> Sample -> Meas. -> Type
+ * - Procedure -> Location -> Sample          -> Meas. Type
+ * - Procedure             -> Sample          -> Meas. Type
+ *   Violet?      Blue?       Cyan?     Green?   Yellow?
+ * */
 
 export class EditorStack {
   readonly el :HTMLElement = <div class="editor-stack"></div>

@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { makeValidNumberPat, timestampNow } from '../types/common'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { MeasurementType } from '../types/meas-type'
-import { jsx, safeCastElement } from '../jsx-dom'
 import { ListEditorTemp } from './list-edit'
 import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
@@ -128,7 +128,9 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
   private readonly editors :MiniMeasEditor[] = []
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
     super(parent, new ArrayStore(sample.measurements), MeasurementEditor,
-      { title:tr('Measurements'), help:tr('meas-list-help') }, tr('new-meas-from-temp'),
+      { title:tr('Measurements'), help:<>{tr('meas-list-help')}
+        {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</> },
+      tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate()))) )
     this.sample = sample
     setTimeout(async ()=>{  // Workaround to call async from constructor

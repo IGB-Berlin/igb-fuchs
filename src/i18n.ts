@@ -44,6 +44,7 @@ const translations = {
   'Start': ['Starten'],
   'Help': ['Hilfe'],
   'No input': ['Keine Eingabe'],
+  'Caution': ['Achtung'],
 
   // import-export
   'import-export': ['Daten-Import/-Export', 'Data Import/Export'],
@@ -350,9 +351,12 @@ const translations = {
     { zero: 'All planned measurements saved', one: 'One planned measurement left', other: '%{count} planned measurements left' } ],
   'meas-list-help': [
     'Messwerte können in der folgenden Liste direkt eingegeben werden und werden bei fehlerfreier Eingabe automatisch gespeichert und'
-    +' der Zeitstempel wird automatisch aktualisiert. Achtung: Wenn ein Messwert rot hinterlegt wird, wurde er NICHT gespeichert.',
+    +' der Zeitstempel wird automatisch aktualisiert.',
     'Measurement values can be entered directly in the following list and are saved automatically when they are entered without errors,'
-    +' and the timestamp is automatically updated. Caution: When a measurement value is highlighted red, it was NOT saved.' ],
+    +' and the timestamp is automatically updated.' ],
+  'meas-list-help-important': [
+    'Wenn ein Messwert rot hinterlegt wird, wurde er NICHT gespeichert.',
+    'When a measurement value is highlighted red, it was NOT saved.' ],
 
   // editor: measurement
   'Timestamp': ['Zeitstempel'],
