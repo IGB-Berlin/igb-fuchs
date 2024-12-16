@@ -18,15 +18,10 @@
 import { ListEditor, ListEditorWithTemp } from './list-edit'
 import { SamplingProcedureEditor } from './samp-proc'
 import { makeImportExport } from '../import-export'
-import { samplingLogToCsv } from '../types/log2csv'
-import { jsx, safeCastElement } from '../jsx-dom'
-import { SamplingLog } from '../types/sampling'
 import { SamplingLogEditor } from './samp-log'
-import { CustomStoreEvent } from '../events'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
-import { shareFile } from '../share'
-import { assert } from '../utils'
+import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 let _accId = 0
@@ -48,27 +43,17 @@ function makeAcc(title :string, body :HTMLElement|string) {
 
 export function makeHomePage(ctx :GlobalContext) {
 
-  const btnShare = safeCastElement(HTMLButtonElement,
-    <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
-
   const dummyParent = { ctx: ctx, el: null, isBrandNew: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
   const logEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor,
     { title:tr('saved-pl')+' '+tr('Sampling Logs'), planned:tr('planned-pl')+' '+tr('Sampling Logs') },
     tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
-  logEdit.addButton(btnShare, (obj :SamplingLog) => shareFile(samplingLogToCsv(obj)))
   logEdit.highlightButton('temp')
 
   const procEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, {title:tr('Sampling Procedures')})
 
-  const inpExp = makeImportExport(ctx)
-  // inform the list editors of the import so they update themselves
-  inpExp.addEventListener(CustomStoreEvent.NAME, event => {
-    assert(event instanceof CustomStoreEvent)
-    logEdit.el.dispatchEvent(new CustomStoreEvent(event.detail))
-    procEdit.el.dispatchEvent(new CustomStoreEvent(event.detail))
-  })
+  const inpExp = makeImportExport(ctx, logEdit, procEdit)
 
   const settings = makeSettings(ctx)
 

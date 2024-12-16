@@ -15,15 +15,22 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ListEditor, ListEditorWithTemp } from './editors/list-edit'
+import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
+import { SamplingProcedureEditor } from './editors/samp-proc'
+import { SamplingLogEditor } from './editors/samp-log'
 import { CustomStoreEvent } from './events'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
 import { shareFile } from './share'
 import { assert } from './utils'
 import { tr } from './i18n'
+import { samplingLogToCsv } from './types/log2csv'
 
-export function makeImportExport(ctx :GlobalContext) :HTMLElement {
+export function makeImportExport(ctx :GlobalContext,
+  logEdit: ListEditorWithTemp<SamplingLogEditor, SamplingProcedure, SamplingLog>,
+  procEdit: ListEditor<SamplingProcedureEditor, SamplingProcedure>) :HTMLElement {
   //TODO: This can be expanded a lot, e.g. exporting individual Procedures would be very useful
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
@@ -59,9 +66,15 @@ export function makeImportExport(ctx :GlobalContext) :HTMLElement {
     else await infoDialog('info', tr('Import Data'),
       <><p><strong class="text-success">{tr('import-success')}</strong></p>
         {infos}</>)
-    el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    // inform the list editors of the import so they update themselves
+    logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
     inpImportFile.value = ''
   })
+
+  const btnShare = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1"><i class="bi-share-fill"/> {tr('Export CSV')}</button>)
+  logEdit.addButton(btnShare, (obj :SamplingLog) => shareFile(samplingLogToCsv(obj)))
 
   return el
 }
