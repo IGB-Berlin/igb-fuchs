@@ -35,6 +35,14 @@ interface HistoryState { stackLen :number }
 function isHistoryState(o :unknown) :o is HistoryState {
   return !!( o && typeof o === 'object' && Object.keys(o).length===1 && 'stackLen' in o && typeof o.stackLen === 'number' && o.stackLen>0 ) }
 
+/* TODO Later: Users ask if we can perhaps come up with a color scheme where each type of page
+ * has a different color (or color gradient) so that it's easier to identify what object level
+ * we're currently on. The nestings are:
+ * - Log -> Location -> Sample -> Meas. -> Type
+ * - Procedure -> Location -> Sample -> Meas. Type
+ * - Procedure -> Sample -> Meas. Type
+ *  */
+
 export class EditorStack {
   readonly el :HTMLElement = <div class="editor-stack"></div>
   private readonly navList :HTMLElement = <div class="navbar-nav"></div>
