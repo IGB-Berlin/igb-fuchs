@@ -66,8 +66,8 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
       this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),
       this.makeRow(inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
       this.makeRow(inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
-      this.makeRow(inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')}</>, tr('Invalid minimum value')),
-      this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')}</>, tr('Invalid maximum value')),
+      this.makeRow(inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')} {tr('dot-minus-hack')}</>, tr('Invalid minimum value')),
+      this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, tr('Invalid maximum value')),
       this.makeRow(inpInst, tr('Instructions'), <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, null),
     ])
   }

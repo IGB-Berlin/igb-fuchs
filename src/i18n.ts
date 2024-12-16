@@ -413,6 +413,9 @@ const translations = {
   'temp-copied-readonly': [
     'Dieses Feld ist aus der Vorlage kopiert und kann hier nicht bearbeitet werden.',
     'This field is copied from the template and cannot be edited here.' ],
+  'dot-minus-hack': [
+    'Wenn auf der Handy-Tastatur das Minuszeichen fehlt, kann auch zweimal Punkt (.) gedrückt werden.',
+    'If your smartphone keyboard is missing the minus sign, you can also press period (.) twice.' ],
 
   // types
   'Sampling Log': ['Messprotokoll'],

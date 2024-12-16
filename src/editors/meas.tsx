@@ -95,7 +95,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       this.makeRow(grpType, tr('Measurement Type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
       rowInst,
       this.makeRow(grpValue, tr('Value'),
-        <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}</>, tr('Invalid value')),
+        <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}. {tr('dot-minus-hack')}</>, tr('Invalid value')),
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
   }
