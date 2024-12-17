@@ -41,7 +41,7 @@ function isHistoryState(o :unknown) :o is HistoryState {
  * - Log       -> Location -> Sample -> Meas. -> Type
  * - Procedure -> Location -> Sample          -> Meas. Type
  * - Procedure             -> Sample          -> Meas. Type
- *   Violet?      Blue?       Cyan?     Green?   Yellow?
+ *   Violet?      Blue?       Cyan?     Green?   Yellow? (no, not yellow, that's currently used for unsaved changes)
  * */
 
 export class EditorStack {

@@ -19,6 +19,7 @@ import { DataObjectBase } from './common'
 import { tr } from '../i18n'
 
 export interface IWgs84Coordinates {
+  //TODO NEXT: JSON.stringify turns NaN, +Infinity, and -Infinity into `null`, we need to handle that on import.
   wgs84lat :number
   wgs84lon :number
 }
