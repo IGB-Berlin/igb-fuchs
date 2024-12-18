@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { IWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
+import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION } from '../types/coords'
 import { makeValidNumberPat } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
@@ -26,7 +26,7 @@ import { tr } from '../i18n'
 const _pat = makeValidNumberPat()
 const VALID_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
 
-export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean) :HTMLDivElement {
+export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boolean) :HTMLDivElement {
 
   const coordIcon = <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
   const spinIcon = <div class="spinner-border spinner-border-sm" role="status">
@@ -38,13 +38,13 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
   const btnGetCoords = <button type="button" class="dropdown-item">{tr('Use current location')}</button>
   const inpLat = safeCastElement(HTMLInputElement,
     <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
-      value={Number.isFinite(coord.wgs84lat)?coord.wgs84lat.toFixed(WGS84_PRECISION):''}
+      value={coord.wgs84lat!==null && Number.isFinite(coord.wgs84lat)?coord.wgs84lat.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
   minusSignHack(inpLat)
   const inpLon = safeCastElement(HTMLInputElement,
     <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
-      value={Number.isFinite(coord.wgs84lon)?coord.wgs84lon.toFixed(WGS84_PRECISION):''}
+      value={coord.wgs84lon!==null && Number.isFinite(coord.wgs84lon)?coord.wgs84lon.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
   minusSignHack(inpLon)
@@ -61,20 +61,16 @@ export function makeCoordinateEditor(coord :IWgs84Coordinates, readonly :boolean
 
   const preventClick = (event :Event) => event.preventDefault()
   const coordsUpdated = (fire :boolean = false) => {
-    const c = new Wgs84Coordinates(coord)
-    try {
-      c.validate([])
+    if (areWgs84CoordsValid(coord)) {
       //TODO Later: On mobile, how to open location in *any* navigation app?
-      // No error thrown: These are valid coords, so enable the maps link:
       //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       // https://developers.google.com/maps/documentation/urls/get-started#search-action
       mapLink.href = `https://www.google.com/maps/search/?api=1&query=${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       mapLink.removeEventListener('click', preventClick)
     }
-    catch (_) {  // These are not valid coords, disable the maps link
+    else {  // These are not valid coords, disable the maps link
       mapLink.href = '#'
       mapLink.addEventListener('click', preventClick)
-      return
     }
     if (fire) el.dispatchEvent(new CustomChangeEvent())
   }

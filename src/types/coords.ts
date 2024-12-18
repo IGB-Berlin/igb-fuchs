@@ -18,25 +18,29 @@
 import { DataObjectBase } from './common'
 import { tr } from '../i18n'
 
-export interface IWgs84Coordinates {
-  //TODO NEXT: JSON.stringify turns NaN, +Infinity, and -Infinity into `null`, we need to handle that on import.
+export interface RawWgs84Coordinates {
+  wgs84lat :number|null
+  wgs84lon :number|null
+}
+export function isRawWgs84Coordinates(o :unknown) :o is RawWgs84Coordinates {
+  return !!( o && typeof o === 'object'
+    && Object.keys(o).length===2 && 'wgs84lat' in o && 'wgs84lon' in o
+    && ( o.wgs84lat===null || typeof o.wgs84lat === 'number' )
+    && ( o.wgs84lon===null || typeof o.wgs84lon === 'number' )
+  )
+}
+export interface IWgs84Coordinates extends RawWgs84Coordinates {
   wgs84lat :number
   wgs84lon :number
-}
-export function isIWgs84Coordinates(o :unknown) :o is IWgs84Coordinates {
-  if (!o || typeof o !== 'object') return false
-  if (Object.keys(o).length!==2 || !('wgs84lat' in o && 'wgs84lon' in o)) return false  // keys
-  if (typeof o.wgs84lat !== 'number' || typeof o.wgs84lon !== 'number') return false  // types
-  return true
 }
 
 /** <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm */
 export const WGS84_PRECISION = 6
 
-export const EMPTY_COORDS :IWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN }
-export function areWgs84CoordsValid(c :IWgs84Coordinates) {
-  return Number.isFinite(c.wgs84lat) && c.wgs84lat >=  -90 && c.wgs84lat <=  90
-      && Number.isFinite(c.wgs84lon) && c.wgs84lon >= -180 && c.wgs84lon <= 180 }
+export const EMPTY_COORDS :RawWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN }
+export function areWgs84CoordsValid(c :RawWgs84Coordinates) :c is IWgs84Coordinates {
+  return c.wgs84lat!==null && Number.isFinite(c.wgs84lat) && c.wgs84lat >=  -90 && c.wgs84lat <=  90
+      && c.wgs84lon!==null && Number.isFinite(c.wgs84lon) && c.wgs84lon >= -180 && c.wgs84lon <= 180 }
 
 /** EPSG:4326 Coordinates ("WGS 84")
  *
@@ -47,7 +51,7 @@ export function areWgs84CoordsValid(c :IWgs84Coordinates) {
 export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implements IWgs84Coordinates {
   wgs84lat :number
   wgs84lon :number
-  constructor(o :IWgs84Coordinates|null) {
+  constructor(o :RawWgs84Coordinates|null) {
     super()
     this.wgs84lat = o?.wgs84lat ?? NaN
     this.wgs84lon = o?.wgs84lon ?? NaN
@@ -64,11 +68,11 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
   override summaryDisplay() :[string,null] {
     return [ this.wgs84lat.toFixed(WGS84_PRECISION)+','+this.wgs84lon.toFixed(WGS84_PRECISION), null ] }
   override equals(o: unknown) {
-    return isIWgs84Coordinates(o)
+    return isRawWgs84Coordinates(o)
       && ( Number.isNaN(this.wgs84lat) && Number.isNaN(o.wgs84lat) || this.wgs84lat===o.wgs84lat )
       && ( Number.isNaN(this.wgs84lon) && Number.isNaN(o.wgs84lon) || this.wgs84lon===o.wgs84lon )
   }
-  override toJSON(_key :string) :IWgs84Coordinates {
+  override toJSON(_key :string) :RawWgs84Coordinates {
     return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
   override deepClone() { return new Wgs84Coordinates(this) }
 }

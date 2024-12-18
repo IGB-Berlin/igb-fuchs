@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { areWgs84CoordsValid, EMPTY_COORDS, IWgs84Coordinates, WGS84_PRECISION } from './coords'
+import { areWgs84CoordsValid, EMPTY_COORDS, WGS84_PRECISION } from './coords'
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { unparse as papaUnparse } from 'papaparse'
 import { MeasurementType } from './meas-type'
@@ -54,9 +54,9 @@ export function samplingLogToCsv(log :SamplingLog) :File {
     // Wgs84Coordinates: wgs84lat, wgs84lon
 
     // Coordinates: Either the actual coordinates, or (if available) the location template's nominal coordinates
-    const nomCoords = loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nomCoords) ? loc.template.nomCoords : EMPTY_COORDS
-    const actCoords = areWgs84CoordsValid(loc.actCoords) ? loc.actCoords : EMPTY_COORDS
-    const coords :IWgs84Coordinates = areWgs84CoordsValid(actCoords) ? actCoords : nomCoords
+    const nomCoords = loc.template?.nomCoords && areWgs84CoordsValid(loc.template.nominalCoords) ? loc.template.nominalCoords : EMPTY_COORDS
+    const actCoords = areWgs84CoordsValid(loc.actualCoords) ? loc.actualCoords : EMPTY_COORDS
+    const coords = areWgs84CoordsValid(actCoords) ? actCoords : nomCoords
 
     const locNotes :string[] = [
       loc.notes.trim().length ? `Location Notes: ${loc.notes.trim()}` : '',

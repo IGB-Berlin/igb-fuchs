@@ -110,6 +110,7 @@ export type Timestamp = number
 export const NO_TIMESTAMP :Timestamp = NaN
 const MIN_TIMESTAMP :Timestamp = 0  // midnight at the beginning of January 1, 1970, UTC
 const MAX_TIMESTAMP :Timestamp = new Date(3000,1,1,0,0,0,0).getTime() // Y3K problem ;-)
+//TODO NEXT: JSON.stringify turns NaN, +Infinity, and -Infinity into `null`, we need to handle that on import.
 export function isTimestamp(v :unknown) :v is Timestamp {
   return typeof v === 'number' }
 export function timestampNow() :Timestamp {

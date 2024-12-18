@@ -17,8 +17,8 @@
  */
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp,
   DataObjectWithTemplate, timestampsEqual, isArrayOf } from './common'
+import { RawWgs84Coordinates, Wgs84Coordinates, areWgs84CoordsValid, isRawWgs84Coordinates } from './coords'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
-import { IWgs84Coordinates, Wgs84Coordinates, isIWgs84Coordinates } from './coords'
 import { distanceBearing } from '../geo-func'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
@@ -28,7 +28,7 @@ const MAX_NOM_ACT_DIST_M = 200
 export interface ISamplingLocation {
   name :string
   shortDesc ?:string|null
-  actualCoords :IWgs84Coordinates
+  actualCoords :RawWgs84Coordinates
   startTime :Timestamp
   endTime :Timestamp
   notes ?:string|null
@@ -45,7 +45,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
     && 'name' in o && 'actualCoords' in o && 'startTime' in o && 'endTime' in o && 'samples' in o  // required keys
     && Object.keys(o).every(k => samplingLocationKeys.includes(k as SamplingLocationKey))  // extra keys
     // type checks
-    && typeof o.name === 'string' && isIWgs84Coordinates(o.actualCoords)
+    && typeof o.name === 'string' && isRawWgs84Coordinates(o.actualCoords)
     && isTimestamp(o.startTime) && isTimestamp(o.endTime)
     && Array.isArray(o.samples) && o.samples.every(s => isISample(s))
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
@@ -60,7 +60,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
   name :string
   shortDesc :string
-  actualCoords :IWgs84Coordinates
+  actualCoords :RawWgs84Coordinates
   get actCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.actualCoords) }
   startTime :Timestamp
   endTime :Timestamp
@@ -99,9 +99,11 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
     if (this.template) {
-      const distM = distanceBearing(this.actualCoords, this.template.nominalCoords).distKm*1000
-      if (distM > MAX_NOM_ACT_DIST_M)
-        rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+      if (areWgs84CoordsValid(this.actualCoords) && areWgs84CoordsValid(this.template.nominalCoords)) {
+        const distM = distanceBearing(this.actualCoords, this.template.nominalCoords).distKm*1000
+        if (distM > MAX_NOM_ACT_DIST_M)
+          rv.push(`${tr('large-coord-diff')} (${distM.toFixed(0)}m > ${MAX_NOM_ACT_DIST_M.toFixed(0)}m)`)
+      }
     }
     if (!skipInitWarns) {
       if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
@@ -183,7 +185,7 @@ export interface ISamplingLocationTemplate {
   name :string
   shortDesc ?:string|null
   instructions ?:string|null
-  nominalCoords :IWgs84Coordinates
+  nominalCoords :RawWgs84Coordinates
   readonly samples :ISampleTemplate[]
   readonly tasklist ?:string[]|null
 }
@@ -194,7 +196,7 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
     && 'name' in o && 'nominalCoords' in o && 'samples' in o  // required keys
     && Object.keys(o).every(k => locationTemplateKeys.includes(k as LocationTemplateKey))  // extra keys
     // type checks
-    && typeof o.name === 'string' && isIWgs84Coordinates(o.nominalCoords)
+    && typeof o.name === 'string' && isRawWgs84Coordinates(o.nominalCoords)
     && Array.isArray(o.samples) && o.samples.every(s => isISampleTemplate(s))
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
@@ -206,7 +208,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   name :string
   shortDesc :string
   instructions :string
-  nominalCoords :IWgs84Coordinates
+  nominalCoords :RawWgs84Coordinates
   get nomCoords() :Wgs84Coordinates { return new Wgs84Coordinates(this.nominalCoords) }
   /** The typical samples taken at this location. */
   readonly samples :SampleTemplate[]
