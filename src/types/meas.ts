@@ -21,13 +21,15 @@ import { tr } from '../i18n'
 
 export interface IMeasurement {
   type :IMeasurementType
-  time :Timestamp
+  time :Timestamp|null
   value :string  // stored as string to avoid any floating-point ambiguities; validated via regex
 }
 export function isIMeasurement(o :unknown) :o is IMeasurement {
   return !!( o && typeof o === 'object'
-    && Object.keys(o).length===3 && 'type' in o && 'time' in o && 'value' in o  // keys
-    && isIMeasurementType(o.type) && isTimestamp(o.time) && typeof o.value === 'string'  // types
+    && Object.keys(o).length===3 && 'type' in o && 'time' in o && 'value' in o
+    && isIMeasurementType(o.type)
+    && ( o.time === null || isTimestamp(o.time) )
+    && typeof o.value === 'string'
   )
 }
 
@@ -41,7 +43,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   constructor(o :IMeasurement|null) {
     super()
     this.type = o?.type instanceof MeasurementType ? o.type : new MeasurementType(o?.type??null)
-    this.time = o?.time ?? NO_TIMESTAMP
+    this.time = isTimestampSet(o?.time) ? o.time : NO_TIMESTAMP
     this.value = o?.value ?? ''
   }
   override validate(_others :Measurement[]) {

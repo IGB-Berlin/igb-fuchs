@@ -29,8 +29,8 @@ export interface ISamplingLocation {
   name :string
   shortDesc ?:string|null
   actualCoords :RawWgs84Coordinates
-  startTime :Timestamp
-  endTime :Timestamp
+  startTime :Timestamp|null
+  endTime ?:Timestamp|null
   notes ?:string|null
   readonly samples :ISample[]
   /** Which items from `.template.tasklist` have been marked completed. Items in this list that are not in the other are ignored; only exact string matches are considered. */
@@ -42,12 +42,13 @@ const samplingLocationKeys = ['name','shortDesc','actualCoords','startTime','end
 type SamplingLocationKey = typeof samplingLocationKeys[number] & keyof ISamplingLocation
 export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
   return !!( o && typeof o === 'object'
-    && 'name' in o && 'actualCoords' in o && 'startTime' in o && 'endTime' in o && 'samples' in o  // required keys
+    && 'name' in o && 'actualCoords' in o && 'startTime' in o && 'samples' in o  // required keys
     && Object.keys(o).every(k => samplingLocationKeys.includes(k as SamplingLocationKey))  // extra keys
     // type checks
     && typeof o.name === 'string' && isRawWgs84Coordinates(o.actualCoords)
-    && isTimestamp(o.startTime) && isTimestamp(o.endTime)
+    && ( o.startTime===null || isTimestamp(o.startTime) )
     && Array.isArray(o.samples) && o.samples.every(s => isISample(s))
+    && ( !('endTime' in o) || o.endTime===null || isTimestamp(o.endTime) )
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('notes' in o) || o.notes===null || typeof o.notes === 'string' )
     && ( !('completedTasks' in o) || o.completedTasks===null || Array.isArray(o.completedTasks) && o.completedTasks.every(t => typeof t === 'string') )
@@ -75,8 +76,8 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.name = o?.name ?? ''
     this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
     this.actualCoords = o?.actualCoords ?? new Wgs84Coordinates(null)
-    this.startTime = o?.startTime ?? NO_TIMESTAMP
-    this.endTime = o?.endTime ?? NO_TIMESTAMP
+    this.startTime = isTimestampSet(o?.startTime) ? o.startTime : NO_TIMESTAMP
+    this.endTime = isTimestampSet(o?.endTime) ? o.endTime : NO_TIMESTAMP
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.samples = o===null ? [] : isArrayOf(Sample, o.samples) ? o.samples : o.samples.map(s => new Sample(s))
     this.completedTasks = o && 'completedTasks' in o && o.completedTasks ? o.completedTasks : []
@@ -136,8 +137,9 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   override toJSON(_key :string) :ISamplingLocation {
     return { name: this.name,
       actualCoords: this.actCoords.toJSON('actualCoords'),
-      startTime: this.startTime, endTime: this.endTime,
+      startTime: this.startTime,
       samples: this.samples.map((s,si) => s.toJSON(si.toString())),
+      ...( isTimestampSet(this.endTime) && { endTime: this.endTime } ),
       ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.completedTasks.length && { completedTasks: Array.from(this.completedTasks) } ),
@@ -261,7 +263,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
   override templateToObject() :SamplingLocation {
     return new SamplingLocation({ template: this.deepClone(), name: this.name,
       shortDesc: this.shortDesc, actualCoords: this.nomCoords.deepClone(),
-      startTime: timestampNow(), endTime: NO_TIMESTAMP, samples: [], completedTasks: [], photos: [] })
+      startTime: timestampNow(), samples: [], completedTasks: [], photos: [] })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
   override summaryDisplay() { return locSummary(this) }

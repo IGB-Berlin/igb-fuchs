@@ -110,17 +110,15 @@ export type Timestamp = number
 export const NO_TIMESTAMP :Timestamp = NaN
 const MIN_TIMESTAMP :Timestamp = 0  // midnight at the beginning of January 1, 1970, UTC
 const MAX_TIMESTAMP :Timestamp = new Date(3000,1,1,0,0,0,0).getTime() // Y3K problem ;-)
-//TODO NEXT: JSON.stringify turns NaN, +Infinity, and -Infinity into `null`, we need to handle that on import.
 export function isTimestamp(v :unknown) :v is Timestamp {
   return typeof v === 'number' }
 export function timestampNow() :Timestamp {
   return Date.now() }
-export function isTimestampSet(t :Timestamp) :boolean {
-  return Number.isFinite(t) }
+export function isTimestampSet(v :unknown) :v is Timestamp {
+  return typeof v === 'number' && Number.isFinite(v) }
+export function isValidAndSetTs(v :unknown) :v is Timestamp {
+  return typeof v === 'number' && Number.isFinite(v) && v > MIN_TIMESTAMP && v < MAX_TIMESTAMP }
 export function validateTimestamp(t :Timestamp) {
-  if (!( !Number.isFinite(t) || t > MIN_TIMESTAMP && t < MAX_TIMESTAMP ))
-    throw new Error(`${tr('Invalid timestamp')}: ${t} (${new Date(t).toISOString()})`) }
-export function isValidAndSetTs(t :Timestamp) {
-  return Number.isFinite(t) && t > MIN_TIMESTAMP && t < MAX_TIMESTAMP }
-export function timestampsEqual(a :Timestamp, b :Timestamp) {
-  return Number.isNaN(a) && Number.isNaN(b) || a===b }
+  if (!isValidAndSetTs(t)) throw new Error(`${tr('Invalid timestamp')}: ${String(t)} (${new Date(t).toISOString()})`) }
+export function timestampsEqual(a :Timestamp|null|undefined, b :Timestamp|null|undefined) {
+  return ( Number.isNaN(a) || a===null || a===undefined ) && ( Number.isNaN(b) || b===null || b===undefined ) || a===b }

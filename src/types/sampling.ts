@@ -30,8 +30,8 @@ export interface ISamplingLog extends HasId {
   //TODO Later: Would be good if a log knew whether it has been exported or not, to warn users both of unexported data but also making changes to already exported data
   readonly id :string
   name :string
-  startTime :Timestamp
-  endTime :Timestamp
+  startTime :Timestamp|null
+  endTime ?:Timestamp|null
   lastModified ?:Timestamp|null
   persons ?:string|null
   weather ?:string|null
@@ -45,11 +45,13 @@ const samplingLogKeys = ['id','name','startTime','endTime','lastModified','perso
 type SamplingLogKey = typeof samplingLogKeys[number] & keyof ISamplingLog
 export function isISamplingLog(o :unknown) :o is ISamplingLog {
   return !!( o && typeof o === 'object'
-    && 'id' in o && 'name' in o && 'startTime' in o && 'endTime' in o && 'locations' in o  // required keys
+    && 'id' in o && 'name' in o && 'startTime' in o && 'locations' in o  // required keys
     && Object.keys(o).every(k => samplingLogKeys.includes(k as SamplingLogKey))  // extra keys
     // type checks
-    && typeof o.id === 'string' && typeof o.name === 'string' && isTimestamp(o.startTime) && isTimestamp(o.endTime)
+    && typeof o.id === 'string' && typeof o.name === 'string'
+    && ( o.startTime===null || isTimestamp(o.startTime) )
     && Array.isArray(o.locations) && o.locations.every(l => isISamplingLocation(l))
+    && ( !('endTime' in o) || o.endTime===null || isTimestamp(o.endTime) )
     && ( !('lastModified' in o) || o.lastModified===null || isTimestamp(o.lastModified) )
     && ( !('persons' in o) || o.persons===null || typeof o.persons === 'string' )
     && ( !('weather' in o) || o.weather===null || typeof o.weather === 'string' )
@@ -78,9 +80,9 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     super()
     this.id = o===null ? IdbStorage.newSamplingLogId() : o.id
     this.name = o?.name ?? ''
-    this.startTime = o?.startTime ?? NO_TIMESTAMP
-    this.endTime = o?.endTime ?? NO_TIMESTAMP
-    this.lastModified = o && 'lastModified' in o && o.lastModified!==null && isTimestampSet(o.lastModified) ? o.lastModified : timestampNow()
+    this.startTime = isTimestampSet(o?.startTime) ? o.startTime : NO_TIMESTAMP
+    this.endTime = isTimestampSet(o?.endTime) ? o.endTime : NO_TIMESTAMP
+    this.lastModified = isTimestampSet(o?.lastModified) ? o.lastModified : timestampNow()
     this.persons = o && 'persons' in o && o.persons!==null ? o.persons.trim() : ''
     this.weather = o && 'weather' in o && o.weather!==null ? o.weather.trim() : ''
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
@@ -131,8 +133,9 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     // not comparing template
   }
   override toJSON(_key: string): ISamplingLog {
-    return { id: this.id, name: this.name, startTime: this.startTime, endTime: this.endTime,
+    return { id: this.id, name: this.name, startTime: this.startTime,
       locations: this.locations.map((l,li) => l.toJSON(li.toString())),
+      ...( isTimestampSet(this.endTime) && { endTime: this.endTime } ),
       ...( isTimestampSet(this.lastModified) && { lastModified: this.lastModified } ),
       ...( this.persons.trim().length && { persons: this.persons.trim() } ),
       ...( this.weather.trim().length && { weather: this.weather.trim() } ),
@@ -259,7 +262,7 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
     t.commonSamples.length = 0  // no longer needed
     return new SamplingLog({ id: IdbStorage.newSamplingLogId(), template: t,
       name: this.name, locations: [], checkedTasks: [],
-      startTime: timestampNow(), endTime: NO_TIMESTAMP, lastModified: timestampNow() })
+      startTime: timestampNow(), lastModified: timestampNow() })
   }
   override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Procedure':'proc') }
   override summaryDisplay() :[string,string] {
