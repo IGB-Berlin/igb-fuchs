@@ -339,6 +339,10 @@ export class IdbStorage {
   }
 
   async import(data :unknown) :Promise<ImportResults> {
+    /* TODO: On some imports, when importing the same file twice in a row, getting
+     * overwrite warnings, plus an error message "Error on key sampLog-... DOMException:
+     * A mutation operation in the transaction failed because a constraint was not satisfied."
+     * (also on procedures) */
     /* Note in this function I'm only translating those messages that are *likely* to happen.
      * I'm also not using a single transaction for everything because that wouldn't work; the
      * docs for `idb` say: "Do not await other things between the start and end of your
