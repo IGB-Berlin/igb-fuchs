@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { validateName, DataObjectTemplate, timestampNow } from './common'
+import { validateName, DataObjectTemplate, timestampNow, numbersEqual } from './common'
 import { Measurement } from './meas'
 import { assert } from '../utils'
 import { tr } from '../i18n'
@@ -84,9 +84,9 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
   override equals(o: unknown) {
     return isIMeasurementType(o)
       && this.name===o.name && this.unit===o.unit
-      && ( Number.isNaN(this.min) && Number.isNaN(o.min) || this.min === o.min )
-      && ( Number.isNaN(this.max) && Number.isNaN(o.max) || this.max === o.max )
-      && ( Number.isNaN(this.precision) && Number.isNaN(o.precision) || this.precision === o.precision )
+      && numbersEqual(this.min, o.min)
+      && numbersEqual(this.max, o.max)
+      && numbersEqual(this.precision, o.precision)
       && this.instructions.trim() === ( o.instructions?.trim() ?? '' )
   }
   override toJSON(_key :string) :IMeasurementType {

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate, NO_TIMESTAMP, makeValidNumberPat } from './common'
+import { isTimestamp, isTimestampSet, Timestamp, validateTimestamp, DataObjectWithTemplate, NO_TIMESTAMP, makeValidNumberPat, timestampsEqual } from './common'
 import { IMeasurementType, MeasurementType, isIMeasurementType } from './meas-type'
 import { tr } from '../i18n'
 
@@ -63,7 +63,7 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
     return rv
   }
   override equals(o: unknown) {
-    return isIMeasurement(o) && this.type.equals(o.type) && this.time === o.time && this.value === o.value
+    return isIMeasurement(o) && this.type.equals(o.type) && timestampsEqual(this.time, o.time) && this.value === o.value
   }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value }

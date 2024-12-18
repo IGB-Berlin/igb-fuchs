@@ -105,6 +105,12 @@ export const VALID_NAME_RE = /^(?!CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])
 export function validateName(s :string) {
   if (!s.match(VALID_NAME_RE)) throw new Error(`${tr('Invalid name')}: ${s}`) }
 
+/** Check whether two `number`s are equal, taking into account that `NaN`s and `Infinity`s are represented as `null` in JSON. */
+export function numbersEqual(a :number|null|undefined, b :number|null|undefined) {
+  return ( !Number.isFinite(a) || a===null || a===undefined )
+      && ( !Number.isFinite(b) || b===null || b===undefined )
+      || a===b }
+
 /** Timestamp stored as number of milliseconds (like Unix Timestamp) */
 export type Timestamp = number
 export const NO_TIMESTAMP :Timestamp = NaN
@@ -120,5 +126,4 @@ export function isValidAndSetTs(v :unknown) :v is Timestamp {
   return typeof v === 'number' && Number.isFinite(v) && v > MIN_TIMESTAMP && v < MAX_TIMESTAMP }
 export function validateTimestamp(t :Timestamp) {
   if (!isValidAndSetTs(t)) throw new Error(`${tr('Invalid timestamp')}: ${String(t)} (${new Date(t).toISOString()})`) }
-export function timestampsEqual(a :Timestamp|null|undefined, b :Timestamp|null|undefined) {
-  return ( Number.isNaN(a) || a===null || a===undefined ) && ( Number.isNaN(b) || b===null || b===undefined ) || a===b }
+export function timestampsEqual(a :Timestamp|null|undefined, b :Timestamp|null|undefined) { return numbersEqual(a,b) }

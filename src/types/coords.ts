@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase } from './common'
+import { DataObjectBase, numbersEqual } from './common'
 import { tr } from '../i18n'
 
 export interface RawWgs84Coordinates {
@@ -69,8 +69,8 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
     return [ this.wgs84lat.toFixed(WGS84_PRECISION)+','+this.wgs84lon.toFixed(WGS84_PRECISION), null ] }
   override equals(o: unknown) {
     return isRawWgs84Coordinates(o)
-      && ( Number.isNaN(this.wgs84lat) && Number.isNaN(o.wgs84lat) || this.wgs84lat===o.wgs84lat )
-      && ( Number.isNaN(this.wgs84lon) && Number.isNaN(o.wgs84lon) || this.wgs84lon===o.wgs84lon )
+      && numbersEqual(this.wgs84lat, o.wgs84lat)
+      && numbersEqual(this.wgs84lon, o.wgs84lon)
   }
   override toJSON(_key :string) :RawWgs84Coordinates {
     return { wgs84lat: this.wgs84lat, wgs84lon: this.wgs84lon } }
