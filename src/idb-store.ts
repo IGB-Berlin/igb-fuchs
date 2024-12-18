@@ -339,8 +339,6 @@ export class IdbStorage {
   }
 
   async import(data :unknown) :Promise<ImportResults> {
-    /* TODO: When overwriting existing entries, getting "Error on key ... DOMException:
-     * A mutation operation in the transaction failed because a constraint was not satisfied." */
     /* Note in this function I'm only translating those messages that are *likely* to happen.
      * I'm also not using a single transaction for everything because that wouldn't work; the
      * docs for `idb` say: "Do not await other things between the start and end of your
@@ -384,7 +382,7 @@ export class IdbStorage {
             else {
               console.debug('Import key',k,'asking user: have',have,'importing',imp)
               if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-                await this.samplingLogs.add(imp); counter++ } }
+                await this.samplingLogs.upd(have,imp); counter++ } }
           }
           else { await this.samplingLogs.add(imp); counter++ }
         } catch (ex) {
@@ -418,7 +416,7 @@ export class IdbStorage {
             else {
               console.debug('Import key',k,'asking user: have',have,'importing',imp)
               if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-                await this.samplingProcedures.add(imp); counter++ } }
+                await this.samplingProcedures.upd(have,imp); counter++ } }
           }
           else { await this.samplingProcedures.add(imp); counter++ }
         } catch (ex) {
