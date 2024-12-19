@@ -20,6 +20,8 @@ import { jsx, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
 import { tr } from '../i18n'
 
+// I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
+
 export function getTzOffsetStr(date :Date) :string {
   const off = date.getTimezoneOffset()
   const hrs = Math.abs(Math.floor(off/60))
@@ -31,13 +33,24 @@ const dateToLocalString = (date :Date) :string =>
   `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
     +`T${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
 
-// I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
 /** Turn a date into a string suitable for use in a filename (local time). */
 export const dateToLocalFilenameString = (date :Date) :string =>
   `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}-`
     +date.getHours().toString().padStart(2, '0')
     +date.getMinutes().toString().padStart(2, '0')
     +date.getSeconds().toString().padStart(2, '0')
+
+/** Return the timestamp formatted as "YYYY-MM-DD HH:MM:SS" in UTC - user must add the "Z"/"UTC" suffix or equivalent! */
+export function toIsoUtc(t :Timestamp) {
+  if (!isValidAndSetTs(t)) return ''
+  const d = new Date(t)
+  return d.getUTCFullYear().toString().padStart(4,'0')
+    +'-'+(d.getUTCMonth() + 1).toString().padStart(2,'0')
+    +'-'+d.getUTCDate().toString().padStart(2,'0')
+    +' '+d.getUTCHours().toString().padStart(2,'0')
+    +':'+d.getUTCMinutes().toString().padStart(2,'0')
+    +':'+d.getUTCSeconds().toString().padStart(2,'0')
+}
 
 function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
   const t = el.valueAsNumber

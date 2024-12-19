@@ -18,6 +18,7 @@
 import { areWgs84CoordsValid, EMPTY_COORDS, WGS84_PRECISION } from './coords'
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { unparse as papaUnparse } from 'papaparse'
+import { toIsoUtc } from '../editors/date-time'
 import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
 import { SamplingLog } from './sampling'
@@ -27,7 +28,6 @@ import { assert } from '../utils'
 import { tr } from '../i18n'
 
 type CsvRow = { [key :string]: string }
-type RowWithKey = [number, CsvRow]
 
 const MAX_NOM_ACT_DIST_CSV_M = 50
 
@@ -40,7 +40,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
-  const columns = ['Timestamp','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
+  const columns = ['Timestamp_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
   // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
   const measCols = allTypes.map(t => columns.includes(t.typeId) ? t.typeId+'[]' : t.typeId)
   columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
@@ -48,13 +48,14 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
   /* ********** ********** Process the log ********** ********** */
   // SamplingLog: id, logId, name, startTime, endTime, lastModified, persons, weather, notes, checkedTasks[], locations[], template?
   const logNotes :string[] = [
-    `Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${new Date(log.startTime).toISOString()}]` : ''),
+    `Sampling Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${toIsoUtc(log.startTime)} UTC]` : ''),
     log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
     log.persons.trim().length ? `Persons: ${log.persons.trim()}` : '',
     log.weather.trim().length ? `Weather: ${log.weather.trim()}` : '',
   ]
 
-  const data :RowWithKey[] = log.locations.flatMap((loc,li) => {
+  // NOTE we keep the sorting of the locations and samples defined by the user
+  const data :CsvRow[] = log.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
     // SamplingLocation: name, shortDesc, actualCoords, startTime, endTime, notes, samples[], completedTasks[], photos[], template?
     // Wgs84Coordinates: wgs84lat, wgs84lon
@@ -74,20 +75,29 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       loc.completedTasks.length ? `Completed Tasks: ${loc.completedTasks.join(', ')}` :''
     ]
 
-    //TODO Later: Always emit one row per location even when there are no samples, so the notes get recorded
+    // if there are no samples, emit a dummy line so the notes for this location get recorded
+    if (!loc.samples.length)
+      return [{
+        Timestamp_UTC: isValidAndSetTs(loc.startTime) ? toIsoUtc(loc.startTime)+' UTC' : '',
+        Location: loc.name,
+        Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
+        Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
+        Notes: (li ? [] : logNotes).concat(locNotes).filter(s => s.length).join('; ')
+      }]
+
     return loc.samples.map((samp,si) => {
       /* ********** ********** Process the sample ********** ********** */
       // Sample: type, shortDesc, subjectiveQuality, notes, measurements[], template?
 
       const rowNotes = [samp.notes.trim(),
-        samp.shortDesc.trim().length ? `Sample: ${samp.shortDesc.trim()}` : '' ]
+        samp.shortDesc.trim().length ? `Sample Desc.: ${samp.shortDesc.trim()}` : '' ]
         .concat( li||si ? [] : logNotes )  // append log notes on the very first row
         .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
         .filter(s => s.length).join('; ')
 
       // Prepare the row
       const row :CsvRow = {  // REMEMBER to keep in sync with `columns` above!
-        // Timestamp is set below
+        // Timestamp_UTC is set below
         Location: loc.name,
         Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
         Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
@@ -117,18 +127,13 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       // Time: Time of first measurement, or time of location arrival
       const time :Timestamp = isValidAndSetTs(firstMeasTime) ? firstMeasTime
         : ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
-      row['Timestamp'] = isValidAndSetTs(time) ? new Date(time).toISOString() : ''
+      row['Timestamp_UTC'] = isValidAndSetTs(time) ? toIsoUtc(time)+' UTC' : ''
 
-      const kRow :RowWithKey = [isValidAndSetTs(time) ? time : NO_TIMESTAMP, row]
-      return kRow  /* ***** Done with row ***** */
+      return row  /* ***** Done with row ***** */
     })
   })
 
-  // sort rows by key (timestamp)
-  //TODO Later: This sort can cause the Log and Location notes to move to rows other than the first
-  data.sort((a,b) => a[0]-b[0])
-
   // https://www.papaparse.com/docs#json-to-csv
-  return new File([papaUnparse(data.map(r=>r[1]), { columns: columns, newline: '\r\n' } )],
+  return new File([papaUnparse(data, { columns: columns, newline: '\r\n' } )],
     log.logId+'.csv', { type: 'text/csv', endings: 'transparent', lastModified: log.lastModified })
 }
