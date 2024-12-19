@@ -83,11 +83,18 @@ export function makeImportExport(ctx :GlobalContext,
   ])
 
   logEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
-    [tr('export-as-csv'), (s :SamplingLog) => shareFile(samplingLogToCsv(s))],
-    [tr('export-as-json'), (s :SamplingLog) => shareFile(ctx.storage.exportOne(s))],
-    [tr('export-as-zip'), async (s :SamplingLog) =>
-      await shareFile( await zipFiles( ctx.storage.filenameForZip(s), [
-        samplingLogToCsv(s), ctx.storage.exportOne(s) ])) ],
+    [tr('export-as-csv'), async (s :SamplingLog) => {
+      const f = await samplingLogToCsv(s)
+      if (f) await shareFile(f)
+    }],
+    [tr('export-as-json'), async (s :SamplingLog) => {
+      await shareFile(ctx.storage.exportOne(s))
+    }],
+    [tr('export-as-zip'), async (s :SamplingLog) => {
+      const f = await samplingLogToCsv(s)
+      const j = ctx.storage.exportOne(s)
+      await shareFile( await zipFiles( ctx.storage.filenameForZip(s), f ? [f, j] : [j] ))
+    }],
   ])
 
   return el

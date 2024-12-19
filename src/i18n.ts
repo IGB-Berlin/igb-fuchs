@@ -91,6 +91,9 @@ const translations = {
     'Overwrite the existing object with the imported object?' ],
   'Existing object': ['Bestehendes Objekt'],
   'Imported object': ['Importiertes Objekt'],
+  'export-no-locations': [
+    'Diese Messprozedur enthält keine Messstellen, die exportierte CSV Datei wird leer sein.',
+    'This sampling log doesn\'t contain any sampling locations, the exported CSV file will be empty.' ],
 
   // editors
   'Required': ['Eingabe erforderlich'],

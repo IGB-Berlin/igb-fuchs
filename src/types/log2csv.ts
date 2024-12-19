@@ -22,14 +22,21 @@ import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
 import { SamplingLog } from './sampling'
 import { deduplicatedSet } from './set'
+import { infoDialog } from '../dialogs'
 import { assert } from '../utils'
+import { tr } from '../i18n'
 
 type CsvRow = { [key :string]: string }
 type RowWithKey = [number, CsvRow]
 
 const MAX_NOM_ACT_DIST_CSV_M = 50
 
-export function samplingLogToCsv(log :SamplingLog) :File {
+export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
+
+  if (!log.locations.length) {
+    await infoDialog('error', tr('No sampling locations'), tr('export-no-locations'))
+    return null
+  }
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
@@ -47,7 +54,6 @@ export function samplingLogToCsv(log :SamplingLog) :File {
     log.weather.trim().length ? `Weather: ${log.weather.trim()}` : '',
   ]
 
-  //TODO Later: Show error when there are no locations in an export
   const data :RowWithKey[] = log.locations.flatMap((loc,li) => {
     /* ********** ********** Process the location ********** ********** */
     // SamplingLocation: name, shortDesc, actualCoords, startTime, endTime, notes, samples[], completedTasks[], photos[], template?
