@@ -155,13 +155,13 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         Array.from(theList).forEach(([id,item],i) => {
           let content :HTMLElement = this.contentFor(item)
           if (this.theStore instanceof OrderedStore) {
-            const btnUp = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move up')}>
+            const btnUp = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
               <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
             if (!i) btnUp.setAttribute('disabled','disabled')
-            const btnDown = <button type="button" class="btn btn-sm btn-secondary" title={tr('Move down')}>
+            const btnDown = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
               <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
             if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
-            content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-row gap-1 flex-wrap justify-content-end">{btnUp}{btnDown}</div></>
+            content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-column gap-0 flex-nowrap justify-content-end">{btnUp}{btnDown}</div></>
             btnUp.addEventListener('click', async event => {
               event.stopPropagation()
               assert(this.theStore instanceof OrderedStore)

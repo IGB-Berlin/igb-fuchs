@@ -113,6 +113,10 @@ body:not(.hide-help-texts) {
   .help-button { display: none; }
 }
 
+.list-group-item:has( .mini-meas-edit ) {
+  padding: bs.$spacer * 0.25;
+}
+
 // The following overrides the Bootstrap defaults for validated forms
 .custom-checklist {
   .list-group-item:has( .form-check-input:not(:checked) ) {
