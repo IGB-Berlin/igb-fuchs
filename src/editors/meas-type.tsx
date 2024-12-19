@@ -18,9 +18,9 @@
 import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
 import { makeValidNumberPat, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { numericTextInputStuff } from '../utils'
 import { Editor, EditorParent } from './base'
 import { AbstractStore } from '../storage'
-import { minusSignHack } from '../utils'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
@@ -37,9 +37,9 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
     const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={Math.floor(obj.precision)} min="0" step="1" />)
     // inpPrc can use type="number" b/c we don't need negative numbers there
     const inpMin = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.min)?obj.min:''} />)
-    minusSignHack(inpMin)
+    numericTextInputStuff(inpMin)
     const inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.max)?obj.max:''} />)
-    minusSignHack(inpMax)
+    numericTextInputStuff(inpMax)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
     const prcToPat = () => {

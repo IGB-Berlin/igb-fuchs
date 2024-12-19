@@ -18,11 +18,11 @@
 import { makeValidNumberPat, timestampNow } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { MeasurementType } from '../types/meas-type'
+import { numericTextInputStuff } from '../utils'
 import { ListEditorTemp } from './list-edit'
 import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
 import { MeasurementEditor } from './meas'
-import { minusSignHack } from '../utils'
 import { setRemove } from '../types/set'
 import { Sample } from '../types/sample'
 import { SampleEditor } from './sample'
@@ -42,7 +42,7 @@ class MiniMeasEditor {
     this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
       pattern={makeValidNumberPat(meas.type.precision)} value={meas.value} title="-" />)  // needs a title or Tooltip won't init
-    minusSignHack(this.inp)
+    numericTextInputStuff(this.inp)
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     this.inp.addEventListener('dblclick', event => event.stopPropagation())
     let info :HTMLElement|string = ''

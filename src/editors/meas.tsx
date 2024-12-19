@@ -20,12 +20,12 @@ import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { MeasurementType } from '../types/meas-type'
 import { makeValidNumberPat } from '../types/common'
+import { numericTextInputStuff } from '../utils'
 import { listSelectDialog } from './list-dialog'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
-import { minusSignHack } from '../utils'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
@@ -61,7 +61,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
 
     this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control fw-semibold font-monospace" value={obj.value} required />)
-    minusSignHack(this.inpValue)
+    numericTextInputStuff(this.inpValue)
     this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
     const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {this.inpValue} {lblUnit} </div>)

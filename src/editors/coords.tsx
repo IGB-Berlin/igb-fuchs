@@ -18,8 +18,8 @@
 import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION } from '../types/coords'
 import { makeValidNumberPat } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
+import { numericTextInputStuff } from '../utils'
 import { CustomChangeEvent } from '../events'
-import { minusSignHack } from '../utils'
 import { Alert } from 'bootstrap'
 import { tr } from '../i18n'
 
@@ -41,13 +41,13 @@ export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boole
       value={coord.wgs84lat!==null && Number.isFinite(coord.wgs84lat)?coord.wgs84lat.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
-  minusSignHack(inpLat)
+  numericTextInputStuff(inpLat)
   const inpLon = safeCastElement(HTMLInputElement,
     <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
       value={coord.wgs84lon!==null && Number.isFinite(coord.wgs84lon)?coord.wgs84lon.toFixed(WGS84_PRECISION):''}
       required={!readonly} readonly={readonly}
       class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
-  minusSignHack(inpLon)
+  numericTextInputStuff(inpLon)
   const mapLink = safeCastElement(HTMLAnchorElement,
     <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>
       <i class="bi-pin-map"/><span class="visually-hidden"> {tr('Show on map')}</span></a>)

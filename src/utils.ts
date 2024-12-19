@@ -45,8 +45,12 @@ export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
  * to see the two decimals, but those inputs don't allow that.
  *
  * The better solution is for affected users to install a different keyboard.
+ *
+ * Also, German keyboards' numpads have a comma instead of a dot,
+ * and since we never use commas as decimal separators in this app,
+ * convert typed commas to dots.
  */
-export function minusSignHack(el :HTMLInputElement) {
+export function numericTextInputStuff(el :HTMLInputElement) {
   let prevWasDot = false
   el.addEventListener('input', event => {
     if (!(event instanceof InputEvent)) return
@@ -57,6 +61,15 @@ export function minusSignHack(el :HTMLInputElement) {
         el.setSelectionRange(ss-1, ss-1)
       }
       prevWasDot = false
-    } else prevWasDot = event.data==='.'
+    } else {
+      prevWasDot = event.data==='.'
+      if (event.data===',') {
+        const ss = el.selectionStart
+        if (ss && el.value.substring(ss-1, ss)===',') {
+          el.value = el.value.substring(0, ss-1) + '.' + el.value.substring(ss)
+          el.setSelectionRange(ss, ss)
+        }
+      }
+    }
   })
 }
