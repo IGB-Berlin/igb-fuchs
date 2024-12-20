@@ -21,19 +21,23 @@
 // We need to trick TypeScript into realizing that `self` isn't a `Window` in this file.
 declare let self: ServiceWorkerGlobalScope
 
+const GIT_COMMIT_RAW = '$Commit$'  // is updated by git filters
+const GIT_COMMIT = GIT_COMMIT_RAW.indexOf(':')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<0 ? '?'
+  : GIT_COMMIT_RAW.substring(GIT_COMMIT_RAW.indexOf(':')+2, GIT_COMMIT_RAW.lastIndexOf(' '))
+
 // `manifest` is a list of the static resources that belong to the webapp
 // `version` is a hash calculated by parcel for the static resources
 import {manifest, version} from '@parcel/service-worker'
 
 /* The name of the cache, dependent on the current version, so that when the version changes,
  * the previous cache is discarded and resources are fetched again. */
-const APP_CACHE_NAME = `IGB-FUCHS-${version}`
+const APP_CACHE_NAME = `IGB-FUCHS-${version}-${GIT_COMMIT}`
 
 // handler for the Service Worker "install" event (typically used for preloading)
 async function install() {
   // add the files for this app to the (versioned) cache
   await (await caches.open(APP_CACHE_NAME)).addAll(manifest)
-  console.debug('SW install: Added static resources to cache', manifest)
+  console.debug('SW install: Added static resources to cache', APP_CACHE_NAME, manifest)
 }
 self.addEventListener('install', e => e.waitUntil(install()))
 
@@ -48,7 +52,7 @@ async function activate() {
   }
   // activate this Service Worker on existing pages
   await self.clients.claim()
-  console.debug('SW activated')
+  console.debug('SW activated, cache',APP_CACHE_NAME)
 }
 self.addEventListener('activate', e => e.waitUntil(activate()))
 
