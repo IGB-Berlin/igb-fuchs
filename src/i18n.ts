@@ -468,7 +468,7 @@ const translations = {
   'Templates': ['Vorlagen'],
   'Logs': ['Protokolle'],
   'Log': ['Protokoll'],
-  'proc': ['Proc.', 'Proz.'],
+  'proc': ['Proz.', 'Proc.'],
   'Location': ['Stelle'],
   'loc-temp': ['Stell.-Vorl.', 'Loc.Templ.'],
   'meas': ['Mess.', 'Meas.'],
