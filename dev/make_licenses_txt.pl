@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use 5.036;
+use Text::Wrap qw/wrap/;
 use Mojo::DOM;
 use Mojo::File qw/curfile/;
 use Mojo::UserAgent;
@@ -7,6 +8,7 @@ use Mojo::UserAgent;
 my $ua = Mojo::UserAgent->new(max_redirects => 10);
 my $dom = Mojo::DOM->new( curfile->dirname->sibling('src','index.html')->slurp('UTF-8') );
 my $out = curfile->dirname->sibling('licenses.txt');
+$Text::Wrap::columns=80;
 
 my $fh = $out->open('>:raw:encoding(UTF-8)');
 say {$fh} "\nThis file contains the licenses for the libraries used in this project.\n",
@@ -20,6 +22,7 @@ $dom->find('#licensesList li')->each(sub {
   say $url;
   my $license = $ua->get($url)->result->text;
   $license =~ s/^\s+|\s+$//g;
+  $license = wrap('','',$license) if $license=~/^.{88,}$/m;
   say {$fh} $license, "\n\n##########", (" ##########" x 7);
 });
 close $fh;
