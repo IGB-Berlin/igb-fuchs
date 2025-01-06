@@ -83,7 +83,7 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   &::before {
     content: '»';
     padding-right: bs.$navbar-nav-link-padding-x;
-    }
+  }
 }
 
 .badge.sm-badge {
@@ -96,7 +96,7 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
   margin-right: auto;
 }
 .editor-form {
-  scroll-margin-top: 4em;
+  scroll-margin-top: 6em;
 }
 
 body[data-selected-language="en"] [lang="de"] {
