@@ -26,6 +26,10 @@ import { assert } from './utils'
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
 
+const GIT_COMMIT_RAW = '$Commit$'  // is updated by git filters
+const GIT_COMMIT = GIT_COMMIT_RAW.indexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<=GIT_COMMIT_RAW.indexOf(' ')
+  ? '?' : GIT_COMMIT_RAW.substring(GIT_COMMIT_RAW.indexOf(' ')+1, GIT_COMMIT_RAW.lastIndexOf(' '))
+
 // GitHub pages doesn't automatically redirect to HTTPS, but we need it for certain JS APIs to work (e.g. crypto)
 if (location.protocol.toLowerCase() === 'http:' && location.hostname.toLowerCase() !== 'localhost')
   location.replace( 'https:' + location.href.substring(location.protocol.length) )
@@ -85,7 +89,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const appVersion = document.getElementById('appVersion')
   assert(appVersion instanceof HTMLElement)
-  appVersion.innerText = process.env['npm_package_version'] ?? '(unknown)'
+  appVersion.innerText = ( process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
   appVersion.insertAdjacentElement('afterend', makeBetaVersionNoticeLink(ctx))
 
   await betaWarning(ctx)
