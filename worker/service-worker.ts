@@ -22,8 +22,8 @@
 declare let self: ServiceWorkerGlobalScope
 
 const GIT_COMMIT_RAW = '$Commit$'  // is updated by git filters
-const GIT_COMMIT = GIT_COMMIT_RAW.indexOf(':')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<0 ? '?'
-  : GIT_COMMIT_RAW.substring(GIT_COMMIT_RAW.indexOf(':')+2, GIT_COMMIT_RAW.lastIndexOf(' '))
+const GIT_COMMIT = GIT_COMMIT_RAW.indexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<=GIT_COMMIT_RAW.indexOf(' ')
+  ? '?' : GIT_COMMIT_RAW.substring(GIT_COMMIT_RAW.indexOf(' ')+1, GIT_COMMIT_RAW.lastIndexOf(' '))
 
 // `manifest` is a list of the static resources that belong to the webapp
 // `version` is a hash calculated by parcel for the static resources
