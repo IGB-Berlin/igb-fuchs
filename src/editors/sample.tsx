@@ -110,7 +110,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       notes: inpNotes.value.trim(), measurements: this.measEdit.measurements })
     this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
 
-    /* TODO Later: Consider a "Next" button to proceed to next sample? (same for locations?) */
+    //TODO: A "Next" button to proceed to next sample, or to next location when all planned samples are done.
     this.initialize([
       this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),

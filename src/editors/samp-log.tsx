@@ -38,6 +38,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     super(parent, targetStore, targetObj)
     const obj = this.initObj
 
+    //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion?
     const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
     const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
