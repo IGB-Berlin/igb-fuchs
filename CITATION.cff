@@ -13,6 +13,23 @@ authors:
     email: haukex@zero-g.net
     affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
     orcid: 'https://orcid.org/0000-0002-0554-757X'
+  - given-names: Franziska
+    family-names: Schmid
+    email: franziska.schmid@igb-berlin.de
+    affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+    orcid: 'https://orcid.org/0009-0000-7813-930X'
+  - given-names: Thomas
+    family-names: Rossoll
+    email: thomas.rossoll@igb-berlin.de
+    affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+  - given-names: Jonas
+    family-names: Freymüller
+    email: freymueller@igb-berlin.de
+    affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+  - given-names: Doerthe
+    family-names: Tetzlaff
+    affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
+    orcid: 'https://orcid.org/0000-0002-7183-8674'
   - name: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
     alias: IGB Berlin
     address: Müggelseedamm 310
