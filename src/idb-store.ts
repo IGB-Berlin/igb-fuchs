@@ -318,6 +318,7 @@ export class IdbStorage {
           : isISamplingProcedure(cur.value) ? new SamplingProcedure(cur.value).toJSON('')
             : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
+    //TODO: For all the filenames here - for better display when abbreviated, put the unique part of the fn first
     const filename = `fuchs-export_${dateToLocalFilenameString(new Date())}.json`
     return new File( [JSON.stringify( data, null, 2 )], filename, { type: 'application/json' } )
   }
