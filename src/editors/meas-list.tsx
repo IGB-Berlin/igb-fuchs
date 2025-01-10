@@ -157,6 +157,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
   customWarnings() :string[] {
     return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.typeId}: ${c}`))
   }
+  //TODO: Consider better tabindex order for mini measurement editors (and in general)
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
     if (ed) return ed.el

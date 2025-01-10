@@ -434,6 +434,8 @@ const translations = {
     'If your smartphone keyboard is missing the minus sign, you can also press period (.) twice.' ],
 
   // types
+  /* TODO: "Sampling Log"/"Messprotokoll" and "Sampling Template"/"Messprozedur" are very similar and easy to confuse,
+    especially in German. Consider renaming the latter to "Template"/"Protokoll-Vorlage"? - how would this affect data structures? */
   'Sampling Log': ['Messprotokoll'],
   'Sampling Logs': ['Messprotokolle'],
   'Sampling Procedure': ['Messprozedur'],

@@ -38,6 +38,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
     return null
   }
 
+  //TODO Later: Some users are asking for separate date and time columns, for merging with legacy datasets that have separate columns and are missing timestamps in some rows
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
   const columns = ['Timestamp_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
