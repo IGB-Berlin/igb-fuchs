@@ -9,6 +9,11 @@ the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in Berlin
 The name means "fox" in German (a smart animal that knows its way around fields)
 and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem".
 
+Installation on Mobile
+----------------------
+
+Please see [the installation instructions](src/images/IGB-FUCHS_Mobile-Installation.pdf).
+
 Alpha Version
 -------------
 
