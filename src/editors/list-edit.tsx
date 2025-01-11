@@ -132,12 +132,11 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
     this.btnEdit = <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
     const els :HTMLElement[] = []
-    const selectItem = (id :string|null, scroll :boolean = false) => {
+    const selectItem = (id :string|null) => {
       els.forEach(e => {
         if (id!==null && id===e.getAttribute('data-id')) {
           e.classList.add('active')
           e.setAttribute('aria-current', 'true')
-          if (scroll) e.scrollIntoView({ behavior: 'smooth' })
         }
         else {
           e.classList.remove('active')
@@ -180,7 +179,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
-      selectItem(selAfter, true)
+      selectItem(selAfter)
       this.enable()
     }
     setTimeout(redrawList)  // work around that we can't call the async function from the constructor

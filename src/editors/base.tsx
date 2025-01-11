@@ -133,9 +133,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
+  //TODO: Intelligently scroll to next field/button that needs input
+  /** Where the editor should scroll to when it is shown. */
+  protected showScrollTarget() :HTMLElement { return this.el }
+  /** Called by the stack when this editor is (re-)shown. */
   shown() {
     // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
     this.resetWarningsErrors()
+    this.showScrollTarget().scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 
   /** Only to be called by ListEditor when bubbling change events. */

@@ -155,8 +155,6 @@ export class EditorStack {
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
     this.redrawNavbar()
-    //TODO: Scroll behavior could be improved: don't always scroll to top, instead intelligently scroll to next field/button that needs input?
-    e.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     // save history state
     const histState :HistoryState = { stackLen: newLen }
     history.pushState(histState, '', null)
@@ -183,7 +181,6 @@ export class EditorStack {
     assert(top)
     top.el.classList.remove('d-none')
     this.redrawNavbar()
-    top.el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     top.shown()
   }
 }
