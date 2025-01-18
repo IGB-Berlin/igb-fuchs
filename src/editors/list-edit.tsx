@@ -51,6 +51,7 @@ export interface SelectedItemContainer {
 
 export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> implements EditorParent {
   readonly el :HTMLElement
+  readonly titleEl :HTMLElement
   readonly elWithTitle :HTMLElement
 
   private readonly btnDiv
@@ -212,9 +213,10 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
     })
     const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
     const [_helpId, helpBtn] = makeHelp(helpDiv)
+    this.titleEl = <h5 class="mb-0">{texts.title} {texts.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
-      <h5 class="mb-0">{texts.title} {texts.help?helpBtn:''}</h5>
+      {this.titleEl}
       {texts.help?helpDiv:''}
       {this.el}
     </div>

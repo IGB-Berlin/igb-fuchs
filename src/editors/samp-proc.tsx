@@ -69,8 +69,8 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
 
   override currentName() { return this.inpName.value }
 
-  protected override scrollTarget(_pushNotPop :boolean) {
-    return this.isBrandNew ? this.inpName : ( this.selItem.el ?? this.sampEdit.elWithTitle )
+  protected override doScroll() {
+    this.ctx.scrollTo( this.isBrandNew ? this.inpName : ( this.selItem.el ?? this.locEdit.titleEl ) )
   }
 
 }
