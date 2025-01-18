@@ -283,22 +283,22 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
+  private readonly plannedLeft :T[]
+  readonly plannedTitleEl
   constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, selItem :SelectedItemContainer|null, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
-    planned ??= []
+    this.plannedLeft = planned ?? []
 
     const theUl = <ul class="list-group"></ul>
-    const myEl = <div class="mt-1 d-none">
-      <div class="mb-2 fs-5">{texts.planned}</div>
-      {theUl}
-    </div>
+    this.plannedTitleEl = <div class="mb-2 fs-5">{texts.planned}</div>
+    const myEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {theUl} </div>
     const redrawPlanned = async () => {
-      myEl.classList.toggle('d-none', !planned.length)
-      theUl.replaceChildren(...planned.map((t,ti) => {
+      myEl.classList.toggle('d-none', !this.plannedLeft.length)
+      theUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {
-          const rm = planned.splice(ti,1)[0]  // remove the desired template from the `planned` array
+          const rm = this.plannedLeft.splice(ti,1)[0]  // remove the desired template from the `planned` array
           paranoia(rm===t)
           // this also fires an event that causes our parent editor to be told to selfUpdate, so the above change to the `planned` array is saved
           await this.addNew(t)
@@ -313,5 +313,6 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
     this.el.addEventListener(CustomStoreEvent.NAME, redrawPlanned)
     this.el.appendChild(myEl)
   }
+  get plannedLeftCount() { return this.plannedLeft.length }
   protected override makeNew(t :T) :D { return t.templateToObject() }
 }
