@@ -17,17 +17,17 @@
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { Editor, EditorClass, EditorParent } from './base'
 import { AbstractStore, OrderedStore } from '../storage'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
-import { Editor, EditorClass } from './base'
 import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
 import { GlobalContext } from '../main'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
 
-interface ListEditorParent {
+export interface ListEditorParent {  // the only bits of the Editor class we care about
   readonly ctx :GlobalContext
   readonly el :HTMLElement|null
   readonly isBrandNew :boolean
@@ -42,7 +42,14 @@ interface ILETextsWithTemp extends ILETexts {
   planned: string
 }
 
-export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
+/** For keeping track of the selected item.
+ * This is an external class because some `Editor`s contain multiple `ListEditor`s.
+ */
+export interface SelectedItemContainer {
+  el :HTMLElement|null
+}
+
+export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> implements EditorParent {
   readonly el :HTMLElement
   readonly elWithTitle :HTMLElement
 
@@ -121,7 +128,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
   protected readonly parent
   protected readonly theStore
   private readonly editorClass
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, texts :ILETexts) {
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, selItem :SelectedItemContainer|null, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
@@ -137,6 +144,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
         if (id!==null && id===e.getAttribute('data-id')) {
           e.classList.add('active')
           e.setAttribute('aria-current', 'true')
+          if (selItem) selItem.el = e
         }
         else {
           e.classList.remove('active')
@@ -234,19 +242,18 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
 
 export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
   protected abstract makeNew(t :T) :B
-  protected postNew(_obj :B) {}
   private btnTemp
   protected async addNew(template :T) {
     const newObj = this.makeNew(template)
     console.debug('Adding',newObj,'...')
     const newId = await this.theStore.add(newObj)
     this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
-    this.postNew(newObj)
-    console.debug('... added with id',newId)
+    console.debug('... added with id',newId,'now editing')
+    this.newEditor(newObj)
   }
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, texts :ILETexts,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, selItem :SelectedItemContainer|null, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
-    super(parent, theStore, editorClass, texts)
+    super(parent, theStore, editorClass, selItem, texts)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
@@ -274,9 +281,9 @@ export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTempl
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
 export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
-  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, texts :ILETextsWithTemp,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, selItem :SelectedItemContainer|null, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
-    super(parent, theStore, editorClass, texts, dialogTitle, templateSource)
+    super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
     planned ??= []
 
     const theUl = <ul class="list-group"></ul>
@@ -300,10 +307,9 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
         </li>
       }))
     }
-    setTimeout(redrawPlanned)
+    setTimeout(redrawPlanned)  // workaround for async from constructor
     this.el.addEventListener(CustomStoreEvent.NAME, redrawPlanned)
     this.el.appendChild(myEl)
   }
   protected override makeNew(t :T) :D { return t.templateToObject() }
-  protected override postNew(obj :D) { this.newEditor(obj) }
 }

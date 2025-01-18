@@ -86,7 +86,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     //TODO Later (low prio): Consider how difficult it would be to show all sampling locations on a map
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
-    const locEdit = new ListEditorWithTemp(this, new ArrayStore(obj.locations), SamplingLocationEditor,
+    const locEdit = new ListEditorWithTemp(this, new ArrayStore(obj.locations), SamplingLocationEditor, null,
       { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
       //TODO Later: In general, maybe don't filter out options, e.g. for cases where there are multiple temperature measurements
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.extractTemplate().cloneNoSamples()))),

@@ -46,7 +46,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
     const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
     const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
 
-    const measEdit = new ListEditorForTemp(this, new ArrayStore(obj.measurementTypes), MeasTypeEditor,
+    const measEdit = new ListEditorForTemp(this, new ArrayStore(obj.measurementTypes), MeasTypeEditor, null,
       {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
 

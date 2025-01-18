@@ -20,7 +20,7 @@ import { assert, paranoia } from '../utils'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-interface StackAble {  // the only bits of the Editor class we care about
+export interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
   readonly briefTitle :string
   readonly fullTitle :string
@@ -28,7 +28,7 @@ interface StackAble {  // the only bits of the Editor class we care about
   currentName() :string
   requestClose() :Promise<boolean>
   close() :Promise<void>
-  shown() :void
+  shown(pushNotPop :boolean) :void
 }
 
 interface HistoryState { stackLen :number }
@@ -118,7 +118,7 @@ export class EditorStack {
           console.debug('rejecting popstate b/c target stackLen',event.state.stackLen,'> stack.length',this.stack.length,'so go',howMany)
           history.go(howMany)
         }
-        else { // targetStackLen < this.stack.length
+        else { // event.state.stackLen < this.stack.length
           const popHowMany = this.stack.length - event.state.stackLen
           console.debug('popstate target stackLen',event.state.stackLen,'< stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
           for ( let i=0; i<popHowMany; i++ ) {
@@ -129,7 +129,7 @@ export class EditorStack {
               await this.pop(top)
             else {
               /* The editor did not want to close (b/c there were warnings, validation errors,
-               * or the user canceled, so we need to reject the history for that many editors. */
+               * or the user canceled), so we need to reject the history for that many editors. */
               console.debug('editor idx',i,'from top of stack rejected, so go',popHowMany-i)
               history.go(popHowMany-i)
               break
@@ -160,7 +160,7 @@ export class EditorStack {
     history.pushState(histState, '', null)
     // track changes in the new editor
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
-    e.shown()
+    e.shown(true)
   }
   back(e :StackAble) {
     console.debug('Editor requested its pop', e.briefTitle, e.currentName())
@@ -176,11 +176,12 @@ export class EditorStack {
     paranoia(del.el===e.el, `Should have popped ${e.briefTitle}/${e.currentName()} but TOS was ${del.briefTitle}/${del.currentName()}`)
     await del.close()
     this.el.removeChild(del.el)
-    // display the element underneath
+    /* display the element underneath - note it makes sense to always do this, even when popping multiple elements from the stack,
+     * because when popping multiple elements, we don't yet know at which element the popping might stop due to a rejected close. */
     const top = this.stack.at(-1)
     assert(top)
     top.el.classList.remove('d-none')
     this.redrawNavbar()
-    top.shown()
+    top.shown(false)
   }
 }

@@ -20,8 +20,10 @@ import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
+import { ListEditorParent } from './list-edit'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
+import { StackAble } from './stack'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
 
@@ -36,7 +38,7 @@ export interface EditorParent {
 export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
   new (parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null): E }
 
-export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> {
+export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 
   /** Return a brand new object of the type being edited by the editor. */
   protected abstract newObj() :B
@@ -45,7 +47,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @param saving Whether the object is in the process of being saved,
    *  as opposed to a dirty check.
    */
-  protected abstract readonly form2obj :(saving :boolean)=>Readonly<B>
+  protected abstract form2obj(saving :boolean) :Readonly<B>
   /** Return the current name of the element being edited. */
   abstract currentName() :string
 
@@ -133,14 +135,14 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
-  //TODO: Intelligently scroll to next field/button that needs input
+  //TODO NEXT: Intelligently scroll to next field/button that needs input
   /** Where the editor should scroll to when it is shown. */
-  protected showScrollTarget() :HTMLElement { return this.el }
+  protected scrollTarget(_pushNotPop :boolean) :HTMLElement { return this.el }
   /** Called by the stack when this editor is (re-)shown. */
-  shown() {
+  shown(pushNotPop :boolean) {
     // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
     this.resetWarningsErrors()
-    this.showScrollTarget().scrollIntoView({ block: 'start', behavior: 'smooth' })
+    this.ctx.scrollTo(this.scrollTarget(pushNotPop))
   }
 
   /** Only to be called by ListEditor when bubbling change events. */
@@ -182,7 +184,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.elWarnAlert.classList.add('d-none')
       this.elErrDetail.innerText = msg
       this.elErrAlert.classList.remove('d-none')
-      this.elErrAlert.scrollIntoView({ behavior: 'smooth' })
+      this.ctx.scrollTo(this.elErrAlert)
       this.prevSaveClickObjState = null
       this.prevSaveWarnings = []
     }
@@ -226,7 +228,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
       this.elWarnAlert.classList.remove('d-none')
-      this.elWarnAlert.scrollIntoView({ behavior: 'smooth' })
+      this.ctx.scrollTo(this.elWarnAlert)
       if (andClose) {  // Button "Save & Close"
         // Did the user click the "Save & Close" button a second time without making changes? (warnings may also change if isBrandNew changes)
         if (!curObj.equals(this.prevSaveClickObjState) || warnings.length!==this.prevSaveWarnings.length
@@ -295,10 +297,9 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       switch( await unsavedChangesQuestion(tr('Save & Close'), curObj.summaryAsHtml(true)) ) {
       case 'save': return this.doSave(true)
       case 'cancel': return false
-      case 'discard': break
+      case 'discard': return true
       }
-    }
-    return true
+    } else return true
   }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */

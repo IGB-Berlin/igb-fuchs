@@ -34,7 +34,7 @@ export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
     el.style.setProperty('height', `${el.scrollHeight}px`)
   }
   el.addEventListener('input', update)
-  setTimeout(update)
+  setTimeout(update)  // delay update until after render
 }
 
 /** Hacky workaround for the fact that Samsung mobile keyboards for

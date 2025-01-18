@@ -96,8 +96,7 @@ export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boole
   let curAlert :Alert|null = null
   btnGetCoords.addEventListener('click', () => {
     if (readonly) throw new Error('The control should be readonly, how was the button clicked?')
-    // if we were to immediately disable the button, the dropdown wouldn't auto-hide
-    setTimeout(()=>{
+    setTimeout(()=>{  // if we were to immediately disable the button, the dropdown wouldn't auto-hide
       btnCoords.setAttribute('disabled', 'disabled')
       btnCoords.replaceChildren(spinIcon)
       const reenable = () => {

@@ -23,7 +23,7 @@ import { tr } from './i18n'
 export function makeSettings(ctx :GlobalContext) :HTMLElement {
   const inpHideHelp = safeCastElement(HTMLInputElement,
     <input class="form-check-input" type="checkbox" role="switch" id="cbHideHelp"/>)
-  setTimeout(async () => {
+  setTimeout(async () => {  // workaround for async from non-async
     if (await ctx.storage.settings.get('hideHelpTexts')) {
       inpHideHelp.checked = true
       globalHideHelp(true)

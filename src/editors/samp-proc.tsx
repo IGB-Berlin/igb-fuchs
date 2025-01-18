@@ -15,51 +15,62 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingProcedure } from '../types/sampling'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
-import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new SamplingProcedure(null) }
-
+  private readonly inpName
+  private readonly inpCheck
+  private readonly inpInst
+  private readonly sampEdit
+  private readonly locEdit
+  private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.checklist.join('\n')}</textarea>)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
+    this.inpName = safeCastElement(HTMLInputElement,
+      <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.checklist.join('\n')}</textarea>)
+    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
 
-    const sampEdit = new ListEditorForTemp(this, new ArrayStore(obj.commonSamples), SampleTemplateEditor,
+    this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, this.selItem,
       {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.commonSamples)))
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.commonSamples)))
 
-    const locEdit = new ListEditorForTemp(this, new ArrayStore(obj.locations), LocationTemplateEditor,
+    this.locEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.locations), LocationTemplateEditor, this.selItem,
       {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, obj.locations.map(l => l.cloneNoSamples()))))
-
-    this.form2obj = () => new SamplingProcedure({ id: obj.id,
-      name: inpName.value, instructions: inpInst.value.trim(),
-      checklist: inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
-      locations: obj.locations, commonSamples: obj.commonSamples })
-    this.currentName = () => inpName.value
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
 
     this.initialize([
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, null),
-      sampEdit.elWithTitle,
-      locEdit.elWithTitle,
+      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(this.inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
+      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.sampEdit.elWithTitle,
+      this.locEdit.elWithTitle,
     ])
+  }
+
+  protected override newObj() { return new SamplingProcedure(null) }
+
+  protected override form2obj() {
+    return new SamplingProcedure({ id: this.initObj.id,
+      name: this.inpName.value, instructions: this.inpInst.value.trim(),
+      checklist: this.inpCheck.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
+      locations: this.initObj.locations, commonSamples: this.initObj.commonSamples })
+  }
+
+  override currentName() { return this.inpName.value }
+
+  protected override scrollTarget(_pushNotPop :boolean) {
+    return this.isBrandNew ? this.inpName : ( this.selItem.el ?? this.sampEdit.elWithTitle )
   }
 
 }

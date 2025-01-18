@@ -99,8 +99,8 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
       this.makeRow(inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
     ])
   }
-  override shown() {
-    super.shown()
+  override shown(pushNotPop :boolean) {
+    super.shown(pushNotPop)
     this.inpValue.focus()
   }
 }

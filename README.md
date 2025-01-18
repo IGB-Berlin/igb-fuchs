@@ -13,6 +13,8 @@ Installation on Mobile
 ----------------------
 
 Please see [the installation instructions](src/images/IGB-FUCHS_Mobile-Installation.pdf).
+The installation on mobile devices is useful to ensure the app still works even when there
+is no Internet connection.
 
 Alpha Version
 -------------

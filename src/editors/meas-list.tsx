@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ListEditorTemp, SelectedItemContainer } from './list-edit'
 import { makeValidNumberPat, timestampNow } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { MeasurementType } from '../types/meas-type'
 import { numericTextInputStuff } from '../utils'
-import { ListEditorTemp } from './list-edit'
 import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
 import { MeasurementEditor } from './meas'
@@ -126,8 +126,8 @@ class MiniMeasEditor {
 export class MeasListEditor extends ListEditorTemp<MeasurementEditor, MeasurementType, Measurement> {
   private sample
   private readonly editors :MiniMeasEditor[] = []
-  constructor(parent :SampleEditor, sample :Readonly<Sample>) {
-    super(parent, new ArrayStore(sample.measurements), MeasurementEditor,
+  constructor(parent :SampleEditor, sample :Readonly<Sample>, selItem :SelectedItemContainer|null = null) {
+    super(parent, new ArrayStore(sample.measurements), MeasurementEditor, selItem,
       { title:tr('Measurements'), help:<>{tr('meas-list-help')}
         {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</> },
       tr('new-meas-from-temp'),
@@ -152,7 +152,6 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
     })
   }
   protected override makeNew(t :MeasurementType) :Measurement { return t.templateToObject() }
-  protected override postNew(obj :Measurement) { this.newEditor(obj) }
   /** See `Editor.customWarnings()`: Return array of warnings, or throw error on validation fail */
   customWarnings() :string[] {
     return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.typeId}: ${c}`))

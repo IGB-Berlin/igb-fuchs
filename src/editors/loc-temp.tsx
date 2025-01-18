@@ -43,7 +43,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
     const inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.tasklist.join('\n')}</textarea>)
 
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, {title:tr('Samples')}, tr('new-samp-from-temp'),
+    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, null,
+      {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
 
     this.form2obj = () =>

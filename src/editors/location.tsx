@@ -76,7 +76,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
 
     const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor,
+    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, null,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
       //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
