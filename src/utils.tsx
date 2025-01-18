@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, safeCastElement } from './jsx-dom'
+import { tr } from './i18n'
 
 export function assert(condition: unknown, msg?: string): asserts condition {
   if (!condition) throw new Error(msg) }
@@ -26,15 +28,36 @@ export function paranoia(condition: unknown, msg?: string): asserts condition {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Class<T> = new (...args :any[]) => T
 
-export function makeTextAreaAutoHeight(el :HTMLTextAreaElement) {
+export function makeTextAreaAutoHeight(el :HTMLTextAreaElement, startExpanded :boolean) :HTMLButtonElement {
   // someday: https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing
-  const update = () => {
+  const btnExpand = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-sm px-1 py-0 my-0 ms-1 me-0"></button>)
+  let currentlyExpanded = startExpanded
+  const updateButton = () => {
+    btnExpand.setAttribute('title', tr(currentlyExpanded ? 'Collapse' : 'Expand') )
+    if (currentlyExpanded)
+      btnExpand.replaceChildren(<i class="bi-chevron-bar-contract"/>, <span class="visually-hidden"> {tr('Collapse')}</span>)
+    else
+      btnExpand.replaceChildren(<i class="bi-chevron-bar-expand"/>, <span class="visually-hidden"> {tr('Expand')}</span>)
+  }
+  updateButton()
+  btnExpand.addEventListener('click', () => {
+    currentlyExpanded = !currentlyExpanded
+    updateButton()
+    if (!currentlyExpanded) {
+      el.style.removeProperty('overflow-y')
+      el.style.removeProperty('height')
+    } else updateHeight()
+  })
+  const updateHeight = () => {
+    if (!currentlyExpanded) return
     el.style.setProperty('overflow-y', 'hidden')
     el.style.setProperty('height', '') // trick to allow shrinking
     el.style.setProperty('height', `${el.scrollHeight}px`)
   }
-  el.addEventListener('input', update)
-  setTimeout(update)  // delay update until after render
+  el.addEventListener('input', updateHeight)
+  setTimeout(updateHeight)  // delay update until after render
+  return btnExpand
 }
 
 /** Hacky workaround for the fact that Samsung mobile keyboards for

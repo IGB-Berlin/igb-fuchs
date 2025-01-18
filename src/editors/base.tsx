@@ -316,7 +316,10 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
       input.classList.add('form-control')
     }
-    if (input instanceof HTMLTextAreaElement) makeTextAreaAutoHeight(input)
+    /* TODO: More selective default expansion of text areas: for example, "Notes" should probably always auto-expand,
+     * and when creating new objects from templates the "Instructions" text areas should also auto-expand the first time. */
+    const btnExpand :HTMLButtonElement|string = input instanceof HTMLTextAreaElement
+      ? makeTextAreaAutoHeight(input, this.isBrandNew) : ''
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
     if (helpText) {
@@ -329,6 +332,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">
         {label}
         {btnHelp}
+        {btnExpand}
       </label>
       <div class="col-sm-9">
         {input}

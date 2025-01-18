@@ -44,6 +44,8 @@ const translations = {
   'Help': ['Hilfe'],
   'No input': ['Keine Eingabe'],
   'Caution': ['Achtung'],
+  'Expand': ['Erweitern'],
+  'Collapse': ['Verkleinern'],
 
   // import-export
   'Export': ['Export'],
