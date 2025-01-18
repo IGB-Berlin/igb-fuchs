@@ -25,43 +25,57 @@ import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
 export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new SampleTemplate(null) }
-
+  private readonly inpType
+  private readonly inpDesc
+  private readonly inpInst
+  private readonly measEdit
   constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpType = safeCastElement(HTMLSelectElement,
+    this.inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select fw-semibold">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call removes type safety
           const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t}) + (t==='other'?` - ${tr('specify-in-desc')}!`:'')}</option>
-          if (obj.type===t) opt.setAttribute('selected','selected')
+          if (this.initObj.type===t) opt.setAttribute('selected','selected')
           return opt
         })}
       </select>)
 
-    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
+    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
+    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
 
-    const measEdit = new ListEditorForTemp(this, new ArrayStore(obj.measurementTypes), MeasTypeEditor, null,
+    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, null,
       {title:tr('Measurements')}, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, obj.measurementTypes)))
-
-    this.form2obj = () => new SampleTemplate({
-      type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      shortDesc: inpDesc.value.trim(),
-      instructions: inpInst.value.trim(), measurementTypes: obj.measurementTypes })
-    this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
     this.initialize([
-      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, null),
-      measEdit.elWithTitle,
+      this.makeRow(this.inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
+      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.measEdit.elWithTitle,
     ])
+  }
+
+  protected override newObj() { return new SampleTemplate(null) }
+
+  protected override form2obj() {
+    return new SampleTemplate({
+      type: isSampleType(this.inpType.value) ? this.inpType.value : 'undefined',
+      shortDesc: this.inpDesc.value.trim(),
+      instructions: this.inpInst.value.trim(), measurementTypes: this.initObj.measurementTypes })
+  }
+
+  override currentName() {
+    return i18n.t('st-'+this.inpType.value, { defaultValue: this.inpType.value })
+      + ( this.inpDesc.value.trim().length ? ' / '+this.inpDesc.value.trim() : '' )
+  }
+
+  protected override doScroll() {
+    this.ctx.scrollTo(
+      this.isBrandNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
+        : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
+          : this.measEdit.el )
   }
 
 }

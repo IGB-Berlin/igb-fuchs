@@ -25,30 +25,29 @@ import { makeHelpButton } from '../help'
 import { i18n, tr } from '../i18n'
 
 export class SampleEditor extends Editor<SampleEditor, Sample> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new Sample(null) }
-
+  private readonly inpType
+  private readonly inpDesc
+  private quality :QualityFlag
+  private readonly inpNotes
   private readonly measEdit
   constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpType = safeCastElement(HTMLSelectElement,
+    this.inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select fw-semibold">
         {sampleTypes.map(t => {
-          // NOTE the following i18n.t call removes type safety
+          // NOTE the following i18n.t call (and others like it) removes type safety
           const opt = <option value={t}>{i18n.t('st-'+t, {defaultValue:t}) + (t==='other'?` - ${tr('specify-in-desc')}!`:'')}</option>
-          if (obj.type===t) opt.setAttribute('selected','selected')
+          if (this.initObj.type===t) opt.setAttribute('selected','selected')
           return opt
         })}
       </select>)
 
-    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
+    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{this.initObj.template?.instructions.trim()??''}</textarea>)
     const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
-    if (!obj.template?.instructions.trim().length)
+    if (!this.initObj.template?.instructions.trim().length)
       rowInst.classList.add('d-none')
 
     const inpQualGood = safeCastElement(HTMLInputElement,
@@ -75,18 +74,18 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
           {helpBad}
         </div>
       </div>)
-    switch(obj.subjectiveQuality) {
+    switch(this.initObj.subjectiveQuality) {
     case 'good': inpQualGood.checked = true; break
     case 'questionable': inpQualQuest.checked = true; break
     case 'bad': inpQualBad.checked = true; break
     case 'undefined': break
     }
-    let quality :QualityFlag = obj.subjectiveQuality
+    this.quality = this.initObj.subjectiveQuality
     const updQual = () => {
-      if (inpQualGood.checked) quality = 'good'
-      else if (inpQualQuest.checked) quality = 'questionable'
-      else if (inpQualBad.checked) quality = 'bad'
-      else quality = 'undefined'
+      if (inpQualGood.checked) this.quality = 'good'
+      else if (inpQualQuest.checked) this.quality = 'questionable'
+      else if (inpQualBad.checked) this.quality = 'bad'
+      else this.quality = 'undefined'  // shouldn't happen
       this.el.dispatchEvent(new CustomChangeEvent())
     }
     inpQualGood.addEventListener('change', updQual)
@@ -100,30 +99,43 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       helpBad.classList.toggle('manual-help-show')
     })
 
-    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
+    this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
 
-    this.measEdit = new MeasListEditor(this, obj)
-
-    this.form2obj = () => new Sample({ template: obj.template,
-      type: isSampleType(inpType.value) ? inpType.value : 'undefined',
-      shortDesc: inpDesc.value.trim(), subjectiveQuality: quality,
-      notes: inpNotes.value.trim(), measurements: this.measEdit.measurements })
-    this.currentName = () => i18n.t('st-'+inpType.value, {defaultValue:inpType.value}) + ( inpDesc.value.trim().length ? ' / '+inpDesc.value.trim() : '' )
+    this.measEdit = new MeasListEditor(this, this.initObj)
 
     //TODO: A "Next" button to proceed to next sample, or to next location when all planned samples are done.
     this.initialize([
-      this.makeRow(inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
+      this.makeRow(this.inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
+      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       rowInst,
       this.makeRow(grpQuality, subjQualTitle, null, null),
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
+      this.makeRow(this.inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       this.measEdit.elWithTitle,
     ])
   }
-  protected override customWarnings() :string[] {
-    return this.measEdit.customWarnings()
+
+  protected override newObj() { return new Sample(null) }
+
+  protected override form2obj() {
+    return new Sample({ template: this.initObj.template,
+      type: isSampleType(this.inpType.value) ? this.inpType.value : 'undefined',
+      shortDesc: this.inpDesc.value.trim(), subjectiveQuality: this.quality,
+      notes: this.inpNotes.value.trim(), measurements: this.measEdit.measurements })
   }
-  protected override async onClose() {
-    await this.measEdit.close()
+
+  override currentName() {
+    return i18n.t('st-'+this.inpType.value, { defaultValue: this.inpType.value })
+      + ( this.inpDesc.value.trim().length ? ' / '+this.inpDesc.value.trim() : '' )
   }
+
+  protected override doScroll() {
+    this.ctx.scrollTo(
+      this.isBrandNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
+        : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
+          : this.measEdit.el )
+  }
+
+  protected override customWarnings() :string[] { return this.measEdit.customWarnings() }
+  protected override async onClose() { await this.measEdit.close() }
+
 }
