@@ -23,6 +23,7 @@ import { tr } from '../i18n'
 
 export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
+  //TODO Later: Support double-click like the list editor?
   const btnOk = <button type="button" class="btn btn-success" data-bs-dismiss="modal"
     onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>
   let selIdx = -1

@@ -33,60 +33,66 @@ import { tr } from '../i18n'
 let _taskId = 0
 
 export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new SamplingLocation(null) }
-
+  private readonly inpName
+  private readonly inpDesc
+  private readonly actCoords
+  private readonly inpActCoords
+  private readonly inpStart
+  private readonly inpEnd
+  private readonly cbAutoEnd
+  private readonly inpNotes
+  private readonly sampEdit
+  private readonly taskStates :{ [key :string]: boolean }
+  private readonly taskEditor
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
+    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{obj.template?.instructions.trim()??''}</textarea>)
+    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{this.initObj.template?.instructions.trim()??''}</textarea>)
     const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
-    if (!obj.template?.instructions.trim().length)
+    if (!this.initObj.template?.instructions.trim().length)
       rowInst.classList.add('d-none')
 
     //TODO Later: Users request a bigger "Navigate to" button
-    const nomCoords = obj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
+    const nomCoords = this.initObj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
     const rowNomCoords = this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null)
     if (!areWgs84CoordsValid(nomCoords))
       rowNomCoords.classList.add('d-none')
 
-    const actCoords = obj.actCoords.deepClone()  // don't modify the original object directly!
-    const inpActCoords = makeCoordinateEditor(actCoords, false)
+    this.actCoords = this.initObj.actCoords.deepClone()  // don't modify the original object directly!
+    this.inpActCoords = makeCoordinateEditor(this.actCoords, false)
 
     const tzOff = getTzOffsetStr(new Date())
-    const inpStart = new DateTimeInput(obj.startTime, true)
-    const inpEnd = new DateTimeInput(obj.endTime, false)
-    const rowEnd = this.makeRow(inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    this.inpStart = new DateTimeInput(this.initObj.startTime, true)
+    this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
+    const rowEnd = this.makeRow(this.inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-2','mb-sm-3')
-    const cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
-    if (!this.isBrandNew && !isTimestampSet(obj.endTime)) cbAutoEnd.checked = true
+    this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
+    if (!this.isBrandNew && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
     const rowAutoEnd = <div class="row mb-3">
       <div class="col-sm-3"></div>
-      <div class="col-sm-9"><div class="form-check"> {cbAutoEnd}
+      <div class="col-sm-9"><div class="form-check"> {this.cbAutoEnd}
         <label class="form-check-label" for="checkAutoLocEnd">{tr('auto-set-end-time')}</label>
       </div></div>
     </div>
 
-    const inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.notes.trim()}</textarea>)
+    this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
 
-    const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, null,
+    const sampStore = new ArrayStore(this.initObj.samples)
+    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, null,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
       //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples.map(s => s.extractTemplate()))),
-      obj.template?.samples )
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
+      this.initObj.template?.samples )
 
-    const tasks = obj.template?.tasklist ?? []
-    const taskStates :{ [key :string]: boolean } = Object.fromEntries(tasks.map(c => [c, obj.completedTasks.includes(c) ]))
+    const tasks = this.initObj.template?.tasklist ?? []
+    this.taskStates = Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ]))
     const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
     const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
-    const taskEditor = <div class="my-3">
+    this.taskEditor = <div class="my-3">
       <hr class="mt-4 mb-2" />
       <h5 class="mb-0">{tr('Task List')} {taskHelpBtn}</h5>
       {taskHelp}
@@ -95,8 +101,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
           const id = `tasklistCheckbox${_taskId++}`
           const cb = safeCastElement(HTMLInputElement,
             <input class="form-check-input me-2" type="checkbox" autocomplete="off"
-              id={id} checked={!!taskStates[c]} onchange={()=>{
-                taskStates[c] = cb.checked
+              id={id} checked={!!this.taskStates[c]} onchange={()=>{
+                this.taskStates[c] = cb.checked
                 this.el.dispatchEvent(new CustomChangeEvent())
               }} />)
           const btn = <div class="custom-cb-btn" onclick={(event: Event) => { if (event.target===btn) cb.click() } }>
@@ -109,33 +115,41 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
         })}
       </ul>
     </div>
-    if (!tasks.length) taskEditor.classList.add('d-none')
-
-    this.form2obj = (saving :boolean) => {
-      if (saving && cbAutoEnd.checked) {
-        inpEnd.timestamp = timestampNow()
-        cbAutoEnd.checked = false
-      }
-      return new SamplingLocation({ template: obj.template, name: inpName.value,
-        shortDesc: inpDesc.value, actualCoords: actCoords.deepClone(),
-        startTime: inpStart.timestamp, endTime: inpEnd.timestamp,
-        samples: obj.samples, notes: inpNotes.value.trim(),
-        completedTasks: Object.entries(taskStates).flatMap(([k,v]) => v ? [k] : []),
-        photos: [/*TODO Later*/] })
-    }
-    this.currentName = () => inpName.value
+    if (!tasks.length) this.taskEditor.classList.add('d-none')
 
     this.initialize([
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
+      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
       rowInst, rowNomCoords,
-      this.makeRow(inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
+      this.makeRow(this.inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
         tr('invalid-coords')),
-      this.makeRow(inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(this.inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
       rowEnd, rowAutoEnd,
-      this.makeRow(inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
-      sampEdit.elWithTitle,
-      taskEditor,
+      this.makeRow(this.inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
+      this.sampEdit.elWithTitle,
+      this.taskEditor,
     ])
   }
+
+  protected override newObj() { return new SamplingLocation(null) }
+
+  protected override form2obj(saving :boolean) {
+    if (saving && this.cbAutoEnd.checked) {
+      this.inpEnd.timestamp = timestampNow()
+      this.cbAutoEnd.checked = false
+    }
+    return new SamplingLocation({ template: this.initObj.template, name: this.inpName.value,
+      shortDesc: this.inpDesc.value, actualCoords: this.actCoords.deepClone(),
+      startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
+      samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
+      completedTasks: Object.entries(this.taskStates).flatMap(([k,v]) => v ? [k] : []),
+      photos: [/*TODO Later*/] })
+  }
+
+  override currentName() { return this.inpName.value }
+
+  protected override doScroll() {
+    this.ctx.scrollTo(this.el)  //TODO NEXT
+  }
+
 }

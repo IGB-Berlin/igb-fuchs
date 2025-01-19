@@ -24,51 +24,60 @@ import { AbstractStore } from '../storage'
 import { tr } from '../i18n'
 
 export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new MeasurementType(null) }
-
+  private readonly inpName
+  private readonly inpUnit
+  private readonly inpPrc
+  private readonly inpMin
+  private readonly inpMax
+  private readonly inpInst
   constructor(parent :EditorParent, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={obj.unit} />)
-    const inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={Math.floor(obj.precision)} min="0" step="1" />)
+    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
+    this.inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={Math.floor(this.initObj.precision)} min="0" step="1" />)
     // inpPrc can use type="number" b/c we don't need negative numbers there
-    const inpMin = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.min)?obj.min:''} />)
-    numericTextInputStuff(inpMin)
-    const inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(obj.max)?obj.max:''} />)
-    numericTextInputStuff(inpMax)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
+    this.inpMin = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.min)?this.initObj.min:''} />)
+    numericTextInputStuff(this.inpMin)
+    this.inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.max)?this.initObj.max:''} />)
+    numericTextInputStuff(this.inpMax)
+    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
 
     const prcToPat = () => {
-      const pat = makeValidNumberPat(inpPrc.valueAsNumber)
-      inpMin.pattern = pat
-      inpMax.pattern = pat
+      const pat = makeValidNumberPat(this.inpPrc.valueAsNumber)
+      this.inpMin.pattern = pat
+      this.inpMax.pattern = pat
     }
-    inpPrc.addEventListener('change', prcToPat)
+    this.inpPrc.addEventListener('change', prcToPat)
     prcToPat()
 
-    this.form2obj = () => {
-      const prc = inpPrc.valueAsNumber
-      const min = Number.parseFloat(inpMin.value)
-      const max = Number.parseFloat(inpMax.value)
-      return new MeasurementType({ name: inpName.value, unit: inpUnit.value,
-        min: Number.isFinite(min) ? min : -Infinity,
-        max: Number.isFinite(max) ? max : +Infinity,
-        precision: Number.isFinite(prc) && prc>=0 ? Math.floor(prc) : NaN,
-        instructions: inpInst.value.trim() })
-    }
-    this.currentName = () => inpName.value
-
     this.initialize([
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),
-      this.makeRow(inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
-      this.makeRow(inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
-      this.makeRow(inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')} {tr('dot-minus-hack')}</>, tr('Invalid minimum value')),
-      this.makeRow(inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, tr('Invalid maximum value')),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, null),
+      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),
+      this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
+      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
+      this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')} {tr('dot-minus-hack')}</>, tr('Invalid minimum value')),
+      this.makeRow(this.inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, tr('Invalid maximum value')),
+      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, null),
     ])
   }
+
+  protected override newObj() { return new MeasurementType(null) }
+
+  protected override form2obj() {
+    const prc = this.inpPrc.valueAsNumber
+    const min = Number.parseFloat(this.inpMin.value)
+    const max = Number.parseFloat(this.inpMax.value)
+    return new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
+      min: Number.isFinite(min) ? min : -Infinity,
+      max: Number.isFinite(max) ? max : +Infinity,
+      precision: Number.isFinite(prc) && prc>=0 ? Math.floor(prc) : NaN,
+      instructions: this.inpInst.value.trim() })
+  }
+
+  override currentName() { return this.inpName.value }
+
+  protected override doScroll() {
+    this.ctx.scrollTo(this.el)  //TODO NEXT
+  }
+
 }

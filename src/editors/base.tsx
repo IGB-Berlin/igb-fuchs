@@ -50,6 +50,8 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   protected abstract form2obj(saving :boolean) :Readonly<B>
   /** Return the current name of the element being edited. */
   abstract currentName() :string
+  /** Implementations should intelligently scroll to the next field/button that needs input. */
+  protected abstract doScroll(_pushNotPop :boolean) :void
 
   readonly ctx
   protected readonly parent
@@ -135,8 +137,6 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.ctx.stack.push(this)
   }
 
-  /** TODO NEXT: Implementations should intelligently scroll to the next field/button that needs input. */
-  protected doScroll(_pushNotPop :boolean) { this.ctx.scrollTo(this.el) }
   /** Called by the stack when this editor is (re-)shown. */
   shown(pushNotPop :boolean) {
     // Hide warnings when (re-)showing an editor, hopefully help reduce confusion

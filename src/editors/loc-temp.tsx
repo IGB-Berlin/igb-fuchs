@@ -27,41 +27,52 @@ import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
 export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
-  override readonly currentName
-  protected override readonly form2obj
-  protected override newObj() { return new SamplingLocationTemplate(null) }
-
+  private readonly inpName
+  private readonly inpDesc
+  private readonly inpTasks
+  private readonly inpInst
+  private readonly nomCoords
+  private readonly inpNomCoords
+  private readonly sampEdit
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
     super(parent, targetStore, targetObj)
-    const obj = this.initObj
 
-    const inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={obj.name} />)
-    const inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={obj.shortDesc.trim()}></input>)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.instructions.trim()}</textarea>)
-    const nomCoords = obj.nomCoords.deepClone()  // don't modify the original object directly!
-    const inpNomCoords = makeCoordinateEditor(nomCoords, false)
-    const inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{obj.tasklist.join('\n')}</textarea>)
+    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
+    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
+    this.nomCoords = this.initObj.nomCoords.deepClone()  // don't modify the original object directly!
+    this.inpNomCoords = makeCoordinateEditor(this.nomCoords, false)
+    this.inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.tasklist.join('\n')}</textarea>)
 
-    const sampStore = new ArrayStore(obj.samples)
-    const sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, null,
+    const sampStore = new ArrayStore(this.initObj.samples)
+    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, null,
       {title:tr('Samples')}, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, obj.samples)))
-
-    this.form2obj = () =>
-      new SamplingLocationTemplate({ name: inpName.value, shortDesc: inpDesc.value,
-        tasklist: inpTasks.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
-        instructions: inpInst.value.trim(),  nominalCoords: nomCoords.deepClone(),
-        samples: obj.samples })
-    this.currentName = () => inpName.value
+      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
 
     this.initialize([
-      this.makeRow(inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
-      this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, null),
-      this.makeRow(inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
+      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
+      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.makeRow(this.inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
         tr('invalid-coords')),
-      this.makeRow(inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
-      sampEdit.elWithTitle,
+      this.makeRow(this.inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
+      this.sampEdit.elWithTitle,
     ])
   }
+
+  protected override newObj() { return new SamplingLocationTemplate(null) }
+
+  protected override form2obj() {
+    return new SamplingLocationTemplate({ name: this.inpName.value, shortDesc: this.inpDesc.value,
+      tasklist: this.inpTasks.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
+      instructions: this.inpInst.value.trim(),  nominalCoords: this.nomCoords.deepClone(),
+      samples: this.initObj.samples })
+  }
+
+  override currentName() { return this.inpName.value }
+
+  protected override doScroll() {
+    this.ctx.scrollTo(this.el)  //TODO NEXT
+  }
+
 }
