@@ -17,8 +17,8 @@
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { Editor, EditorClass, EditorParent } from './base'
 import { AbstractStore, OrderedStore } from '../storage'
+import { EditorClass, EditorParent } from './base'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
 import { CustomStoreEvent } from '../events'
@@ -30,7 +30,7 @@ import { tr } from '../i18n'
 export interface ListEditorParent {  // the only bits of the Editor class we care about
   readonly ctx :GlobalContext
   readonly el :HTMLElement|null
-  readonly isBrandNew :boolean
+  readonly isUnsaved :boolean
   selfUpdate() :Promise<void>
 }
 
@@ -49,7 +49,7 @@ export interface SelectedItemContainer {
   el :HTMLElement|null
 }
 
-export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> implements EditorParent {
+export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   readonly el :HTMLElement
   readonly titleEl :HTMLElement
   readonly elWithTitle :HTMLElement
@@ -67,7 +67,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
     * being edited by this editor) won't be saved either. So, to prevent users from being
     * able to build large object trees without them ever being saved, we require this
     * list editor's parent object to be saved before allowing edits to its arrays. */
-    if (!this.parent.isBrandNew) {
+    if (!this.parent.isUnsaved) {
       if (this.selId!==null) {
         this.btnDel.removeAttribute('disabled')
         this.btnEdit.removeAttribute('disabled')
@@ -88,7 +88,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
       this.extraButtons.forEach(btn => btn.setAttribute('disabled', 'disabled'))
       this.disableNotice.classList.remove('d-none')
     }
-    return !this.parent.isBrandNew
+    return !this.parent.isUnsaved
   }
 
   addDropdown(title :string|HTMLElement, items :[string|HTMLElement, (sel:B)=>unknown][]) {
@@ -111,8 +111,8 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
     this.btnDiv.appendChild(d)
   }
 
-  protected newEditor(obj :B|null) {
-    const ed = new this.editorClass(this, this.theStore, obj)  // adds and removes itself from the stack
+  protected newEditor(obj :B|null, isNew :boolean) {
+    const ed = new this.editorClass(this, this.theStore, obj, isNew)  // adds and removes itself from the stack
     /* Editors dispatch the CustomStoreEvent on themselves because there is a case where their child
      * ListEditors need to see it (see the .enable() notes), so here we just bubble the event down to
      * ourselves (so it can all be handled in one place) instead of making the editor fire it twice. */
@@ -129,7 +129,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
   protected readonly parent
   protected readonly theStore
   private readonly editorClass
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, selItem :SelectedItemContainer|null, texts :ILETexts) {
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer|null, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
@@ -184,7 +184,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
             })
           }
           els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
-            data-id={id} onclick={()=>selectItem(id)} ondblclick={()=>this.newEditor(item)}>{content}</li>
+            data-id={id} onclick={()=>selectItem(id)} ondblclick={()=>this.newEditor(item, false)}>{content}</li>
         } )
       } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
       theUl.replaceChildren(...els)
@@ -223,9 +223,9 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
 
     this.btnEdit.addEventListener('click', async () => {
       if (this.selId===null) return  // shouldn't happen
-      this.newEditor(await this.theStore.get(this.selId))
+      this.newEditor(await this.theStore.get(this.selId), false)
     })
-    this.btnNew.addEventListener('click', () => this.newEditor(null))
+    this.btnNew.addEventListener('click', () => this.newEditor(null, true))
     this.el.addEventListener(CustomStoreEvent.NAME, async event => {
       assert(event instanceof CustomStoreEvent)
       // If we were changed, tell parent editor (if we have one) to update itself in its store
@@ -242,7 +242,7 @@ export class ListEditor<E extends Editor<E, B>, B extends DataObjectBase<B>> imp
   }
 }
 
-export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<E, B> {
+export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditor<B> {
   protected abstract makeNew(t :T) :B
   private btnTemp
   protected async addNew(template :T) {
@@ -251,9 +251,9 @@ export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSu
     const newId = await this.theStore.add(newObj)
     this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
     console.debug('... added with id',newId,'now editing')
-    this.newEditor(newObj)
+    this.newEditor(newObj, true)
   }
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<E, B>, selItem :SelectedItemContainer|null, texts :ILETexts,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer|null, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass, selItem, texts)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
@@ -279,13 +279,13 @@ export abstract class ListEditorTemp<E extends Editor<E, B>, T extends HasHtmlSu
     }
   }
 }
-export class ListEditorForTemp<E extends Editor<E, T>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, T> {
+export class ListEditorForTemp<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<T, T> {
   protected override makeNew(t :T) :T { return t.deepClone() }
 }
-export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<E, T, D> {
+export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<T, D> {
   private readonly plannedLeft :T[]
   readonly plannedTitleEl
-  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<E, D>, selItem :SelectedItemContainer|null, texts :ILETextsWithTemp,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, selItem :SelectedItemContainer|null, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
     this.plannedLeft = planned ?? []
@@ -295,6 +295,7 @@ export class ListEditorWithTemp<E extends Editor<E, D>, T extends DataObjectTemp
     const myEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {theUl} </div>
     const redrawPlanned = async () => {
       myEl.classList.toggle('d-none', !this.plannedLeft.length)
+      //TODO Later: Consider a green alert "all planned tasks completed" once they are all gone (only if there were planned tasks to begin with)
       theUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {

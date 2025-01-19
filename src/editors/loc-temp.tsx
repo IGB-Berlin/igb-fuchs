@@ -18,6 +18,7 @@
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
+import { areWgs84CoordsValid } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
 import { ListEditorForTemp } from './list-edit'
@@ -26,7 +27,7 @@ import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
-export class LocationTemplateEditor extends Editor<LocationTemplateEditor, SamplingLocationTemplate> {
+export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   private readonly inpName
   private readonly inpDesc
   private readonly inpTasks
@@ -34,8 +35,8 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   private readonly nomCoords
   private readonly inpNomCoords
   private readonly sampEdit
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
@@ -72,7 +73,9 @@ export class LocationTemplateEditor extends Editor<LocationTemplateEditor, Sampl
   override currentName() { return this.inpName.value }
 
   protected override doScroll() {
-    this.ctx.scrollTo(this.el)  //TODO NEXT
+    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+      : !areWgs84CoordsValid(this.nomCoords) ? this.inpNomCoords
+        : this.sampEdit.el )
   }
 
 }

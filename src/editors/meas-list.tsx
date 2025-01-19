@@ -31,6 +31,8 @@ import { Tooltip } from 'bootstrap'
 import { tr } from '../i18n'
 
 class MiniMeasEditor {
+  /* TODO Later: When opening a sample that already had all its measurements entered, consider making the measurement input fields readonly
+   * to prevent accidental changes to samples that have already been finished? */
   readonly el
   readonly meas
   private readonly sample
@@ -82,7 +84,7 @@ class MiniMeasEditor {
     this.inp.classList.toggle('border-danger', state==='err')
   }
   private updateTooltip(txt :string|null) {
-    if (txt===null) {
+    if (txt===null || !txt.trim().length) {
       this.inp.title = '-'
       this.inpTooltip.disable()
     }
@@ -123,16 +125,19 @@ class MiniMeasEditor {
   }
 }
 
-export class MeasListEditor extends ListEditorTemp<MeasurementEditor, MeasurementType, Measurement> {
+export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement> {
   private sample
   private readonly editors :MiniMeasEditor[] = []
-  constructor(parent :SampleEditor, sample :Readonly<Sample>, selItem :SelectedItemContainer|null = null) {
+  private readonly selItem
+  constructor(parent :SampleEditor, sample :Readonly<Sample>) {
+    const selItem :SelectedItemContainer = { el: null }
     super(parent, new ArrayStore(sample.measurements), MeasurementEditor, selItem,
       { title:tr('Measurements'), help:<>{tr('meas-list-help')}
         {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</> },
       tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate()))) )
     this.sample = sample
+    this.selItem = selItem
     setTimeout(async ()=>{  // Workaround to call async from constructor
       // convert planned MeasurementTypes into Measurements
       if (this.sample.template) {
@@ -156,7 +161,15 @@ export class MeasListEditor extends ListEditorTemp<MeasurementEditor, Measuremen
   customWarnings() :string[] {
     return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.typeId}: ${c}`))
   }
-  //TODO: Consider better tabindex order for mini measurement editors (and in general)
+  /** Scroll to either the first measurement with an issue (this includes empty values), otherwise the last selected item, if any */
+  scrollTarget() :HTMLElement|null|undefined {
+    return this.editors.find(ed => {
+      try { return ed.checks().length }
+      catch (_) { return true }
+    })?.el ?? this.selItem.el
+  }
+  /* TODO: Consider better tabindex order for mini measurement editors? (and in general?)
+   * (this idea is mostly for mobile though and probably depends on the keyboard, perhaps touch interaction is enough) */
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
     if (ed) return ed.el

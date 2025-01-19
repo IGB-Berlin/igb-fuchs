@@ -35,10 +35,10 @@ export interface EditorParent {
   el :HTMLElement
 }
 
-export type EditorClass<E extends Editor<E, B>, B extends DataObjectBase<B>> = {
-  new (parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null): E }
+export type EditorClass<B extends DataObjectBase<B>> = new (
+  parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) => Editor<B>
 
-export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
+export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 
   /** Return a brand new object of the type being edited by the editor. */
   protected abstract newObj() :B
@@ -62,7 +62,11 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * NOTE that this class automatically updates this to point to a newly created object once it is saved for the first time.
    */
   private savedObj :Readonly<B>|null = null
-  get isBrandNew() { return this.savedObj===null }
+  /** Whether this object is unsaved, i.e. not yet present in the target store. */
+  get isUnsaved() { return this.savedObj===null }
+  private _isNew :boolean
+  /** Whether this object is new (either unsaved or freshly created from template and not saved) */
+  get isNew() { return this._isNew }
 
   /** The initial object being edited: either `savedObj`, or a newly created object. */
   protected readonly initObj :B
@@ -73,7 +77,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
   get el() :HTMLElement { return this.form }
   private readonly form
   private readonly elEndHr
-  private readonly btnSaveClose
+  protected readonly btnSaveClose  // is protected instead of private so subclasses can scroll to it, nothing else
   private readonly elWarnList
   private readonly elWarnAlert
   private readonly elErrDetail
@@ -87,11 +91,12 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
    * @param targetStore The store in which the object to be edited lives or is to be added to.
    * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
    */
-  constructor(parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null) {
+  constructor(parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) {
     this.parent  = parent
     this.ctx = parent.ctx
     this.targetStore = targetStore
     this.savedObj = targetObj
+    this._isNew = targetObj === null || isNew
     this.initObj = targetObj === null ? this.newObj() : targetObj
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap fw-semibold"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
@@ -221,7 +226,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     this.elErrAlert.classList.add('d-none')
 
     // So next, check warnings
-    const skipInitWarns = this.isBrandNew && !andClose
+    const skipInitWarns = this.isUnsaved && !andClose
     const warnings = curObj.warningsCheck(skipInitWarns).concat(customWarn)
     if (warnings.length) {
       this.btnSaveClose.classList.add('btn-warning')
@@ -254,6 +259,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         console.debug('Adding',curObj,'...')
         const newId = await this.targetStore.add(curObj)
         this.savedObj = curObj
+        this._isNew = false
         this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
         this.el.dispatchEvent(new CustomChangeEvent())
         console.debug('... added with id',newId)
@@ -262,6 +268,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
         console.debug('Saving',curObj,'...')
         const id = await this.targetStore.upd(this.savedObj, curObj)
         this.savedObj = curObj
+        this._isNew = false
         this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: id }))
         this.el.dispatchEvent(new CustomChangeEvent())
         console.debug('... saved with id',id)
@@ -318,7 +325,7 @@ export abstract class Editor<E extends Editor<E, B>, B extends DataObjectBase<B>
     /* TODO: More selective default expansion of text areas: for example, "Notes" should probably always auto-expand,
      * and when creating new objects from templates the "Instructions" text areas should also auto-expand the first time. */
     const btnExpand :HTMLButtonElement|string = input instanceof HTMLTextAreaElement
-      ? makeTextAreaAutoHeight(input, this.isBrandNew) : ''
+      ? makeTextAreaAutoHeight(input, this.isNew) : ''
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
     if (helpText) {

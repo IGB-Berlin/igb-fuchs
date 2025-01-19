@@ -43,7 +43,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
 
 export function makeHomePage(ctx :GlobalContext) {
 
-  const dummyParent :ListEditorParent = { ctx: ctx, el: null, isBrandNew: false,
+  const dummyParent :ListEditorParent = { ctx: ctx, el: null, isUnsaved: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
   const logEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, null,

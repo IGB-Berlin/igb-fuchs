@@ -26,15 +26,15 @@ import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
-export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, SamplingProcedure> {
+export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
   private readonly inpName
   private readonly inpCheck
   private readonly inpInst
   private readonly sampEdit
   private readonly locEdit
   private readonly selItem :SelectedItemContainer = { el: null }
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpName = safeCastElement(HTMLInputElement,
       <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
@@ -70,7 +70,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedureEditor, Sam
   override currentName() { return this.inpName.value }
 
   protected override doScroll() {
-    this.ctx.scrollTo( this.isBrandNew ? this.inpName : ( this.selItem.el ?? this.locEdit.titleEl ) )
+    this.ctx.scrollTo( this.isNew ? this.inpName : ( this.selItem.el ?? this.locEdit.titleEl ) )
   }
 
 }

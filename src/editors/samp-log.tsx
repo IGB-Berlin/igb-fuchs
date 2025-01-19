@@ -29,7 +29,39 @@ import { tr } from '../i18n'
 
 let _checkId = 0
 
-export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
+class CheckList {
+  readonly el
+  private readonly checkStates
+  private readonly checkItems :[HTMLElement, HTMLInputElement][]
+  constructor(initialCheckStates :{ [key :string]: boolean }) {
+    this.checkStates = initialCheckStates
+    const checks = Object.keys(initialCheckStates)
+    this.checkItems = checks.map(c => {
+      const id = `checklistCheckbox${_checkId++}`
+      const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
+        checked={!!this.checkStates[c]} onchange={()=>{
+          this.checkStates[c] = cb.checked
+          this.el.dispatchEvent(new CustomChangeEvent()) //TODO: bubble
+        }} />)
+      const li = <li class="list-group-item" onclick={(event: Event) => { if (event.target===li) cb.click() } }>
+        {cb}<label class="form-check-label" for={id}>{c}</label></li>
+      return [li, cb]
+    })
+    this.el = safeCastElement(HTMLDivElement,
+      <div><ul class="list-group custom-checklist">
+        {this.checkItems.map(i=>i[0])}
+      </ul></div> )
+  }
+  checkedTasks() :string[] {
+    return Object.entries(this.checkStates).flatMap(([k,v]) => v ? [k] : [])
+  }
+  /** Intended only for use as a scroll or focus target. */
+  firstUncheckedEl() :HTMLInputElement|undefined {
+    return this.checkItems.find(i => !i[1].checked)?.[1]
+  }
+}
+
+export class SamplingLogEditor extends Editor<SamplingLog> {
   private readonly inpName
   private readonly inpStart
   private readonly inpEnd
@@ -37,11 +69,10 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
   private readonly inpPersons
   private readonly inpWeather
   private readonly inpNotes
-  private readonly grpCheck
-  private readonly checkStates :{ [key :string]: boolean }
+  private readonly checkList
   private readonly locEdit
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion? (or is better scroll + collapsing textareas enough?)
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
@@ -56,7 +87,7 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     const rowEnd = this.makeRow(this.inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-2','mb-sm-3')
     this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
-    if (!this.isBrandNew && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
+    if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
     const rowAutoEnd = <div class="row mb-3">
       <div class="col-sm-3"></div>
       <div class="col-sm-9"><div class="form-check"> {this.cbAutoEnd}
@@ -68,24 +99,10 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
     this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
 
-    const checks = this.initObj.template?.checklist ?? []
-    this.checkStates = Object.fromEntries(checks.map(c => [c, this.initObj.checkedTasks.includes(c)] ))
-    this.grpCheck = safeCastElement(HTMLDivElement,
-      <div><ul class="list-group custom-checklist">
-        {checks.map(c => {
-          const id = `checklistCheckbox${_checkId++}`
-          const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
-            checked={!!this.checkStates[c]} onchange={()=>{
-              this.checkStates[c] = cb.checked
-              this.el.dispatchEvent(new CustomChangeEvent())
-            }} />)
-          const li = <li class="list-group-item" onclick={(event: Event) => { if (event.target===li) cb.click() } }>
-            {cb}<label class="form-check-label" for={id}>{c}</label></li>
-          return li
-        })}
-      </ul></div>)
-    const rowCheck = this.makeRow(this.grpCheck, tr('Checklist'), tr('checklist-help'), null)
-    if (!checks.length) rowCheck.classList.add('d-none')
+    const checklist = this.initObj.template?.checklist ?? []
+    this.checkList = new CheckList( Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
+    const rowCheck = this.makeRow(this.checkList.el, tr('Checklist'), tr('checklist-help'), null)
+    if (!checklist.length) rowCheck.classList.add('d-none')
 
     /* TODO Later: The location list should also be sorted by distance from our current location.
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
@@ -121,14 +138,17 @@ export class SamplingLogEditor extends Editor<SamplingLogEditor, SamplingLog> {
       name: this.inpName.value, startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       lastModified: timestampNow(), persons: this.inpPersons.value.trim(), weather: this.inpWeather.value.trim(),
       notes: this.inpNotes.value.trim(), locations: this.initObj.locations,
-      checkedTasks: Object.entries(this.checkStates).flatMap(([k,v]) => v ? [k] : []) })
+      checkedTasks: this.checkList.checkedTasks() })
   }
 
   override currentName() { return this.inpName.value }
 
   protected override doScroll() {
-    this.ctx.scrollTo( this.isBrandNew ? this.inpName : !Object.values(this.checkStates).every(v=>v) ? this.grpCheck
-      : this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : this.locEdit.titleEl )
+    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+      : ( this.checkList.firstUncheckedEl() ?? (
+        //TODO: scrolling to the save button is probably not correct for objects created without templates
+        this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : this.btnSaveClose
+      ) ) )
   }
 
 }

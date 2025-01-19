@@ -24,13 +24,13 @@ import { MeasTypeEditor } from './meas-type'
 import { setRemove } from '../types/set'
 import { i18n, tr } from '../i18n'
 
-export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTemplate> {
+export class SampleTemplateEditor extends Editor<SampleTemplate> {
   private readonly inpType
   private readonly inpDesc
   private readonly inpInst
   private readonly measEdit
-  constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select fw-semibold">
@@ -72,10 +72,9 @@ export class SampleTemplateEditor extends Editor<SampleTemplateEditor, SampleTem
   }
 
   protected override doScroll() {
-    this.ctx.scrollTo(
-      this.isBrandNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
-        : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
-          : this.measEdit.el )
+    this.ctx.scrollTo( this.isNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
+      : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
+        : this.measEdit.el )  //TODO: scroll to last selected item, if any
   }
 
 }

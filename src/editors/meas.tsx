@@ -28,20 +28,20 @@ import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
 import { tr } from '../i18n'
 
-export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
+export class MeasurementEditor extends Editor<Measurement> {
   private readonly measType :[MeasurementType]
   private readonly grpType
   private readonly inpValue
   private readonly inpTime
-  constructor(parent :EditorParent, targetStore :AbstractStore<Measurement>, targetObj :Measurement|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<Measurement>, targetObj :Measurement|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.measType = [this.initObj.type]
     const mtStore = new ArrayStore(this.measType)
     const inpType = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
     btnTypeEdit.addEventListener('click', () => {
-      const ed = new MeasTypeEditor(this, mtStore, this.measType[0])
+      const ed = new MeasTypeEditor(this, mtStore, this.measType[0], this.isUnsaved)
       ed.el.addEventListener(CustomStoreEvent.NAME, typeChange)  // typeChange bubbles the event
     })
     const btnTypeSel = <button type="button" class="btn btn-outline-primary"><i class="bi-card-list"/> {tr('Select')}</button>
@@ -105,7 +105,7 @@ export class MeasurementEditor extends Editor<MeasurementEditor, Measurement> {
   override currentName() { return this.measType[0].name }
 
   protected override doScroll() {
-    this.ctx.scrollTo( !this.measType[0].name ? this.grpType : this.inpValue )
+    this.ctx.scrollTo( this.isNew || !this.measType[0].name.trim().length ? this.grpType : this.inpValue )
   }
 
   override shown(pushNotPop :boolean) {

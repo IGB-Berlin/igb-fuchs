@@ -24,14 +24,71 @@ import { AbstractStore } from '../storage'
 import { makeHelpButton } from '../help'
 import { i18n, tr } from '../i18n'
 
-export class SampleEditor extends Editor<SampleEditor, Sample> {
+class QualityEditor {
+  readonly el
+  readonly titleEl
+  private _quality :QualityFlag
+  get quality() { return this._quality }
+  constructor(initialQuality :QualityFlag) {
+    const inpQualGood = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
+    const inpQualQuest = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityQuest" value="questionable" aria-describedby="helpQualityQuest" />)
+    const inpQualBad = safeCastElement(HTMLInputElement,
+      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityBad" value="bad" aria-describedby="helpQualityBad" />)
+    const helpGood = <div id="helpQualityGood" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-good')}</div>
+    const helpQuest = <div id="helpQualityQuest" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-quest')}</div>
+    const helpBad = <div id="helpQualityBad" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-bad')}</div>
+    this.el = safeCastElement(HTMLDivElement,
+      <div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualGood) inpQualGood.click() }}> {inpQualGood}
+          <label class="form-check-label text-success-emphasis" for="radioQualityGood"><i class="bi-check-lg"/> {tr('qf-good')}</label>
+          {helpGood}
+        </div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualQuest) inpQualQuest.click() }}> {inpQualQuest}
+          <label class="form-check-label text-warning-emphasis" for="radioQualityQuest"><i class="bi-question-diamond"/> {tr('qf-questionable')}</label>
+          {helpQuest}
+        </div>
+        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualBad) inpQualBad.click() }}> {inpQualBad}
+          <label class="form-check-label text-danger-emphasis" for="radioQualityBad"><i class="bi-exclamation-triangle" /> {tr('qf-bad')}</label>
+          {helpBad}
+        </div>
+      </div>)
+    switch(initialQuality) {
+    case 'good': inpQualGood.checked = true; break
+    case 'questionable': inpQualQuest.checked = true; break
+    case 'bad': inpQualBad.checked = true; break
+    case 'undefined': break
+    }
+    this._quality = initialQuality
+    const updQual = () => {
+      if (inpQualGood.checked) this._quality = 'good'
+      else if (inpQualQuest.checked) this._quality = 'questionable'
+      else if (inpQualBad.checked) this._quality = 'bad'
+      else this._quality = 'undefined'  // shouldn't happen
+      this.el.dispatchEvent(new CustomChangeEvent())
+    }
+    inpQualGood.addEventListener('change', updQual)
+    inpQualQuest.addEventListener('change', updQual)
+    inpQualBad.addEventListener('change', updQual)
+    const btnQualHelp = makeHelpButton()
+    this.titleEl = <>{tr('Subjective Quality')} {btnQualHelp}</>
+    btnQualHelp.addEventListener('click', () => {
+      helpGood.classList.toggle('manual-help-show')
+      helpQuest.classList.toggle('manual-help-show')
+      helpBad.classList.toggle('manual-help-show')
+    })
+  }
+}
+
+export class SampleEditor extends Editor<Sample> {
   private readonly inpType
   private readonly inpDesc
-  private quality :QualityFlag
+  private readonly qualEditor
   private readonly inpNotes
   private readonly measEdit
-  constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpType = safeCastElement(HTMLSelectElement,
       <select class="form-select fw-semibold">
@@ -50,54 +107,8 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
     if (!this.initObj.template?.instructions.trim().length)
       rowInst.classList.add('d-none')
 
-    const inpQualGood = safeCastElement(HTMLInputElement,
-      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
-    const inpQualQuest = safeCastElement(HTMLInputElement,
-      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityQuest" value="questionable" aria-describedby="helpQualityQuest" />)
-    const inpQualBad = safeCastElement(HTMLInputElement,
-      <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityBad" value="bad" aria-describedby="helpQualityBad" />)
-    const helpGood = <div id="helpQualityGood" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-good')}</div>
-    const helpQuest = <div id="helpQualityQuest" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-quest')}</div>
-    const helpBad = <div id="helpQualityBad" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-bad')}</div>
-    const grpQuality = safeCastElement(HTMLDivElement,
-      <div>
-        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualGood) inpQualGood.click() }}> {inpQualGood}
-          <label class="form-check-label text-success-emphasis" for="radioQualityGood"><i class="bi-check-lg"/> {tr('qf-good')}</label>
-          {helpGood}
-        </div>
-        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualQuest) inpQualQuest.click() }}> {inpQualQuest}
-          <label class="form-check-label text-warning-emphasis" for="radioQualityQuest"><i class="bi-question-diamond"/> {tr('qf-questionable')}</label>
-          {helpQuest}
-        </div>
-        <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualBad) inpQualBad.click() }}> {inpQualBad}
-          <label class="form-check-label text-danger-emphasis" for="radioQualityBad"><i class="bi-exclamation-triangle" /> {tr('qf-bad')}</label>
-          {helpBad}
-        </div>
-      </div>)
-    switch(this.initObj.subjectiveQuality) {
-    case 'good': inpQualGood.checked = true; break
-    case 'questionable': inpQualQuest.checked = true; break
-    case 'bad': inpQualBad.checked = true; break
-    case 'undefined': break
-    }
-    this.quality = this.initObj.subjectiveQuality
-    const updQual = () => {
-      if (inpQualGood.checked) this.quality = 'good'
-      else if (inpQualQuest.checked) this.quality = 'questionable'
-      else if (inpQualBad.checked) this.quality = 'bad'
-      else this.quality = 'undefined'  // shouldn't happen
-      this.el.dispatchEvent(new CustomChangeEvent())
-    }
-    inpQualGood.addEventListener('change', updQual)
-    inpQualQuest.addEventListener('change', updQual)
-    inpQualBad.addEventListener('change', updQual)
-    const btnQualHelp = makeHelpButton()
-    const subjQualTitle = <>{tr('Subjective Quality')} {btnQualHelp}</>
-    btnQualHelp.addEventListener('click', () => {
-      helpGood.classList.toggle('manual-help-show')
-      helpQuest.classList.toggle('manual-help-show')
-      helpBad.classList.toggle('manual-help-show')
-    })
+    this.qualEditor = new QualityEditor(this.initObj.subjectiveQuality)
+    this.qualEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
 
     this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
 
@@ -108,7 +119,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
       this.makeRow(this.inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
       this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
       rowInst,
-      this.makeRow(grpQuality, subjQualTitle, null, null),
+      this.makeRow(this.qualEditor.el, this.qualEditor.titleEl, null, null),
       this.makeRow(this.inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
       this.measEdit.elWithTitle,
     ])
@@ -119,7 +130,7 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
   protected override form2obj() {
     return new Sample({ template: this.initObj.template,
       type: isSampleType(this.inpType.value) ? this.inpType.value : 'undefined',
-      shortDesc: this.inpDesc.value.trim(), subjectiveQuality: this.quality,
+      shortDesc: this.inpDesc.value.trim(), subjectiveQuality: this.qualEditor.quality,
       notes: this.inpNotes.value.trim(), measurements: this.measEdit.measurements })
   }
 
@@ -129,10 +140,9 @@ export class SampleEditor extends Editor<SampleEditor, Sample> {
   }
 
   protected override doScroll() {
-    this.ctx.scrollTo(
-      this.isBrandNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
-        : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
-          : this.measEdit.el )
+    this.ctx.scrollTo( this.isNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
+      : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
+        : ( this.measEdit.scrollTarget() ?? this.btnSaveClose ) )
   }
 
   protected override customWarnings() :string[] { return this.measEdit.customWarnings() }

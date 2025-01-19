@@ -23,15 +23,15 @@ import { Editor, EditorParent } from './base'
 import { AbstractStore } from '../storage'
 import { tr } from '../i18n'
 
-export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
+export class MeasTypeEditor extends Editor<MeasurementType> {
   private readonly inpName
   private readonly inpUnit
   private readonly inpPrc
   private readonly inpMin
   private readonly inpMax
   private readonly inpInst
-  constructor(parent :EditorParent, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
@@ -77,7 +77,9 @@ export class MeasTypeEditor extends Editor<MeasTypeEditor, MeasurementType> {
   override currentName() { return this.inpName.value }
 
   protected override doScroll() {
-    this.ctx.scrollTo(this.el)  //TODO NEXT
+    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length || !this.inpUnit.value.trim().length ? this.inpName
+      : !this.inpPrc.value.trim().length || !this.inpMin.value.trim().length || !this.inpMax.value.trim().length ? this.inpMin
+        : this.btnSaveClose )
   }
 
 }

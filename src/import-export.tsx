@@ -18,8 +18,6 @@
 import { ListEditor, ListEditorWithTemp } from './editors/list-edit'
 import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
-import { SamplingProcedureEditor } from './editors/samp-proc'
-import { SamplingLogEditor } from './editors/samp-log'
 import { samplingLogToCsv } from './types/log2csv'
 import { CustomStoreEvent } from './events'
 import { GlobalContext } from './main'
@@ -36,8 +34,8 @@ async function zipFiles(name :string, files :File[]) {
 }
 
 export function makeImportExport(ctx :GlobalContext,
-  logEdit: ListEditorWithTemp<SamplingLogEditor, SamplingProcedure, SamplingLog>,
-  procEdit: ListEditor<SamplingProcedureEditor, SamplingProcedure>) :HTMLElement {
+  logEdit: ListEditorWithTemp<SamplingProcedure, SamplingLog>,
+  procEdit: ListEditor<SamplingProcedure>) :HTMLElement {
   //TODO Later: Could offer a function for selecting multiple logs/procedures to export
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,

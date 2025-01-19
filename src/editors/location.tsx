@@ -32,7 +32,50 @@ import { tr } from '../i18n'
 
 let _taskId = 0
 
-export class SamplingLocationEditor extends Editor<SamplingLocationEditor, SamplingLocation> {
+class TaskList {
+  readonly el
+  private readonly taskStates
+  private readonly taskItems :[HTMLElement, HTMLInputElement][]
+  constructor(initialTaskStates :{ [key :string]: boolean }) {
+    this.taskStates = initialTaskStates
+    const tasks = Object.keys(initialTaskStates)
+    const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
+    const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
+    this.taskItems = tasks.map(c => {
+      const id = `tasklistCheckbox${_taskId++}`
+      const cb = safeCastElement(HTMLInputElement,
+        <input class="form-check-input me-2" type="checkbox" autocomplete="off"
+          id={id} checked={!!this.taskStates[c]} onchange={()=>{
+            this.taskStates[c] = cb.checked
+            this.el.dispatchEvent(new CustomChangeEvent())  //TODO: bubble
+          }} />)
+      const btn = <div class="custom-cb-btn" onclick={(event: Event) => { if (event.target===btn) cb.click() } }>
+        {cb}<label class="form-check-label" for={id}>{tr('Completed')}</label></div>
+      const li = <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="me-auto">{c}</div>
+        <div class="ms-3">{btn}</div>
+      </li>
+      return [li, cb]
+    })
+    this.el = <div class="my-3">
+      <hr class="mt-4 mb-2" />
+      <h5 class="mb-0">{tr('Task List')} {taskHelpBtn}</h5>
+      {taskHelp}
+      <ul class="list-group custom-tasklist my-2">
+        {this.taskItems.map(i=>i[0])}
+      </ul>
+    </div>
+  }
+  completedTasks() :string[] {
+    return Object.entries(this.taskStates).flatMap(([k,v]) => v ? [k] : [])
+  }
+  /** Intended only for use as a scroll or focus target. */
+  firstUncheckedEl() :HTMLInputElement|undefined {
+    return this.taskItems.find(i => !i[1].checked)?.[1]
+  }
+}
+
+export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpName
   private readonly inpDesc
   private readonly actCoords
@@ -42,10 +85,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
   private readonly cbAutoEnd
   private readonly inpNotes
   private readonly sampEdit
-  private readonly taskStates :{ [key :string]: boolean }
   private readonly taskEditor
-  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null) {
-    super(parent, targetStore, targetObj)
+  constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null, isNew :boolean) {
+    super(parent, targetStore, targetObj, isNew)
 
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
@@ -55,7 +97,6 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     if (!this.initObj.template?.instructions.trim().length)
       rowInst.classList.add('d-none')
 
-    //TODO Later: Users request a bigger "Navigate to" button
     const nomCoords = this.initObj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
     const rowNomCoords = this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null)
@@ -71,7 +112,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const rowEnd = this.makeRow(this.inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
     rowEnd.classList.remove('mb-2','mb-sm-3')
     this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
-    if (!this.isBrandNew && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
+    if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
     const rowAutoEnd = <div class="row mb-3">
       <div class="col-sm-3"></div>
       <div class="col-sm-9"><div class="form-check"> {this.cbAutoEnd}
@@ -84,38 +125,12 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
     const sampStore = new ArrayStore(this.initObj.samples)
     this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, null,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
-      //TODO Later: Multiple samples of the same type are allowed, don't filter them out here?
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
       this.initObj.template?.samples )
 
     const tasks = this.initObj.template?.tasklist ?? []
-    this.taskStates = Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ]))
-    const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
-    const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
-    this.taskEditor = <div class="my-3">
-      <hr class="mt-4 mb-2" />
-      <h5 class="mb-0">{tr('Task List')} {taskHelpBtn}</h5>
-      {taskHelp}
-      <ul class="list-group custom-tasklist my-2">
-        {tasks.map(c => {
-          const id = `tasklistCheckbox${_taskId++}`
-          const cb = safeCastElement(HTMLInputElement,
-            <input class="form-check-input me-2" type="checkbox" autocomplete="off"
-              id={id} checked={!!this.taskStates[c]} onchange={()=>{
-                this.taskStates[c] = cb.checked
-                this.el.dispatchEvent(new CustomChangeEvent())
-              }} />)
-          const btn = <div class="custom-cb-btn" onclick={(event: Event) => { if (event.target===btn) cb.click() } }>
-            {cb}<label class="form-check-label" for={id}>{tr('Completed')}</label></div>
-          const li = <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div class="me-auto">{c}</div>
-            <div class="ms-3">{btn}</div>
-          </li>
-          return li
-        })}
-      </ul>
-    </div>
-    if (!tasks.length) this.taskEditor.classList.add('d-none')
+    this.taskEditor = new TaskList( Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
+    if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
     this.initialize([
       this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
@@ -127,7 +142,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       rowEnd, rowAutoEnd,
       this.makeRow(this.inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
       this.sampEdit.elWithTitle,
-      this.taskEditor,
+      this.taskEditor.el,
     ])
   }
 
@@ -142,14 +157,17 @@ export class SamplingLocationEditor extends Editor<SamplingLocationEditor, Sampl
       shortDesc: this.inpDesc.value, actualCoords: this.actCoords.deepClone(),
       startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
-      completedTasks: Object.entries(this.taskStates).flatMap(([k,v]) => v ? [k] : []),
+      completedTasks: this.taskEditor.completedTasks(),
       photos: [/*TODO Later*/] })
   }
 
   override currentName() { return this.inpName.value }
 
   protected override doScroll() {
-    this.ctx.scrollTo(this.el)  //TODO NEXT
+    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+      : !areWgs84CoordsValid(this.actCoords) ? this.inpActCoords
+        : this.sampEdit.plannedLeftCount ? this.sampEdit.plannedTitleEl
+          : ( this.taskEditor.firstUncheckedEl() ?? this.btnSaveClose ) )
   }
 
 }
