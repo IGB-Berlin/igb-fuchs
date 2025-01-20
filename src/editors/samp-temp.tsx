@@ -16,9 +16,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
+import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
-import { ListEditorForTemp } from './list-edit'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { setRemove } from '../types/set'
@@ -29,6 +29,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
   private readonly inpDesc
   private readonly inpInst
   private readonly measEdit
+  private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
@@ -45,7 +46,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
     this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
 
-    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, null,
+    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, this.selItem,
       {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
@@ -74,7 +75,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
   protected override doScroll() {
     this.ctx.scrollTo( this.isNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
       : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
-        : this.measEdit.el )  //TODO: scroll to last selected item, if any
+        : ( this.selItem.el ?? this.btnSaveClose ) )
   }
 
 }

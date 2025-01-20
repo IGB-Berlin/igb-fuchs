@@ -129,7 +129,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   protected readonly parent
   protected readonly theStore
   private readonly editorClass
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer|null, texts :ILETexts) {
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
@@ -145,7 +145,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
         if (id!==null && id===e.getAttribute('data-id')) {
           e.classList.add('active')
           e.setAttribute('aria-current', 'true')
-          if (selItem) selItem.el = e
+          selItem.el = e
         }
         else {
           e.classList.remove('active')
@@ -253,7 +253,7 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
     console.debug('... added with id',newId,'now editing')
     this.newEditor(newObj, true)
   }
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer|null, texts :ILETexts,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass, selItem, texts)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
@@ -285,7 +285,7 @@ export class ListEditorForTemp<T extends DataObjectTemplate<T, D>, D extends Dat
 export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<T, D> {
   private readonly plannedLeft :T[]
   readonly plannedTitleEl
-  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, selItem :SelectedItemContainer|null, texts :ILETextsWithTemp,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, selItem :SelectedItemContainer, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
     this.plannedLeft = planned ?? []

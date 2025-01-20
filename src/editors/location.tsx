@@ -16,12 +16,12 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
+import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { areWgs84CoordsValid, EMPTY_COORDS } from '../types/coords'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
-import { ListEditorWithTemp } from './list-edit'
 import { makeCoordinateEditor } from './coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -86,6 +86,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpNotes
   private readonly sampEdit
   private readonly taskEditor
+  private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
@@ -123,7 +124,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, null,
+    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, this.selItem,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
       this.initObj.template?.samples )
@@ -167,7 +168,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
       : !areWgs84CoordsValid(this.actCoords) ? this.inpActCoords
         : this.sampEdit.plannedLeftCount ? this.sampEdit.plannedTitleEl
-          : ( this.taskEditor.firstUncheckedEl() ?? this.btnSaveClose ) )
+          : ( this.taskEditor.firstUncheckedEl() ?? ( this.selItem.el ?? this.btnSaveClose ) ) )
   }
 
 }

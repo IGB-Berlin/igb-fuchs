@@ -16,11 +16,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
+import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
-import { ListEditorWithTemp } from './list-edit'
 import { SamplingLog } from '../types/sampling'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -71,6 +71,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   private readonly inpNotes
   private readonly checkList
   private readonly locEdit
+  private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
@@ -108,7 +109,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     //TODO Later (low prio): Consider how difficult it would be to show all sampling locations on a map
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
-    this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, null,
+    this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, this.selItem,
       { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
       //TODO Later: In general, maybe don't filter out options, e.g. for cases where there are multiple temperature measurements
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
@@ -146,8 +147,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   protected override doScroll() {
     this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
       : ( this.checkList.firstUncheckedEl() ?? (
-        //TODO: scrolling to the save button is probably not correct for objects created without templates
-        this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : this.btnSaveClose
+        this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : ( this.selItem.el ?? this.btnSaveClose )
       ) ) )
   }
 

@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { areWgs84CoordsValid } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
 import { makeCoordinateEditor } from './coords'
-import { ListEditorForTemp } from './list-edit'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
@@ -35,6 +35,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   private readonly nomCoords
   private readonly inpNomCoords
   private readonly sampEdit
+  private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
@@ -46,7 +47,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
     this.inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.tasklist.join('\n')}</textarea>)
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, null,
+    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, this.selItem,
       {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
 
@@ -75,7 +76,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   protected override doScroll() {
     this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
       : !areWgs84CoordsValid(this.nomCoords) ? this.inpNomCoords
-        : this.sampEdit.el )
+        : ( this.selItem.el ?? this.btnSaveClose ))
   }
 
 }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
+import { ListEditor, ListEditorParent, ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { SamplingProcedureEditor } from './samp-proc'
 import { makeImportExport } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
@@ -43,15 +43,16 @@ function makeAcc(title :string, body :HTMLElement|string) {
 
 export function makeHomePage(ctx :GlobalContext) {
 
+  const selItem :SelectedItemContainer = { el: null }
   const dummyParent :ListEditorParent = { ctx: ctx, el: null, isUnsaved: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
-  const logEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, null,
+  const logEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, selItem,
     { title: tr('saved-pl')+' '+tr('Sampling Logs'), planned: tr('planned-pl')+' '+tr('Sampling Logs') },
     tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
   logEdit.highlightButton('temp')
 
-  const procEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, null,
+  const procEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, selItem,
     { title: tr('Sampling Procedures') } )
 
   const inpExp = makeImportExport(ctx, logEdit, procEdit)
