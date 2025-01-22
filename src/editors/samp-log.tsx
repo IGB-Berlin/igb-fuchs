@@ -82,6 +82,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     if (!this.initObj.template?.instructions.trim().length)
       rowInst.classList.add('d-none')
 
+    //TODO: Creating a new Log with an empty end time results in "RangeError: invalid time value"? (Chrome on Android)
     const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
