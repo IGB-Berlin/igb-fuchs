@@ -166,8 +166,15 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     // handle "Next" button
     const nextBtnTxt = this.nextButtonText()
     if ( nextBtnTxt.length ) {
+      //TODO Later: Change color of next button based on validity of inputs on the current page?
+      const btnNext = <button type="button" class="btn btn-sm btn-outline-success m-1">{nextBtnTxt} <i class="bi-arrow-right"/></button>
+      //TODO NEXT: next button accidental click prevention (I think this should be much easier than a "back" button...)
+      /* The back button needs to first save the current editor and then tell the stack to pop the current editor (see the "submit" button),
+         but after the stack has performed the pop, I think the stack should call this editor's *parent* editor's doNext() ?
+         Then it should also be up to this editor's *parent* to define nextButtonText to define whether it's capable of `doNext`? */
+      btnNext.addEventListener('click', () => this.doNext())
       //TODO NEXT: add functionality to the next button
-      this.ctx.footer.replaceChildren(<button type="button" class="btn btn-sm btn-outline-success m-1">{nextBtnTxt}</button>)
+      this.ctx.footer.replaceChildren(<div class="d-flex justify-content-end px-1">{btnNext}</div>)
     }
     else this.ctx.footer.replaceChildren()
     this.doScroll(pushNotPop)
