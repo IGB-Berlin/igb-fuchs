@@ -313,8 +313,11 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     return andClose
   }
 
-  /** Close this editor. To be called by the EditorStack. */
-  async close() { await this.onClose() }
+  /** Close this editor. To be called by the EditorStack. Subclasses should not override; see `onClose` for that. */
+  async close() {
+    this.ctx.footer.replaceChildren()
+    await this.onClose()
+  }
   /** Optional hook that subclasses can override, called when the editor is closed. */
   protected async onClose() {}
 
