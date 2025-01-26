@@ -41,7 +41,7 @@ class CheckList {
       const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
         checked={!!this.checkStates[c]} onchange={()=>{
           this.checkStates[c] = cb.checked
-          this.el.dispatchEvent(new CustomChangeEvent()) //TODO: bubble
+          this.el.dispatchEvent(new CustomChangeEvent())
         }} />)
       const li = <li class="list-group-item" onclick={(event: Event) => { if (event.target===li) cb.click() } }>
         {cb}<label class="form-check-label" for={id}>{c}</label></li>
@@ -105,6 +105,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     const checklist = this.initObj.template?.checklist ?? []
     this.checkList = new CheckList( Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
+    this.checkList.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')
 

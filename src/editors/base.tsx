@@ -334,8 +334,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
       input.classList.add('form-control')
     }
-    /* TODO: More selective default expansion of text areas: for example, "Notes" should probably always auto-expand,
-     * and when creating new objects from templates the "Instructions" text areas should also auto-expand the first time. */
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
     if (opts.helpText) {

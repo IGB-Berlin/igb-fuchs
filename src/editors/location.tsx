@@ -47,7 +47,7 @@ class TaskList {
         <input class="form-check-input me-2" type="checkbox" autocomplete="off"
           id={id} checked={!!this.taskStates[c]} onchange={()=>{
             this.taskStates[c] = cb.checked
-            this.el.dispatchEvent(new CustomChangeEvent())  //TODO: bubble
+            this.el.dispatchEvent(new CustomChangeEvent())
           }} />)
       const btn = <div class="custom-cb-btn" onclick={(event: Event) => { if (event.target===btn) cb.click() } }>
         {cb}<label class="form-check-label" for={id}>{tr('Completed')}</label></div>
@@ -134,6 +134,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
     const tasks = this.initObj.template?.tasklist ?? []
     this.taskEditor = new TaskList( Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
+    this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
     this.initialize([
