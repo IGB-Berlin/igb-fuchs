@@ -46,6 +46,7 @@ const translations = {
   'Caution': ['Achtung'],
   'Expand': ['Erweitern'],
   'Collapse': ['Verkleinern'],
+  'Next': ['Nächste'],
 
   // import-export
   'Export': ['Export'],

@@ -157,4 +157,9 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ) ) )
   }
 
+  protected override nextButtonText() :string { return this.locEdit.plannedLeftCount ? tr('Next')+' '+tr('Sampling Location') : '' }
+  protected override doNext() {
+    alert('TODO')
+  }
+
 }
