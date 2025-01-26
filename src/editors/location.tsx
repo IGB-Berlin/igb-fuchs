@@ -93,14 +93,14 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{this.initObj.template?.instructions.trim()??''}</textarea>)
-    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
-    if (!this.initObj.template?.instructions.trim().length)
-      rowInst.classList.add('d-none')
+    const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
+      readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
     const nomCoords = this.initObj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
-    const rowNomCoords = this.makeRow(inpNomCoords, tr('nom-coord'), <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</>, null)
+    const rowNomCoords = this.makeRow(inpNomCoords, {
+      label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
     if (!areWgs84CoordsValid(nomCoords))
       rowNomCoords.classList.add('d-none')
 
@@ -110,7 +110,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
-    const rowEnd = this.makeRow(this.inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    const rowEnd = this.makeRow(this.inpEnd.el, { label: tr('End time'),
+      helpText: <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') })
     rowEnd.classList.remove('mb-2','mb-sm-3')
     this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
     if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
@@ -121,7 +122,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       </div></div>
     </div>
 
-    this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
+    const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
+      label: tr('Notes'), helpText: <>{tr('loc-notes-help')} {tr('notes-help')}</>, startExpanded: true })
+    this.inpNotes = inpNotes
 
     const sampStore = new ArrayStore(this.initObj.samples)
     this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, this.selItem,
@@ -134,14 +137,15 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
     this.initialize([
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
+      this.makeRow(this.inpName, { label: tr('Name'),
+        helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
+      this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
       rowInst, rowNomCoords,
-      this.makeRow(this.inpActCoords, tr('act-coord'), <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
-        tr('invalid-coords')),
-      this.makeRow(this.inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
-      rowEnd, rowAutoEnd,
-      this.makeRow(this.inpNotes, tr('Notes'), <>{tr('loc-notes-help')} {tr('notes-help')}</>, null),
+      this.makeRow(this.inpActCoords, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
+      this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></> }),
+      rowEnd, rowAutoEnd, rowNotes,
       this.sampEdit.elWithTitle,
       this.taskEditor.el,
     ])

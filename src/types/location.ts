@@ -175,6 +175,7 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
   const ts = loc instanceof SamplingLocationTemplate && loc.tasklist.length
     ? i18n.t('tasks', {count:loc.tasklist.length})
     : loc instanceof SamplingLocation && loc.completedTasks.length
+      //TODO Later: Display "X of Y tasks completed" instead of just completed tasks
       ? i18n.t('comp-tasks', {count:loc.completedTasks.length}) : ''
   return [ loc.name + ( loc.shortDesc.trim().length ? ' / '+loc.shortDesc.trim() : '' ),
     [samp, ts].filter(s => s.length).join('; ')

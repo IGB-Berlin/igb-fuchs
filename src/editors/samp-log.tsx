@@ -77,16 +77,16 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion? (or is better scroll + collapsing textareas enough?)
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{this.initObj.template?.instructions.trim()??''}</textarea>)
-    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
-    if (!this.initObj.template?.instructions.trim().length)
-      rowInst.classList.add('d-none')
+    const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
+      readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
     //TODO: Creating a new Log with an empty end time results in "RangeError: invalid time value"? (Chrome on Android)
     const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
-    const rowEnd = this.makeRow(this.inpEnd.el, tr('End time'), <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp'))
+    const rowEnd = this.makeRow(this.inpEnd.el, { label: tr('End time'),
+      helpText: <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') })
     rowEnd.classList.remove('mb-2','mb-sm-3')
     this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
     if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
@@ -99,11 +99,13 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
-    this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
+    const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
+      label: tr('Notes'), helpText: <>{tr('log-notes-help')} {tr('notes-help')}</>, startExpanded: true })
+    this.inpNotes = inpNotes
 
     const checklist = this.initObj.template?.checklist ?? []
     this.checkList = new CheckList( Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
-    const rowCheck = this.makeRow(this.checkList.el, tr('Checklist'), tr('checklist-help'), null)
+    const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')
 
     /* TODO Later: The location list should also be sorted by distance from our current location.
@@ -117,13 +119,15 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       this.initObj.template?.locations )
 
     this.initialize([
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
+      this.makeRow(this.inpName, { label: tr('Name'),
+        helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       rowInst,
-      this.makeRow(this.inpStart.el, tr('Start time'), <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, tr('Invalid timestamp')),
+      this.makeRow(this.inpStart.el, { label: tr('Start time'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') }),
       rowEnd, rowAutoEnd,
-      this.makeRow(this.inpPersons, tr('Persons'), <>{tr('persons-help')}</>, null),
-      this.makeRow(this.inpWeather, tr('Weather'), <>{tr('weather-help')}</>, null),
-      this.makeRow(this.inpNotes, tr('Notes'), <>{tr('log-notes-help')} {tr('notes-help')}</>, null),
+      this.makeRow(this.inpPersons, { label: tr('Persons'), helpText: <>{tr('persons-help')}</> }),
+      this.makeRow(this.inpWeather, { label: tr('Weather'), helpText: <>{tr('weather-help')}</> }),
+      rowNotes,
       rowCheck,
       this.locEdit.elWithTitle,
     ])

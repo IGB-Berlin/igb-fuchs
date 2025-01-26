@@ -102,25 +102,26 @@ export class SampleEditor extends Editor<Sample> {
 
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
-    const inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly>{this.initObj.template?.instructions.trim()??''}</textarea>)
-    const rowInst = this.makeRow(inpInst, tr('Instructions'), <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>, null)
-    if (!this.initObj.template?.instructions.trim().length)
-      rowInst.classList.add('d-none')
+    const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
+      readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
     this.qualEditor = new QualityEditor(this.initObj.subjectiveQuality)
     this.qualEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
 
-    this.inpNotes = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.notes.trim()}</textarea>)
+    const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
+      label: tr('Notes'), helpText: <>{tr('samp-notes-help')} {tr('notes-help')}</>, startExpanded: true })
+    this.inpNotes = inpNotes
 
     this.measEdit = new MeasListEditor(this, this.initObj)
 
     //TODO: A "Next" button to proceed to next sample, or to next location when all planned samples are done.
     this.initialize([
-      this.makeRow(this.inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
+      this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
+      this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('samp-short-desc-help')}</> }),
       rowInst,
-      this.makeRow(this.qualEditor.el, this.qualEditor.titleEl, null, null),
-      this.makeRow(this.inpNotes, tr('Notes'), <>{tr('samp-notes-help')} {tr('notes-help')}</>, null),
+      this.makeRow(this.qualEditor.el, { label: this.qualEditor.titleEl }),
+      rowNotes,
       this.measEdit.elWithTitle,
     ])
   }

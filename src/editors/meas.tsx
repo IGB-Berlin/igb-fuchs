@@ -54,8 +54,9 @@ export class MeasurementEditor extends Editor<Measurement> {
     })
     this.grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
-    const typeInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2" readonly></textarea>)
-    const rowInst = this.makeRow(typeInst, tr('Instructions'), <>{tr('meas-inst-help')}</>, null)
+    const [rowInst, typeInst] = this.makeTextAreaRow(this.measType[0].instructions, {
+      label: tr('Instructions'), helpText: <>{tr('meas-inst-help')}</>,
+      readonly: true, startExpanded: this.isNew })
 
     this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control fw-semibold font-monospace" value={this.initObj.value} required />)
@@ -87,11 +88,13 @@ export class MeasurementEditor extends Editor<Measurement> {
     typeChange()
 
     this.initialize([
-      this.makeRow(this.grpType, tr('Measurement Type'), <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>, tr('Invalid measurement type')),
+      this.makeRow(this.grpType, { label: tr('Measurement Type'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>,
+        invalidText: tr('Invalid measurement type') }),
       rowInst,
-      this.makeRow(grpValue, tr('Value'),
-        <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}. {tr('dot-minus-hack')}</>, tr('Invalid value')),
-      this.makeRow(this.inpTime.el, tr('Timestamp'), <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>, tr('Invalid timestamp')),
+      this.makeRow(grpValue, { label: tr('Value'), invalidText: tr('Invalid value'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}. {tr('dot-minus-hack')}</> }),
+      this.makeRow(this.inpTime.el, { label: tr('Timestamp'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>,
+        invalidText: tr('Invalid timestamp') }),
     ])
   }
 

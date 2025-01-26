@@ -44,16 +44,18 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
       </select>)
 
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
-    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
+    const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
+    this.inpInst = inpInst
 
     this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, this.selItem,
       {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
     this.initialize([
-      this.makeRow(this.inpType, tr('Sample Type'), <><strong>{tr('Required')}.</strong></>, null),
-      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('samp-short-desc-help')}</>, null),
-      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
+      this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('samp-short-desc-help')}</> }),
+      rowInst,
       this.measEdit.elWithTitle,
     ])
   }

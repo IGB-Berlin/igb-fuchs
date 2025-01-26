@@ -6,11 +6,12 @@ v0.0.6-alpha - *in Arbeit*
 
 - Beim Öffnen eines Objekts wird zum "nächsten relevanten" Eingabefeld gescrollt,
   anstatt wie vorher immer zum Anfang der Seite.
-- Textboxen können durch einen neuen Knopf vergrößert und verkleinert werden.
-  Bei neuen Objekten sind sie standardmäßig ausgeklappt, ansonsten eingeklappt.
+- Große Eingabefelder können durch einen neuen Knopf vergrößert und verkleinert werden.
+  Bei neuen Objekten sind sie normalerweise anfangs ausgeklappt, ansonsten eingeklappt.
 - Die App sollte sich jetzt immer selbst aktualisieren; ein Löschen des Caches
   sollte nicht mehr notwendig sein. (Bloß muss in manchen Fällen die Webseite
-  zweimal neu geladen werden, um die neuste Version zu laden.)
+  zweimal neu geladen werden, um die neuste Version zu laden; dies müsste aber
+  bei jeder neuen Version jeweils nur einmal notwendig sein.)
 
 v0.0.5-alpha - 2024-12-19
 -------------------------

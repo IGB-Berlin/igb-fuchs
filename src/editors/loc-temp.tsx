@@ -41,10 +41,14 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
 
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
-    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
+    const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
+    this.inpInst = inpInst
     this.nomCoords = this.initObj.nomCoords.deepClone()  // don't modify the original object directly!
     this.inpNomCoords = makeCoordinateEditor(this.nomCoords, false)
-    this.inpTasks = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.tasklist.join('\n')}</textarea>)
+    const [rowTasks, inpTasks] = this.makeTextAreaRow(this.initObj.tasklist.join('\n'), {
+      label: tr('Task List'), helpText: <>{tr('tasklist-temp-help')}</>, startExpanded: this.isNew })
+    this.inpTasks = inpTasks
 
     const sampStore = new ArrayStore(this.initObj.samples)
     this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, this.selItem,
@@ -52,12 +56,13 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
 
     this.initialize([
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(this.inpDesc, tr('Short Description'), <>{tr('loc-short-desc-help')}</>, null),
-      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, null),
-      this.makeRow(this.inpNomCoords, tr('nom-coord'), <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</>,
-        tr('invalid-coords')),
-      this.makeRow(this.inpTasks, tr('Task List'), <>{tr('tasklist-temp-help')}</>, null),
+      this.makeRow(this.inpName, { label: tr('Name'),
+        helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
+      this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
+      rowInst,
+      this.makeRow(this.inpNomCoords, { label: tr('nom-coord'), invalidText: tr('invalid-coords'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
+      rowTasks,
       this.sampEdit.elWithTitle,
     ])
   }

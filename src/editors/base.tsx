@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { assert, makeTextAreaAutoHeight, paranoia } from '../utils'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { ListEditorParent } from './list-edit'
+import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
@@ -37,6 +37,18 @@ export interface EditorParent {
 
 export type EditorClass<B extends DataObjectBase<B>> = new (
   parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) => Editor<B>
+
+interface MakeRowOps {
+  label :HTMLElement|string
+  helpText ?:HTMLElement|string
+  invalidText ?:HTMLElement|string
+}
+
+interface MakeTextAreaRowOpts extends MakeRowOps {
+  readonly ?:boolean
+  startExpanded :boolean
+  hideWhenEmpty ?:boolean
+}
 
 export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 
@@ -311,7 +323,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
   protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
-    label :HTMLElement|string, helpText :HTMLElement|string|null, invalidText :HTMLElement|string|null) :HTMLElement {
+    opts: MakeRowOps, btnExtra ?:HTMLButtonElement) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
     input.setAttribute('id', inpId)
@@ -324,29 +336,28 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     }
     /* TODO: More selective default expansion of text areas: for example, "Notes" should probably always auto-expand,
      * and when creating new objects from templates the "Instructions" text areas should also auto-expand the first time. */
-    const btnExpand :HTMLButtonElement|string = input instanceof HTMLTextAreaElement
-      ? makeTextAreaAutoHeight(input, this.isNew) : ''
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
-    if (helpText) {
-      divHelp = safeCastElement(HTMLDivElement, <div class="form-text">{helpText}</div>)
+    if (opts.helpText) {
+      divHelp = safeCastElement(HTMLDivElement, <div class="form-text">{opts.helpText}</div>)
       let helpId :string
       [helpId, btnHelp] = makeHelp(divHelp)
       input.setAttribute('aria-describedby', helpId)
     }
     return <div class="row mb-2 mb-sm-3">
       <label for={inpId} class="col-sm-3 col-form-label text-end-sm">
-        {label}
+        {opts.label}
         {btnHelp}
-        {btnExpand}
+        {btnExtra??''}
       </label>
       <div class="col-sm-9">
         {input}
         {divHelp}
-        {invalidText ? <div class="invalid-feedback">{invalidText}</div> : ''}
+        {opts.invalidText ? <div class="invalid-feedback">{opts.invalidText}</div> : ''}
       </div>
     </div>
   }
+
   /** Helper function for subclasses to make the form help text for "Name" inputs. */
   protected makeNameHelp() {
     const el = <a href="#">{tr('name-help-show')}.</a>
@@ -355,5 +366,47 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       await infoDialog('info', tr('name-help-title'), <ul>{tr('name-help-full').split('\n').map(t => <li>{t}</li>)}</ul>)
     })
     return el
+  }
+
+  /** Helper function for subclasses to make a textarea row. */
+  protected makeTextAreaRow(initValue :string|undefined, opts :MakeTextAreaRowOpts) :[HTMLElement, HTMLTextAreaElement] {
+    const input = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{initValue?.trim()??''}</textarea>)
+    if (opts.readonly) input.setAttribute('readonly', 'readonly')
+
+    // Begin Auto-Expand stuff
+    // someday: https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing
+    const btnExpand = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-sm px-1 py-0 my-0 ms-1 me-0"></button>)
+    let currentlyExpanded = opts.startExpanded || !initValue?.trim().length
+    const updateButton = () => {
+      btnExpand.setAttribute('title', tr(currentlyExpanded ? 'Collapse' : 'Expand') )
+      if (currentlyExpanded)
+        btnExpand.replaceChildren(<i class="bi-chevron-bar-contract"/>, <span class="visually-hidden"> {tr('Collapse')}</span>)
+      else
+        btnExpand.replaceChildren(<i class="bi-chevron-bar-expand"/>, <span class="visually-hidden"> {tr('Expand')}</span>)
+    }
+    updateButton()
+    btnExpand.addEventListener('click', () => {
+      currentlyExpanded = !currentlyExpanded
+      updateButton()
+      if (!currentlyExpanded) {
+        input.style.removeProperty('overflow-y')
+        input.style.removeProperty('height')
+      } else updateHeight()
+    })
+    const updateHeight = () => {
+      if (!currentlyExpanded) return
+      input.style.setProperty('overflow-y', 'hidden')
+      input.style.setProperty('height', '') // trick to allow shrinking
+      input.style.setProperty('height', `${input.scrollHeight}px`)
+    }
+    input.addEventListener('input', updateHeight)
+    setTimeout(updateHeight)  // delay update until after render
+    // End Auto-Expand stuff
+
+    const row = this.makeRow(input, opts, btnExpand)
+    if (opts.hideWhenEmpty && !initValue?.trim().length)
+      row.classList.add('d-none')
+    return [row, input]
   }
 }

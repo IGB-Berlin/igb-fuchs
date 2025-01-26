@@ -38,8 +38,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
 
     this.inpName = safeCastElement(HTMLInputElement,
       <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    this.inpCheck = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.checklist.join('\n')}</textarea>)
-    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
+    const [rowCheck, inpCheck] = this.makeTextAreaRow(this.initObj.checklist.join('\n'), {
+      label: tr('Checklist'), helpText: <>{tr('checklist-temp-help')}</>, startExpanded: this.isNew })
+    this.inpCheck = inpCheck
+    const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
+    this.inpInst = inpInst
 
     this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, this.selItem,
       {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
@@ -50,9 +54,10 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
 
     this.initialize([
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, tr('Invalid name')),
-      this.makeRow(this.inpCheck, tr('Checklist'), <>{tr('checklist-temp-help')}</>, null),
-      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, null),
+      this.makeRow(this.inpName, { label: tr('Name'),
+        helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
+      rowCheck,
+      rowInst,
       this.sampEdit.elWithTitle,
       this.locEdit.elWithTitle,
     ])

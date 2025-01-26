@@ -41,7 +41,9 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     numericTextInputStuff(this.inpMin)
     this.inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.max)?this.initObj.max:''} />)
     numericTextInputStuff(this.inpMax)
-    this.inpInst = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{this.initObj.instructions.trim()}</textarea>)
+    const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
+      label: tr('Instructions'), helpText: <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
+    this.inpInst = inpInst
 
     const prcToPat = () => {
       const pat = makeValidNumberPat(this.inpPrc.valueAsNumber)
@@ -52,12 +54,17 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     prcToPat()
 
     this.initialize([
-      this.makeRow(this.inpName, tr('Name'), <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, tr('Invalid name')),
-      this.makeRow(this.inpUnit, tr('Unit'), <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, tr('Invalid unit')),
-      this.makeRow(this.inpPrc, tr('Precision'), <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, tr('Invalid precision')),
-      this.makeRow(this.inpMin, tr('Minimum'), <><em>{tr('Recommended')}.</em> {tr('min-help')} {tr('dot-minus-hack')}</>, tr('Invalid minimum value')),
-      this.makeRow(this.inpMax, tr('Maximum'), <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, tr('Invalid maximum value')),
-      this.makeRow(this.inpInst, tr('Instructions'), <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, null),
+      this.makeRow(this.inpName, { label: tr('Name'),
+        helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, invalidText: tr('Invalid name') }),
+      this.makeRow(this.inpUnit, { label: tr('Unit'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('unit-help')}</>, invalidText: tr('Invalid unit') }),
+      this.makeRow(this.inpPrc, { label: tr('Precision'),
+        helpText: <><em>{tr('Recommended')}.</em> {tr('precision-help')}</>, invalidText: tr('Invalid precision') }),
+      this.makeRow(this.inpMin, { label: tr('Minimum'),
+        helpText: <><em>{tr('Recommended')}.</em> {tr('min-help')} {tr('dot-minus-hack')}</>, invalidText: tr('Invalid minimum value') }),
+      this.makeRow(this.inpMax, { label: tr('Maximum'),
+        helpText: <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, invalidText: tr('Invalid maximum value') }),
+      rowInst,
     ])
   }
 
