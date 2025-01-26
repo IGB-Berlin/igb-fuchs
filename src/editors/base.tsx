@@ -65,6 +65,11 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Implementations should intelligently scroll to the next field/button that needs input. */
   protected abstract doScroll(_pushNotPop :boolean) :void
 
+  /** Subclasses can choose to provide a "Next" button by overriding this and `doNext` */
+  protected nextButtonText() :string { return '' }
+  /** Subclasses can choose to provide a "Next" button by overriding this and `nextButtonText` */
+  protected doNext() {}
+
   readonly ctx
   protected readonly parent
   /** The store in which the object with being edited resides. */
@@ -158,6 +163,13 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   shown(pushNotPop :boolean) {
     // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
     this.resetWarningsErrors()
+    // handle "Next" button
+    const nextBtnTxt = this.nextButtonText()
+    if ( nextBtnTxt.length ) {
+      //TODO NEXT: add functionality to the next button
+      this.ctx.footer.replaceChildren(<button type="button" class="btn btn-sm btn-outline-success m-1">{nextBtnTxt}</button>)
+    }
+    else this.ctx.footer.replaceChildren()
     this.doScroll(pushNotPop)
   }
 

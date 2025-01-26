@@ -53,16 +53,21 @@ window.addEventListener('DOMContentLoaded', setTheme)
 
 export class GlobalContext {
   readonly storage
-  private readonly header
   readonly stack
-  constructor(storage :IdbStorage, header :HTMLElement, stack :EditorStack) {
+  private readonly header
+  readonly footer
+  constructor(storage :IdbStorage, stack :EditorStack) {
     this.storage = storage
-    this.header = header
     this.stack = stack
+    const htmlHeader = document.querySelector('header')
+    const htmlFooter = document.querySelector('footer')
+    assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement)
+    this.header = htmlHeader
+    this.footer = htmlFooter
   }
   scrollTo(target :HTMLElement) {
-    target.style.setProperty('scroll-margin-top', `${this.header.getBoundingClientRect().height+5}px`)
-    target.style.setProperty('scroll-margin-bottom', '5px')
+    target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
+    target.style.setProperty('scroll-margin-bottom', `${this.footer.getBoundingClientRect().height+5}px`)
     setTimeout(() => target.scrollIntoView({ block: 'center', behavior: 'smooth' })) // don't scroll until rendered
   }
 }
@@ -82,12 +87,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   initI18n()
 
-  const htmlHeader = document.querySelector('header')
   const htmlMain = document.querySelector('main')
   const navbarMain = document.getElementById('navbarMain')
-  assert(htmlHeader instanceof HTMLElement && htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
+  assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
 
-  const ctx = new GlobalContext(storage, htmlHeader, new EditorStack())
+  const ctx = new GlobalContext(storage, new EditorStack())
   ctx.stack.initialize(navbarMain, makeHomePage(ctx))
   htmlMain.appendChild(ctx.stack.el)
 

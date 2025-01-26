@@ -146,6 +146,13 @@ export class SampleEditor extends Editor<Sample> {
         : ( this.measEdit.scrollTarget() ?? this.btnSaveClose ) )
   }
 
+  protected override nextButtonText(): string {
+    return 'TODO: Next Sample'
+  }
+  protected override doNext() {
+    alert('TODO')
+  }
+
   protected override customWarnings() :string[] { return this.measEdit.customWarnings() }
   protected override async onClose() { await this.measEdit.close() }
 
