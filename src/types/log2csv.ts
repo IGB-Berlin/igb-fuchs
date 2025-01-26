@@ -21,6 +21,7 @@ import { unparse as papaUnparse } from 'papaparse'
 import { toIsoUtc } from '../editors/date-time'
 import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
+import { makeFilename } from '../idb-store'
 import { SamplingLog } from './sampling'
 import { deduplicatedSet } from './set'
 import { infoDialog } from '../dialogs'
@@ -136,5 +137,5 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
   // https://www.papaparse.com/docs#json-to-csv
   return new File([papaUnparse(data, { columns: columns, newline: '\r\n' } )],
-    log.logId+'.csv', { type: 'text/csv', endings: 'transparent', lastModified: log.lastModified })
+    makeFilename(log, 'csv'), { type: 'text/csv', endings: 'transparent', lastModified: log.lastModified })
 }

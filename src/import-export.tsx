@@ -20,6 +20,7 @@ import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { samplingLogToCsv } from './types/log2csv'
 import { CustomStoreEvent } from './events'
+import { makeFilename } from './idb-store'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
 import * as zip from '@zip.js/zip.js'
@@ -91,7 +92,7 @@ export function makeImportExport(ctx :GlobalContext,
     [tr('export-as-zip'), async (s :SamplingLog) => {
       const f = await samplingLogToCsv(s)
       const j = ctx.storage.exportOne(s)
-      await shareFile( await zipFiles( ctx.storage.filenameForZip(s), f ? [f, j] : [j] ))
+      await shareFile( await zipFiles( makeFilename(s,'zip'), f ? [f, j] : [j] ))
     }],
   ])
 

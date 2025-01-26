@@ -29,16 +29,18 @@ export function getTzOffsetStr(date :Date) :string {
   return (off<0?'+':'-')+hrs.toString().padStart(2,'0')+':'+mins.toString().padStart(2,'0')
 }
 
-const dateToLocalString = (date :Date) :string =>
-  `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-    +`T${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+export const dateToLocalString = (date :Date) :string =>
+  `${date.getFullYear().toString().padStart(4,'0')}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')}`
+
+/** For use in `<input type="datetime-local">` */
+const dateTimeToLocalString = (date :Date) :string =>
+  dateToLocalString(date)+`T${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`
 
 /** Turn a date into a string suitable for use in a filename (local time). */
-export const dateToLocalFilenameString = (date :Date) :string =>
-  `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}-`
-    +date.getHours().toString().padStart(2, '0')
-    +date.getMinutes().toString().padStart(2, '0')
-    +date.getSeconds().toString().padStart(2, '0')
+export const dateTimeToLocalFilenameString = (date :Date) :string => dateToLocalString(date)+'-'
+  + date.getHours().toString().padStart(2, '0')
+  + date.getMinutes().toString().padStart(2, '0')
+  + date.getSeconds().toString().padStart(2, '0')
 
 /** Return the timestamp formatted as "YYYY-MM-DD HH:MM:SS" in UTC - user must add the "Z"/"UTC" suffix or equivalent! */
 export function toIsoUtc(t :Timestamp) {
@@ -99,7 +101,7 @@ export class DateTimeInput {
   }
   set timestamp(value :Timestamp) {
     this._ts = value
-    this.input.value = isTimestampSet(value) ? dateToLocalString(new Date(value)) : ''
+    this.input.value = isTimestampSet(value) ? dateTimeToLocalString(new Date(value)) : ''
   }
   get timestamp() :Timestamp {
     return this._ts

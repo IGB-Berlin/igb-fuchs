@@ -16,11 +16,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ISamplingLog, ISamplingProcedure, isISamplingLog, isISamplingProcedure, SamplingLog, SamplingProcedure } from './types/sampling'
+import { dateTimeToLocalFilenameString, dateToLocalString } from './editors/date-time'
 import { SamplingLocation, SamplingLocationTemplate } from './types/location'
+import { hasId, isTimestampSet, timestampNow } from './types/common'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'
-import { dateToLocalFilenameString } from './editors/date-time'
-import { hasId, timestampNow } from './types/common'
 import { MeasurementType } from './types/meas-type'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
@@ -77,6 +77,15 @@ const DEFAULT_SETTINGS :ISettings = {
 }
 function isISettings(o :unknown) :o is ISettings {
   return !!( o && typeof o === 'object' && 'hideHelpTexts' in o && typeof o.hideHelpTexts === 'boolean' ) }
+
+export function makeFilename(obj :SamplingProcedure|SamplingLog|null, ext :'json'|'csv'|'zip') :string {
+  const now = dateTimeToLocalFilenameString(new Date())
+  return ( obj instanceof SamplingProcedure ? `${obj.name.trim().length ? obj.name : '(unnamed)'}.${now}.fuchs-procedure`
+    : obj instanceof SamplingLog ? (obj.name.trim().length ? obj.name : '(unnamed)')
+        +(isTimestampSet(obj.startTime) ? '_'+dateToLocalString(new Date(obj.startTime)) : '')+'.'
+        +dateTimeToLocalFilenameString( isTimestampSet(obj.lastModified) ? new Date(obj.lastModified) : new Date() )+'.fuchs-log'
+      : `FUCHS.${now}.full-export` ) + '.'+ext
+}
 
 class Settings {
   static KEY = 'settings'
@@ -318,9 +327,7 @@ export class IdbStorage {
           : isISamplingProcedure(cur.value) ? new SamplingProcedure(cur.value).toJSON('')
             : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
-    //TODO: For all the filenames here - for better display when abbreviated, put the unique part of the fn first
-    const filename = `fuchs-export_${dateToLocalFilenameString(new Date())}.json`
-    return new File( [JSON.stringify( data, null, 2 )], filename, { type: 'application/json' } )
+    return new File( [JSON.stringify( data, null, 2 )], makeFilename(null,'json'), { type: 'application/json' } )
   }
 
   // This could be static but whatever
@@ -328,15 +335,7 @@ export class IdbStorage {
     const data :JsonFileFormat = { _comment: JSON_COMMENT, version: 0, samplingLogs: {}, samplingProcedures: {} }
     if (obj instanceof SamplingProcedure) data.samplingProcedures[obj.id] = obj
     else data.samplingLogs[obj.id] = obj
-    const name = obj instanceof SamplingLog ? 'log_'+obj.logId : 'procedure_'+obj.name
-    const filename = `fuchs-${name}_${dateToLocalFilenameString(new Date())}.json`
-    return new File( [JSON.stringify( data, null, 2 )], filename, { type: 'application/json' } )
-  }
-
-  // This could be static but whatever
-  /** This is just here so that all the filename generation code is in one place (see `export` and `exportOne`) */
-  filenameForZip(obj :SamplingLog) :string {
-    return `fuchs-log_${obj.logId}_${dateToLocalFilenameString(new Date())}.zip`
+    return new File( [JSON.stringify( data, null, 2 )], makeFilename(obj,'json'), { type: 'application/json' } )
   }
 
   async import(data :unknown) :Promise<ImportResults> {

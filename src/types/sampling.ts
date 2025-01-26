@@ -21,6 +21,7 @@ import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, Dat
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
+import { dateToLocalString } from '../editors/date-time'
 import { IdbStorage } from '../idb-store'
 import { dataSetsEqual } from './set'
 import { i18n, tr } from '../i18n'
@@ -168,11 +169,8 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
   }
   get logId() :string {
-    const n = this.name.trim().length ? this.name : '?'  // paranoia
-    if (isTimestampSet(this.startTime)) {
-      const dt = new Date(this.startTime)
-      return `${n} [${dt.getFullYear().toString().padStart(4,'0')}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}]`
-    } else return n
+    const n = this.name.trim().length ? this.name : '(unnamed)'  // paranoia
+    return isTimestampSet(this.startTime) ? `${n} [${dateToLocalString(new Date(this.startTime))}]` : n
   }
 }
 

@@ -8,6 +8,9 @@ v0.0.6-alpha - *in Arbeit*
   anstatt wie vorher immer zum Anfang der Seite.
 - Große Eingabefelder können durch einen neuen Knopf vergrößert und verkleinert werden.
   Bei neuen Objekten sind sie normalerweise anfangs ausgeklappt, ansonsten eingeklappt.
+- Dateinamen beim Export beginnen jetzt mit dem Protokoll/Prozedur-Namen anstatt mit `fuchs`,
+  damit bei abgekürzten Dateinamen die Dateien einfacher auseinanderzuhalten sind.
+  Außerdem wurde das Format aller Dateinamen vereinheitlicht.
 - Die App sollte sich jetzt immer selbst aktualisieren; ein Löschen des Caches
   sollte nicht mehr notwendig sein. (Bloß muss in manchen Fällen die Webseite
   zweimal neu geladen werden, um die neuste Version zu laden; dies müsste aber
