@@ -37,10 +37,10 @@ export class Slider {
       this.btn.style.transform = `translateX(${currentX}px)`
     }
     const finish = (suppress ?:boolean) => {
+      const atEnd = currentX === this.el.clientWidth - this.btn.clientWidth
       currentX = 0
       this.btn.style.transform = 'translateX(0)'
-      if ( !suppress && currentX === this.el.clientWidth - this.btn.clientWidth )
-        callback()
+      if ( !suppress && atEnd ) callback()
     }
     const mouseMove = (event :MouseEvent) => { if (isDragging) update(event.clientX) }
     const touchMove = (event :TouchEvent) => {
