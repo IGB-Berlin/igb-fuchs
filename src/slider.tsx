@@ -18,6 +18,9 @@
 import { assert } from './utils'
 import { jsx } from './jsx-dom'
 
+const bsColors = ['primary','secondary','info','success','warning','danger'] as const
+type BSColor = typeof bsColors[number]
+
 export class Slider {
   readonly el
   private readonly btn
@@ -25,7 +28,7 @@ export class Slider {
     this.btn = <div class="slider-button rounded-pill text-bg-primary position-absolute top-0 start-0
     d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3">
       <i class="bi-arrow-right"/></div>
-    this.el = <div class="slider-bar rounded-pill bg-body-tertiary position-relative
+    this.el = <div class="slider-bar rounded-pill bg-body-tertiary border border-primary-subtle position-relative
       d-flex justify-content-center align-items-center px-3">
       {this.btn}{text}</div>
     let isDragging = false
@@ -87,11 +90,10 @@ export class Slider {
       document.addEventListener('touchcancel', touchCancel)
     })
   }
-  setColor(color :'primary'|'info'|'success'|'warning'|'danger') {
-    this.btn.classList.toggle('text-bg-primary', color==='primary')
-    this.btn.classList.toggle('text-bg-info',    color==='info')
-    this.btn.classList.toggle('text-bg-success', color==='success')
-    this.btn.classList.toggle('text-bg-warning', color==='warning')
-    this.btn.classList.toggle('text-bg-danger',  color==='danger')
+  setColor(color :BSColor) {
+    for(const c of bsColors) {
+      this.btn.classList.toggle(`text-bg-${c}`, color===c)
+      this.el.classList.toggle(`border-${c}-subtle`, color===c)
+    }
   }
 }
