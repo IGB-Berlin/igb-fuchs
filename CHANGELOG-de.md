@@ -1,8 +1,8 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
-v0.0.6-alpha - *in Arbeit*
---------------------------
+v0.0.6-alpha - 2025-01-27
+-------------------------
 
 - Beim Öffnen eines Objekts wird zum "nächsten relevanten" Eingabefeld gescrollt,
   anstatt wie vorher immer zum Anfang der Seite.
