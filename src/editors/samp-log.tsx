@@ -75,7 +75,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion? (or is better scroll + collapsing textareas enough?)
+    //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion? (or is better scroll + collapsing textarea enough?)
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
@@ -111,7 +111,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     /* TODO Later: The location list should also be sorted by distance from our current location.
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
-    //TODO Later (low prio): Consider how difficult it would be to show all sampling locations on a map
+    //TODO Later (low priority): Consider how difficult it would be to show all sampling locations on a map
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
     this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, this.selItem,
       { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),

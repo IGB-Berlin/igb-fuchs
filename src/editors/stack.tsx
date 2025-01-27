@@ -123,8 +123,7 @@ export class EditorStack {
           console.debug('popstate target stackLen',event.state.stackLen,'< stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
           for ( let i=0; i<popHowMany; i++ ) {
             assert(this.stack.length>1)
-            const top = this.stack.at(-1)
-            assert(top)
+            const top = this.top
             if (await top.requestClose())
               await this.pop(top)
             else {
@@ -144,12 +143,16 @@ export class EditorStack {
     history.replaceState(histState, '', null)
     history.scrollRestoration = 'manual'
   }
+  get top() :StackAble {
+    const top = this.stack.at(-1)
+    assert(top)
+    return top
+  }
   push(e :StackAble) {
     console.debug('Stack push', e.briefTitle, e.currentName())
     assert(this.stack.length)
     // hide current top element
-    const top = this.stack.at(-1)
-    assert(top)
+    const top = this.top
     top.el.classList.add('d-none')
     // push and display new element
     const newLen = this.stack.push(e)
@@ -164,7 +167,7 @@ export class EditorStack {
   }
   back(e :StackAble) {
     console.debug('Editor requested its pop', e.briefTitle, e.currentName())
-    paranoia(this.stack.length>1 && this.stack.at(-1)?.el===e.el)  // make sure it's the top editor
+    paranoia(this.stack.length>1 && this.top.el===e.el)  // make sure it's the top editor
     history.go(-1)  // handled by popstate event
   }
   private async pop(e :StackAble) {
@@ -178,8 +181,7 @@ export class EditorStack {
     this.el.removeChild(del.el)
     /* display the element underneath - note it makes sense to always do this, even when popping multiple elements from the stack,
      * because when popping multiple elements, we don't yet know at which element the popping might stop due to a rejected close. */
-    const top = this.stack.at(-1)
-    assert(top)
+    const top = this.top
     top.el.classList.remove('d-none')
     this.redrawNavbar()
     top.shown(false)

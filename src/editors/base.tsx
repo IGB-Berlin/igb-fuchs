@@ -57,8 +57,8 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   protected abstract newObj() :B
   /** Returns an object with its fields populated from the current form state.
    *
-   * @param saving Whether the object is in the process of being saved,
-   *  as opposed to a dirty check.
+   * @param saving Whether the object is in the process of being saved, as opposed to a dirty check.
+   *  **Note** this may cause changes to the inputs, such as updating the "End Time" field!
    */
   protected abstract form2obj(saving :boolean) :Readonly<B>
   /** Return the current name of the element being edited. */
@@ -167,7 +167,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     // handle "Next" button
     const nextBtnTxt = this.nextButtonText()
     if ( nextBtnTxt.length ) {
-      //TODO Later: Change color of next button based on validity of inputs on the current page?
+      //TODO: Change color of next button based on validity of inputs on the current page? (using the new `checkValidity`)
       const sliderNext = new Slider(nextBtnTxt, () => this.doNext())
       /* TODO NEXT: The Next button needs to first save the current editor and then tell the stack to pop the current editor (see the "submit" button),
          but after the stack has performed the pop, I think the stack should call this editor's *parent* editor's doNext() ?
@@ -195,6 +195,36 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * Errors are provided by throwing one, warnings are returned as an array of strings. */
   protected customWarnings() :string[] { return [] }
 
+  private async doChecks(saving :boolean, andClose :boolean) :Promise<[Readonly<B>, string[]]> {
+    // Check if the form passes validation
+    if (!this.form.checkValidity()) throw new Error(tr('form-invalid'))
+    // Get custom validation stuff
+    const customWarn = this.customWarnings()  // throws errors
+    // Form passed validation, so get the resulting object
+    const curObj = this.form2obj(saving)
+    // Check for errors and warnings
+    const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
+    /* Why: There are a few cases that aren't covered by the form validation, for example:
+     * - when the MeasurementType's `max` is smaller than the `min`
+     * - duplicate `name` properties */
+    curObj.validate(otherObjs)  // throws errors
+    // So next, check warnings
+    /* skipInitWarns: Skip some warnings if this is a brand new (unsaved) object and we're not closing the editor.
+     * This first save is required to enable the list editor(s); see the corresponding discussion in ListEditor.enable(). */
+    const warnings = curObj.warningsCheck( this.isUnsaved && !andClose ).concat(customWarn)
+    return [curObj, warnings]
+  }
+
+  /** Runs the same checks as `doSave` and returns the result.
+   *
+   * @param saving See the corresponding parameter of `form2obj` *and the notes therein!*
+   * @param andClose See the corresponding parameter of `doSave` *and the notes therein!*
+   */
+  async checkValidity(saving :boolean, andClose :boolean) :Promise<'good'|'warn'|'error'> {
+    try { return (await this.doChecks(saving, andClose))[1].length ? 'warn' : 'good' }
+    catch (_) { return 'error' }
+  }
+
   private resetWarningsErrors() {
     this.btnSaveClose.classList.remove('btn-warning')
     this.btnSaveClose.classList.add('btn-success')
@@ -213,51 +243,29 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    */
   private async doSave(andClose :boolean) :Promise<boolean> {
     this.btnSaveClose.classList.remove('btn-success', 'btn-warning')
-    const showError = (msg :string) => {
+    this.form.classList.add('was-validated')
+
+    let _curObj :Readonly<B>
+    let _warnings :string[]
+    try {
+      [_curObj, _warnings] = await this.doChecks(true, andClose)
+    }
+    catch (ex) {
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnAlert.classList.add('d-none')
-      this.elErrDetail.innerText = msg
+      this.elErrDetail.innerText = String(ex)
       this.elErrAlert.classList.remove('d-none')
       this.ctx.scrollTo(this.elErrAlert)
       this.prevSaveClickObjState = null
       this.prevSaveWarnings = []
-    }
-
-    // Check if the form passes validation
-    this.form.classList.add('was-validated')
-    if (!this.form.checkValidity()) {
-      showError(tr('form-invalid'))
-      return false
-    }
-
-    // Get custom validation stuff
-    const customWarn :string[] = []
-    try { customWarn.push(...this.customWarnings()) }
-    catch (ex) {
-      showError(String(ex))
-      return false
-    }
-
-    // Form passed validation, so get the resulting object
-    const curObj = this.form2obj(true)
-
-    // Check for errors and warnings
-    const otherObjs = (await this.targetStore.getAll(this.savedObj)).map(([_,o])=>o)
-    try {
-      /* There are a few cases that aren't covered by the form validation, for example:
-        * - when the MeasurementType's `max` is smaller than the `min`
-        * - duplicate `name` properties */
-      curObj.validate(otherObjs)
-    }
-    catch (ex) {
-      showError(String(ex))
       return false
     }  // else, there were no validation errors
     this.elErrAlert.classList.add('d-none')
+    // convert to consts (paranoia)
+    const curObj =_curObj
+    const warnings = _warnings
 
     // So next, check warnings
-    const skipInitWarns = this.isUnsaved && !andClose
-    const warnings = curObj.warningsCheck(skipInitWarns).concat(customWarn)
     if (warnings.length) {
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )

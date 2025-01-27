@@ -63,10 +63,10 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   private readonly disableNotice
   protected enable() :boolean {
     /* If this list editor is editing part of an object that is new, then it won't have
-    * been saved to its target store, so any changes to the arrays it holds (like the one
-    * being edited by this editor) won't be saved either. So, to prevent users from being
-    * able to build large object trees without them ever being saved, we require this
-    * list editor's parent object to be saved before allowing edits to its arrays. */
+     * been saved to its target store, so any changes to the arrays it holds (like the one
+     * being edited by this editor) won't be saved either. So, to prevent users from being
+     * able to build large object trees without them ever being saved, we require this
+     * list editor's parent object to be saved before allowing edits to its arrays. */
     if (!this.parent.isUnsaved) {
       if (this.selId!==null) {
         this.btnDel.removeAttribute('disabled')
@@ -299,6 +299,7 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
       theUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {
+          // NOTE the similarity to this.startFirstPlannedItem()
           const rm = this.plannedLeft.splice(ti,1)[0]  // remove the desired template from the `planned` array
           paranoia(rm===t)
           // this also fires an event that causes our parent editor to be told to selfUpdate, so the above change to the `planned` array is saved
@@ -316,4 +317,10 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
   }
   get plannedLeftCount() { return this.plannedLeft.length }
   protected override makeNew(t :T) :D { return t.templateToObject() }
+  async startFirstPlannedItem() {  //TODO: Use me for "Next" button
+    // NOTE the similarity to btnNew's click handler
+    const first = this.plannedLeft.shift()
+    if (!first) throw new Error('startFirstPlannedItem called when no planned items left')
+    await this.addNew(first)
+  }
 }
