@@ -69,7 +69,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Subclasses can choose to provide a "Next" button by overriding this and `doNext` */
   protected nextButtonText() :string { return '' }
   /** Subclasses can choose to provide a "Next" button by overriding this and `nextButtonText` */
-  protected doNext() {}
+  protected async doNext() :Promise<void> {}
 
   readonly ctx
   protected readonly parent

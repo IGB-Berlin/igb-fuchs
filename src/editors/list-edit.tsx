@@ -317,7 +317,7 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
   }
   get plannedLeftCount() { return this.plannedLeft.length }
   protected override makeNew(t :T) :D { return t.templateToObject() }
-  async startFirstPlannedItem() {  //TODO: Use me for "Next" button
+  async startFirstPlannedItem() {
     // NOTE the similarity to btnNew's click handler
     const first = this.plannedLeft.shift()
     if (!first) throw new Error('startFirstPlannedItem called when no planned items left')
