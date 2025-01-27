@@ -1,6 +1,11 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
+v0.0.7-alpha - *in Arbeit*
+--------------------------
+
+- ...
+
 v0.0.6-alpha - 2025-01-27
 -------------------------
 
@@ -13,8 +18,10 @@ v0.0.6-alpha - 2025-01-27
   Außerdem wurde das Format aller Dateinamen vereinheitlicht.
 - Die App sollte sich jetzt immer selbst aktualisieren; ein Löschen des Caches
   sollte nicht mehr notwendig sein. (Bloß muss in manchen Fällen die Webseite
-  zweimal neu geladen werden, um die neuste Version zu laden; dies müsste aber
-  bei jeder neuen Version jeweils nur einmal notwendig sein.)
+  zweimal neu geladen werden, um die neuste Version zu laden; auf manchen Handys
+  ggf. mehrfach neu geladen und die App zwischendurch geschlossen werden.
+  Dies lässt sich aufgrund der Offline-Funktionalität leider nicht vermeiden,
+  müsste aber bei jeder neuen Version jeweils nur einmal notwendig sein.)
 
 v0.0.5-alpha - 2024-12-19
 -------------------------
