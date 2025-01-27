@@ -97,6 +97,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       </div></div>
     </div>
 
+    //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {

@@ -49,7 +49,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
   /* ********** ********** Process the log ********** ********** */
   // SamplingLog: id, logId, name, startTime, endTime, lastModified, persons, weather, notes, checkedTasks[], locations[], template?
-  //TODO: Multiple "Notes" columns (Log, Location, Sample) instead of all notes in one column
+  //TODO: Multiple "Notes" columns (Log, Location, Sample) instead of all notes in one column, also split out Completed Tasks
   const logNotes :string[] = [
     `Sampling Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${toIsoUtc(log.startTime)} UTC]` : ''),
     log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
