@@ -140,8 +140,8 @@ export class SampleEditor extends Editor<Sample> {
       + ( this.inpDesc.value.trim().length ? ' / '+this.inpDesc.value.trim() : '' )
   }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !isSampleType(this.inpType.value) || this.inpType.value === 'undefined' ? this.inpType
       : this.inpType.value === 'other' && !this.inpDesc.value.trim().length ? this.inpDesc
         : ( this.measEdit.scrollTarget() ?? this.btnSaveClose ) )
   }

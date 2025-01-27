@@ -63,7 +63,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Return the current name of the element being edited. */
   abstract currentName() :string
   /** Implementations should intelligently scroll to the next field/button that needs input. */
-  protected abstract doScroll(_pushNotPop :boolean) :void
+  protected abstract doScroll(pushNotPop :boolean) :void
 
   readonly ctx
   protected readonly parent

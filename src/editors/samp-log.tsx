@@ -151,8 +151,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
   override currentName() { return this.inpName.value }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
       : ( this.checkList.firstUncheckedEl() ?? (
         this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : ( this.selItem.el ?? this.btnSaveClose )
       ) ) )
