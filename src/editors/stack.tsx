@@ -17,6 +17,7 @@
  */
 import { CustomChangeEvent } from '../events'
 import { assert, paranoia } from '../utils'
+import { Slider } from '../slider'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
@@ -29,6 +30,9 @@ export interface StackAble {  // the only bits of the Editor class we care about
   requestClose() :Promise<boolean>
   close() :Promise<void>
   shown(pushNotPop :boolean) :void
+  nextButtonText() :string
+  doNext() :Promise<void>
+  checkValidity(saving :boolean, andClose :boolean) :Promise<['good'|'warn'|'error', string]>
 }
 
 interface HistoryState { stackLen :number }
@@ -49,6 +53,10 @@ export class EditorStack {
   private readonly navList :HTMLElement = <div class="navbar-nav"></div>
   private readonly stack :StackAble[] = []
   private readonly origTitle = document.title
+  private readonly footer
+  constructor(footer :HTMLElement) {
+    this.footer = footer
+  }
   private redrawNavbar() {
     this.navList.replaceChildren(
       ...this.stack.map((s,i) => {
@@ -91,8 +99,10 @@ export class EditorStack {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack
     this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
-      currentName: () => '', requestClose: () => { throw new Error('shouldn\'t happen') },
-      close: () => { throw new Error('shouldn\'t happen') }, shown: () => {} })
+      currentName: () => '', requestClose: () => { throw new Error('home.requestClose shouldn\'t happen') },
+      close: () => { throw new Error('home.close shouldn\'t happen') }, shown: () => {},
+      nextButtonText: () => '', doNext: () => { throw new Error('home.doNext shouldn\'t happen') },
+      checkValidity: () => Promise.resolve(['good', '']) })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -120,6 +130,7 @@ export class EditorStack {
         }
         else { // event.state.stackLen < this.stack.length
           const popHowMany = this.stack.length - event.state.stackLen
+          paranoia(popHowMany>0)
           console.debug('popstate target stackLen',event.state.stackLen,'< stack.length',this.stack.length,'so need to pop',popHowMany,'editors')
           for ( let i=0; i<popHowMany; i++ ) {
             assert(this.stack.length>1)
@@ -152,8 +163,8 @@ export class EditorStack {
     console.debug('Stack push', e.briefTitle, e.currentName())
     assert(this.stack.length)
     // hide current top element
-    const top = this.top
-    top.el.classList.add('d-none')
+    const prevTop = this.top
+    prevTop.el.classList.add('d-none')
     // push and display new element
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
@@ -163,8 +174,13 @@ export class EditorStack {
     history.pushState(histState, '', null)
     // track changes in the new editor
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
+    this.updateNextButton()
     e.shown(true)
   }
+  /** To be called by an editor when it wants to close.
+   *
+   * @param e The editor itself.
+   */
   back(e :StackAble) {
     console.debug('Editor requested its pop', e.briefTitle, e.currentName())
     paranoia(this.stack.length>1 && this.top.el===e.el)  // make sure it's the top editor
@@ -184,6 +200,48 @@ export class EditorStack {
     const top = this.top
     top.el.classList.remove('d-none')
     this.redrawNavbar()
+    this.updateNextButton()
     top.shown(false)
+  }
+  /** Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`). */
+  private updateNextButton() {
+    // Handle "Next" button: It is defined by the Editor that is the *parent* of the current top editor.
+    const nextBtnTxt = this.stack.length>2 ? this.stack.at(-2)?.nextButtonText() : undefined
+    if ( nextBtnTxt && nextBtnTxt.length ) {
+      /** TODO NEXT: Implement the "Next" button.
+       * It needs to do the equivalent of the top Editor's "Submit" button, and after the resulting history.go(-1) and popstate event, call the resulting top editor's doNext.
+       * We should also change the color of the button based on the validity of inputs on the current page (using the new `checkValidity`)
+       * - But the disabled code below is currently registering the CustomChangeEvent listener multiple times; only CheckValidity when the corresponding slider is actually being shown
+       *
+       * Maybe we need to associate the next button with the editor's position in the stack instead of this code?
+       * Or just integrate this code into push/pop...
+      */
+      const sliderNext = new Slider(nextBtnTxt, async () => {
+        console.warn('TODO: "Next" button not yet implemented')
+        /* Here we would do the equivalent of:
+        if (await this.top.requestClose()) {
+          await this.pop(this.top)
+          await this.top.doNext()
+        }
+        Note the editor does this on submit:
+        if (await this.doSave(true)) this.ctx.stack.back(this)
+        */
+      })
+      const updSlider = async () => {
+        const top = this.top
+        const [valid, detail] = await top.checkValidity(false, true)
+        console.debug('NEXT-BTN: Top editor',top.briefTitle,'changed, checkValidity',valid,detail)
+        switch (valid) {
+        case 'error': sliderNext.setColor('danger'); break
+        case 'warn': sliderNext.setColor('warning'); break
+        case 'good': sliderNext.setColor('success'); break
+        default: sliderNext.setColor('secondary'); break
+        }
+      }
+      // No, see comments above: this.top.el.addEventListener(CustomChangeEvent.NAME, updSlider)
+      setTimeout(updSlider)  // update slider once rendered (also workaround for async from non-async)
+      this.footer.replaceChildren(<div class="d-flex justify-content-center p-1">{sliderNext.el}</div>)
+    }
+    else this.footer.replaceChildren()
   }
 }

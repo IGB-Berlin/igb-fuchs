@@ -25,7 +25,6 @@ import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
 import { makeHelp } from '../help'
-import { Slider } from '../slider'
 import { tr } from '../i18n'
 
 /* WARNING: All <button>s inside the <form> that don't have a `type="button"`
@@ -35,9 +34,6 @@ export interface EditorParent {
   ctx :GlobalContext
   el :HTMLElement
 }
-
-export type EditorClass<B extends DataObjectBase<B>> = new (
-  parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) => Editor<B>
 
 interface MakeRowOps {
   label :HTMLElement|string
@@ -50,6 +46,11 @@ interface MakeTextAreaRowOpts extends MakeRowOps {
   startExpanded :boolean
   hideWhenEmpty ?:boolean
 }
+
+/* I still don't 100% understand why I need this type mirroring the constructor of Editor.
+ * I found this: https://stackoverflow.com/a/53056911 */
+export type EditorClass<B extends DataObjectBase<B>> = new (
+  parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) => Editor<B>
 
 export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 
@@ -66,10 +67,12 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Implementations should intelligently scroll to the next field/button that needs input. */
   protected abstract doScroll(_pushNotPop :boolean) :void
 
-  /** Subclasses can choose to provide a "Next" button by overriding this and `doNext` */
-  protected nextButtonText() :string { return '' }
-  /** Subclasses can choose to provide a "Next" button by overriding this and `nextButtonText` */
-  protected async doNext() :Promise<void> {}
+  /** Subclasses can choose to provide a "Next" button by overriding this method and `doNext` (implemented in `EditorStack`). */
+  nextButtonText() :string { return '' }
+  /** Subclasses can choose to provide a "Next" button by overriding this method and `nextButtonText` (implemented in `EditorStack`).
+   * Is method is *only* to be called by the stack when executing the "Next" button. */
+  async doNext() :Promise<void> { throw new Error('Internal Error: doNext should only be called when nextButtonText is implemented; '
+    +'this error probably means you overrode the latter but not the former?') }
 
   readonly ctx
   protected readonly parent
@@ -109,6 +112,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * @param targetStore The store in which the object to be edited lives or is to be added to.
    * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
    */
+  // REMEMBER to update `EditorClass` when making changes to constructor args!
   constructor(parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) {
     this.parent  = parent
     this.ctx = parent.ctx
@@ -164,18 +168,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   shown(pushNotPop :boolean) {
     // Hide warnings when (re-)showing an editor, hopefully help reduce confusion
     this.resetWarningsErrors()
-    // handle "Next" button
-    const nextBtnTxt = this.nextButtonText()
-    if ( nextBtnTxt.length ) {
-      //TODO: Change color of next button based on validity of inputs on the current page? (using the new `checkValidity`)
-      const sliderNext = new Slider(nextBtnTxt, () => this.doNext())
-      /* TODO NEXT: The Next button needs to first save the current editor and then tell the stack to pop the current editor (see the "submit" button),
-         but after the stack has performed the pop, I think the stack should call this editor's *parent* editor's doNext() ?
-         Then it should also be up to this editor's *parent* to define nextButtonText to define whether it's capable of `doNext`,
-         so really all the functionality is associated with the parent editor. Perhaps implement in Stack instead? */
-      this.ctx.footer.replaceChildren(<div class="d-flex justify-content-center p-1">{sliderNext.el}</div>)
-    }
-    else this.ctx.footer.replaceChildren()
     this.doScroll(pushNotPop)
   }
 
@@ -220,9 +212,12 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * @param saving See the corresponding parameter of `form2obj` *and the notes therein!*
    * @param andClose See the corresponding parameter of `doSave` *and the notes therein!*
    */
-  async checkValidity(saving :boolean, andClose :boolean) :Promise<'good'|'warn'|'error'> {
-    try { return (await this.doChecks(saving, andClose))[1].length ? 'warn' : 'good' }
-    catch (_) { return 'error' }
+  async checkValidity(saving :boolean, andClose :boolean) :Promise<['good'|'warn'|'error', string]> {
+    try {
+      const warnings = (await this.doChecks(saving, andClose))[1]
+      return [warnings.length ? 'warn' : 'good', warnings.join('; ')]
+    }
+    catch (ex) { return ['error', String(ex)] }
   }
 
   private resetWarningsErrors() {
@@ -262,7 +257,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     }  // else, there were no validation errors
     this.elErrAlert.classList.add('d-none')
     // convert to consts (paranoia)
-    const curObj =_curObj
+    const curObj = _curObj
     const warnings = _warnings
 
     // So next, check warnings
@@ -323,7 +318,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** Close this editor. To be called by the EditorStack. Subclasses should not override; see `onClose` for that. */
   async close() {
-    this.ctx.footer.replaceChildren()
     await this.onClose()
   }
   /** Optional hook that subclasses can override, called when the editor is closed. */

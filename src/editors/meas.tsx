@@ -113,7 +113,7 @@ export class MeasurementEditor extends Editor<Measurement> {
 
   override shown(pushNotPop :boolean) {
     super.shown(pushNotPop)
-    if ( this.measType[0].name && !this.inpValue.value )
+    if ( this.measType[0].name.trim().length && !this.inpValue.value.trim().length )
       this.inpValue.focus()
   }
 

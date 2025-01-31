@@ -55,15 +55,12 @@ export class GlobalContext {
   readonly storage
   readonly stack
   private readonly header
-  readonly footer
-  constructor(storage :IdbStorage, stack :EditorStack) {
+  private readonly footer
+  constructor(storage :IdbStorage, header :HTMLElement, footer :HTMLElement, stack :EditorStack) {
     this.storage = storage
     this.stack = stack
-    const htmlHeader = document.querySelector('header')
-    const htmlFooter = document.querySelector('footer')
-    assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement)
-    this.header = htmlHeader
-    this.footer = htmlFooter
+    this.header = header
+    this.footer = footer
   }
   scrollTo(target :HTMLElement) {
     target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
@@ -87,11 +84,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   initI18n()
 
+  const htmlHeader = document.querySelector('header')
+  const htmlFooter = document.querySelector('footer')
   const htmlMain = document.querySelector('main')
   const navbarMain = document.getElementById('navbarMain')
-  assert(htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
+  assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement && htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
 
-  const ctx = new GlobalContext(storage, new EditorStack())
+  const ctx = new GlobalContext(storage, htmlHeader, htmlFooter, new EditorStack(htmlFooter))
   ctx.stack.initialize(navbarMain, makeHomePage(ctx))
   htmlMain.appendChild(ctx.stack.el)
 
