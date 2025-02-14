@@ -111,6 +111,9 @@ class MiniMeasEditor {
     return cks
   }
   private plainChecks() :string[] {
+    //TODO: Hide "No input" warning when new
+    /* TODO: Sometimes popups appear over the input field? Also, when switching to the next input field in the
+     * list and getting a warning for the previous item, the popup tends to cover the item with the problem? */
     if (!this.inp.value.trim().length) return [tr('No input')]
     const newMeas = this.meas.deepClone()
     newMeas.value = this.inp.value

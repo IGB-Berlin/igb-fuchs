@@ -97,6 +97,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
+    /* TODO: Die wichtigsten Knöpfe sind "Navigieren zu Soll-Koord" und "Setzen von Ist-Koord",
+     * nur diese zwei Knöpfe anzeigen und alles weitere in einem Dropdown verstecken.
+     * "Navigieren zu" links und "Setzen" rechts. */
     const nomCoords = this.initObj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
     const inpNomCoords = makeCoordinateEditor(nomCoords, true)
     const rowNomCoords = this.makeRow(inpNomCoords, {

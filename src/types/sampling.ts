@@ -256,6 +256,8 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
   override templateToObject() :SamplingLog {
     const t = this.deepClone()
     // for locations that have no samples, use commonSamples:
+    /* TODO: Reine Navigationspunkte brauchen keine commonSamples, wie am besten implementieren? Checkbox in Messstelle
+     * "keine Proben" (mit Anfangs- und Endzeit in Accordion verstecken?) */
     for (const l of t.locations) if (!l.samples.length) l.samples.push(...t.commonSamples.map(s => s.deepClone()))
     t.commonSamples.length = 0  // no longer needed
     return new SamplingLog({ id: IdbStorage.newSamplingLogId(), template: t,

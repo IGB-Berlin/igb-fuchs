@@ -39,7 +39,7 @@ interface HistoryState { stackLen :number }
 function isHistoryState(o :unknown) :o is HistoryState {
   return !!( o && typeof o === 'object' && Object.keys(o).length===1 && 'stackLen' in o && typeof o.stackLen === 'number' && o.stackLen>0 ) }
 
-/* TODO Later: Users ask if we can perhaps come up with a color scheme where each type of page
+/* TODO: Users ask if we can perhaps come up with a color scheme where each type of page
  * has a different color (or color gradient) so that it's easier to identify what object level
  * we're currently on. The nestings are:
  * - Log       -> Location -> Sample -> Meas. -> Type
@@ -87,6 +87,8 @@ export class EditorStack {
       const s = this.stack[i]
       assert(s)
       l.classList.toggle('link-warning', s.unsavedChanges)
+      /* TODO: The titles are still a bit too long. Consider Removing the briefTitle or using more clear breadcrumbs?
+       * Use icons instead of longer terms like "Hauptseite" etc? Also titles like "Oberflächenwasser (allgemein)" are bit long */
       l.setAttribute('title', i ? `${s.fullTitle} "${s.currentName()}"` : s.fullTitle)
       l.innerText = i ? `${s.briefTitle} "${s.currentName()}"` : s.briefTitle
       if (s.unsavedChanges) anyUnsaved = true

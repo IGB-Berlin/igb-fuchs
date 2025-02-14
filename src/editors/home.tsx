@@ -59,6 +59,9 @@ export function makeHomePage(ctx :GlobalContext) {
 
   const settings = makeSettings(ctx)
 
+  /* TODO: Messprotokolle standardmäßig ausgeklappt, fette Überschrift, ggf. mit Icon hervorheben (für reine Nutzer eindeutiger),
+   * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"
+   * TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
   return <div class="p-2 p-sm-3">
     <div class="accordion" id="homeAccordion">
       {makeAcc(tr('Sampling Logs'), logEdit.el)}
