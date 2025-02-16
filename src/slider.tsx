@@ -24,7 +24,7 @@ type BSColor = typeof bsColors[number]
 export class Slider {
   readonly el
   private readonly btn
-  constructor(text :string, callback :()=>void) {
+  constructor(text :string|HTMLElement, callback :()=>void) {
     this.btn = <div class="slider-button rounded-pill text-bg-primary position-absolute top-0 start-0
     d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3">
       <i class="bi-arrow-right"/></div>

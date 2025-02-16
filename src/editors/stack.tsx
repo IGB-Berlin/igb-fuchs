@@ -30,7 +30,7 @@ export interface StackAble {  // the only bits of the Editor class we care about
   requestClose() :Promise<boolean>
   close() :Promise<void>
   shown(pushNotPop :boolean) :void
-  nextButtonText() :string
+  nextButtonText() :HTMLElement|null
   doNext() :Promise<void>
   checkValidity(saving :boolean, andClose :boolean) :Promise<['good'|'warn'|'error', string]>
 }
@@ -103,7 +103,7 @@ export class EditorStack {
     this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
       currentName: () => '', requestClose: () => { throw new Error('home.requestClose shouldn\'t happen') },
       close: () => { throw new Error('home.close shouldn\'t happen') }, shown: () => {},
-      nextButtonText: () => '', doNext: () => { throw new Error('home.doNext shouldn\'t happen') },
+      nextButtonText: () => null, doNext: () => { throw new Error('home.doNext shouldn\'t happen') },
       checkValidity: () => Promise.resolve(['good', '']) })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
@@ -209,7 +209,7 @@ export class EditorStack {
   private updateNextButton() {
     // Handle "Next" button: It is defined by the Editor that is the *parent* of the current top editor.
     const nextBtnTxt = this.stack.length>2 ? this.stack.at(-2)?.nextButtonText() : undefined
-    if ( nextBtnTxt && nextBtnTxt.length ) {
+    if ( nextBtnTxt ) {
       /** TODO NEXT: Implement the "Next" button.
        * It needs to do the equivalent of the top Editor's "Submit" button, and after the resulting history.go(-1) and popstate event, call the resulting top editor's doNext.
        * We should also change the color of the button based on the validity of inputs on the current page (using the new `checkValidity`)

@@ -68,10 +68,10 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   protected abstract doScroll(_pushNotPop :boolean) :void
 
   /** Subclasses can choose to provide a "Next" button by overriding this method and `doNext` (implemented in `EditorStack`). */
-  nextButtonText() :string { return '' }
+  nextButtonText() :HTMLElement|null { return null }
   /** Subclasses can choose to provide a "Next" button by overriding this method and `nextButtonText` (implemented in `EditorStack`).
    * Is method is *only* to be called by the stack when executing the "Next" button. */
-  async doNext() :Promise<void> { throw new Error('Internal Error: doNext should only be called when nextButtonText is implemented; '
+  async doNext() { throw new Error('Internal Error: doNext should only be called when nextButtonText is implemented; '
     +'this error probably means you overrode the latter but not the former?') }
 
   readonly ctx

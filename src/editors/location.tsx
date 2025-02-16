@@ -179,8 +179,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
           : ( this.taskEditor.firstUncheckedEl() ?? ( this.selItem.el ?? this.btnSaveClose ) ) )
   }
 
-  override nextButtonText() :string {
-    return this.sampEdit.plannedLeftCount ? tr('Save') + ' & ' + tr('Next')+' '+tr('Sample') : '' }
+  override nextButtonText() {
+    return this.sampEdit.plannedLeftCount ? <>{tr('Save') + ' & ' + tr('Next')+' '+tr('Sample')}</> : null }
   override async doNext() { return this.sampEdit.startFirstPlannedItem() }
 
 }

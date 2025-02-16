@@ -159,8 +159,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ) ) )
   }
 
-  override nextButtonText() :string {
-    return this.locEdit.plannedLeftCount ? tr('Save') + ' & ' + tr('Next')+' '+tr('Sampling Location') : '' }
+  override nextButtonText() {
+    return this.locEdit.plannedLeftCount ? <>{tr('Save') + ' & ' + tr('Next')+' '+tr('Sampling Location')}</> : null }
   override async doNext() { return this.locEdit.startFirstPlannedItem() }
 
 }
