@@ -172,8 +172,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
   override currentName() { return this.inpName.value }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
       : !areWgs84CoordsValid(this.actCoords) ? this.inpActCoords
         : this.sampEdit.plannedLeftCount ? this.sampEdit.plannedTitleEl
           : ( this.taskEditor.firstUncheckedEl() ?? ( this.selItem.el ?? this.btnSaveClose ) ) )

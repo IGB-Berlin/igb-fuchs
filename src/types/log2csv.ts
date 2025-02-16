@@ -49,6 +49,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
   /* ********** ********** Process the log ********** ********** */
   // SamplingLog: id, logId, name, startTime, endTime, lastModified, persons, weather, notes, checkedTasks[], locations[], template?
+  //TODO: Multiple "Notes" columns (Log, Location, Sample) instead of all notes in one column, also split out Completed Tasks
   const logNotes :string[] = [
     `Sampling Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${toIsoUtc(log.startTime)} UTC]` : ''),
     log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
@@ -74,7 +75,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
         && distanceBearing(actCoords, nomCoords).distKm*1000 > MAX_NOM_ACT_DIST_CSV_M
         ? 'Nominal Sampling Location Coordinates (WGS84 Lat,Lon): '
           +`${nomCoords.wgs84lat.toFixed(WGS84_PRECISION)},${nomCoords.wgs84lon.toFixed(WGS84_PRECISION)}` : '',
-      loc.completedTasks.length ? `Completed Tasks: ${loc.completedTasks.join(', ')}` :''
+      loc.completedTasks.length ? `Completed Tasks: ${loc.completedTasks.join(', ')}` : ''
     ]
 
     // if there are no samples, emit a dummy line so the notes for this location get recorded

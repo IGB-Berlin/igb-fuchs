@@ -74,9 +74,11 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
 
   override currentName() { return this.inpName.value }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew ? this.inpName : ( this.selItem.el ?? (
-      this.initObj.commonSamples.length ? this.btnSaveClose : this.locEdit.titleEl ) ) )
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
+      : ( this.selItem.el ?? (
+        this.initObj.commonSamples.length ? this.btnSaveClose : this.locEdit.titleEl
+      ) ) )
   }
 
 }

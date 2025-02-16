@@ -107,8 +107,8 @@ export class MeasurementEditor extends Editor<Measurement> {
 
   override currentName() { return this.measType[0].name }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !this.measType[0].name.trim().length ? this.grpType : this.inpValue )
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.measType[0].name.trim().length ? this.grpType : this.inpValue )
   }
 
   override shown(pushNotPop :boolean) {

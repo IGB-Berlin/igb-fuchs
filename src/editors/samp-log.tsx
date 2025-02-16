@@ -98,6 +98,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       </div></div>
     </div>
 
+    //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
@@ -152,8 +153,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
   override currentName() { return this.inpName.value }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length ? this.inpName
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
       : ( this.checkList.firstUncheckedEl() ?? (
         this.locEdit.plannedLeftCount ? this.locEdit.plannedTitleEl : ( this.selItem.el ?? this.btnSaveClose )
       ) ) )

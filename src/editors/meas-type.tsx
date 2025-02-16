@@ -83,8 +83,8 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
 
   override currentName() { return this.inpName.value }
 
-  protected override doScroll() {
-    this.ctx.scrollTo( this.isNew || !this.inpName.value.trim().length || !this.inpUnit.value.trim().length ? this.inpName
+  protected override doScroll(pushNotPop :boolean) {
+    this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length || !this.inpUnit.value.trim().length ? this.inpName
       : !this.inpPrc.value.trim().length || !this.inpMin.value.trim().length || !this.inpMax.value.trim().length ? this.inpMin
         : this.btnSaveClose )
   }
