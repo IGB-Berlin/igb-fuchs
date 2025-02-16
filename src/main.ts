@@ -26,9 +26,11 @@ import { assert } from './utils'
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
 
-const GIT_COMMIT_RAW = '$Commit$'  // is updated by git filters
-const GIT_COMMIT = GIT_COMMIT_RAW.indexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<0 || GIT_COMMIT_RAW.lastIndexOf(' ')<=GIT_COMMIT_RAW.indexOf(' ')
-  ? '?' : GIT_COMMIT_RAW.substring(GIT_COMMIT_RAW.indexOf(' ')+1, GIT_COMMIT_RAW.lastIndexOf(' '))
+const GIT_COMMIT = (c => {
+  const first = c.indexOf(' ')
+  const last = c.lastIndexOf(' ')
+  return first<0 || last<0 || last<=first ? '?' : c.substring(first+1, last)
+})('$Commit$')  // is updated by git filters
 
 // GitHub pages doesn't automatically redirect to HTTPS, but we need it for certain JS APIs to work (e.g. crypto)
 if (location.protocol.toLowerCase() === 'http:' && location.hostname.toLowerCase() !== 'localhost')
