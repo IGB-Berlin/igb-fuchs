@@ -43,3 +43,19 @@ export class CustomStoreEvent extends CustomEvent<StoreEventDetails> {
     super(CustomStoreEvent.NAME, { detail: detail, bubbles: false, cancelable: false })
   }
 }
+
+interface StackEventDetails {
+  action :'opened'|'shown'|'hidden'|'closed'
+}
+/** A custom event for `EditorStack` that it fires on its `Editor`s.
+ *
+ * Does not bubble, so it must be bubbled manually.
+ *
+ * TODO: Can these new CustomStackEvents reliably replace the current callback mechanisms?
+ */
+export class CustomStackEvent extends CustomEvent<StackEventDetails> {
+  static readonly NAME = 'custom.stack'
+  constructor(detail :StackEventDetails) {
+    super(CustomStackEvent.NAME, { detail: detail, bubbles: false, cancelable: false })
+  }
+}

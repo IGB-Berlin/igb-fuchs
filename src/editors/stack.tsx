@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { CustomChangeEvent } from '../events'
+import { CustomChangeEvent, CustomStackEvent } from '../events'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
 import { jsx } from '../jsx-dom'
@@ -167,6 +167,7 @@ export class EditorStack {
     // hide current top element
     const prevTop = this.top
     prevTop.el.classList.add('d-none')
+    prevTop.el.dispatchEvent(new CustomStackEvent({ action: 'hidden' }))
     // push and display new element
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
@@ -178,6 +179,7 @@ export class EditorStack {
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
     this.updateNextButton()
     e.shown(true)
+    e.el.dispatchEvent(new CustomStackEvent({ action: 'opened' }))
   }
   /** To be called by an editor when it wants to close.
    *
@@ -196,6 +198,7 @@ export class EditorStack {
     assert(del)
     paranoia(del.el===e.el, `Should have popped ${e.briefTitle}/${e.currentName()} but TOS was ${del.briefTitle}/${del.currentName()}`)
     await del.close()
+    del.el.dispatchEvent(new CustomStackEvent({ action: 'closed' }))
     this.el.removeChild(del.el)
     /* display the element underneath - note it makes sense to always do this, even when popping multiple elements from the stack,
      * because when popping multiple elements, we don't yet know at which element the popping might stop due to a rejected close. */
@@ -204,46 +207,48 @@ export class EditorStack {
     this.redrawNavbar()
     this.updateNextButton()
     top.shown(false)
+    top.el.dispatchEvent(new CustomStackEvent({ action: 'shown' }))
   }
   /** Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`). */
   private updateNextButton() {
     // Handle "Next" button: It is defined by the Editor that is the *parent* of the current top editor.
     const nextBtnTxt = this.stack.length>2 ? this.stack.at(-2)?.nextButtonText() : undefined
-    if ( nextBtnTxt ) {
-      /** TODO NEXT: Implement the "Next" button.
-       * It needs to do the equivalent of the top Editor's "Submit" button, and after the resulting history.go(-1) and popstate event, call the resulting top editor's doNext.
-       * We should also change the color of the button based on the validity of inputs on the current page (using the new `checkValidity`)
-       * - But the disabled code below is currently registering the CustomChangeEvent listener multiple times; only CheckValidity when the corresponding slider is actually being shown
-       *
-       * Maybe we need to associate the next button with the editor's position in the stack instead of this code?
-       * Or just integrate this code into push/pop...
-      */
-      const sliderNext = new Slider(nextBtnTxt, async () => {
-        console.warn('TODO: "Next" button not yet implemented')
-        /* Here we would do the equivalent of:
-        if (await this.top.requestClose()) {
-          await this.pop(this.top)
-          await this.top.doNext()
-        }
-        Note the editor does this on submit:
-        if (await this.doSave(true)) this.ctx.stack.back(this)
-        */
-      })
-      const updSlider = async () => {
-        const top = this.top
-        const [valid, detail] = await top.checkValidity(false, true)
-        console.debug('NEXT-BTN: Top editor',top.briefTitle,'changed, checkValidity',valid,detail)
-        switch (valid) {
-        case 'error': sliderNext.setColor('danger'); break
-        case 'warn': sliderNext.setColor('warning'); break
-        case 'good': sliderNext.setColor('success'); break
-        default: sliderNext.setColor('secondary'); break
-        }
-      }
-      // No, see comments above: this.top.el.addEventListener(CustomChangeEvent.NAME, updSlider)
-      setTimeout(updSlider)  // update slider once rendered (also workaround for async from non-async)
-      this.footer.replaceChildren(<div class="d-flex justify-content-center p-1">{sliderNext.el}</div>)
+    if ( !nextBtnTxt ) {
+      this.footer.replaceChildren()
+      return
     }
-    else this.footer.replaceChildren()
+    /** TODO NEXT: Implement the "Next" button.
+     * It needs to do the equivalent of the top Editor's "Submit" button, and after the resulting history.go(-1) and popstate event, call the resulting top editor's doNext.
+     * We should also change the color of the button based on the validity of inputs on the current page (using the new `checkValidity`)
+     * - But the disabled code below is currently registering the CustomChangeEvent listener multiple times; only CheckValidity when the corresponding slider is actually being shown
+     *
+     * Maybe we need to associate the next button with the editor's position in the stack instead of this code?
+     * Or just integrate this code into push/pop...
+     */
+    const sliderNext = new Slider(nextBtnTxt, async () => {
+      console.warn('TODO: "Next" button not yet implemented')
+      /* Here we would do the equivalent of:
+      if (await this.top.requestClose()) {
+        await this.pop(this.top)
+        await this.top.doNext()
+      }
+      Note the editor does this on submit:
+      if (await this.doSave(true)) this.ctx.stack.back(this)
+      */
+    })
+    const updSlider = async () => {
+      const top = this.top
+      const [valid, detail] = await top.checkValidity(false, true)
+      console.debug('NEXT-BTN: Top editor',top.briefTitle,'changed, checkValidity',valid,detail)
+      switch (valid) {
+      case 'error': sliderNext.setColor('danger'); break
+      case 'warn': sliderNext.setColor('warning'); break
+      case 'good': sliderNext.setColor('success'); break
+      default: sliderNext.setColor('secondary'); break  // shouldn't happen
+      }
+    }
+    // No, see comments above: this.top.el.addEventListener(CustomChangeEvent.NAME, updSlider)
+    setTimeout(updSlider)  // update slider once rendered (also workaround for async from non-async)
+    this.footer.replaceChildren(<div class="d-flex justify-content-center p-1">{sliderNext.el}</div>)
   }
 }
