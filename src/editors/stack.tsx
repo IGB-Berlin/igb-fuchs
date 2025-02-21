@@ -224,6 +224,11 @@ export class EditorStack {
      *
      * Maybe we need to associate the next button with the editor's position in the stack instead of this code?
      * Or just integrate this code into push/pop...
+     *
+     * TODO Later: Consider the common workflow where a sample is being measured by a probe while the technician is already driving to the next location,
+     * so the probe's values won't be recorded until the arrival at the next location.
+     * It might be nice to have a "navigate to the next location" button/link on a sample, or similar?
+     * (I put this idea here for now because it is tangentially related to the "Next" functionality)
      */
     const sliderNext = new Slider(nextBtnTxt, async () => {
       console.warn('TODO: "Next" button not yet implemented')
