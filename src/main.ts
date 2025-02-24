@@ -67,7 +67,7 @@ export class GlobalContext {
   scrollTo(target :HTMLElement) {
     target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
     target.style.setProperty('scroll-margin-bottom', `${this.footer.getBoundingClientRect().height+5}px`)
-    setTimeout(() => target.scrollIntoView({ block: 'center', behavior: 'smooth' })) // don't scroll until rendered
+    setTimeout(() => target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 1) // don't scroll until rendered
   }
 }
 

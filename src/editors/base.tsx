@@ -150,11 +150,21 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       btnBack.classList.toggle('btn-outline-warning', unsaved)
     })
     btnSave.addEventListener('click', () => this.doSave(false))
-    this.form.addEventListener('submit', async event => {
+    this.form.addEventListener('submit', event => {
       event.preventDefault()
       event.stopPropagation()
-      if (await this.doSave(true)) this.ctx.stack.back(this)
+      return this.doSaveAndClose()
     })
+  }
+
+  /** Only to be called by the Stack (and the Editor's "Save & Close" button of course).
+   *
+   * @returns `true` if the save was successful and the Editor will be closed by the Stack, `false` otherwise.
+   */
+  async doSaveAndClose(): Promise<boolean> {
+    if (!await this.doSave(true)) return false
+    this.ctx.stack.back(this)
+    return true
   }
 
   /** To be called by subclasses when they're ready to be shown. */
@@ -267,10 +277,11 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       this.elWarnAlert.classList.remove('d-none')
       this.ctx.scrollTo(this.elWarnAlert)
       if (andClose) {  // Button "Save & Close"
-        // Did the user click the "Save & Close" button a second time without making changes? (warnings may also change if isBrandNew changes)
+        // Did the user click the "Save & Close" button a second time without making changes? (note warnings may also change if skipInitWarns changes)
         if (!curObj.equals(this.prevSaveClickObjState) || warnings.length!==this.prevSaveWarnings.length
           || warnings.some((w,i) => w!==this.prevSaveWarnings[i])) { // no, first time, changes were made, or different warnings
           // Briefly disable the submit button to allow the user to see the warnings and to prevent accidental double clicks.
+          // (NOTE that now we have the "Next" button, it's still theoretically possible for the user to Save & Close via that while btnSaveClose is disabled)
           this.btnSaveClose.setAttribute('disabled','disabled')
           setTimeout(() => this.btnSaveClose.removeAttribute('disabled'), 700)
           // However, we don't actually want to prevent the save, we just want the user to see the warnings.

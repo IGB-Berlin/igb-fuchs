@@ -173,7 +173,9 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     })?.el ?? this.selItem.el
   }
   /* TODO: Consider better tabindex order for mini measurement editors? (and in general?)
-   * (this idea is mostly for mobile though and probably depends on the keyboard, perhaps touch interaction is enough) */
+   * (this idea is mostly for mobile though and probably depends on the keyboard, perhaps touch interaction is enough)
+   * UPDATE: The tabindex on mobile is fine, this To-Do can probably be deleted
+   */
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
     if (ed) return ed.el

@@ -28,10 +28,12 @@ export interface StackAble {  // the only bits of the Editor class we care about
   readonly unsavedChanges :boolean
   currentName() :string
   requestClose() :Promise<boolean>
+  // In regards to the following `close` and `shown` callbacks, see also the discussion in CustomStackEvent
   close() :Promise<void>
   shown(pushNotPop :boolean) :void
   nextButtonText() :HTMLElement|null
   doNext() :Promise<void>
+  doSaveAndClose() :Promise<boolean>
   checkValidity(saving :boolean, andClose :boolean) :Promise<['good'|'warn'|'error', string]>
 }
 
@@ -104,7 +106,7 @@ export class EditorStack {
       currentName: () => '', requestClose: () => { throw new Error('home.requestClose shouldn\'t happen') },
       close: () => { throw new Error('home.close shouldn\'t happen') }, shown: () => {},
       nextButtonText: () => null, doNext: () => { throw new Error('home.doNext shouldn\'t happen') },
-      checkValidity: () => Promise.resolve(['good', '']) })
+      checkValidity: () => Promise.resolve(['good', '']), doSaveAndClose: () => { throw new Error('home.doSaveAndClose shouldn\'t happen') } })
     this.el.appendChild(homePage)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
@@ -167,7 +169,7 @@ export class EditorStack {
     // hide current top element
     const prevTop = this.top
     prevTop.el.classList.add('d-none')
-    prevTop.el.dispatchEvent(new CustomStackEvent({ action: 'hidden' }))
+    prevTop.el.dispatchEvent(new CustomStackEvent({ action: 'hidden', other: e }))
     // push and display new element
     const newLen = this.stack.push(e)
     this.el.appendChild(e.el)
@@ -177,7 +179,7 @@ export class EditorStack {
     history.pushState(histState, '', null)
     // track changes in the new editor
     e.el.addEventListener(CustomChangeEvent.NAME, () => this.restyleNavbar())
-    this.updateNextButton()
+    this.initNextButton(e)
     e.shown(true)
     e.el.dispatchEvent(new CustomStackEvent({ action: 'opened' }))
   }
@@ -205,55 +207,103 @@ export class EditorStack {
     const top = this.top
     top.el.classList.remove('d-none')
     this.redrawNavbar()
-    this.updateNextButton()
     top.shown(false)
-    top.el.dispatchEvent(new CustomStackEvent({ action: 'shown' }))
+    top.el.dispatchEvent(new CustomStackEvent({ action: 'shown', other: del }))
   }
-  /** Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`). */
-  private updateNextButton() {
-    // Handle "Next" button: It is defined by the Editor that is the *parent* of the current top editor.
-    const nextBtnTxt = this.stack.length>2 ? this.stack.at(-2)?.nextButtonText() : undefined
-    if ( !nextBtnTxt ) {
-      this.footer.replaceChildren()
-      return
-    }
-    /** TODO NEXT: Implement the "Next" button.
-     * It needs to do the equivalent of the top Editor's "Submit" button, and after the resulting history.go(-1) and popstate event, call the resulting top editor's doNext.
-     * We should also change the color of the button based on the validity of inputs on the current page (using the new `checkValidity`)
-     * - But the disabled code below is currently registering the CustomChangeEvent listener multiple times; only CheckValidity when the corresponding slider is actually being shown
+
+  /** TODO Later: Consider the common workflow where a sample is being measured by a probe while the technician is already driving to the next location,
+   * so the probe's values won't be recorded until the arrival at the next location.
+   * So it might be nice to have a "navigate to the next location" button/link on the last sample, or similar?
+   */
+
+  /** Initialize the Next button provided by this Editor, which gets shown when this Editor has a child Editor on top of it.
+   *
+   * NOTE: Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`).
+   */
+  private initNextButton(ed :StackAble) {
+
+    /** This variable controls whether the next time this editor is shown, its `doNext` is called.
      *
-     * Maybe we need to associate the next button with the editor's position in the stack instead of this code?
-     * Or just integrate this code into push/pop...
+     * The only way to pop an editor is via the history, which doesn't allow passing any extra parameters.
+     * So the actions taken under the hood here are:
+     * 1. We call `Editor.doSaveAndClose()` here, which, upon successful save, calls `Stack.back()`, and we then also set this flag variable
+     * 2. `Stack.back()` calls `history.go(-1)`, causes the browser to fire a `popstate` event
+     * 3. The `popstate` handler in this class does `Editor.requestClose()` - which should always succeed since we just saved - and then `Stack.pop()`
+     * 4. `Stack.pop()` fires a `CustomStackEvent` of type `shown`, which we handle below,
+     *    and if this flag variable is set, we call `Editor.doNext()`.
      *
-     * TODO Later: Consider the common workflow where a sample is being measured by a probe while the technician is already driving to the next location,
-     * so the probe's values won't be recorded until the arrival at the next location.
-     * It might be nice to have a "navigate to the next location" button/link on a sample, or similar?
-     * (I put this idea here for now because it is tangentially related to the "Next" functionality)
+     * TODO: Slightly Rube Goldberg. Are there conditions under which the above chain can be interrupted and `nextDoNext` needs to be reset?
      */
-    const sliderNext = new Slider(nextBtnTxt, async () => {
-      console.warn('TODO: "Next" button not yet implemented')
-      /* Here we would do the equivalent of:
-      if (await this.top.requestClose()) {
-        await this.pop(this.top)
-        await this.top.doNext()
-      }
-      Note the editor does this on submit:
-      if (await this.doSave(true)) this.ctx.stack.back(this)
-      */
+    let nextDoNext = false
+    const sliderNext = new Slider('', async () => {
+      assert(Object.is(ed, this.stack.at(-2)))  // make sure the stack looks like we expect it to
+      if (await this.top.doSaveAndClose()) nextDoNext = true
     })
-    const updSlider = async () => {
-      const top = this.top
-      const [valid, detail] = await top.checkValidity(false, true)
-      console.debug('NEXT-BTN: Top editor',top.briefTitle,'changed, checkValidity',valid,detail)
-      switch (valid) {
-      case 'error': sliderNext.setColor('danger'); break
-      case 'warn': sliderNext.setColor('warning'); break
-      case 'good': sliderNext.setColor('success'); break
-      default: sliderNext.setColor('secondary'); break  // shouldn't happen
-      }
+    const theEl = <div class="d-flex justify-content-center p-1 d-none">{sliderNext.el}</div>
+
+    let thisEditorHasChild = false
+    let thisEditorsChildIsVisible = false
+    const updSliderVis = () => {
+      const nextBtnTxt = ed.nextButtonText()
+      const show :boolean = !!(thisEditorHasChild && thisEditorsChildIsVisible && nextBtnTxt)
+      theEl.classList.toggle('d-none', !show)
+      if (show && nextBtnTxt) sliderNext.setText(nextBtnTxt)
+      return show
     }
-    // No, see comments above: this.top.el.addEventListener(CustomChangeEvent.NAME, updSlider)
-    setTimeout(updSlider)  // update slider once rendered (also workaround for async from non-async)
-    this.footer.replaceChildren(<div class="d-flex justify-content-center p-1">{sliderNext.el}</div>)
+
+    ed.el.addEventListener(CustomStackEvent.NAME, async evt1 => {
+      if (!(evt1 instanceof CustomStackEvent)) return
+      switch(evt1.detail.action) {
+      case 'opened':
+        thisEditorHasChild = false
+        this.footer.appendChild(theEl)
+        break
+      case 'closed':
+        thisEditorHasChild = false
+        this.footer.removeChild(theEl)
+        break
+      case 'hidden': {  // this editor was hidden by another editor on top of it
+        thisEditorHasChild = true
+        const childEd = evt1.detail.other
+        const updSliderColor = async () => {
+          if (!updSliderVis()) return
+          const [valid, detail] = await childEd.checkValidity(false, true)
+          //TODO Later: Show the checkValidity detail in a tooltip?
+          //TODO: A red MiniMeasEditor doesn't result in a red slider
+          console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
+          switch (valid) {
+          case 'error': sliderNext.setColor('danger'); break
+          case 'warn': sliderNext.setColor('warning'); break
+          case 'good': sliderNext.setColor('success'); break
+          }
+        }
+        childEd.el.addEventListener(CustomChangeEvent.NAME, updSliderColor)
+        childEd.el.addEventListener(CustomStackEvent.NAME, evt2 => {
+          if (!(evt2 instanceof CustomStackEvent)) return
+          switch (evt2.detail.action) {
+          case 'closed':
+          case 'hidden':
+            thisEditorsChildIsVisible = false
+            break
+          /* TODO: A new MeasListEditor renders its items async, so the following updSliderColor call is too soon to see "No input" warnings,
+           * resulting in a green slider. Perhaps MeasListEditor should pre-initialize the MiniMeasEditor objects? */
+          case 'opened':
+          case 'shown':
+            thisEditorsChildIsVisible = true
+            break
+          }
+          return updSliderColor()
+        })
+        break
+      }
+      case 'shown':  // this editor was revealed after the editor on top of it was closed
+        thisEditorHasChild = false
+        updSliderVis()
+        if (nextDoNext) await ed.doNext()
+        break
+      }
+      nextDoNext = false
+    })
   }
+
 }

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { StackAble } from './editors/stack'
 
 /** A custom 'onchange' event, the purpose of which is that listeners can check if an `Editor` is dirty or not when its inputs change.
  *
@@ -44,14 +45,27 @@ export class CustomStoreEvent extends CustomEvent<StoreEventDetails> {
   }
 }
 
-interface StackEventDetails {
-  action :'opened'|'shown'|'hidden'|'closed'
+/**
+ * Meanings of `action`:
+ * - `opened` - The Editor was freshly created, added to the stack, and shown.
+ * - `shown` - The Editor was revealed because the Editor on top of it on the stack was closed.
+ * - `hidden` - The Editor was hidden because a new Editor is going on top of it on the stack.
+ * - `closed` - The Editor was removed from the stack and closed (and may potentially have been removed from DOM already by the time the event is processed).
+ */
+type StackEventDetails = {
+  action :'opened'|'closed'
+}|{
+  action :'shown'|'hidden'
+  /** NOTE that this Editor may not have been added to stack yet or already been removed and closed. */
+  other :StackAble
 }
 /** A custom event for `EditorStack` that it fires on its `Editor`s.
  *
  * Does not bubble, so it must be bubbled manually.
  *
- * TODO: Can these new CustomStackEvents reliably replace the current callback mechanisms?
+ * Note that the Stack also uses the callback methods `shown` and `close` on the Editors.
+ * I've chosen to keep those for now - especially `close` should be synchronous (more specifically, awaited).
+ * `shown` is a candidate that could be replaced by an event listener...
  */
 export class CustomStackEvent extends CustomEvent<StackEventDetails> {
   static readonly NAME = 'custom.stack'

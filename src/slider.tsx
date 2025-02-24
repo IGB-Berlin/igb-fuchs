@@ -24,13 +24,15 @@ type BSColor = typeof bsColors[number]
 export class Slider {
   readonly el
   private readonly btn
+  private readonly textSpan
   constructor(text :string|HTMLElement, callback :()=>void) {
     this.btn = <div class="slider-button rounded-pill text-bg-primary position-absolute top-0 start-0
     d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3">
       <i class="bi-arrow-right"/></div>
+    this.textSpan = <span>{text}</span>
     this.el = <div class="slider-bar rounded-pill bg-body-tertiary border border-primary-subtle position-relative
       d-flex justify-content-center align-items-center px-3">
-      {this.btn}{text}</div>
+      {this.btn}{this.textSpan}</div>
     let isDragging = false
     let isSwiping = false
     let startX = 0
@@ -95,5 +97,9 @@ export class Slider {
       this.btn.classList.toggle(`text-bg-${c}`, color===c)
       this.el.classList.toggle(`border-${c}-subtle`, color===c)
     }
+  }
+  setText(text :string|HTMLElement) {
+    if (text instanceof HTMLElement) this.textSpan.replaceChildren(text)
+    else this.textSpan.innerText = text
   }
 }
