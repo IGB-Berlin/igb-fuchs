@@ -65,7 +65,7 @@ type StackEventDetails = {
  *
  * Note that the Stack also uses the callback methods `shown` and `close` on the Editors.
  * I've chosen to keep those for now - especially `close` should be synchronous (more specifically, awaited).
- * `shown` is a candidate that could be replaced by an event listener...
+ * TODO Later: `shown` is a candidate that could be replaced by an event listener...
  */
 export class CustomStackEvent extends CustomEvent<StackEventDetails> {
   static readonly NAME = 'custom.stack'

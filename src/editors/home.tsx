@@ -41,6 +41,7 @@ function makeAcc(title :string, body :HTMLElement|string) {
   </div>
 }
 
+//TODO Later: Convert makeHomePage to a class the implements StackAble
 export function makeHomePage(ctx :GlobalContext) {
 
   const selItem :SelectedItemContainer = { el: null }
