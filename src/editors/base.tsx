@@ -47,10 +47,8 @@ interface MakeTextAreaRowOpts extends MakeRowOps {
   hideWhenEmpty ?:boolean
 }
 
-/* I still don't 100% understand why I need this type mirroring the constructor of Editor.
- * I found this: https://stackoverflow.com/a/53056911 */
-export type EditorClass<B extends DataObjectBase<B>> = new (
-  parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) => Editor<B>
+// https://stackoverflow.com/a/53056911
+export type EditorClass<B extends DataObjectBase<B>> = new (...args: ConstructorParameters<typeof Editor<B>>) => Editor<B>
 
 export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 

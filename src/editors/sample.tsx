@@ -115,7 +115,6 @@ export class SampleEditor extends Editor<Sample> {
 
     this.measEdit = new MeasListEditor(this, this.initObj)
 
-    //TODO: A "Next" button to proceed to next sample, or to next location when all planned samples are done.
     this.initialize([
       this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('samp-short-desc-help')}</> }),
