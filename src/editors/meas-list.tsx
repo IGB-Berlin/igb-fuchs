@@ -45,6 +45,8 @@ class MiniMeasEditor {
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
       pattern={makeValidNumberPat(meas.type.precision)} value={meas.value} title="-" />)  // needs a title or Tooltip won't init
     numericTextInputStuff(this.inp)
+    /* TODO: Long Measurement Type names like "Sauerstoffsättigung" cause ugly wrapping of the input groups on mobile.
+     * Also, the minimum width of the input box is not enough. */
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     this.inp.addEventListener('dblclick', event => event.stopPropagation())
     let info :HTMLElement|string = ''
