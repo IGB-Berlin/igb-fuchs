@@ -275,6 +275,7 @@ export class EditorStack {
           const [valid, detail] = await childEd.checkValidity(false, true)
           //TODO Later: Show the checkValidity detail in a tooltip?
           //TODO: A red MiniMeasEditor doesn't result in a red slider
+          //TODO: "No end time" should not be a warning for the "Save" slider when the "auto-set" checkbox is checked
           console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
           switch (valid) {
           case 'error': sliderNext.setColor('danger'); break

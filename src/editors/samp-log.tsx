@@ -81,8 +81,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
-    //TODO: Creating a new Log with an empty end time results in "RangeError: invalid time value"? (Chrome on Android)
-    //TODO: Anfangs- und Endzeit werden sowieso automatisch gespeichert, daher können sie in einem Accordion versteckt werden
+    //TODO: Anfangs- und Endzeit werden sowieso automatisch gespeichert, daher können sie in einem Accordion versteckt werden (zusammen mit fertiger Checkliste)
     const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpEnd = new DateTimeInput(this.initObj.endTime, false)

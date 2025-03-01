@@ -254,6 +254,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       [_curObj, _warnings] = await this.doChecks(true, andClose)
     }
     catch (ex) {
+      console.debug(ex)
       this.btnSaveClose.classList.add('btn-warning')
       this.elWarnAlert.classList.add('d-none')
       this.elErrDetail.innerText = String(ex)

@@ -95,7 +95,7 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     validateId(this.id)
     validateName(this.name)
     validateTimestamp(this.startTime)
-    validateTimestamp(this.endTime)
+    //validateTimestamp(this.endTime)  // validation may be performed before saving
     validateTimestamp(this.lastModified)
     if (others.some(o => o.logId === this.logId))
       throw new Error(tr('duplicate-log-id'))
