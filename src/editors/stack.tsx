@@ -48,6 +48,11 @@ function isHistoryState(o :unknown) :o is HistoryState {
  * - Procedure -> Location -> Sample          -> Meas. Type
  * - Procedure             -> Sample          -> Meas. Type
  *   Violet?      Blue?       Cyan?     Green?   Yellow? (no, not yellow, that's currently used for unsaved changes)
+ *
+ * Potential Bootstrap Icons:
+ * - Log: -> journal-text, list-columns-reverse, file-earmark-text
+ * - Location: pin-map, -> geo
+ * - Sample: thermometer-half, speedometer, moisture, -> eyedropper
  * */
 
 export class EditorStack {
