@@ -17,8 +17,8 @@
  */
 import { betaWarning, internalErrorDialog, makeBetaVersionNoticeLink, noStorageAlert } from './dialogs'
 import licenses_txt from 'bundle-text:../licenses.txt'
-import { makeHomePage } from './editors/home'
 import { EditorStack } from './editors/stack'
+import { HomePage } from './editors/home'
 import { IdbStorage } from './idb-store'
 import { initI18n } from './i18n'
 import { assert } from './utils'
@@ -95,7 +95,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement && htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
 
   const ctx = new GlobalContext(storage, htmlHeader, htmlFooter, new EditorStack(htmlFooter))
-  ctx.stack.initialize(navbarMain, await makeHomePage(ctx))
+  ctx.stack.initialize(navbarMain, await HomePage.new(ctx))
   htmlMain.appendChild(ctx.stack.el)
 
   const licensesText = document.getElementById('licensesText')

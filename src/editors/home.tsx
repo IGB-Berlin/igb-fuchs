@@ -21,6 +21,7 @@ import { makeImportExport } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
+import { StackAble } from './stack'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
@@ -41,34 +42,47 @@ function makeAcc(title :string, body :HTMLElement|string) {
   </div>
 }
 
-//TODO Later: Convert makeHomePage to a class the implements StackAble
-export async function makeHomePage(ctx :GlobalContext) {
+export class HomePage implements StackAble {
+  readonly briefTitle = tr('Home')
+  readonly fullTitle = tr('Home')
+  readonly unsavedChanges = false
+  checkValidity() :Promise<['good','']> { return Promise.resolve(['good','']) }
+  requestClose() :Promise<boolean> { throw new Error('HomePage.requestClose shouldn\'t happen') }
+  doSaveAndClose() :Promise<boolean> { throw new Error('HomePage.doSaveAndClose shouldn\'t happen') }
+  close() :Promise<void> { throw new Error('HomePage.close shouldn\'t happen') }
+  doNext() :Promise<void> { throw new Error('HomePage.doNext shouldn\'t happen') }
+  nextButtonText() { return null }
+  currentName() { return '' }
+  shown() {}
+  readonly el
+  private constructor(el :HTMLElement) { this.el = el }
+  static async new(ctx :GlobalContext) {
+    const selItem :SelectedItemContainer = { el: null }
+    const dummyParent :ListEditorParent = { ctx: ctx, el: null, isUnsaved: false,
+      selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
-  const selItem :SelectedItemContainer = { el: null }
-  const dummyParent :ListEditorParent = { ctx: ctx, el: null, isUnsaved: false,
-    selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
+    const logEdit = await new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, selItem,
+      { title: tr('saved-pl')+' '+tr('Sampling Logs'), planned: tr('planned-pl')+' '+tr('Sampling Logs') },
+      tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null).initialize()
+    logEdit.highlightButton('temp')
 
-  const logEdit = await new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, selItem,
-    { title: tr('saved-pl')+' '+tr('Sampling Logs'), planned: tr('planned-pl')+' '+tr('Sampling Logs') },
-    tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null).initialize()
-  logEdit.highlightButton('temp')
+    const procEdit = await new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, selItem,
+      { title: tr('Sampling Procedures') } ).initialize()
 
-  const procEdit = await new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, selItem,
-    { title: tr('Sampling Procedures') } ).initialize()
+    const inpExp = makeImportExport(ctx, logEdit, procEdit)
 
-  const inpExp = makeImportExport(ctx, logEdit, procEdit)
+    const settings = await makeSettings(ctx)
 
-  const settings = await makeSettings(ctx)
-
-  /* TODO: Messprotokolle standardmäßig ausgeklappt, fette Überschrift, ggf. mit Icon hervorheben (für reine Nutzer eindeutiger),
-   * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"
-   * TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
-  return <div class="p-2 p-sm-3">
-    <div class="accordion" id="homeAccordion">
-      {makeAcc(tr('Sampling Logs'), logEdit.el)}
-      {makeAcc(`${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
-      {makeAcc(tr('import-export'), inpExp)}
-      {makeAcc(tr('Settings'), settings)}
-    </div>
-  </div>
+    /* TODO: Messprotokolle standardmäßig ausgeklappt, fette Überschrift, ggf. mit Icon hervorheben (für reine Nutzer eindeutiger),
+     * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"
+     * TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
+    return new HomePage(<div class="p-2 p-sm-3">
+      <div class="accordion" id="homeAccordion">
+        {makeAcc(tr('Sampling Logs'), logEdit.el)}
+        {makeAcc(`${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
+        {makeAcc(tr('import-export'), inpExp)}
+        {makeAcc(tr('Settings'), settings)}
+      </div>
+    </div>)
+  }
 }

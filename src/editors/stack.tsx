@@ -18,8 +18,8 @@
 import { CustomChangeEvent, CustomStackEvent } from '../events'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
+import { HomePage } from './home'
 import { jsx } from '../jsx-dom'
-import { tr } from '../i18n'
 
 export interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
@@ -108,15 +108,11 @@ export class EditorStack {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     document.title = this.origTitle + (anyUnsaved?'*':'')
   }
-  initialize(navbarMain :HTMLElement, homePage :HTMLElement) {
+  initialize(navbarMain :HTMLElement, homePage :HomePage) {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack
-    this.stack.push({ el: homePage, briefTitle: tr('Home'), fullTitle: tr('Home'), unsavedChanges: false,
-      currentName: () => '', requestClose: () => { throw new Error('home.requestClose shouldn\'t happen') },
-      close: () => { throw new Error('home.close shouldn\'t happen') }, shown: () => {},
-      nextButtonText: () => null, doNext: () => { throw new Error('home.doNext shouldn\'t happen') },
-      checkValidity: () => Promise.resolve(['good', '']), doSaveAndClose: () => { throw new Error('home.doSaveAndClose shouldn\'t happen') } })
-    this.el.appendChild(homePage)
+    this.stack.push(homePage)
+    this.el.appendChild(homePage.el)
     navbarMain.replaceChildren(this.navList)
     this.redrawNavbar()
 
