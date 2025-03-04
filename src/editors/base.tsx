@@ -112,7 +112,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * @param targetStore The store in which the object to be edited lives or is to be added to.
    * @param targetObj If `null`, create a new object and add it to the store when saved; otherwise, the object to edit.
    */
-  // REMEMBER to update `EditorClass` when making changes to constructor args!
   constructor(parent :EditorParent, targetStore :AbstractStore<B>, targetObj :B|null, isNew :boolean) {
     this.parent  = parent
     this.ctx = parent.ctx
