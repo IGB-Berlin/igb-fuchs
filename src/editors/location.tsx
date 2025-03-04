@@ -140,7 +140,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
@@ -153,6 +153,11 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       this.sampEdit.elWithTitle,
       this.taskEditor.el,
     ])
+  }
+  override async initialize() {
+    await this.sampEdit.initialize()
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new SamplingLocation(null) }

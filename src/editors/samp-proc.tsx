@@ -53,7 +53,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
       {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       rowCheck,
@@ -61,6 +61,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
       this.sampEdit.elWithTitle,
       this.locEdit.elWithTitle,
     ])
+  }
+  override async initialize() {
+    await this.sampEdit.initialize()
+    await this.locEdit.initialize()
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new SamplingProcedure(null) }

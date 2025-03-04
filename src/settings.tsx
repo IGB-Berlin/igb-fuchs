@@ -20,19 +20,17 @@ import { globalHideHelp } from './help'
 import { GlobalContext } from './main'
 import { tr } from './i18n'
 
-export function makeSettings(ctx :GlobalContext) :HTMLElement {
+export async function makeSettings(ctx :GlobalContext) :Promise<HTMLElement> {
   const inpHideHelp = safeCastElement(HTMLInputElement,
     <input class="form-check-input" type="checkbox" role="switch" id="cbHideHelp"/>)
-  setTimeout(async () => {  // workaround for async from non-async
-    if (await ctx.storage.settings.get('hideHelpTexts')) {
-      inpHideHelp.checked = true
-      globalHideHelp(true)
-    }
-  })
   inpHideHelp.addEventListener('change', async () => {
     await ctx.storage.settings.set('hideHelpTexts', inpHideHelp.checked)
     globalHideHelp(inpHideHelp.checked)
   })
+  if (await ctx.storage.settings.get('hideHelpTexts')) {
+    inpHideHelp.checked = true
+    globalHideHelp(true)
+  }
   return <div class="p-2">
     <div class="form-check form-switch">
       {inpHideHelp}

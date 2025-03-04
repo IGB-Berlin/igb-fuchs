@@ -48,6 +48,10 @@ function isHistoryState(o :unknown) :o is HistoryState {
  * - Procedure -> Location -> Sample          -> Meas. Type
  * - Procedure             -> Sample          -> Meas. Type
  *   Violet?      Blue?       Cyan?     Green?   Yellow? (no, not yellow, that's currently used for unsaved changes)
+ *   violet(#ee82ee) indigo(#4b0082) blue cyan
+ * https://academo.org/demos/wavelength-to-colour-relationship/
+ * https://stackoverflow.com/a/14917481
+ * https://graphicdesign.stackexchange.com/a/142510
  *
  * Potential Bootstrap Icons:
  * - Log: -> journal-text, list-columns-reverse, file-earmark-text
@@ -221,7 +225,7 @@ export class EditorStack {
    * So it might be nice to have a "navigate to the next location" button/link on the last sample, or similar?
    */
 
-  /** Initialize the Next button provided by this Editor, which gets shown when this Editor has a child Editor on top of it.
+  /** Initialize the Next button if provided by this Editor, which gets shown when this Editor has a child Editor on top of it.
    *
    * NOTE: Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`).
    */

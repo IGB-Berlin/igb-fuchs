@@ -104,6 +104,8 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** Construct a new editor.
    *
+   * **Warning:** You must call `initialize()` after constructing a new object of this class or its subclasses!
+   *
    * NOTE subclasses should simply pass the constructor arguments through, without saving or modifying them,
    * and they should call `this.initialize()` at the end of their constructor when they're initialized and ready to be shown.
    *
@@ -154,6 +156,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       return this.doSaveAndClose()
     })
   }
+  abstract initialize() :Promise<this>
 
   /** Only to be called by the Stack (and the Editor's "Save & Close" button of course).
    *
@@ -165,10 +168,15 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     return true
   }
 
-  /** To be called by subclasses when they're ready to be shown. */
-  protected initialize(formContents :HTMLElement[]) {
+  protected setFormContents(formContents :HTMLElement[]) {
     this.form.insertBefore(<h4 class="mb-3">{this.fullTitle}</h4>, this.elEndHr)
     formContents.forEach(e => this.form.insertBefore(e, this.elEndHr))
+  }
+  private _initDoneCalled = false
+  /** To be called by subclasses when they're ready to be shown. */
+  protected initDone() {
+    paranoia(!this._initDoneCalled)
+    this._initDoneCalled = true
     this.ctx.stack.push(this)
   }
 

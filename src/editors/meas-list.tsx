@@ -133,7 +133,6 @@ class MiniMeasEditor {
 export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement> {
   private sample
   private readonly editors :MiniMeasEditor[] = []
-  private readonly selItem
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
     const selItem :SelectedItemContainer = { el: null }
     super(parent, new ArrayStore(sample.measurements), MeasurementEditor, selItem,
@@ -142,26 +141,28 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
       tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate()))) )
     this.sample = sample
-    this.selItem = selItem
-    setTimeout(async ()=>{  // Workaround to call async from constructor
-      // convert planned MeasurementTypes into Measurements
-      if (this.sample.template) {
-        const types = Array.from(this.sample.template.measurementTypes)
-        this.sample.template.measurementTypes.length = 0
-        /* The following is very similar to .addNew(), except we only fire one event so there's
-         * only one redraw and we don't call .postNew() since that would open a new editor. */
-        for (const t of types) {
-          //TODO Later: Would be nice if the MeasurementEditor's isNew flag was still set for new objects
-          const newMeas = t.templateToObject()
-          console.debug('Adding',newMeas,'...')
-          const newId = await this.theStore.add(newMeas)
-          console.debug('... added with id',newId)
-        }
-        if (types.length)  // fire a single update event for all measurements
-          this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: null }))
-      }
-    })
   }
+  override async initialize() {
+    await super.initialize()
+    // convert planned MeasurementTypes into Measurements
+    if (this.sample.template) {
+      const types = Array.from(this.sample.template.measurementTypes)
+      this.sample.template.measurementTypes.length = 0
+      /* The following is very similar to .addNew(), except we only fire one event so there's
+        * only one redraw and we don't call .postNew() since that would open a new editor. */
+      for (const t of types) {
+        //TODO Later: Would be nice if the MeasurementEditor's isNew flag was still set for new objects
+        const newMeas = t.templateToObject()
+        console.debug('Adding',newMeas,'...')
+        const newId = await this.theStore.add(newMeas)
+        console.debug('... added with id',newId)
+      }
+      if (types.length)  // fire a single update event for all measurements
+        this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: null }))
+    }
+    return this
+  }
+
   protected override makeNew(t :MeasurementType) :Measurement { return t.templateToObject() }
   /** See `Editor.customWarnings()`: Return array of warnings, or throw error on validation fail */
   customWarnings() :string[] {
@@ -174,17 +175,13 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
       catch (_) { return true }
     })?.el ?? this.selItem.el
   }
-  /* TODO: Consider better tabindex order for mini measurement editors? (and in general?)
-   * (this idea is mostly for mobile though and probably depends on the keyboard, perhaps touch interaction is enough)
-   * UPDATE: The tabindex on mobile is fine, this To-Do can probably be deleted
-   */
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
     if (ed) return ed.el
     const newEd = new MiniMeasEditor(this.sample, meas, async () => {
       console.debug('Saving', meas,'...')
       const id = await this.theStore.upd(meas, meas)
-      // Don't fire a CustomStoreEvent since that would redraw this list
+      // Don't fire a CustomStoreEvent since that would redraw this list, instead just do the same thing the event would do (see the ListEditor code)
       await this.parent.selfUpdate()
       console.debug('... saved with id',id)
     })

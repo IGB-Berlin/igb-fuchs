@@ -42,23 +42,23 @@ function makeAcc(title :string, body :HTMLElement|string) {
 }
 
 //TODO Later: Convert makeHomePage to a class the implements StackAble
-export function makeHomePage(ctx :GlobalContext) {
+export async function makeHomePage(ctx :GlobalContext) {
 
   const selItem :SelectedItemContainer = { el: null }
   const dummyParent :ListEditorParent = { ctx: ctx, el: null, isUnsaved: false,
     selfUpdate: ()=>{ throw new Error('this should not be called') } } as const
 
-  const logEdit = new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, selItem,
+  const logEdit = await new ListEditorWithTemp(dummyParent, ctx.storage.samplingLogs, SamplingLogEditor, selItem,
     { title: tr('saved-pl')+' '+tr('Sampling Logs'), planned: tr('planned-pl')+' '+tr('Sampling Logs') },
-    tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null)
+    tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null).initialize()
   logEdit.highlightButton('temp')
 
-  const procEdit = new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, selItem,
-    { title: tr('Sampling Procedures') } )
+  const procEdit = await new ListEditor(dummyParent, ctx.storage.samplingProcedures, SamplingProcedureEditor, selItem,
+    { title: tr('Sampling Procedures') } ).initialize()
 
   const inpExp = makeImportExport(ctx, logEdit, procEdit)
 
-  const settings = makeSettings(ctx)
+  const settings = await makeSettings(ctx)
 
   /* TODO: Messprotokolle standardmäßig ausgeklappt, fette Überschrift, ggf. mit Icon hervorheben (für reine Nutzer eindeutiger),
    * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"

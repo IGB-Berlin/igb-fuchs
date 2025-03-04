@@ -111,8 +111,8 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     this.btnDiv.appendChild(d)
   }
 
-  protected newEditor(obj :B|null, isNew :boolean) {
-    const ed = new this.editorClass(this, this.theStore, obj, isNew)  // adds and removes itself from the stack
+  protected async newEditor(obj :B|null, isNew :boolean) {
+    const ed = await new this.editorClass(this, this.theStore, obj, isNew).initialize()  // adds and removes itself from the stack
     /* Editors dispatch the CustomStoreEvent on themselves because there is a case where their child
      * ListEditors need to see it (see the .enable() notes), so here we just bubble the event down to
      * ourselves (so it can all be handled in one place) instead of making the editor fire it twice. */
@@ -129,71 +129,27 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   protected readonly parent
   protected readonly theStore
   private readonly editorClass
+  protected readonly selItem
+  private readonly els :HTMLElement[] = []
+  private readonly theUl
+  /** Construct a new ListEditor.
+   *
+   * **Warning:** You must call `initialize()` after constructing a new object of this class or its subclasses!
+   */
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
     this.editorClass = editorClass
+    this.selItem = selItem
 
     this.btnDel = <button type="button" class="btn btn-outline-danger text-nowrap mt-1" disabled><i class="bi-trash3"/> {tr('Delete')}</button>
     this.btnNew = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>
     this.btnEdit = <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
-    const els :HTMLElement[] = []
-    const selectItem = (id :string|null) => {
-      els.forEach(e => {
-        if (id!==null && id===e.getAttribute('data-id')) {
-          e.classList.add('active')
-          e.setAttribute('aria-current', 'true')
-          selItem.el = e
-        }
-        else {
-          e.classList.remove('active')
-          e.removeAttribute('aria-current')
-        }
-      })
-      this.selId = id
-      this.enable()
-    }
-    const theUl = <ul class="list-group my-2"></ul>
-    const redrawList = async (selAfter :string|null = null) => {
-      const theList = await this.theStore.getAll(null)
-      els.length = theList.length
-      if (theList.length) {
-        Array.from(theList).forEach(([id,item],i) => {
-          let content :HTMLElement = this.contentFor(item)
-          if (this.theStore instanceof OrderedStore) {
-            const btnUp = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
-              <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
-            if (!i) btnUp.setAttribute('disabled','disabled')
-            const btnDown = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
-              <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
-            if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
-            content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-column gap-0 flex-nowrap justify-content-end">{btnUp}{btnDown}</div></>
-            btnUp.addEventListener('click', async event => {
-              event.stopPropagation()
-              assert(this.theStore instanceof OrderedStore)
-              const newId = this.theStore.move(id, 'up')
-              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
-            })
-            btnDown.addEventListener('click', async event => {
-              event.stopPropagation()
-              assert(this.theStore instanceof OrderedStore)
-              const newId = this.theStore.move(id, 'down')
-              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
-            })
-          }
-          els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
-            data-id={id} onclick={()=>selectItem(id)} ondblclick={()=>this.newEditor(item, false)}>{content}</li>
-        } )
-      } else els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
-      theUl.replaceChildren(...els)
-      selectItem(selAfter)
-      this.enable()
-    }
-    setTimeout(redrawList)  // work around that we can't call the async function from the constructor
+    this.theUl = <ul class="list-group my-2"></ul>
     this.btnDiv = <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
-    this.el = <div>{theUl}{this.btnDiv}{this.disableNotice}</div>
+    this.el = <div>{this.theUl}{this.btnDiv}{this.disableNotice}</div>
     this.btnDel.addEventListener('click', async () => {
       const delId = this.selId  // b/c the event handlers may change this
       if (delId===null) return  // shouldn't happen
@@ -223,17 +179,71 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
 
     this.btnEdit.addEventListener('click', async () => {
       if (this.selId===null) return  // shouldn't happen
-      this.newEditor(await this.theStore.get(this.selId), false)
+      return this.newEditor(await this.theStore.get(this.selId), false)
     })
     this.btnNew.addEventListener('click', () => this.newEditor(null, true))
+    if (this.parent.el)  // see notes in .enable()
+      this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.enable())
+  }
+  async initialize() {
+    const selectItem = (id :string|null) => {
+      this.els.forEach(e => {
+        if (id!==null && id===e.getAttribute('data-id')) {
+          e.classList.add('active')
+          e.setAttribute('aria-current', 'true')
+          this.selItem.el = e
+        }
+        else {
+          e.classList.remove('active')
+          e.removeAttribute('aria-current')
+        }
+      })
+      this.selId = id
+      this.enable()
+    }
+    const redrawList = async (selAfter :string|null = null) => {
+      const theList = await this.theStore.getAll(null)
+      this.els.length = theList.length
+      if (theList.length) {
+        Array.from(theList).forEach(([id,item],i) => {
+          let content :HTMLElement = this.contentFor(item)
+          if (this.theStore instanceof OrderedStore) {
+            const btnUp = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
+              <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
+            if (!i) btnUp.setAttribute('disabled','disabled')
+            const btnDown = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
+              <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
+            if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
+            content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-column gap-0 flex-nowrap justify-content-end">{btnUp}{btnDown}</div></>
+            btnUp.addEventListener('click', async event => {
+              event.stopPropagation()
+              assert(this.theStore instanceof OrderedStore)
+              const newId = this.theStore.move(id, 'up')
+              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
+            })
+            btnDown.addEventListener('click', async event => {
+              event.stopPropagation()
+              assert(this.theStore instanceof OrderedStore)
+              const newId = this.theStore.move(id, 'down')
+              this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
+            })
+          }
+          this.els[i] = <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
+            data-id={id} onclick={()=>selectItem(id)} ondblclick={()=>this.newEditor(item, false)}>{content}</li>
+        } )
+      } else this.els.push( <li class="list-group-item"><em>{tr('No items')}</em></li> )
+      this.theUl.replaceChildren(...this.els)
+      selectItem(selAfter)
+      this.enable()
+    }
     this.el.addEventListener(CustomStoreEvent.NAME, async event => {
       assert(event instanceof CustomStoreEvent)
       // If we were changed, tell parent editor (if we have one) to update itself in its store
       if (this.parent.el) await this.parent.selfUpdate()
       return redrawList(event.detail.action === 'del' ? null : event.detail.id)
     })
-    if (this.parent.el)  // see notes in .enable()
-      this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.enable())
+    await redrawList()
+    return this
   }
 
   highlightButton(_which :'new') {
@@ -251,7 +261,7 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
     const newId = await this.theStore.add(newObj)
     this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
     console.debug('... added with id',newId,'now editing')
-    this.newEditor(newObj, true)
+    return this.newEditor(newObj, true)
   }
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
@@ -284,19 +294,25 @@ export class ListEditorForTemp<T extends DataObjectTemplate<T, D>, D extends Dat
 }
 export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<T, D> {
   private readonly plannedLeft :T[]
-  readonly plannedTitleEl
+  get plannedLeftCount() { return this.plannedLeft.length }
+  readonly plannedTitleEl  // is only public so it can be used as a scroll target
+  private readonly pUl
+  private readonly pEl
   constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, selItem :SelectedItemContainer, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
     this.plannedLeft = planned ?? []
-
-    const theUl = <ul class="list-group"></ul>
+    this.pUl = <ul class="list-group"></ul>
     this.plannedTitleEl = <div class="mb-2 fs-5">{texts.planned}</div>
-    const myEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {theUl} </div>
+    this.pEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {this.pUl} </div>
+    this.el.appendChild(this.pEl)
+  }
+  override async initialize() {
+    await super.initialize()
     const redrawPlanned = async () => {
-      myEl.classList.toggle('d-none', !this.plannedLeft.length)
+      this.pEl.classList.toggle('d-none', !this.plannedLeft.length)
       //TODO Later: Consider a green alert "all planned tasks completed" once they are all gone (only if there were planned tasks to begin with)
-      theUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
+      this.pUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {
           // NOTE the similarity to this.startFirstPlannedItem()
@@ -311,11 +327,10 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
         </li>
       }))
     }
-    setTimeout(redrawPlanned)  // workaround for async from constructor
     this.el.addEventListener(CustomStoreEvent.NAME, redrawPlanned)
-    this.el.appendChild(myEl)
+    await redrawPlanned()
+    return this
   }
-  get plannedLeftCount() { return this.plannedLeft.length }
   protected override makeNew(t :T) :D { return t.templateToObject() }
   async startFirstPlannedItem() {
     // NOTE the similarity to btnNew's click handler

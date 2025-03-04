@@ -121,7 +121,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       rowInst,
@@ -134,6 +134,11 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       rowCheck,
       this.locEdit.elWithTitle,
     ])
+  }
+  override async initialize() {
+    await this.locEdit.initialize()
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new SamplingLog(null) }

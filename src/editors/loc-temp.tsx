@@ -55,7 +55,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
       {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
@@ -65,6 +65,11 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
       rowTasks,
       this.sampEdit.elWithTitle,
     ])
+  }
+  override async initialize() {
+    await this.sampEdit.initialize()
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new SamplingLocationTemplate(null) }

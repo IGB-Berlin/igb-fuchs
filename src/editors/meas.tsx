@@ -40,8 +40,8 @@ export class MeasurementEditor extends Editor<Measurement> {
     const mtStore = new ArrayStore(this.measType)
     const inpType = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
-    btnTypeEdit.addEventListener('click', () => {
-      const ed = new MeasTypeEditor(this, mtStore, this.measType[0], this.isUnsaved)
+    btnTypeEdit.addEventListener('click', async () => {
+      const ed = await new MeasTypeEditor(this, mtStore, this.measType[0], this.isUnsaved).initialize()
       ed.el.addEventListener(CustomStoreEvent.NAME, typeChange)  // typeChange bubbles the event
     })
     const btnTypeSel = <button type="button" class="btn btn-outline-primary"><i class="bi-card-list"/> {tr('Select')}</button>
@@ -87,7 +87,7 @@ export class MeasurementEditor extends Editor<Measurement> {
     }
     typeChange()
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.grpType, { label: tr('Measurement Type'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>,
         invalidText: tr('Invalid measurement type') }),
       rowInst,
@@ -96,6 +96,10 @@ export class MeasurementEditor extends Editor<Measurement> {
       this.makeRow(this.inpTime.el, { label: tr('Timestamp'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>,
         invalidText: tr('Invalid timestamp') }),
     ])
+  }
+  override async initialize() {
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new Measurement(null) }

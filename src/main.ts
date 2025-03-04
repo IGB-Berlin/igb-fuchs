@@ -65,9 +65,11 @@ export class GlobalContext {
     this.footer = footer
   }
   scrollTo(target :HTMLElement) {
-    target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
-    target.style.setProperty('scroll-margin-bottom', `${this.footer.getBoundingClientRect().height+5}px`)
-    setTimeout(() => target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 1) // don't scroll until rendered
+    setTimeout(() => {  // don't scroll until rendered
+      target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
+      target.style.setProperty('scroll-margin-bottom', `${this.footer.getBoundingClientRect().height+5}px`)
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 1)  // I think this should ensure we fire after any other `setTimeout(..., 0)`s
   }
 }
 
@@ -93,7 +95,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement && htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
 
   const ctx = new GlobalContext(storage, htmlHeader, htmlFooter, new EditorStack(htmlFooter))
-  ctx.stack.initialize(navbarMain, makeHomePage(ctx))
+  ctx.stack.initialize(navbarMain, await makeHomePage(ctx))
   htmlMain.appendChild(ctx.stack.el)
 
   const licensesText = document.getElementById('licensesText')

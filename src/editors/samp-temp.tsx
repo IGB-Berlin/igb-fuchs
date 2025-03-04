@@ -52,12 +52,17 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
       {title:tr('Measurements')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('samp-short-desc-help')}</> }),
       rowInst,
       this.measEdit.elWithTitle,
     ])
+  }
+  override async initialize() {
+    await this.measEdit.initialize()
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new SampleTemplate(null) }

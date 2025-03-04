@@ -53,7 +53,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     this.inpPrc.addEventListener('change', prcToPat)
     prcToPat()
 
-    this.initialize([
+    this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()} {tr('meas-name-help')}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpUnit, { label: tr('Unit'),
@@ -66,6 +66,10 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
         helpText: <><em>{tr('Recommended')}.</em> {tr('max-help')} {tr('dot-minus-hack')}</>, invalidText: tr('Invalid maximum value') }),
       rowInst,
     ])
+  }
+  override async initialize() {
+    this.initDone()
+    return this
   }
 
   protected override newObj() { return new MeasurementType(null) }
