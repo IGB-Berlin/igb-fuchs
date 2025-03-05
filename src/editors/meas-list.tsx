@@ -113,8 +113,8 @@ class MiniMeasEditor {
     return cks
   }
   private plainChecks() :string[] {
-    //TODO: Hide "No input" warning when new
-    /* TODO: Sometimes popups appear over the input field? Also, when switching to the next input field in the
+    //TODO: Hide "No input" warning when new (but it's needed for the "Next" slider?)
+    /* TODO: Users report: Sometimes popups appear over the input field? Also, when switching to the next input field in the
      * list and getting a warning for the previous item, the popup tends to cover the item with the problem? */
     if (!this.inp.value.trim().length) return [tr('No input')]
     const newMeas = this.meas.deepClone()
@@ -148,11 +148,11 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     if (this.sample.template) {
       const types = Array.from(this.sample.template.measurementTypes)
       this.sample.template.measurementTypes.length = 0
-      /* The following is very similar to .addNew(), except we only fire one event so there's
-        * only one redraw and we don't call .postNew() since that would open a new editor. */
+      /* The following is very similar to ListEditorTemp.addNew(), except we only fire one event (below)
+       * so there's only one redraw and we don't call ListEditor.newEditor(). */
       for (const t of types) {
-        //TODO Later: Would be nice if the MeasurementEditor's isNew flag was still set for new objects
-        const newMeas = t.templateToObject()
+        //TODO Later: Would be nice if the MeasurementEditor's isNew flag was still set for new objects (also I need to check and write down *why* this flag would be nice to have here)
+        const newMeas = this.makeNew(t)
         console.debug('Adding',newMeas,'...')
         const newId = await this.theStore.add(newMeas)
         console.debug('... added with id',newId)
@@ -180,7 +180,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     if (ed) return ed.el
     const newEd = new MiniMeasEditor(this.sample, meas, async () => {
       console.debug('Saving', meas,'...')
-      const id = await this.theStore.upd(meas, meas)
+      const id = await this.theStore.upd(meas, meas)  // similar to what Editor.selfUpdate() does
       // Don't fire a CustomStoreEvent since that would redraw this list, instead just do the same thing the event would do (see the ListEditor code)
       await this.parent.selfUpdate()
       console.debug('... saved with id',id)

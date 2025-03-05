@@ -273,7 +273,7 @@ export class EditorStack {
         const updSliderColor = async () => {
           if (!updSliderVis()) return
           const [valid, detail] = await childEd.checkValidity(false, true)
-          //TODO Later: Show the checkValidity detail in a tooltip?
+          //TODO: Show the checkValidity detail in a tooltip
           //TODO: A red MiniMeasEditor doesn't result in a red slider
           //TODO: "No end time" should not be a warning for the "Save" slider when the "auto-set" checkbox is checked
           console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
@@ -292,7 +292,7 @@ export class EditorStack {
             thisEditorsChildIsVisible = false
             break
           /* TODO: A new MeasListEditor renders its items async, so the following updSliderColor call is too soon to see "No input" warnings,
-           * resulting in a green slider. Perhaps MeasListEditor should pre-initialize the MiniMeasEditor objects? */
+           * resulting in a green slider. Perhaps MeasListEditor should pre-initialize the MiniMeasEditor objects? UPDATE: is this now fixed? */
           case 'opened':
           case 'shown':
             thisEditorsChildIsVisible = true
