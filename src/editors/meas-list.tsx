@@ -43,7 +43,7 @@ class MiniMeasEditor {
     this.meas = meas
     this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
-      pattern={makeValidNumberPat(meas.type.precision)} value={meas.value} title="-" />)  // needs a title or Tooltip won't init
+      pattern={makeValidNumberPat(meas.type.precision)} value={meas.value}/>)
     numericTextInputStuff(this.inp)
     /* TODO: Long Measurement Type names like "Sauerstoffsättigung" cause ugly wrapping of the input groups on mobile.
      * Also, the minimum width of the input box is not enough. */
@@ -73,6 +73,7 @@ class MiniMeasEditor {
       await saveCallback()
       if (!cks.length) this.color('good')
     })
+    this.inp.title = '-'  // needs a title or Tooltip won't init
     this.inpTooltip = new Tooltip(this.inp)
     this.inp.addEventListener('input', () => this.inpTooltip.hide())
     try { this.checks() } catch (_) { /* ignore; input field will be colored */ }

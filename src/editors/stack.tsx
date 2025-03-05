@@ -264,6 +264,7 @@ export class EditorStack {
         this.footer.appendChild(theEl)
         break
       case 'closed':
+        sliderNext.close()
         thisEditorHasChild = false
         this.footer.removeChild(theEl)
         break
@@ -273,10 +274,10 @@ export class EditorStack {
         const updSliderColor = async () => {
           if (!updSliderVis()) return
           const [valid, detail] = await childEd.checkValidity(false, true)
-          //TODO: Show the checkValidity detail in a tooltip
           //TODO: A red MiniMeasEditor doesn't result in a red slider
           //TODO: "No end time" should not be a warning for the "Save" slider when the "auto-set" checkbox is checked
           console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
+          sliderNext.setToolTip(detail)
           switch (valid) {
           case 'error': sliderNext.setColor('danger'); break
           case 'warn': sliderNext.setColor('warning'); break
