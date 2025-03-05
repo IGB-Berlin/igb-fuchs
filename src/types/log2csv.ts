@@ -115,6 +115,20 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
       /* Gather measurements; sort newest measurement first b/c if there are multiple
        * measurements of the same type, only the newest one is exported (is documented in UI) */
+      /* TODO Bug: The following template results in the following incorrect CSV:
+          { "locations": [
+            { "name": "X1", "nominalCoords": {...}, "samples": [] },
+            { "name": "X2", "nominalCoords": {...}, "samples": [
+              { "measurementTypes": [
+                { "name": "TempX", "unit": "C", "min": 0, "max": 15, "precision": 1 } ] } ] } ],
+          "commonSamples": [ {
+            "measurementTypes": [
+              { "name": "TempX", "unit": "C", "min": 0, "max": 20, "precision": 1 } ] } ] }
+        => results in:
+          ...,Location,...,TempX[C],TempX[C],...
+          ...,X1,...,,,...
+          ...,X2,...,6,6,...
+      */
       const ms = Array.from(samp.measurements)
       ms.sort((a,b) => b.time-a.time)
 
