@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { DateTimeInput, DateTimeInputAutoSet, getTzOffsetStr } from './date-time'
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocationEditor } from './location'
 import { SamplingLog } from '../types/sampling'
@@ -65,7 +65,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   private readonly inpName
   private readonly inpStart
   private readonly inpEnd
-  private readonly cbAutoEnd
   private readonly inpPersons
   private readonly inpWeather
   private readonly inpNotes
@@ -82,20 +81,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
     //TODO: Anfangs- und Endzeit werden sowieso automatisch gespeichert, daher können sie in einem Accordion versteckt werden (zusammen mit fertiger Checkliste)
-    const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
-    this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
-    const rowEnd = this.makeRow(this.inpEnd.el, { label: tr('End time'),
-      helpText: <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') })
-    rowEnd.classList.remove('mb-2','mb-sm-3')
-    this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLogEnd" />)
-    if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
-    const rowAutoEnd = <div class="row mb-3">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-9"><div class="form-check"> {this.cbAutoEnd}
-        <label class="form-check-label" for="checkAutoLogEnd">{tr('auto-set-end-time')}</label>
-      </div></div>
-    </div>
+    this.inpEnd = new DateTimeInputAutoSet(this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
 
     //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
@@ -121,13 +108,15 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )
 
+    const tzOff = getTzOffsetStr(new Date())
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       rowInst,
-      this.makeRow(this.inpStart.el, { label: tr('Start time'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') }),
-      rowEnd, rowAutoEnd,
+      this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></> }),
+      this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
+        helpText: <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></> }),
       this.makeRow(this.inpPersons, { label: tr('Persons'), helpText: <>{tr('persons-help')}</> }),
       this.makeRow(this.inpWeather, { label: tr('Weather'), helpText: <>{tr('weather-help')}</> }),
       rowNotes,
@@ -144,10 +133,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   protected override newObj() { return new SamplingLog(null) }
 
   protected override form2obj(saving :boolean) {
-    if (saving && this.cbAutoEnd.checked) {
-      this.inpEnd.timestamp = timestampNow()
-      this.cbAutoEnd.checked = false
-    }
+    if (saving) this.inpEnd.doSave()
     return new SamplingLog({ id: this.initObj.id, template: this.initObj.template,
       name: this.inpName.value, startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       lastModified: timestampNow(), persons: this.inpPersons.value.trim(), weather: this.inpWeather.value.trim(),

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp } from '../types/common'
+import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp, timestampNow } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
 import { tr } from '../i18n'
@@ -76,7 +76,8 @@ function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
  * On top of that, the inputs only have minute precision, and we can do better than that.
  */
 export class DateTimeInput {
-  readonly el
+  protected readonly _el
+  get el() { return this._el }
   private _ts
   private readonly input
   constructor(initialTs :Timestamp|null, required :boolean) {
@@ -86,7 +87,7 @@ export class DateTimeInput {
     this.input.addEventListener('change', () => {
       const dt = dateTimeLocalInputToDate(this.input)
       this._ts = dt===null ? NO_TIMESTAMP : dt.getTime()
-      this.el.dispatchEvent(new CustomChangeEvent())
+      this._el.dispatchEvent(new CustomChangeEvent())
     })
     this.timestamp = this._ts
     const btnClock = <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown"
@@ -94,9 +95,9 @@ export class DateTimeInput {
     const btnNow = <button type="button" class="dropdown-item">{tr('Use current time')}</button>
     btnNow.addEventListener('click', () => {
       this.timestamp = Date.now()
-      this.el.dispatchEvent(new CustomChangeEvent())
+      this._el.dispatchEvent(new CustomChangeEvent())
     })
-    this.el = safeCastElement(HTMLDivElement,
+    this._el = safeCastElement(HTMLDivElement,
       <div class="input-group"> {btnClock}<ul class="dropdown-menu">{btnNow}</ul> {this.input} </div>)
   }
   set timestamp(value :Timestamp) {
@@ -105,5 +106,28 @@ export class DateTimeInput {
   }
   get timestamp() :Timestamp {
     return this._ts
+  }
+}
+
+export class DateTimeInputAutoSet extends DateTimeInput {
+  private readonly _el2
+  private readonly checkBox
+  override get el() { return this._el2 }
+  constructor(initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
+    super(initialTs, required)
+    this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoSetEnd" />)
+    this.checkBox.checked = autoSet
+    this._el2 = safeCastElement(HTMLDivElement,
+      <div> {this._el}
+        <div class="form-check mt-1"> {this.checkBox}
+          <label class="form-check-label" for="checkAutoSetEnd">{tr('auto-set-end-time')}</label>
+        </div>
+      </div>)
+  }
+  doSave() {
+    if (this.checkBox.checked) {
+      this.timestamp = timestampNow()
+      this.checkBox.checked = false
+    }
   }
 }

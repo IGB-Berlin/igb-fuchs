@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
+import { DateTimeInput, DateTimeInputAutoSet, getTzOffsetStr } from './date-time'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { areWgs84CoordsValid, EMPTY_COORDS } from '../types/coords'
+import { isTimestampSet, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { makeCoordinateEditor } from './coords'
@@ -82,7 +82,6 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpActCoords
   private readonly inpStart
   private readonly inpEnd
-  private readonly cbAutoEnd
   private readonly inpNotes
   private readonly sampEdit
   private readonly taskEditor
@@ -110,20 +109,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.actCoords = this.initObj.actCoords.deepClone()  // don't modify the original object directly!
     this.inpActCoords = makeCoordinateEditor(this.actCoords, false)
 
-    const tzOff = getTzOffsetStr(new Date())
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
-    this.inpEnd = new DateTimeInput(this.initObj.endTime, false)
-    const rowEnd = this.makeRow(this.inpEnd.el, { label: tr('End time'),
-      helpText: <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></>, invalidText: tr('Invalid timestamp') })
-    rowEnd.classList.remove('mb-2','mb-sm-3')
-    this.cbAutoEnd = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoLocEnd" />)
-    if (!this.isUnsaved && !isTimestampSet(this.initObj.endTime)) this.cbAutoEnd.checked = true
-    const rowAutoEnd = <div class="row mb-3">
-      <div class="col-sm-3"></div>
-      <div class="col-sm-9"><div class="form-check"> {this.cbAutoEnd}
-        <label class="form-check-label" for="checkAutoLocEnd">{tr('auto-set-end-time')}</label>
-      </div></div>
-    </div>
+    this.inpEnd = new DateTimeInputAutoSet(this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
 
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
       label: tr('Notes'), helpText: <>{tr('loc-notes-help')} {tr('notes-help')}</>, startExpanded: true })
@@ -140,6 +127,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
+    const tzOff = getTzOffsetStr(new Date())
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
@@ -149,7 +137,9 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
         helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
       this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></> }),
-      rowEnd, rowAutoEnd, rowNotes,
+      this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
+        helpText: <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></> }),
+      rowNotes,
       this.sampEdit.elWithTitle,
       this.taskEditor.el,
     ])
@@ -163,10 +153,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   protected override newObj() { return new SamplingLocation(null) }
 
   protected override form2obj(saving :boolean) {
-    if (saving && this.cbAutoEnd.checked) {
-      this.inpEnd.timestamp = timestampNow()
-      this.cbAutoEnd.checked = false
-    }
+    if (saving) this.inpEnd.doSave()
     return new SamplingLocation({ template: this.initObj.template, name: this.inpName.value,
       shortDesc: this.inpDesc.value, actualCoords: this.actCoords.deepClone(),
       startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
