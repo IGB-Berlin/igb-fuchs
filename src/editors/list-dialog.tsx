@@ -15,17 +15,16 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, safeCastElement } from '../jsx-dom'
 import { HasHtmlSummary } from '../types/common'
 import * as bootstrap from 'bootstrap'
 import { assert } from '../utils'
-import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
-  //TODO Later: Support double-click like the list editor?
-  const btnOk = <button type="button" class="btn btn-success" data-bs-dismiss="modal"
-    onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>
+  const btnOk = safeCastElement(HTMLButtonElement, <button type="button" class="btn btn-success" data-bs-dismiss="modal"
+    onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>)
   let selIdx = -1
   const selectItem = (idx :number) => {
     assert(els.length==list.length && idx>=0 && idx<list.length)
@@ -43,7 +42,10 @@ export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLEle
     btnOk.removeAttribute('disabled')
   }
   const els :HTMLElement[] = list.length ? list.map((e,i) =>
-    <li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}>{e.summaryAsHtml(false)}</li>)
+    <li class="list-group-item cursor-pointer" onclick={() => selectItem(i)}
+      // NOTE I'm not sure why preventDefault and stopPropagation aren't preventing double-click text selection
+      ondblclick={(e :MouseEvent)=>{ e.preventDefault(); e.stopPropagation(); btnOk.click() }}>
+      {e.summaryAsHtml(false)}</li>)
     : [<li class="list-group-item"><em>{tr('No items')}</em></li>]
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="listSelectDialogLabel" aria-hidden="true">
