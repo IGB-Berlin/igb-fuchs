@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Tooltip } from 'bootstrap'
+import { MyTooltip } from './tooltip'
 import { assert } from './utils'
 import { jsx } from './jsx-dom'
 
@@ -26,7 +26,7 @@ export class Slider {
   readonly el
   private readonly btn
   private readonly textSpan
-  private readonly toolTip
+  private readonly tip
   constructor(text :string|HTMLElement, callback :()=>void) {
     this.btn = <div class="slider-button rounded-pill text-bg-primary position-absolute top-0 start-0
     d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3">
@@ -93,8 +93,7 @@ export class Slider {
       document.addEventListener('touchend', touchEnd)
       document.addEventListener('touchcancel', touchCancel)
     })
-    this.el.title = '-'  // needs a title or Tooltip won't init
-    this.toolTip = new Tooltip(this.el)
+    this.tip = new MyTooltip(this.el)
   }
   setColor(color :BSColor) {
     for(const c of bsColors) {
@@ -106,18 +105,8 @@ export class Slider {
     if (text instanceof HTMLElement) this.textSpan.replaceChildren(text)
     else this.textSpan.innerText = text
   }
-  setToolTip(text :string|null) {
-    if (text && text.trim().length) {
-      this.el.title = text
-      this.toolTip.setContent({ '.tooltip-inner': text })
-      this.toolTip.enable()
-    }
-    else {
-      this.el.title = '-'
-      this.toolTip.disable()
-    }
-  }
-  close() {
-    this.toolTip.dispose()
+  setToolTip(text :string|null) { this.tip.update(text) }
+  async close() {
+    await this.tip.close()
   }
 }

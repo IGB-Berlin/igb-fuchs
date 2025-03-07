@@ -27,7 +27,7 @@ import { setRemove } from '../types/set'
 import { Sample } from '../types/sample'
 import { SampleEditor } from './sample'
 import { ArrayStore } from '../storage'
-import { Tooltip } from 'bootstrap'
+import { MyTooltip } from '../tooltip'
 import { tr } from '../i18n'
 
 class MiniMeasEditor {
@@ -37,7 +37,8 @@ class MiniMeasEditor {
   readonly meas
   private readonly sample
   private readonly inp
-  private readonly inpTooltip
+  private readonly tipInp
+  private readonly tipInfo
   constructor(sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
     this.sample = sample
     this.meas = meas
@@ -54,9 +55,9 @@ class MiniMeasEditor {
       info = <button type="button" class="btn btn-outline-secondary text-bg-tertiary" data-bs-toggle="tooltip"
         title={tr('Instructions')+': '+meas.type.instructions.trim()} >
         <i class="bi-info-circle"/><span class="visually-hidden"> {tr('Instructions')}</span></button>
-      new Tooltip(info)
+      this.tipInfo = new MyTooltip(info)
       info.addEventListener('click', event => event.stopPropagation())
-    }
+    } else this.tipInfo = null
     this.el = safeCastElement(HTMLDivElement,
       <div class="input-group">
         <span class="input-group-text">{meas.type.name}</span>
@@ -74,8 +75,8 @@ class MiniMeasEditor {
       if (!cks.length) this.color('good')
     })
     this.inp.title = '-'  // needs a title or Tooltip won't init
-    this.inpTooltip = new Tooltip(this.inp)
-    this.inp.addEventListener('input', () => this.inpTooltip.hide())
+    this.tipInp = new MyTooltip(this.inp)
+    this.inp.addEventListener('input', () => this.tipInp.hide())
     try { this.checks() } catch (_) { /* ignore; input field will be colored */ }
   }
   private color(state :'clear'|'good'|'warn'|'err') {
@@ -86,35 +87,22 @@ class MiniMeasEditor {
     this.inp.classList.toggle('bg-danger-subtle', state==='err')
     this.inp.classList.toggle('border-danger', state==='err')
   }
-  private updateTooltip(txt :string|null) {
-    if (txt===null || !txt.trim().length) {
-      this.inp.title = '-'
-      this.inpTooltip.disable()
-    }
-    else {
-      this.inp.title = txt
-      this.inpTooltip.setContent({ '.tooltip-inner': txt })
-      this.inpTooltip.enable()
-    }
-  }
-  /* TODO: When a tooltip is still open, and I click on "Home" in the navbar, I get an error from inside the tooltip class.
-   * NOTE this doesn't happen on the "info" tooltip above!? Removing the "dispose" below also takes care of the problem, but I believe dispose is required...? */
   checks() :string[] {
     this.color('clear')
     let cks :string[]
     try { cks = this.plainChecks() }
     catch (ex) {  // validation error
-      this.updateTooltip( tr('Error') + ': ' + String(ex) )
+      this.tipInp.update( tr('Error') + ': ' + String(ex) )
       this.color('err')
       throw ex
     }
     if (cks.length) {  // warnings
       this.color('warn')
       // If the only warning is "No input", suppress the tooltip since it should be obvious...
-      if (cks.length===1 && cks[0]===tr('No input')) this.updateTooltip(null)
-      else this.updateTooltip( tr('Warnings')+': '+cks.join('; ') )
+      if (cks.length===1 && cks[0]===tr('No input')) this.tipInp.update(null)
+      else this.tipInp.update( tr('Warnings')+': '+cks.join('; ') )
     }
-    else this.updateTooltip(null)
+    else this.tipInp.update(null)
     return cks
   }
   private plainChecks() :string[] {
@@ -129,7 +117,8 @@ class MiniMeasEditor {
     return newMeas.warningsCheck()
   }
   async close() {
-    this.inpTooltip.dispose()
+    await this.tipInp.close()
+    await this.tipInfo?.close()
     this.inp.setAttribute('readonly','readonly')  // not really needed, just playing it safe
   }
 }

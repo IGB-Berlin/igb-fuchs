@@ -264,7 +264,7 @@ export class EditorStack {
         this.footer.appendChild(theEl)
         break
       case 'closed':
-        sliderNext.close()
+        await sliderNext.close()
         thisEditorHasChild = false
         this.footer.removeChild(theEl)
         break
