@@ -29,7 +29,7 @@ export class MyTooltip {
     this.tip = new Tooltip(el)  // converts attr `title` to `data-bs-title`
     this.update(t)
     // because apparently the BS Tooltip API doesn't have a property for this, track it ourselves
-    // (supposedly, one way to track visibility is `this.el.getAttribute('aria-describedby')`, but I don't trust that)
+    // (supposedly, one way to track visibility is `this.el.getAttribute('aria-describedby')` or the `show` class, but I don't quite trust that...)
     el.addEventListener('shown.bs.tooltip', () => this.visible = true)
     el.addEventListener('hidden.bs.tooltip', () => this.visible = false)
   }

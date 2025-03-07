@@ -8,6 +8,7 @@ v0.0.7-alpha - *in Arbeit*
   um mit weniger Klicks direkt zur nächsten Messstelle bzw. Probe springen zu können.
 - Zuvor wurde eine fehlende End-Zeit zu häufig als Fehler / Warnung gemeldet.
 - Bei der Auswahl einer Vorlage kann nun ein Eintrag mit Doppelklick ausgewählt werden.
+- Auf der Hauptseite sind Messprotokolle nun etwas mehr hervorgehoben
 
 v0.0.6-alpha - 2025-01-27
 -------------------------

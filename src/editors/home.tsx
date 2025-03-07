@@ -25,16 +25,16 @@ import { StackAble } from './stack'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-function makeAcc(ctx :GlobalContext, title :string, body :HTMLElement|string) {
+function makeAcc(ctx :GlobalContext, title :HTMLElement|string, body :HTMLElement|string, expanded :boolean = false) {
   const accId = ctx.genId('HomeAccordion')
   return <div class="accordion-item">
     <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-        data-bs-target={`#${accId}`} aria-expanded="false" aria-controls={accId}>
+      <button class={'accordion-button' + (expanded?'':' collapsed')} type="button" data-bs-toggle="collapse"
+        data-bs-target={`#${accId}`} aria-expanded={expanded ? 'true' : 'false'} aria-controls={accId}>
         {title}
       </button>
     </h2>
-    <div id={accId} class="accordion-collapse collapse" data-bs-parent="#homeAccordion">
+    <div id={accId} class={'accordion-collapse collapse' + (expanded?' show':'')} data-bs-parent="#homeAccordion">
       <div class="accordion-body pt-2 pb-3 px-2 p-sm-4">
         {body}
       </div>
@@ -74,11 +74,9 @@ export class HomePage implements StackAble, ListEditorParent {
 
     const settings = await makeSettings(ctx)
 
-    /* TODO: Messprotokolle standardmäßig ausgeklappt, fette Überschrift, ggf. mit Icon hervorheben (für reine Nutzer eindeutiger),
-     * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"
-     * TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
+    /* TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(ctx, tr('Sampling Logs'), logEdit.el)}
+      {makeAcc(ctx, <strong>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
       {makeAcc(ctx, `${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
       {makeAcc(ctx, tr('import-export'), inpExp)}
       {makeAcc(ctx, tr('Settings'), settings)}
