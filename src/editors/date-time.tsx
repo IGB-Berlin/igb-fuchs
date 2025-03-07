@@ -113,10 +113,12 @@ export class DateTimeInputAutoSet extends DateTimeInput {
   private readonly _el2
   private readonly checkBox
   override get el() { return this._el2 }
+  get isAutoSetOn() { return this.checkBox.checked }
   constructor(initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
     super(initialTs, required)
     this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoSetEnd" />)
     this.checkBox.checked = autoSet
+    this.checkBox.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()) )
     this._el2 = safeCastElement(HTMLDivElement,
       <div> {this._el}
         <div class="form-check mt-1"> {this.checkBox}

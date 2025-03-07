@@ -95,7 +95,6 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     validateId(this.id)
     validateName(this.name)
     validateTimestamp(this.startTime)
-    //validateTimestamp(this.endTime)  // validation may be performed before saving
     validateTimestamp(this.lastModified)
     if (others.some(o => o.logId === this.logId))
       throw new Error(tr('duplicate-log-id'))
@@ -105,7 +104,6 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     if (!isTimestampSet(this.startTime)) rv.push(tr('No start time'))
     if (isTimestampSet(this.startTime) && isTimestampSet(this.endTime) && this.endTime < this.startTime) rv.push(tr('times-order'))
     if (!skipInitWarns) {
-      if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
       if (this.template) {
         let taskCount = 0
         for (const c of this.template.checklist)

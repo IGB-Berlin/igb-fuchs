@@ -82,6 +82,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     //TODO: Anfangs- und Endzeit werden sowieso automatisch gespeichert, daher können sie in einem Accordion versteckt werden (zusammen mit fertiger Checkliste)
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
+    /* TODO Later: When creating a new object from scratch, without a template, and saving it without an end time (i.e. ignoring the warning), then re-opening that object,
+     * the "auto set end time" check box is enabled, maybe we don't want that?. Note that this.initObj.template is initialized to an empty template... */
     this.inpEnd = new DateTimeInputAutoSet(this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
 
     //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
@@ -139,6 +141,10 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       lastModified: timestampNow(), persons: this.inpPersons.value.trim(), weather: this.inpWeather.value.trim(),
       notes: this.inpNotes.value.trim(), locations: this.initObj.locations,
       checkedTasks: this.checkList.checkedTasks() })
+  }
+
+  protected override customValidation(skipInitWarns :boolean) {
+    return skipInitWarns || isTimestampSet(this.inpEnd.timestamp) || this.inpEnd.isAutoSetOn ? [] : [tr('No end time')]
   }
 
   override currentName() { return this.inpName.value }

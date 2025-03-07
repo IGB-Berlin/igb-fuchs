@@ -88,7 +88,6 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     validateName(this.name)
     this.actCoords.validate([])  // b/c the coords don't have their own Editor
     validateTimestamp(this.startTime)
-    //validateTimestamp(this.endTime)  // validation may be performed before saving
     /* TODO: All duplicates checks shouldn't just be run on their parents, but on the global templates too - and be case insensitive!
      * However, that may not be correct for Measurement Types and other objects: for example, there can be several "Temperature" types
      * with different min/max ranges! Perhaps just warn for those? */
@@ -107,7 +106,6 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       }
     }
     if (!skipInitWarns) {
-      if (!isTimestampSet(this.endTime)) rv.push(tr('No end time'))
       if (this.template) {
         let taskCount = 0
         for (const c of this.template.tasklist)

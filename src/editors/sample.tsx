@@ -150,7 +150,7 @@ export class SampleEditor extends Editor<Sample> {
         : ( this.measEdit.scrollTarget() ?? this.btnSaveClose ) )
   }
 
-  protected override customWarnings() :string[] { return this.measEdit.customWarnings() }
+  protected override customValidation() :string[] { return this.measEdit.customValidation() }
   protected override async onClose() { await this.measEdit.close() }
 
 }

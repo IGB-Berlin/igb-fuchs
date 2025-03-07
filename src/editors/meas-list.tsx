@@ -165,8 +165,8 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
   }
 
   protected override makeNew(t :MeasurementType) :Measurement { return t.templateToObject() }
-  /** See `Editor.customWarnings()`: Return array of warnings, or throw error on validation fail */
-  customWarnings() :string[] {
+  /** See `Editor.customValidation()`: Return array of warnings, or throw error on validation fail */
+  customValidation() :string[] {
     return this.editors.flatMap(ed => ed.checks().map(c => `${ed.meas.type.typeId}: ${c}`))
   }
   /** Scroll to either the first measurement with an issue (this includes empty values), otherwise the last selected item, if any */

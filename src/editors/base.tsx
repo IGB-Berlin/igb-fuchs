@@ -199,14 +199,25 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   }
 
   /** Can be overridden by subclasses to provide custom validation errors/warnings for their forms.
-   * Errors are provided by throwing one, warnings are returned as an array of strings. */
-  protected customWarnings() :string[] { return [] }
+   * Errors are provided by throwing one, warnings are returned as an array of strings.
+   *
+   * @param skipInitWarns See the corresponding parameter of `DataObjectBase.warningsCheck()`.
+   */
+  protected customValidation(_skipInitWarns :boolean) :string[] { return [] }
 
+  /** Internal function used in `checkValidity` and `doSave`. Throws errors on validation failures.
+   *
+   * @param saving See the corresponding parameter of `form2obj` *and the notes therein!*
+   * @param andClose See the corresponding parameter of `doSave` *and the notes therein!*
+   */
   private async doChecks(saving :boolean, andClose :boolean) :Promise<[Readonly<B>, string[]]> {
     // Check if the form passes validation
     if (!this.form.checkValidity()) throw new Error(tr('form-invalid'))
-    // Get custom validation stuff
-    const customWarn = this.customWarnings()  // throws errors
+    /** Skip some warnings if this is a brand new (unsaved) object and we're not closing the editor.
+     * This first save is required to enable the list editor(s); see also the corresponding discussion in ListEditor.enable(). */
+    const skipInitWarns = this.isUnsaved && !andClose
+    // Get custom validation stuff (can throw error, so do this first)
+    const customWarn = this.customValidation(skipInitWarns)
     // Form passed validation, so get the resulting object
     const curObj = this.form2obj(saving)
     // Check for errors and warnings
@@ -215,11 +226,8 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
      * - when the MeasurementType's `max` is smaller than the `min`
      * - duplicate `name` properties */
     curObj.validate(otherObjs)  // throws errors
-    // So next, check warnings
-    /* skipInitWarns: Skip some warnings if this is a brand new (unsaved) object and we're not closing the editor.
-     * This first save is required to enable the list editor(s); see the corresponding discussion in ListEditor.enable(). */
-    const warnings = curObj.warningsCheck( this.isUnsaved && !andClose ).concat(customWarn)
-    return [curObj, warnings]
+    // So last, check warnings and return
+    return [curObj, curObj.warningsCheck(skipInitWarns).concat(customWarn)]
   }
 
   /** Runs the same checks as `doSave` and returns the result.

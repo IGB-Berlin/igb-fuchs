@@ -162,6 +162,10 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       photos: [/*TODO Later*/] })
   }
 
+  protected override customValidation(skipInitWarns :boolean) {
+    return skipInitWarns || isTimestampSet(this.inpEnd.timestamp) || this.inpEnd.isAutoSetOn ? [] : [tr('No end time')]
+  }
+
   override currentName() { return this.inpName.value }
 
   protected override doScroll(pushNotPop :boolean) {

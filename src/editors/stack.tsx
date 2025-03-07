@@ -56,7 +56,7 @@ function isHistoryState(o :unknown) :o is HistoryState {
  * Potential Bootstrap Icons:
  * - Log: -> journal-text, list-columns-reverse, file-earmark-text
  * - Location: pin-map, -> geo
- * - Sample: thermometer-half, speedometer, moisture, -> eyedropper
+ * - Sample: thermometer-half (-> meas), speedometer, moisture (-> type), -> eyedropper
  * */
 
 export class EditorStack {
@@ -237,7 +237,7 @@ export class EditorStack {
      * 4. `Stack.pop()` fires a `CustomStackEvent` of type `shown`, which we handle below,
      *    and if this flag variable is set, we call `Editor.doNext()`.
      *
-     * TODO: Slightly Rube Goldberg. Are there conditions under which the above chain can be interrupted and `nextDoNext` needs to be reset?
+     * TODO Later: Somewhat Rube Goldberg. Are there conditions under which the above chain can be interrupted and `nextDoNext` needs to be reset?
      */
     let nextDoNext = false
     const sliderNext = new Slider('', async () => {
@@ -275,7 +275,6 @@ export class EditorStack {
           if (!updSliderVis()) return
           const [valid, detail] = await childEd.checkValidity(false, true)
           //TODO: A red MiniMeasEditor doesn't result in a red slider
-          //TODO: "No end time" should not be a warning for the "Save" slider when the "auto-set" checkbox is checked
           console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
           sliderNext.setToolTip(detail)
           switch (valid) {
