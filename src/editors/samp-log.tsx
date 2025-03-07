@@ -74,13 +74,13 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    //TODO Later: Consider hiding those inputs that have already been edited/completed in an accordion? (or is better scroll + collapsing textarea enough?)
+    //TODO Later: Hide checklist in accordion when all items are completed, and hide start & end time in the same accordion b/c they're set automatically (at least when using template)
+
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
-    //TODO: Anfangs- und Endzeit werden sowieso automatisch gespeichert, daher können sie in einem Accordion versteckt werden (zusammen mit fertiger Checkliste)
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     /* TODO Later: When creating a new object from scratch, without a template, and saving it without an end time (i.e. ignoring the warning), then re-opening that object,
      * the "auto set end time" check box is enabled, maybe we don't want that?. Note that this.initObj.template is initialized to an empty template... */
@@ -93,7 +93,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       label: tr('Notes'), helpText: <>{tr('log-notes-help')} {tr('notes-help')}</>, startExpanded: true })
     this.inpNotes = inpNotes
 
-    //TODO: Checkliste in Accordion verstecken wenn alles erledigt
     const checklist = this.initObj.template?.checklist ?? []
     this.checkList = new CheckList( Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
     this.checkList.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))

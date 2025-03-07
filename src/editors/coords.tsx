@@ -27,8 +27,9 @@ const _pat = makeValidNumberPat()
 const VALID_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
 
 export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boolean) :HTMLDivElement {
-  /* TODO: In the field, it is much less common to type coordinates, and the two buttons "use current location"
-   * and "navigate to" are much more important - make the buttons bigger, any maybe even hide coordinates in mobile display?  */
+  /* TODO: In the field, it is much less common to type coordinates, and the two buttons "set actual coords to current location"
+   * and "navigate to nominal coords" are much more important - make the buttons bigger, and hide the rest in a dropdown?
+   * ("navigate to" on the left and "set coords" on the right) */
 
   const coordIcon = <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
   const spinIcon = <div class="spinner-border spinner-border-sm" role="status">
