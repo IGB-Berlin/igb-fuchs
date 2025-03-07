@@ -271,6 +271,7 @@ export class EditorStack {
       case 'hidden': {  // this editor was hidden by another editor on top of it
         thisEditorHasChild = true
         const childEd = evt1.detail.other
+        //TODO Later: Now that we have live warnings checks, consider updating the "Save & Close" button's color like the slider
         const updSliderColor = async () => {
           if (!updSliderVis()) return
           const [valid, detail] = await childEd.checkValidity(false, true)
@@ -291,8 +292,6 @@ export class EditorStack {
           case 'hidden':
             thisEditorsChildIsVisible = false
             break
-          /* TODO: A new MeasListEditor renders its items async, so the following updSliderColor call is too soon to see "No input" warnings,
-           * resulting in a green slider. Perhaps MeasListEditor should pre-initialize the MiniMeasEditor objects? UPDATE: is this now fixed? */
           case 'opened':
           case 'shown':
             thisEditorsChildIsVisible = true

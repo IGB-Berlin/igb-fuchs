@@ -97,6 +97,8 @@ class MiniMeasEditor {
       this.inpTooltip.enable()
     }
   }
+  /* TODO: When a tooltip is still open, and I click on "Home" in the navbar, I get an error from inside the tooltip class.
+   * NOTE this doesn't happen on the "info" tooltip above!? Removing the "dispose" below also takes care of the problem, but I believe dispose is required...? */
   checks() :string[] {
     this.color('clear')
     let cks :string[]
@@ -108,15 +110,16 @@ class MiniMeasEditor {
     }
     if (cks.length) {  // warnings
       this.color('warn')
-      this.updateTooltip( tr('Warnings')+': '+cks.join('; ') )
+      // If the only warning is "No input", suppress the tooltip since it should be obvious...
+      if (cks.length===1 && cks[0]===tr('No input')) this.updateTooltip(null)
+      else this.updateTooltip( tr('Warnings')+': '+cks.join('; ') )
     }
     else this.updateTooltip(null)
     return cks
   }
   private plainChecks() :string[] {
-    //TODO: Hide "No input" warning when new (but it's needed for the "Next" slider?)
-    /* TODO: Users report: Sometimes popups appear over the input field? Also, when switching to the next input field in the
-     * list and getting a warning for the previous item, the popup tends to cover the item with the problem? */
+    /* TODO Later: Investigate user reports that sometimes popups appear over the input field? Also, when switching to the next
+     * input field in the list and getting a warning for the previous item, the popup tends to cover the item with the problem? */
     if (!this.inp.value.trim().length) return [tr('No input')]
     const newMeas = this.meas.deepClone()
     newMeas.value = this.inp.value
@@ -144,7 +147,6 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     this.sample = sample
   }
   override async initialize() {
-    await super.initialize()
     // convert planned MeasurementTypes into Measurements
     if (this.sample.template) {
       const types = Array.from(this.sample.template.measurementTypes)
@@ -161,6 +163,9 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
       if (types.length)  // fire a single update event for all measurements
         this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: null }))
     }
+    /* Don't call our parent's init until we've added the measurements, since it redraws the list and
+     * thereby spawns the `MiniMeasEditor`s via `contentFor`, which we in turn need for `customValidation`. */
+    await super.initialize()
     return this
   }
 
