@@ -56,7 +56,7 @@ export class EditorStack {
   }
   private redrawNavbar() {
     this.navList.replaceChildren(
-      ...this.stack.map((s,i) => {
+      ...this.stack.map((_,i) => {
         // link contents will be filled by `restyleNavbar`
         const link = <a class="nav-link text-nowrap" href='#'></a>
         if (i===this.stack.length-1) {
