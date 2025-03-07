@@ -275,8 +275,6 @@ export class EditorStack {
         const updSliderColor = async () => {
           if (!updSliderVis()) return
           const [valid, detail] = await childEd.checkValidity(false, true)
-          //TODO: A red MiniMeasEditor doesn't result in a red slider
-          console.debug('NEXT-BTN: Editor',childEd.briefTitle,'checkValidity',valid,detail)
           sliderNext.setToolTip(detail)
           switch (valid) {
           case 'error': sliderNext.setColor('danger'); break

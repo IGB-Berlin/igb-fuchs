@@ -17,10 +17,10 @@
  */
 import { ListEditorTemp, SelectedItemContainer } from './list-edit'
 import { makeValidNumberPat, timestampNow } from '../types/common'
+import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { MeasurementType } from '../types/meas-type'
 import { numericTextInputStuff } from '../utils'
-import { CustomStoreEvent } from '../events'
 import { Measurement } from '../types/meas'
 import { MeasurementEditor } from './meas'
 import { setRemove } from '../types/set'
@@ -35,11 +35,13 @@ class MiniMeasEditor {
    * to prevent accidental changes to samples that have already been finished? */
   readonly el
   readonly meas
+  private readonly parent
   private readonly sample
   private readonly inp
   private readonly tipInp
   private readonly tipInfo
-  constructor(sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
+  constructor(parent :MeasListEditor, sample :Sample, meas :Measurement, saveCallback :()=>Promise<void>) {
+    this.parent = parent
     this.sample = sample
     this.meas = meas
     this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
@@ -67,7 +69,12 @@ class MiniMeasEditor {
     this.inp.addEventListener('change', async () => {
       let cks :string[]
       try { cks = this.checks() }
-      catch (_) { return }
+      catch (_) {
+        /* This exception+return interrupts the normal flow (below) of saveCallback() -> Editor.selfUpdate(), which
+         * prevents the Editor from seeing this error immediately, so we have to manually fire the event. */
+        this.parent.fireChange()
+        return
+      }
       // Everything ok so far (though there may be warnings), go ahead and save
       this.meas.value = this.inp.value
       this.meas.time = timestampNow()
@@ -173,7 +180,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
     if (ed) return ed.el
-    const newEd = new MiniMeasEditor(this.sample, meas, async () => {
+    const newEd = new MiniMeasEditor(this, this.sample, meas, async () => {
       console.debug('Saving', meas,'...')
       const id = await this.theStore.upd(meas, meas)  // similar to what Editor.selfUpdate() does
       // Don't fire a CustomStoreEvent since that would redraw this list, instead just do the same thing the event would do (see the ListEditor code)
@@ -190,4 +197,6 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     await Promise.all( this.editors.map(ed => ed.close()) )
     this.editors.length = 0
   }
+  /** For use by MiniMeasEditor only. */
+  fireChange() { this.parent.el?.dispatchEvent(new CustomChangeEvent()) }
 }
