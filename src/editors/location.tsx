@@ -58,7 +58,7 @@ class TaskList {
     })
     this.el = <div class="my-3">
       <hr class="mt-4 mb-2" />
-      <h5 class="mb-0">{tr('Task List')} {taskHelpBtn}</h5>
+      <h5 class="mb-0"><i class="bi-clipboard-check"/> {tr('Task List')} {taskHelpBtn}</h5>
       {taskHelp}
       <ul class="list-group custom-tasklist my-2">
         {this.taskItems.map(i=>i[0])}

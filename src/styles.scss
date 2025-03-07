@@ -78,12 +78,19 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
 }
 
 // Inject arrows between nav-links
-.navbar-expand-sm .navbar-nav .nav-link + .nav-link {
+.navbar-nav .nav-link + .nav-link {
   padding-left: 0;
   &::before {
     content: '»';
     padding-right: bs.$navbar-nav-link-padding-x;
   }
+}
+// mark unsaved editors in the title bar
+.navbar-nav .nav-link.unsaved::after { content: '*' }
+
+#navPageTitle {
+  font-size: var(--#{bs.$prefix}nav-link-font-size);
+  font-weight: bold;
 }
 
 .badge.sm-badge {
@@ -159,3 +166,31 @@ body:not(.hide-help-texts) {
     user-select: none;
   }
 }
+
+/* The nestings of pages are:
+ * - samp-log  -> location -> sample    -> meas -> meas-type
+ * - samp-proc -> loc-temp -> samp-temp         -> meas-type
+ * - samp-proc             -> samp-temp         -> meas-type
+ * Idea: Colors of rainbow, except: yellow, orange, red, green, since those are used for status indications
+ * https://graphicdesign.stackexchange.com/a/142510
+ */
+.editor-samp-log-text  { color: bs.$cyan-600 !important }
+.editor-samp-proc-text { color: bs.$cyan-600 !important }
+.editor-location-text  { color: bs.$blue-600 !important }
+.editor-loc-temp-text  { color: bs.$blue-600 !important }
+.editor-sample-text    { color: bs.$indigo-600 !important }
+.editor-samp-temp-text { color: bs.$indigo-600 !important }
+.editor-meas-text      { color: bs.$purple-600 !important }
+.editor-meas-type-text { color: bs.$pink-600 !important }
+@include bs.color-mode(dark) {
+  .editor-samp-log-text  { color: bs.$cyan-300 !important }
+  .editor-samp-proc-text { color: bs.$cyan-300 !important }
+  .editor-location-text  { color: bs.$blue-300 !important }
+  .editor-loc-temp-text  { color: bs.$blue-300 !important }
+  .editor-sample-text    { color: bs.$indigo-300 !important }
+  .editor-samp-temp-text { color: bs.$indigo-300 !important }
+  .editor-meas-text      { color: bs.$purple-300 !important }
+  .editor-meas-type-text { color: bs.$pink-300 !important }
+}
+// the "!important" in the above classes overrides the normal styling, so make active link bold instead:
+.navbar-nav .nav-link.active { font-weight: bold; }

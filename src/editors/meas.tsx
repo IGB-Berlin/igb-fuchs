@@ -26,6 +26,7 @@ import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
 import { Measurement } from '../types/meas'
+import { getStyle } from '../types/styles'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<Measurement> {
@@ -87,8 +88,11 @@ export class MeasurementEditor extends Editor<Measurement> {
     }
     typeChange()
 
+    const typeStyle = getStyle(MeasurementType)
     this.setFormContents([
-      this.makeRow(this.grpType, { label: tr('Measurement Type'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>,
+      this.makeRow(this.grpType, {
+        label: <span class={`editor-${typeStyle.cssId}-text`}><i class={`bi-${typeStyle.icon}`}/> {tr('Measurement Type')}</span>,
+        helpText: <><strong>{tr('Required')}.</strong> {tr('meas-type-help')}</>,
         invalidText: tr('Invalid measurement type') }),
       rowInst,
       this.makeRow(grpValue, { label: tr('Value'), invalidText: tr('Invalid value'),
@@ -110,7 +114,7 @@ export class MeasurementEditor extends Editor<Measurement> {
       value: this.inpValue.value, time: this.inpTime.timestamp })
   }
 
-  override currentName() { return this.measType[0].name }
+  override currentName(short :boolean) { return short ? this.measType[0].name : this.measType[0].typeId }
 
   protected override doScroll(pushNotPop :boolean) {
     this.ctx.scrollTo( this.isNew && pushNotPop || !this.measType[0].name.trim().length ? this.grpType : this.inpValue )

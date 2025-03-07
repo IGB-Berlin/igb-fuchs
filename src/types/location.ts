@@ -158,7 +158,6 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ),
       ...( this.template?.tasklist.length && { tasklist: Array.from(this.template.tasklist) } ) })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location':'Location') }
   override summaryDisplay() { return locSummary(this) }
 }
 
@@ -264,7 +263,6 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
       shortDesc: this.shortDesc, actualCoords: this.nomCoords.deepClone(),
       startTime: timestampNow(), samples: [], completedTasks: [], photos: [] })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Location Template':'loc-temp') }
   override summaryDisplay() { return locSummary(this) }
   cloneNoSamples() :SamplingLocationTemplate {
     const clone = this.deepClone()

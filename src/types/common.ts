@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { getStyle } from './styles'
 import { Class } from '../utils'
 import { tr } from '../i18n'
 
@@ -56,8 +57,6 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
    */
   abstract deepClone() :B
 
-  /** Return the display name of this type. */
-  abstract typeName(kind :'full'|'short') :string
   /** Returns a summary of this object, e.g. for display in a list. */
   abstract summaryDisplay() :[string,string|null]
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
@@ -67,7 +66,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
     div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
     if (withTypeName) {
       const n = document.createElement('div')
-      n.innerText = this.typeName('full')+':'
+      n.innerText = getStyle(this.constructor).fullTitle+':'
       div.appendChild(n)
     }
     const one = document.createElement('div')

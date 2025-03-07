@@ -22,6 +22,7 @@ import { DataObjectBase } from '../types/common'
 import { ListEditorParent } from './list-edit'
 import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
+import { getStyle } from '../types/styles'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
 import { makeHelp } from '../help'
@@ -48,7 +49,7 @@ interface MakeTextAreaRowOpts extends MakeRowOps {
 }
 
 // https://stackoverflow.com/a/53056911
-export type EditorClass<B extends DataObjectBase<B>> = new (...args: ConstructorParameters<typeof Editor<B>>) => Editor<B>
+export type EditorClass<B extends DataObjectBase<B>> = new (...args :ConstructorParameters<typeof Editor<B>>) => Editor<B>
 
 export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, ListEditorParent, EditorParent {
 
@@ -61,7 +62,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    */
   protected abstract form2obj(saving :boolean) :Readonly<B>
   /** Return the current name of the element being edited. */
-  abstract currentName() :string
+  abstract currentName(short ?:boolean) :string
   /** Implementations should intelligently scroll to the next field/button that needs input. */
   protected abstract doScroll(pushNotPop :boolean) :void
 
@@ -89,8 +90,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** The initial object being edited: either `savedObj`, or a newly created object. */
   protected readonly initObj :B
-  get fullTitle() { return this.initObj.typeName('full') }
-  get briefTitle() { return this.initObj.typeName('short') }
+  readonly style
 
   /** The HTML element holding the editor UI. */
   get el() :HTMLElement { return this.form }
@@ -119,6 +119,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     this.savedObj = targetObj
     this._isNew = targetObj === null || isNew
     this.initObj = targetObj === null ? this.newObj() : targetObj
+    this.style = getStyle(this.initObj.constructor)
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap fw-semibold"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
     const btnSave = <button type="button" class="btn btn-outline-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
@@ -168,7 +169,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   }
 
   protected setFormContents(formContents :HTMLElement[]) {
-    this.form.insertBefore(<h4 class="mb-3">{this.fullTitle}</h4>, this.elEndHr)
+    this.form.insertBefore(<h4 class={`mb-3 editor-${this.style.cssId}-text`}><i class={'bi-'+this.style.icon}/> {this.style.fullTitle}</h4>, this.elEndHr)
     formContents.forEach(e => this.form.insertBefore(e, this.elEndHr))
   }
   private _initDoneCalled = false

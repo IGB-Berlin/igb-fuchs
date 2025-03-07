@@ -49,7 +49,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
     this.inpInst = inpInst
 
     this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, this.selItem,
-      {title:tr('Measurements')}, tr('new-meas-from-temp'),
+      {title:tr('Measurement Types')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
     this.setFormContents([
@@ -74,8 +74,8 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
       instructions: this.inpInst.value.trim(), measurementTypes: this.initObj.measurementTypes })
   }
 
-  override currentName() {
-    return i18n.t('st-'+this.inpType.value, { defaultValue: this.inpType.value })
+  override currentName(short :boolean) {
+    return i18n.t((short?'sts-':'st-')+this.inpType.value, { defaultValue: this.inpType.value })
       + ( this.inpDesc.value.trim().length ? ' / '+this.inpDesc.value.trim() : '' )
   }
 

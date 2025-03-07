@@ -4,11 +4,13 @@ IGB-FUCHS Änderungshistorie
 v0.0.7-alpha - *in Arbeit*
 --------------------------
 
-- Ein "Speichern & Nächste Messstelle / Probe" Knopf wird nun angezeigt,
+- Ein "Speichern & Nächste Messstelle" / "... Probe" Knopf wird nun angezeigt,
   um mit weniger Klicks direkt zur nächsten Messstelle bzw. Probe springen zu können.
-- Zuvor wurde eine fehlende End-Zeit zu häufig als Fehler / Warnung gemeldet.
+- Verschiedene Datentypen werden nun durch dazugehörige Symbole und Farben gekennzeichnet,
+  und die Anzeige der aktuellen Seitenüberschrift wurde verbessert.
+- Auf der Hauptseite sind Messprotokolle nun etwas mehr hervorgehoben.
 - Bei der Auswahl einer Vorlage kann nun ein Eintrag mit Doppelklick ausgewählt werden.
-- Auf der Hauptseite sind Messprotokolle nun etwas mehr hervorgehoben
+- Zuvor wurde eine fehlende End-Zeit zu häufig als Fehler / Warnung gemeldet.
 
 v0.0.6-alpha - 2025-01-27
 -------------------------

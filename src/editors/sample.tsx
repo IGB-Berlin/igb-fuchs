@@ -139,8 +139,8 @@ export class SampleEditor extends Editor<Sample> {
       notes: this.inpNotes.value.trim(), measurements: this.measEdit.measurements })
   }
 
-  override currentName() {
-    return i18n.t('st-'+this.inpType.value, { defaultValue: this.inpType.value })
+  override currentName(short :boolean) {
+    return i18n.t((short?'sts-':'st-')+this.inpType.value, { defaultValue: this.inpType.value })
       + ( this.inpDesc.value.trim().length ? ' / '+this.inpDesc.value.trim() : '' )
   }
 

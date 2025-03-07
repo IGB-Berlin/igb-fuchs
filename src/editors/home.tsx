@@ -19,10 +19,11 @@ import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
 import { SamplingProcedureEditor } from './samp-proc'
 import { makeImportExport } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
+import { jsx, jsxFragment } from '../jsx-dom'
+import { getStyle } from '../types/styles'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
-import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
 function makeAcc(ctx :GlobalContext, title :HTMLElement|string, body :HTMLElement|string, expanded :boolean = false) {
@@ -43,8 +44,7 @@ function makeAcc(ctx :GlobalContext, title :HTMLElement|string, body :HTMLElemen
 }
 
 export class HomePage implements StackAble, ListEditorParent {
-  readonly briefTitle = tr('Home')
-  readonly fullTitle = tr('Home')
+  readonly style = getStyle(this.constructor)
   readonly unsavedChanges = false
   readonly isUnsaved = false
   checkValidity() :Promise<['good','']> { return Promise.resolve(['good','']) }
@@ -52,9 +52,9 @@ export class HomePage implements StackAble, ListEditorParent {
   doSaveAndClose() :Promise<boolean> { throw new Error('HomePage.doSaveAndClose shouldn\'t happen') }
   close() :Promise<void> { throw new Error('HomePage.close shouldn\'t happen') }
   doNext() :Promise<void> { throw new Error('HomePage.doNext shouldn\'t happen') }
-  selfUpdate(): Promise<void> { throw new Error('HomePage.selfUpdate shouldn\'t happen') }
+  selfUpdate() :Promise<void> { /*throw new Error('HomePage.selfUpdate shouldn\'t happen')*/ return Promise.resolve() }  //TODO Later: Why is HomePage.selfUpdate being called now?
   nextButtonText() { return null }
-  currentName() { return '' }
+  currentName() { return this.style.briefTitle }
   shown() {}
   readonly ctx
   readonly el
@@ -75,9 +75,11 @@ export class HomePage implements StackAble, ListEditorParent {
     const settings = await makeSettings(ctx)
 
     /* TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
+    const logStyle = getStyle(SamplingLogEditor)
+    const procStyle = getStyle(SamplingProcedureEditor)
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(ctx, <strong>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
-      {makeAcc(ctx, `${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
+      {makeAcc(ctx, <strong><i class={`bi-${logStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
+      {makeAcc(ctx, <><i class={`bi-${procStyle.icon} me-1`}/>{tr('Sampling Procedures')} ({tr('Log Templates')})</>, procEdit.el)}
       {makeAcc(ctx, tr('import-export'), inpExp)}
       {makeAcc(ctx, tr('Settings'), settings)}
     </div>)

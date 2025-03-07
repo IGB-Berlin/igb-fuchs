@@ -161,7 +161,6 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
       ...( this.template?.instructions.trim().length && { instructions: this.template.instructions.trim() } ),
       ...( this.template?.checklist.length && { checklist: Array.from(this.template.checklist) } ) })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Log':'Log') }
   override summaryDisplay() :[string,string] {
     const dt = isTimestampSet(this.startTime) ? new Date(this.startTime).toLocaleDateString()+'; ' : ''
     return [ this.name, dt+i18n.t('sampling-locations', {count: this.locations.length})]
@@ -262,7 +261,6 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
       name: this.name, locations: [], checkedTasks: [],
       startTime: timestampNow(), lastModified: timestampNow() })
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Sampling Procedure':'proc') }
   override summaryDisplay() :[string,string] {
     return [ this.name, i18n.t('sampling-locations', {count: this.locations.length}) ]
   }

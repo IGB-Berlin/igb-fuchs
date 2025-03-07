@@ -23,6 +23,7 @@ import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
 import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
+import { getStyle } from '../types/styles'
 import { GlobalContext } from '../main'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
@@ -169,7 +170,8 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     })
     const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
     const [_helpId, helpBtn] = makeHelp(this.ctx, helpDiv)
-    this.titleEl = <h5 class="mb-0">{texts.title} {texts.help?helpBtn:''}</h5>
+    const style = getStyle(editorClass)
+    this.titleEl = <h5 class={`mb-0 editor-${style.cssId}-text`}><i class={`bi-${style.icon}`}/> {texts.title} {texts.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
       {this.titleEl}
@@ -303,7 +305,8 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
     super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
     this.plannedLeft = planned ?? []
     this.pUl = <ul class="list-group"></ul>
-    this.plannedTitleEl = <div class="mb-2 fs-5">{texts.planned}</div>
+    const opStyle = getStyle(editorClass, true)
+    this.plannedTitleEl = <div class="mb-2 fs-5"><i class={`bi-${opStyle.icon}`}/> {texts.planned}</div>
     this.pEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {this.pUl} </div>
     this.el.appendChild(this.pEl)
   }

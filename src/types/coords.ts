@@ -62,7 +62,6 @@ export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implement
     if (!( Number.isFinite(this.wgs84lon) && this.wgs84lon >= -180 && this.wgs84lon <= 180 ))
       throw new Error(`${tr('invalid-longitude')}: ${this.wgs84lon}`)
   }
-  override typeName(kind :'full'|'short') { return tr(kind==='full'?'Coordinates':'Coords') }
   override warningsCheck() { return [] }
   /** Note display should include the hint "Lat,Lon" somewhere. */
   override summaryDisplay() :[string,null] {
