@@ -58,6 +58,7 @@ export class GlobalContext {
   readonly stack
   private readonly header
   private readonly footer
+  private counter = 0
   constructor(storage :IdbStorage, header :HTMLElement, footer :HTMLElement, stack :EditorStack) {
     this.storage = storage
     this.stack = stack
@@ -71,6 +72,7 @@ export class GlobalContext {
       target.scrollIntoView({ block: 'center', behavior: 'smooth' })
     }, 1)  // I think this should ensure we fire after any other `setTimeout(..., 0)`s
   }
+  genId(name ?:string|null) { return `_gen${name?.trim().length ? '_'+name : ''}_${this.counter++}_` }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {

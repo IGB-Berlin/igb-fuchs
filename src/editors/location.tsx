@@ -27,22 +27,21 @@ import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
+import { GlobalContext } from '../main'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
-
-let _taskId = 0
 
 class TaskList {
   readonly el
   private readonly taskStates
   private readonly taskItems :[HTMLElement, HTMLInputElement][]
-  constructor(initialTaskStates :{ [key :string]: boolean }) {
+  constructor(ctx :GlobalContext, initialTaskStates :{ [key :string]: boolean }) {
     this.taskStates = initialTaskStates
     const tasks = Object.keys(initialTaskStates)
     const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
-    const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
+    const [_taskHelpId, taskHelpBtn] = makeHelp(ctx, taskHelp)
     this.taskItems = tasks.map(c => {
-      const id = `tasklistCheckbox${_taskId++}`
+      const id = ctx.genId('TasklistCb')
       const cb = safeCastElement(HTMLInputElement,
         <input class="form-check-input me-2" type="checkbox" autocomplete="off"
           id={id} checked={!!this.taskStates[c]} onchange={()=>{
@@ -107,7 +106,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.inpActCoords = makeCoordinateEditor(this.actCoords, false)
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
-    this.inpEnd = new DateTimeInputAutoSet(this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
+    this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
 
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
       label: tr('Notes'), helpText: <>{tr('loc-notes-help')} {tr('notes-help')}</>, startExpanded: true })
@@ -120,7 +119,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       this.initObj.template?.samples )
 
     const tasks = this.initObj.template?.tasklist ?? []
-    this.taskEditor = new TaskList( Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
+    this.taskEditor = new TaskList(this.ctx, Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 

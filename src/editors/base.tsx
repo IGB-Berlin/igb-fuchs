@@ -387,7 +387,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     if (opts.helpText) {
       divHelp = safeCastElement(HTMLDivElement, <div class="form-text">{opts.helpText}</div>)
       let helpId :string
-      [helpId, btnHelp] = makeHelp(divHelp)
+      [helpId, btnHelp] = makeHelp(this.ctx, divHelp)
       input.setAttribute('aria-describedby', helpId)
     }
     return <div class="row mb-2 mb-sm-3">

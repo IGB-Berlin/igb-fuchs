@@ -16,11 +16,10 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { jsx, safeCastElement } from './jsx-dom'
+import { GlobalContext } from './main'
 import { Collapse } from 'bootstrap'
 import { assert } from './utils'
 import { tr } from './i18n'
-
-let _helpCnt = 0
 
 let globalHide = false
 
@@ -46,9 +45,9 @@ export function makeHelpButton() :HTMLButtonElement {
     title={tr('Help')}><i class="bi-question-circle" /><span class="visually-hidden"> {tr('Help')}</span></button>)
 }
 
-export function makeHelp(target :HTMLElement) :[string, HTMLButtonElement] {
+export function makeHelp(ctx :GlobalContext, target :HTMLElement) :[string, HTMLButtonElement] {
   assert(!target.hasAttribute('id') && !target.classList.contains('hideable-help'))
-  const helpId = `_Help_${_helpCnt++}`
+  const helpId = ctx.genId('Help')
   target.setAttribute('id', helpId)
   target.classList.add('hideable-help')
   initOrRemoveCollapse(target)

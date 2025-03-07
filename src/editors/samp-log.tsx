@@ -25,19 +25,18 @@ import { SamplingLog } from '../types/sampling'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { setRemove } from '../types/set'
+import { GlobalContext } from '../main'
 import { tr } from '../i18n'
-
-let _checkId = 0
 
 class CheckList {
   readonly el
   private readonly checkStates
   private readonly checkItems :[HTMLElement, HTMLInputElement][]
-  constructor(initialCheckStates :{ [key :string]: boolean }) {
+  constructor(ctx :GlobalContext, initialCheckStates :{ [key :string]: boolean }) {
     this.checkStates = initialCheckStates
     const checks = Object.keys(initialCheckStates)
     this.checkItems = checks.map(c => {
-      const id = `checklistCheckbox${_checkId++}`
+      const id = ctx.genId('ChecklistCb')
       const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
         checked={!!this.checkStates[c]} onchange={()=>{
           this.checkStates[c] = cb.checked
@@ -84,7 +83,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     /* TODO Later: When creating a new object from scratch, without a template, and saving it without an end time (i.e. ignoring the warning), then re-opening that object,
      * the "auto set end time" check box is enabled, maybe we don't want that?. Note that this.initObj.template is initialized to an empty template... */
-    this.inpEnd = new DateTimeInputAutoSet(this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
+    this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
 
     //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
@@ -94,7 +93,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     this.inpNotes = inpNotes
 
     const checklist = this.initObj.template?.checklist ?? []
-    this.checkList = new CheckList( Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
+    this.checkList = new CheckList(this.ctx, Object.fromEntries(checklist.map(c => [c, this.initObj.checkedTasks.includes(c)] )) )
     this.checkList.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')

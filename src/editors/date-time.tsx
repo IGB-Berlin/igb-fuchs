@@ -18,6 +18,7 @@
 import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp, timestampNow } from '../types/common'
 import { jsx, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
+import { GlobalContext } from '../main'
 import { tr } from '../i18n'
 
 // I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
@@ -114,15 +115,16 @@ export class DateTimeInputAutoSet extends DateTimeInput {
   private readonly checkBox
   override get el() { return this._el2 }
   get isAutoSetOn() { return this.checkBox.checked }
-  constructor(initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
+  constructor(ctx :GlobalContext, initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
     super(initialTs, required)
-    this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id="checkAutoSetEnd" />)
+    const id = ctx.genId('cbAutoSet')
+    this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id={id} />)
     this.checkBox.checked = autoSet
     this.checkBox.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()) )
     this._el2 = safeCastElement(HTMLDivElement,
       <div> {this._el}
         <div class="form-check mt-1"> {this.checkBox}
-          <label class="form-check-label" for="checkAutoSetEnd">{tr('auto-set-end-time')}</label>
+          <label class="form-check-label" for={id}>{tr('auto-set-end-time')}</label>
         </div>
       </div>)
   }

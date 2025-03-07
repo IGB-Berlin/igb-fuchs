@@ -168,7 +168,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       }
     })
     const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
-    const [_helpId, helpBtn] = makeHelp(helpDiv)
+    const [_helpId, helpBtn] = makeHelp(this.ctx, helpDiv)
     this.titleEl = <h5 class="mb-0">{texts.title} {texts.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />

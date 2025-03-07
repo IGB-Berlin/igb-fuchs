@@ -25,16 +25,16 @@ import { StackAble } from './stack'
 import { jsx } from '../jsx-dom'
 import { tr } from '../i18n'
 
-let _accId = 0
-function makeAcc(title :string, body :HTMLElement|string) {
+function makeAcc(ctx :GlobalContext, title :string, body :HTMLElement|string) {
+  const accId = ctx.genId('HomeAccordion')
   return <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-        data-bs-target={`#${++_accId}`} aria-expanded="false" aria-controls={_accId}>
+        data-bs-target={`#${accId}`} aria-expanded="false" aria-controls={accId}>
         {title}
       </button>
     </h2>
-    <div id={_accId} class="accordion-collapse collapse" data-bs-parent="#homeAccordion">
+    <div id={accId} class="accordion-collapse collapse" data-bs-parent="#homeAccordion">
       <div class="accordion-body pt-2 pb-3 px-2 p-sm-4">
         {body}
       </div>
@@ -78,10 +78,10 @@ export class HomePage implements StackAble, ListEditorParent {
      * ggf. "Messprotokolle" umbenennen "Messdurchführung und Protokolle"
      * TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(tr('Sampling Logs'), logEdit.el)}
-      {makeAcc(`${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
-      {makeAcc(tr('import-export'), inpExp)}
-      {makeAcc(tr('Settings'), settings)}
+      {makeAcc(ctx, tr('Sampling Logs'), logEdit.el)}
+      {makeAcc(ctx, `${tr('Sampling Procedures')} (${tr('Log Templates')})`, procEdit.el)}
+      {makeAcc(ctx, tr('import-export'), inpExp)}
+      {makeAcc(ctx, tr('Settings'), settings)}
     </div>)
     return homePage
   }
