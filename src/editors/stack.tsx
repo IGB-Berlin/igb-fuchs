@@ -83,7 +83,10 @@ export class EditorStack {
     Array.from(this.navList.children).forEach((l,i) => {
       assert(l instanceof HTMLAnchorElement)
       const s = this.stack[i]
-      assert(s)
+      /* TODO Bug: The following assert fails when the last edit to a Sample is changing the Subjective Quality to Questionable/Bad,
+       * then entering text into the Notes, and immediately from there clicking on "Save & Close" without letting the text box
+       * lose focus first. (Initial suspicion: some events might be firing out of order.) */
+      assert(s, `i=${i} stack.length=${this.stack.length} link=${l.innerHTML}`)
       l.classList.toggle('unsaved', s.unsavedChanges)
       l.title = i ? `${s.style.fullTitle} "${s.currentName()}"` : s.currentName()
       l.replaceChildren(<span class={`editor-${s.style.cssId}-text`}><i class={'bi-'+s.style.icon}/> {s.currentName(true)}</span>)

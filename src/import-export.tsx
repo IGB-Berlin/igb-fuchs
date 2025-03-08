@@ -77,6 +77,7 @@ export function makeImportExport(ctx :GlobalContext,
     inpImportFile.value = ''
   })
 
+  //TODO: The "Export" dropdowns don't get disabled when nothing is selected
   procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
     [tr('export-as-json'), (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
   ])

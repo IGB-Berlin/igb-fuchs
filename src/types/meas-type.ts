@@ -45,6 +45,14 @@ export function isIMeasurementType(o :unknown) :o is IMeasurementType {
   )
 }
 
+/* TODO Later: Consider (hard)coding a table of abbreviations of measurement type names for shorter titles:
+ * "Temperatur" -> "Temp."
+ * "Leitfähigkeit" -> "EC"
+ * "Sauerstoffsättigung" -> "O2-Sätt."
+ * "Sauerstoffkonzentration" -> "O2-Konz."
+ * etc.
+ */
+
 /** Describes a type of measurement (not a specific measurement value). */
 export class MeasurementType extends DataObjectTemplate<MeasurementType, Measurement> implements IMeasurementType {
   name :string
