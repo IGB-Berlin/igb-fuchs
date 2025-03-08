@@ -54,6 +54,22 @@ export function toIsoUtc(t :Timestamp) {
     +':'+d.getUTCMinutes().toString().padStart(2,'0')
     +':'+d.getUTCSeconds().toString().padStart(2,'0')
 }
+/** Return the timestamp in UTC formatted as "HH:MM:SS" - no "Z"/"UTC" suffix! */
+export function toUtcTime(t :Timestamp) {
+  if (!isValidAndSetTs(t)) return ''
+  const d = new Date(t)
+  return d.getUTCHours().toString().padStart(2,'0')
+    +':'+d.getUTCMinutes().toString().padStart(2,'0')
+    +':'+d.getUTCSeconds().toString().padStart(2,'0')
+}
+/** Return the timestamp in UTC formatted as "DD.MM.YYYY" - no "Z"/"UTC" suffix! */
+export function toDMYUtc(t :Timestamp) {
+  if (!isValidAndSetTs(t)) return ''
+  const d = new Date(t)
+  return d.getUTCDate().toString().padStart(2,'0')
+    +'.'+(d.getUTCMonth() + 1).toString().padStart(2,'0')
+    +'.'+d.getUTCFullYear().toString().padStart(4,'0')
+}
 
 function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
   const t = el.valueAsNumber

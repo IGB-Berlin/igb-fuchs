@@ -6,6 +6,7 @@ v0.0.7-alpha - *in Arbeit*
 
 - Ein "Speichern & Nächste Messstelle" / "... Probe" Knopf wird nun angezeigt,
   um mit weniger Klicks direkt zur nächsten Messstelle bzw. Probe springen zu können.
+- Der CSV-Export wurde in mehr Spalten aufgeteilt.
 - Verschiedene Datentypen werden nun durch dazugehörige Symbole und Farben gekennzeichnet,
   und die Anzeige der aktuellen Seitenüberschrift wurde verbessert.
 - Die Farbe des Knopfs "Speichern & Schließen" spiegelt jetzt in Echtzeit wieder, ob es

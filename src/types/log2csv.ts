@@ -16,9 +16,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { areWgs84CoordsValid, EMPTY_COORDS, WGS84_PRECISION } from './coords'
+import { toDMYUtc, toIsoUtc, toUtcTime } from '../editors/date-time'
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { unparse as papaUnparse } from 'papaparse'
-import { toIsoUtc } from '../editors/date-time'
 import { MeasurementType } from './meas-type'
 import { distanceBearing } from '../geo-func'
 import { makeFilename } from '../idb-store'
@@ -29,6 +29,13 @@ import { assert } from '../utils'
 import { tr } from '../i18n'
 
 type CsvRow = { [key :string]: string }
+function isCsvRow(o :unknown) :o is CsvRow {
+  return !!o && typeof o === 'object' && Object.entries(o).every(([k,v]) => typeof k === 'string' && typeof v === 'string' ) }
+function cloneCsvRow(row :CsvRow) :CsvRow {
+  const clone :unknown = JSON.parse(JSON.stringify(row))
+  assert(isCsvRow(clone))
+  return clone
+}
 
 const MAX_NOM_ACT_DIST_CSV_M = 50
 
@@ -39,26 +46,24 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
     return null
   }
 
-  //TODO Later: Some users are asking for separate date and time columns, for merging with legacy datasets that have separate columns and are missing timestamps in some rows
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
-  const columns = ['Timestamp_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SubjectiveQuality','Notes']
+  const columns = ['Timestamp','Date_DMY','Time_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SampleDesc','SubjectiveQuality',
+    'SampleNotes','SamplingLog','LogNotes','LocationNotes','LocationTasksCompleted']
   // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
   const measCols = allTypes.map(t => columns.includes(t.typeId) ? t.typeId+'[]' : t.typeId)
-  columns.splice(-2, 0, ...measCols)  // inject before 'SubjectiveQuality'
+  columns.splice(-6, 0, ...measCols)  // inject before 'SubjectiveQuality'
 
   /* ********** ********** Process the log ********** ********** */
   // SamplingLog: id, logId, name, startTime, endTime, lastModified, persons, weather, notes, checkedTasks[], locations[], template?
-  //TODO: Multiple "Notes" columns (Log, Location, Sample) instead of all notes in one column, also split out Completed Tasks
-  const logNotes :string[] = [
-    `Sampling Log: ${log.name}` + (isValidAndSetTs(log.startTime) ? ` [${toIsoUtc(log.startTime)} UTC]` : ''),
-    log.notes.trim().length ? `Log Notes: ${log.notes.trim()}` : '',
+  const sampLog = log.name + (isValidAndSetTs(log.startTime) ? `; Start ${toIsoUtc(log.startTime)} UTC` : '')
+  const logNotes = [ log.notes.trim(),
     log.persons.trim().length ? `Persons: ${log.persons.trim()}` : '',
     log.weather.trim().length ? `Weather: ${log.weather.trim()}` : '',
-  ]
+  ].filter(s => s.length).join('; ')
 
   // NOTE we keep the sorting of the locations and samples defined by the user
-  const data :CsvRow[] = log.locations.flatMap((loc,li) => {
+  const data :CsvRow[] = log.locations.flatMap(loc => {
     /* ********** ********** Process the location ********** ********** */
     // SamplingLocation: name, shortDesc, actualCoords, startTime, endTime, notes, samples[], completedTasks[], photos[], template?
     // Wgs84Coordinates: wgs84lat, wgs84lon
@@ -68,46 +73,44 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
     const actCoords = areWgs84CoordsValid(loc.actualCoords) ? loc.actualCoords : EMPTY_COORDS
     const coords = areWgs84CoordsValid(actCoords) ? actCoords : nomCoords
 
-    const locNotes :string[] = [
-      loc.notes.trim().length ? `Location Notes: ${loc.notes.trim()}` : '',
+    const locNotes = [ loc.notes.trim(),
       // if the actual coordinates are off from the nominal coordinates by a bit, report the nominal coordinates too
       areWgs84CoordsValid(actCoords) && areWgs84CoordsValid(nomCoords)
         && distanceBearing(actCoords, nomCoords).distKm*1000 > MAX_NOM_ACT_DIST_CSV_M
         ? 'Nominal Sampling Location Coordinates (WGS84 Lat,Lon): '
           +`${nomCoords.wgs84lat.toFixed(WGS84_PRECISION)},${nomCoords.wgs84lon.toFixed(WGS84_PRECISION)}` : '',
-      loc.completedTasks.length ? `Completed Tasks: ${loc.completedTasks.join(', ')}` : ''
-    ]
+    ].filter(s => s.length).join('; ')
+
+    const baseRow :CsvRow = {
+      Location: loc.name,
+      Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
+      Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
+      SamplingLog: sampLog,
+      LogNotes: logNotes,
+      LocationNotes: locNotes,
+      LocationTasksCompleted: loc.completedTasks.join(', '),
+    }
 
     // if there are no samples, emit a dummy line so the notes for this location get recorded
-    if (!loc.samples.length)
-      return [{
-        Timestamp_UTC: isValidAndSetTs(loc.startTime) ? toIsoUtc(loc.startTime)+' UTC' : '',
-        Location: loc.name,
-        Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
-        Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
-        Notes: (li ? [] : logNotes).concat(locNotes).filter(s => s.length).join('; ')
-      }]
+    if (!loc.samples.length) {
+      if (isValidAndSetTs(loc.startTime)) {
+        baseRow['Timestamp'] = toIsoUtc(loc.startTime)+' UTC'
+        baseRow['Date_DMY']  = toDMYUtc(loc.startTime)
+        baseRow['Time_UTC']  = toUtcTime(loc.startTime)
+      }
+      return [baseRow]
+    }
 
-    return loc.samples.map((samp,si) => {
+    return loc.samples.map(samp => {
       /* ********** ********** Process the sample ********** ********** */
       // Sample: type, shortDesc, subjectiveQuality, notes, measurements[], template?
 
-      const rowNotes = [samp.notes.trim(),
-        samp.shortDesc.trim().length ? `Sample Desc.: ${samp.shortDesc.trim()}` : '' ]
-        .concat( li||si ? [] : logNotes )  // append log notes on the very first row
-        .concat( si ? [] : locNotes )  // append location notes on the first sample of the location
-        .filter(s => s.length).join('; ')
-
-      // Prepare the row
-      const row :CsvRow = {  // REMEMBER to keep in sync with `columns` above!
-        // Timestamp_UTC is set below
-        Location: loc.name,
-        Latitude_WGS84:  areWgs84CoordsValid(coords) ? coords.wgs84lat.toFixed(WGS84_PRECISION) : '',
-        Longitude_WGS84: areWgs84CoordsValid(coords) ? coords.wgs84lon.toFixed(WGS84_PRECISION) : '',
-        SampleType: samp.type,
-        SubjectiveQuality: samp.subjectiveQuality,
-        Notes: rowNotes,
-      }
+      // Prepare the row (Timestamp, Date, and Time are set below)
+      const row = cloneCsvRow(baseRow)
+      row['SampleType'] = samp.type
+      row['SampleDesc'] = samp.shortDesc.trim()
+      row['SubjectiveQuality'] = samp.subjectiveQuality
+      row['SampleNotes'] = samp.notes.trim()
 
       /* ********** ********** Process the measurements ********** ********** */
       // Measurement: type, time, value
@@ -144,7 +147,11 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       // Time: Time of first measurement, or time of location arrival
       const time :Timestamp = isValidAndSetTs(firstMeasTime) ? firstMeasTime
         : ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
-      row['Timestamp_UTC'] = isValidAndSetTs(time) ? toIsoUtc(time)+' UTC' : ''
+      if (isValidAndSetTs(time)) {
+        row['Timestamp'] = toIsoUtc(time)+' UTC'
+        row['Date_DMY'] = toDMYUtc(time)
+        row['Time_UTC'] = toUtcTime(time)
+      }
 
       return row  /* ***** Done with row ***** */
     })
