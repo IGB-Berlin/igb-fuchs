@@ -68,7 +68,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     ])
   }
   override async initialize() {
-    this.initDone()
+    await this.initDone()
     return this
   }
 

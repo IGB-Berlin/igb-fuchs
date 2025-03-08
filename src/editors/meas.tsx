@@ -103,7 +103,7 @@ export class MeasurementEditor extends Editor<Measurement> {
     ])
   }
   override async initialize() {
-    this.initDone()
+    await this.initDone()
     return this
   }
 

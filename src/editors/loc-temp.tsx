@@ -68,7 +68,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   }
   override async initialize() {
     await this.sampEdit.initialize()
-    this.initDone()
+    await this.initDone()
     return this
   }
 

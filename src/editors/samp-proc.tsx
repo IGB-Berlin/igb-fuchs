@@ -65,7 +65,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
   override async initialize() {
     await this.sampEdit.initialize()
     await this.locEdit.initialize()
-    this.initDone()
+    await this.initDone()
     return this
   }
 

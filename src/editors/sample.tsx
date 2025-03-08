@@ -126,7 +126,7 @@ export class SampleEditor extends Editor<Sample> {
   }
   override async initialize() {
     await this.measEdit.initialize()
-    this.initDone()
+    await this.initDone()
     return this
   }
 

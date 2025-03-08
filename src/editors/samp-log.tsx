@@ -126,7 +126,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   }
   override async initialize() {
     await this.locEdit.initialize()
-    this.initDone()
+    await this.initDone()
     return this
   }
 

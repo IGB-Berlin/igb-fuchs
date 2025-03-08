@@ -24,6 +24,7 @@ import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
 import { getStyle } from '../types/styles'
 import { GlobalContext } from '../main'
+import { MyTooltip } from '../tooltip'
 import { StackAble } from './stack'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
@@ -96,7 +97,9 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   get el() :HTMLElement { return this.form }
   private readonly form
   private readonly elEndHr
+  private readonly btnBack
   protected readonly btnSaveClose  // is protected instead of private so subclasses can scroll to it, nothing else
+  private readonly tipSaveClose
   private readonly elWarnList
   private readonly elWarnAlert
   private readonly elErrDetail
@@ -122,8 +125,9 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     this.style = getStyle(this.initObj.constructor)
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap fw-semibold"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
+    this.tipSaveClose = new MyTooltip(this.btnSaveClose)
     const btnSave = <button type="button" class="btn btn-outline-primary ms-2 mt-1 text-nowrap"><i class="bi-floppy-fill"/> {tr('Save')}</button>
-    const btnBack = <button type="button" class="btn btn-outline-secondary mt-1 text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
+    this.btnBack = <button type="button" class="btn btn-outline-secondary mt-1 text-nowrap"><i class="bi-arrow-bar-left"/> {tr('Back')}</button>
     this.elWarnList = <ul></ul>
     this.elWarnAlert = <div class="d-none alert alert-warning" role="alert">
       <h4 class="alert-heading"><i class="bi-exclamation-triangle-fill"/> {tr('Warnings')}</h4>
@@ -141,14 +145,9 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       /* NOTE that title and contents are .insertBefore()d this.elEndHr! */
       <form novalidate class="editor-form p-3">
         {this.elEndHr} {this.elWarnAlert} {this.elErrAlert}
-        <div class="d-flex flex-row justify-content-end flex-wrap"> {btnBack} {btnSave} {this.btnSaveClose} </div>
+        <div class="d-flex flex-row justify-content-end flex-wrap"> {this.btnBack} {btnSave} {this.btnSaveClose} </div>
       </form>)
-    btnBack.addEventListener('click', () => this.ctx.stack.back(this))
-    this.el.addEventListener(CustomChangeEvent.NAME, () => {
-      const unsaved = this.unsavedChanges
-      btnBack.classList.toggle('btn-outline-secondary', !unsaved)
-      btnBack.classList.toggle('btn-outline-warning', unsaved)
-    })
+    this.btnBack.addEventListener('click', () => this.ctx.stack.back(this))
     btnSave.addEventListener('click', () => this.doSave(false))
     this.form.addEventListener('submit', event => {
       event.preventDefault()
@@ -157,6 +156,17 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     })
   }
   abstract initialize() :Promise<this>
+
+  private async updateColors() {
+    const unsaved = this.unsavedChanges
+    this.btnBack.classList.toggle('btn-outline-secondary', !unsaved)
+    this.btnBack.classList.toggle('btn-outline-warning', unsaved)
+    const [valid, detail] = await this.checkValidity(false, true)
+    this.tipSaveClose.update(detail)
+    this.btnSaveClose.classList.toggle('btn-danger', valid==='error')
+    this.btnSaveClose.classList.toggle('btn-warning', valid==='warn')
+    this.btnSaveClose.classList.toggle('btn-success', valid==='good')
+  }
 
   /** Only to be called by the Stack (and the Editor's "Save & Close" button of course).
    *
@@ -174,9 +184,11 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   }
   private _initDoneCalled = false
   /** To be called by subclasses when they're ready to be shown. */
-  protected initDone() {
+  protected async initDone() {
     paranoia(!this._initDoneCalled)
     this._initDoneCalled = true
+    this.el.addEventListener(CustomChangeEvent.NAME, ()=>this.updateColors())
+    await this.updateColors()
     this.ctx.stack.push(this)
   }
 
@@ -245,8 +257,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   }
 
   private resetWarningsErrors() {
-    this.btnSaveClose.classList.remove('btn-warning')
-    this.btnSaveClose.classList.add('btn-success')
     this.elWarnAlert.classList.add('d-none')
     this.elErrAlert.classList.add('d-none')
     this.prevSaveClickObjState = null
@@ -261,7 +271,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * @returns `true` if this editor can and should be closed, `false` otherwise.
    */
   private async doSave(andClose :boolean) :Promise<boolean> {
-    this.btnSaveClose.classList.remove('btn-success', 'btn-warning')
     this.form.classList.add('was-validated')
 
     let _curObj :Readonly<B>
@@ -271,7 +280,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     }
     catch (ex) {
       console.debug(ex)
-      this.btnSaveClose.classList.add('btn-warning')
       this.elWarnAlert.classList.add('d-none')
       this.elErrDetail.innerText = String(ex)
       this.elErrAlert.classList.remove('d-none')
@@ -287,7 +295,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
     // So next, check warnings
     if (warnings.length) {
-      this.btnSaveClose.classList.add('btn-warning')
       this.elWarnList.replaceChildren( ...warnings.map(w => <li>{w}</li>) )
       this.elWarnAlert.classList.remove('d-none')
       this.ctx.scrollTo(this.elWarnAlert)
@@ -305,7 +312,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       } // else, button "Save"
     }
     else {  // no warnings
-      this.btnSaveClose.classList.add('btn-success')
       this.elWarnAlert.classList.add('d-none')
     }
     this.prevSaveClickObjState = curObj
@@ -344,6 +350,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** Close this editor. To be called by the EditorStack. Subclasses should not override; see `onClose` for that. */
   async close() {
+    await this.tipSaveClose.close()
     await this.onClose()
   }
   /** Optional hook that subclasses can override, called when the editor is closed. */

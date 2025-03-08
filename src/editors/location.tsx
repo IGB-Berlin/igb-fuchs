@@ -142,7 +142,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   }
   override async initialize() {
     await this.sampEdit.initialize()
-    this.initDone()
+    await this.initDone()
     return this
   }
 

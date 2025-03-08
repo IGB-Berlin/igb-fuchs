@@ -8,6 +8,8 @@ v0.0.7-alpha - *in Arbeit*
   um mit weniger Klicks direkt zur nächsten Messstelle bzw. Probe springen zu können.
 - Verschiedene Datentypen werden nun durch dazugehörige Symbole und Farben gekennzeichnet,
   und die Anzeige der aktuellen Seitenüberschrift wurde verbessert.
+- Die Farbe des Knopfs "Speichern & Schließen" spiegelt jetzt in Echtzeit wieder, ob es
+  Warnungen oder Fehler in der Eingabemaske gibt (zuvor passierte dies erst beim Klicken).
 - Auf der Hauptseite sind Messprotokolle nun etwas mehr hervorgehoben.
 - Bei der Auswahl einer Vorlage kann nun ein Eintrag mit Doppelklick ausgewählt werden.
 - Zuvor wurde eine fehlende End-Zeit zu häufig als Fehler / Warnung gemeldet.
