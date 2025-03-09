@@ -455,6 +455,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       input.style.setProperty('height', `${input.scrollHeight}px`)
     }
     input.addEventListener('input', updateHeight)
+    //TODO Later: the auto-expanding text boxes don't always expand when first displayed (anymore)
     setTimeout(updateHeight)  // delay update until after render
     // End Auto-Expand stuff
 
