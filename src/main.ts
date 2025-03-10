@@ -105,9 +105,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   licensesText.innerText = licenses_txt.trim()
 
   const appVersion = document.getElementById('appVersion')
-  assert(appVersion instanceof HTMLElement)
+  const versionBadge = document.getElementById('versionBadge')
+  assert(appVersion instanceof HTMLElement && versionBadge instanceof HTMLElement)
   appVersion.innerText = ( process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
   appVersion.insertAdjacentElement('afterend', makeBetaVersionNoticeLink(ctx))
+  versionBadge.title = ( process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
 
   await betaWarning(ctx)
 })

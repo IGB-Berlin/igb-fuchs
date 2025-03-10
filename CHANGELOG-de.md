@@ -1,8 +1,13 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
-v0.0.7-alpha - *in Arbeit*
+v0.0.8-alpha - *in Arbeit*
 --------------------------
+
+- *in Arbeit*
+
+v0.0.7-alpha - 2025-03-10
+-------------------------
 
 - Ein "Speichern & Nächste Messstelle" / "... Probe" Knopf wird nun angezeigt,
   um mit weniger Klicks direkt zur nächsten Messstelle bzw. Probe springen zu können.
