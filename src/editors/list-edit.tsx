@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary } from '../types/common'
+import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary, StyleValue } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, OrderedStore } from '../storage'
 import { EditorClass, EditorParent } from './base'
@@ -23,7 +23,6 @@ import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
 import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
-import { getStyle } from '../types/styles'
 import { GlobalContext } from '../main'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
@@ -137,7 +136,10 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
    *
    * **Warning:** You must call `initialize()` after constructing a new object of this class or its subclasses!
    */
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts) {
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, editorStyle :StyleValue,
+    /* TODO Later: I don't really like the separate editorClass and editorStyle parameters. Is there a way to link them?
+     * At least maybe via the generic <B>? Can I add that to StyleValue? */
+    selItem :SelectedItemContainer, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
     this.theStore = theStore
@@ -170,8 +172,8 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     })
     const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
     const [_helpId, helpBtn] = makeHelp(this.ctx, helpDiv)
-    const style = getStyle(editorClass)
-    this.titleEl = <h5 class={`mb-0 editor-${style.cssId}-text`}><i class={`bi-${style.icon}`}/> {texts.title} {texts.help?helpBtn:''}</h5>
+    this.titleEl = <h5 class={`mb-0 editor-${editorStyle.cssId}-text`}><i class={`bi-${editorStyle.icon} me-1`}/>
+      {texts.title} {texts.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
       {this.titleEl}
@@ -265,9 +267,10 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
     console.debug('... added with id',newId,'now editing')
     return this.newEditor(newObj, true)
   }
-  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, selItem :SelectedItemContainer, texts :ILETexts,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, editorStyle :StyleValue,
+    selItem :SelectedItemContainer, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
-    super(parent, theStore, editorClass, selItem, texts)
+    super(parent, theStore, editorClass, editorStyle, selItem, texts)
     this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
@@ -300,13 +303,13 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
   readonly plannedTitleEl  // is only public so it can be used as a scroll target
   private readonly pUl
   private readonly pEl
-  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, selItem :SelectedItemContainer, texts :ILETextsWithTemp,
+  constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, editorStyle :StyleValue,
+    selItem :SelectedItemContainer, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
-    super(parent, theStore, editorClass, selItem, texts, dialogTitle, templateSource)
+    super(parent, theStore, editorClass, editorStyle, selItem, texts, dialogTitle, templateSource)
     this.plannedLeft = planned ?? []
     this.pUl = <ul class="list-group"></ul>
-    const opStyle = getStyle(editorClass, true)
-    this.plannedTitleEl = <div class="mb-2 fs-5"><i class={`bi-${opStyle.icon}`}/> {texts.planned}</div>
+    this.plannedTitleEl = <div class="mb-2 fs-5"><i class={`bi-${editorStyle.opposite?.icon}`}/> {texts.planned}</div>
     this.pEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {this.pUl} </div>
     this.el.appendChild(this.pEl)
   }

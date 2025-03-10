@@ -15,18 +15,16 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { MeasurementType, Measurement } from '../types/measurement'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
-import { MeasurementType } from '../types/meas-type'
 import { makeValidNumberPat } from '../types/common'
 import { numericTextInputStuff } from '../utils'
 import { listSelectDialog } from './list-dialog'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { DateTimeInput } from './date-time'
-import { Measurement } from '../types/meas'
-import { getStyle } from '../types/styles'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<Measurement> {
@@ -88,7 +86,7 @@ export class MeasurementEditor extends Editor<Measurement> {
     }
     typeChange()
 
-    const typeStyle = getStyle(MeasurementType)
+    const typeStyle = MeasurementType.sStyle
     this.setFormContents([
       this.makeRow(this.grpType, {
         label: <span class={`editor-${typeStyle.cssId}-text`}><i class={`bi-${typeStyle.icon}`}/> {tr('Measurement Type')}</span>,

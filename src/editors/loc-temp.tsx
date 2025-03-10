@@ -21,6 +21,7 @@ import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { areWgs84CoordsValid } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
+import { SampleTemplate } from '../types/sample'
 import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
@@ -51,7 +52,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
     this.inpTasks = inpTasks
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, this.selItem,
+    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, SampleTemplate.sStyle, this.selItem,
       {title:tr('Samples')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
 

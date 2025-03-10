@@ -17,10 +17,12 @@
  */
 import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingProcedure } from '../types/sampling'
 import { LocationTemplateEditor } from './loc-temp'
 import { SampleTemplateEditor } from './samp-temp'
+import { SampleTemplate } from '../types/sample'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
 import { setRemove } from '../types/set'
@@ -45,12 +47,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
 
-    this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, this.selItem,
-      {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
+    this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, SampleTemplate.sStyle,
+      this.selItem, {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.commonSamples)))
 
-    this.locEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.locations), LocationTemplateEditor, this.selItem,
-      {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
+    this.locEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.locations), LocationTemplateEditor, SamplingLocationTemplate.sStyle,
+      this.selItem, {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
 
     this.setFormContents([

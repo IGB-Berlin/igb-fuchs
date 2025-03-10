@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DataObjectBase, numbersEqual } from './common'
+import { DataObjectBase, numbersEqual, StyleValue } from './common'
 import { tr } from '../i18n'
 
 export interface RawWgs84Coordinates {
@@ -49,6 +49,11 @@ export function areWgs84CoordsValid(c :RawWgs84Coordinates) :c is IWgs84Coordina
  * For reference, Berlin's Lat,Lon is roughly 52.5,13.4.
  */
 export class Wgs84Coordinates extends DataObjectBase<Wgs84Coordinates> implements IWgs84Coordinates {
+  static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
+    fullTitle: tr('Coordinates'), briefTitle: tr('Coords'),
+    cssId: 'coords', icon: 'crosshair' }
+  static { this.sStyle.opposite = this.sStyle }
+  override get style() { return Wgs84Coordinates.sStyle }
   wgs84lat :number
   wgs84lon :number
   constructor(o :RawWgs84Coordinates|null) {

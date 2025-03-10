@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { getStyle } from './styles'
 import { Class } from '../utils'
 import { tr } from '../i18n'
 
@@ -38,6 +37,17 @@ export type HasEquals = { equals(other :unknown) :boolean }
 
 export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
 
+export interface StyleValue {
+  readonly fullTitle :string
+  readonly briefTitle :string
+  readonly cssId :string
+  readonly icon :string
+  readonly isTemplate :boolean
+  /** This field may *only* be `null` during initialization, all objects of this type must get
+   * this field set during static initialization, and it must not be modified afterwards. */
+  opposite :StyleValue|null
+}
+
 export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary {
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
   abstract validate(others :B[]) :void
@@ -57,6 +67,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
    */
   abstract deepClone() :B
 
+  abstract get style() :StyleValue
   /** Returns a summary of this object, e.g. for display in a list. */
   abstract summaryDisplay() :[string,string|null]
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
@@ -66,7 +77,7 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
     div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
     if (withTypeName) {
       const n = document.createElement('div')
-      n.innerText = getStyle(this.constructor).fullTitle+':'
+      n.innerText = this.style.fullTitle+':'
       div.appendChild(n)
     }
     const one = document.createElement('div')

@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CustomChangeEvent, CustomStackEvent } from '../events'
-import { StyleValue } from '../types/styles'
+import { StyleValue } from '../types/common'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
 import { HomePage } from './home'

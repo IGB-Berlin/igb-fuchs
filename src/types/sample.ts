@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { IMeasurementType, isIMeasurementType, MeasurementType } from './meas-type'
-import { DataObjectTemplate, DataObjectWithTemplate, isArrayOf } from './common'
-import { IMeasurement, isIMeasurement, Measurement } from './meas'
+import { IMeasurementType, isIMeasurementType, MeasurementType, IMeasurement, isIMeasurement, Measurement } from './measurement'
+import { DataObjectTemplate, DataObjectWithTemplate, isArrayOf, StyleValue } from './common'
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
@@ -61,6 +60,10 @@ export function isISample(o :unknown) :o is ISample {
 
 /** Records an actual sample taken. */
 export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> implements ISample {
+  static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
+    fullTitle: tr('Sample'), briefTitle: tr('Sample'),
+    cssId: 'sample', icon: 'droplet-fill' }  // alternative icon might be eyedropper
+  override get style() { return Sample.sStyle }
   type :SampleType
   shortDesc :string
   subjectiveQuality :QualityFlag
@@ -161,6 +164,11 @@ export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
 }
 
 export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> implements ISampleTemplate {
+  static readonly sStyle :StyleValue = { isTemplate: true, opposite: Sample.sStyle,
+    fullTitle: tr('Sample Template'), briefTitle: tr('samp-temp'),
+    cssId: 'samp-temp', icon: 'droplet' }
+  static { Sample.sStyle.opposite = this.sStyle }
+  override get style() { return SampleTemplate.sStyle }
   type :SampleType
   shortDesc :string
   instructions :string

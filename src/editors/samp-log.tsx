@@ -20,6 +20,7 @@ import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
+import { SamplingLocation } from '../types/location'
 import { SamplingLocationEditor } from './location'
 import { SamplingLog } from '../types/sampling'
 import { Editor, EditorParent } from './base'
@@ -102,8 +103,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
      * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
     //TODO Later (low priority): Consider how difficult it would be to show all sampling locations on a map
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
-    this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, this.selItem,
-      { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
+    this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, SamplingLocation.sStyle,
+      this.selItem, { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
       //TODO Later: In general, maybe don't filter out options, e.g. for cases where there are multiple temperature measurements
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )

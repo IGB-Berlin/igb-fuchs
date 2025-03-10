@@ -17,7 +17,7 @@
  */
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate,
   validateTimestamp, validateName, DataObjectWithTemplate, validateId, timestampsEqual, HasId,
-  isArrayOf } from './common'
+  isArrayOf, StyleValue } from './common'
 import { ISamplingLocation, ISamplingLocationTemplate, isISamplingLocation, isISamplingLocationTemplate,
   SamplingLocation, SamplingLocationTemplate } from './location'
 import { ISampleTemplate, isISampleTemplate, SampleTemplate } from './sample'
@@ -65,6 +65,10 @@ export function isISamplingLog(o :unknown) :o is ISamplingLog {
  * there should be a Migrator class that upgrades/converts older objects to newer ones. */
 
 export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingProcedure> implements ISamplingLog {
+  static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
+    fullTitle: tr('Sampling Log'), briefTitle: tr('Log'),
+    cssId: 'samp-log', icon: 'journal-text' }  // alternative icons might be list-columns-reverse, file-earmark-text
+  override get style() { return SamplingLog.sStyle }
   readonly id :string
   name :string
   startTime :Timestamp
@@ -197,6 +201,11 @@ export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
 }
 
 export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, SamplingLog> implements ISamplingProcedure {
+  static readonly sStyle :StyleValue = { isTemplate: true, opposite: SamplingLog.sStyle,
+    fullTitle: tr('Sampling Procedure'), briefTitle: tr('proc'),
+    cssId: 'samp-proc', icon: 'journals' }
+  static { SamplingLog.sStyle.opposite = this.sStyle }
+  override get style() { return SamplingProcedure.sStyle }
   readonly id :string
   name :string
   instructions :string

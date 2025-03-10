@@ -22,7 +22,6 @@ import { DataObjectBase } from '../types/common'
 import { ListEditorParent } from './list-edit'
 import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
-import { getStyle } from '../types/styles'
 import { GlobalContext } from '../main'
 import { MyTooltip } from '../tooltip'
 import { StackAble } from './stack'
@@ -91,7 +90,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** The initial object being edited: either `savedObj`, or a newly created object. */
   protected readonly initObj :B
-  readonly style
+  get style() { return this.initObj.style }
 
   /** The HTML element holding the editor UI. */
   get el() :HTMLElement { return this.form }
@@ -122,7 +121,6 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     this.savedObj = targetObj
     this._isNew = targetObj === null || isNew
     this.initObj = targetObj === null ? this.newObj() : targetObj
-    this.style = getStyle(this.initObj.constructor)
 
     this.btnSaveClose = <button type="submit" class="btn btn-success ms-2 mt-1 text-nowrap fw-semibold"><i class="bi-folder-check"/> {tr('Save & Close')}</button>
     this.tipSaveClose = new MyTooltip(this.btnSaveClose)

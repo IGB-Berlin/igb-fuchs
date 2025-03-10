@@ -19,6 +19,7 @@ import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
 import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
+import { MeasurementType } from '../types/measurement'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
 import { setRemove } from '../types/set'
@@ -48,8 +49,8 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
       label: tr('Instructions'), helpText: <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
 
-    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, this.selItem,
-      {title:tr('Measurement Types')}, tr('new-meas-from-temp'),
+    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, MeasurementType.sStyle,
+      this.selItem, {title:tr('Measurement Types')}, tr('new-meas-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
 
     this.setFormContents([

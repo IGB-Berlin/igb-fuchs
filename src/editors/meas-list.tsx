@@ -16,12 +16,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditorTemp, SelectedItemContainer } from './list-edit'
+import { MeasurementType, Measurement } from '../types/measurement'
 import { makeValidNumberPat, timestampNow } from '../types/common'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { MeasurementType } from '../types/meas-type'
 import { numericTextInputStuff } from '../utils'
-import { Measurement } from '../types/meas'
 import { MeasurementEditor } from './meas'
 import { setRemove } from '../types/set'
 import { Sample } from '../types/sample'
@@ -136,7 +135,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
   private readonly editors :MiniMeasEditor[] = []
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
     const selItem :SelectedItemContainer = { el: null }
-    super(parent, new ArrayStore(sample.measurements), MeasurementEditor, selItem,
+    super(parent, new ArrayStore(sample.measurements), MeasurementEditor, Measurement.sStyle, selItem,
       { title:tr('Measurements'), help:<>{tr('meas-list-help')}
         {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</> },
       tr('new-meas-from-temp'),

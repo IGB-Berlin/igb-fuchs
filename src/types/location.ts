@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isTimestamp, isTimestampSet, NO_TIMESTAMP, Timestamp, timestampNow, DataObjectTemplate, validateName, validateTimestamp,
-  DataObjectWithTemplate, timestampsEqual, isArrayOf } from './common'
+  DataObjectWithTemplate, timestampsEqual, isArrayOf, StyleValue } from './common'
 import { RawWgs84Coordinates, Wgs84Coordinates, areWgs84CoordsValid, isRawWgs84Coordinates } from './coords'
 import { ISample, isISample, isISampleTemplate, ISampleTemplate, Sample, SampleTemplate } from './sample'
 import { distanceBearing } from '../geo-func'
@@ -59,6 +59,10 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 
 /** Records and actual sampling point. */
 export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
+  static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
+    fullTitle: tr('Sampling Location'), briefTitle: tr('Location'),
+    cssId: 'location', icon: 'pin-map-fill' }  // alternativ icon might be geo-fill
+  override get style() { return SamplingLocation.sStyle }
   name :string
   shortDesc :string
   actualCoords :RawWgs84Coordinates
@@ -205,6 +209,11 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
 }
 
 export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {
+  static readonly sStyle :StyleValue = { isTemplate: true, opposite: SamplingLocation.sStyle,
+    fullTitle: tr('Sampling Location Template'), briefTitle: tr('loc-temp'),
+    cssId: 'loc-temp', icon: 'pin-map' }
+  static { SamplingLocation.sStyle.opposite = this.sStyle }
+  override get style() { return SamplingLocationTemplate.sStyle }
   name :string
   shortDesc :string
   instructions :string

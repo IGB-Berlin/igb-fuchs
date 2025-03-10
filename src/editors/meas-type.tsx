@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { MeasurementType, VALID_UNIT_RE } from '../types/meas-type'
+import { MeasurementType, VALID_UNIT_RE } from '../types/measurement'
 import { makeValidNumberPat, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'

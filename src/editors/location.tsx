@@ -25,6 +25,7 @@ import { SamplingLocation } from '../types/location'
 import { makeCoordinateEditor } from './coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
+import { Sample } from '../types/sample'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
 import { GlobalContext } from '../main'
@@ -113,7 +114,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.inpNotes = inpNotes
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, this.selItem,
+    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, Sample.sStyle, this.selItem,
       { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
       this.initObj.template?.samples )
