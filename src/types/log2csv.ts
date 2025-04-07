@@ -48,6 +48,8 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
+  /* TODO: Users request the Date_DMY and Time_UTC columns to be in local time instead, so that we have both time zones available in the output.
+   * I will have to think about whether using the time zone of the exporting user is enough (probably is!), or we need to record the time zone in the data sets. */
   const columns = ['Timestamp','Date_DMY','Time_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SampleDesc','SubjectiveQuality',
     'SampleNotes','SamplingLog','LogNotes','LocationNotes','LocationTasksCompleted']
   // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
