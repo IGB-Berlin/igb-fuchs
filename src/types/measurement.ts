@@ -191,9 +191,9 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     const detail = Number.isFinite(this.min) && Number.isFinite(this.max)
       ? `${mn} - ${mx}`
       : Number.isFinite(this.min)
-        ? `>= ${mn}`
+        ? `≥ ${mn}`
         : Number.isFinite(this.max)
-          ? `<= ${mx}`
+          ? `≤ ${mx}`
           : ''
     return detail
   }
