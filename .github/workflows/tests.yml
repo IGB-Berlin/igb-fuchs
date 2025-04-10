@@ -1,4 +1,4 @@
-name: Lint and Tests
+name: All Tests
 on:
   push:
     # only on commits, not on tags
@@ -7,7 +7,7 @@ on:
   pull_request:
 jobs:
   tests:
-    timeout-minutes: 60
+    name: Lint and Jest Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,12 +19,30 @@ jobs:
           cache: 'npm'
       - name: Install Dependencies
         run: npm ci
-      - name: Lint and Build
-        # Note `build` runs `lint`, and `build` is required for Playwright test to work
-        run: npm run build
+      - name: Lint
+        run: npm run lint
       - name: Run Jest Tests
         run: npx jest
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+  # https://playwright.dev/docs/ci#via-containers
+  playwright:
+    name: Playwright Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      # REMEMBER to keep this version in sync with package.json
+      image: mcr.microsoft.com/playwright:v1.51.1
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
       - name: Run Playwright Tests
         run: npx playwright test
