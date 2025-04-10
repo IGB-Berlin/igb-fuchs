@@ -440,7 +440,7 @@ export class IdbStorage {
     if ( await this.selfTestStore.add(d1) !== 'one') return false
     try { await this.selfTestStore.add(d1); return false } catch (_) { /*expected*/ }
     const all = await this.selfTestStore.getAll(null)
-    if ( all.length!==1 || all[0]?.[0]!=='one' || all[0]?.[1]?.id!=='one' || all[0]?.[1]?.foo!=='bar' ) return false
+    if ( all.length!==1 || all[0]?.[0]!=='one' || all[0][1].id!=='one' || all[0][1].foo!=='bar' ) return false
     if ( (await this.selfTestStore.get('one')).foo !== 'bar' ) return false
     const d1x = new DummyObj({ id: 'one', foo: 'x' })
     const d1b = new DummyObj({ id: 'one', foo: 'quz' })
@@ -459,7 +459,7 @@ export class IdbStorage {
     await this.fileTestStore.add('foo', f1)
     try { await this.fileTestStore.add('foo', f1); return false } catch (_) { /*expected*/ }
     const fl1 = await this.fileTestStore.list()
-    if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0]?.[1]!=='test.txt' ) return false
+    if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0][1]!=='test.txt' ) return false
     const f1b = await this.fileTestStore.get('foo')
     if ( f1b.name!=='test.txt' || await f1b.text() !== 'Hello, World!' ) return false
     await this.fileTestStore.del('foo')
