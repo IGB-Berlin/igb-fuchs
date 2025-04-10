@@ -3,9 +3,9 @@
 export default {
   testEnvironment: 'jsdom',
   transform: {
-    '^.+.tsx?$': ['ts-jest',{
+    '^.+.tsx?$': ['ts-jest', {
       diagnostics: {
-        ignoreCodes: [ 'TS151001' ], // "esModuleInterop: true" is set, but tsconfig.json is in subdir
+        ignoreCodes: [  ]
       },
     }],
   },
