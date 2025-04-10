@@ -14,7 +14,7 @@
   "_comment": "NOTE naming the test script `test` apparently always causes the VSCode test runner to use that",
   "scripts": {
     "clean": "git clean -dxf -e node_modules",
-    "start": "npm run clean && parcel",
+    "start": "npm run clean && parcel --port 1234",
     "build": "npm run clean && npm run lint && parcel build",
     "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint",
     "all-test": "npm run build && jest && playwright test"
