@@ -58,12 +58,25 @@ class DummyObj implements IDummyObj {
   }
 }
 
+/** Silly workaround for WebKit not supporting storing Blobs in IndexedDB in private windows, which causes Playwright tests to fail. */
+interface IFakeFile {
+  readonly name :string
+  readonly type :string
+  readonly last :number
+  readonly data :ArrayBuffer
+}
+const isIFakeFile = (o :unknown) :o is IFakeFile =>
+  !!( o && typeof o === 'object' && Object.keys(o).length===4 && 'name' in o && 'type' in o && 'last' in o && 'data' in o
+    && typeof o.name === 'string' && typeof o.type === 'string' && typeof o.last === 'number' && o.data instanceof ArrayBuffer )
+const file2fake = async (f :File) :Promise<IFakeFile> => ({ name: f.name, type: f.type, last: f.lastModified, data: await f.arrayBuffer() })
+const fake2file = (f :IFakeFile) => new File([f.data], f.name, { type: f.type, lastModified: f.last })
+
 interface MyDB extends DBSchema {
   selfTest :{ key :string, value :IDummyObj  },
   samplingLogs :{ key :string, value :ISamplingLog },
   samplingProcedures :{ key :string, value :ISamplingProcedure },
-  filesTest :{ key :string, value :File },
-  files :{ key :string, value :File },
+  filesTest :{ key :string, value :File|IFakeFile },
+  files :{ key :string, value :File|IFakeFile },
   general :{ key :string, value :ISettings },
 }
 
@@ -124,7 +137,7 @@ class FileStore {
     const tx = this.db.transaction(this.storeName)
     let goodCount = 0, badCount = 0
     for await (const cur of tx.store) {
-      if (cur.value instanceof File) {
+      if (cur.value instanceof File || isIFakeFile(cur.value)) {
         yield [cur.key, cur.value.name]
         goodCount++
       }
@@ -143,14 +156,15 @@ class FileStore {
   async get(key :string) :Promise<File> {
     const obj = await this.db.get(this.storeName, key)
     if (!obj) throw new Error(`Key ${key} not found`)
-    if (obj instanceof File) {
+    if (obj instanceof File || isIFakeFile(obj)) {
       console.debug('IDB file.get', this.storeName, key, obj.name)
-      return obj
+      return obj instanceof File ? obj : fake2file(obj)
     }
-    throw new Error(`Store ${this.storeName} object at key ${key} wasn't a file (is ${typeof obj})`)
+    else throw new Error(`Store ${this.storeName} object at key ${key} wasn't a file (is ${typeof obj})`)
   }
   async add(key :string, file :File) :Promise<void> {
-    await this.db.add(this.storeName, file, key)
+    // easier to just always store as "fake" file object (regular file objects don't work in WebKit private window, e.g. Playwright test case)
+    await this.db.add(this.storeName, await file2fake(file), key)
     console.debug('IDB file.add', this.storeName, key, file.name)
   }
   async del(key :string) :Promise<void> {
@@ -433,6 +447,7 @@ export class IdbStorage {
   }
 
   private async selfTest() :Promise<boolean> {
+    /* TODO Later: IIRC I was hoping this self-test would detect running in private windows, but it does not? */
     console.log('Running storage test...')
     if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
     const d1 = new DummyObj({ id: 'one', foo: 'bar' })

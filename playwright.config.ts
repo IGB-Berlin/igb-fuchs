@@ -40,14 +40,9 @@ export default defineConfig({
   projects: [
     { name: 'Chromium', use: { ...devices['Desktop Chrome'],  }, },
     { name: 'Firefox',  use: { ...devices['Desktop Firefox'], }, },
+    { name: 'WebKit',   use: { ...devices['Desktop Safari'],  }, },
     { name: 'Mobile Chrome',  use: { ...devices['Pixel 5'],   }, },
-    /* TODO Later: In Playwright's WebKit, I'm getting "Error preparing Blob/File data to be stored in object store" from my storage self-test.
-     * AFAICT so far, this is because WebKit doesn't support storing Blobs into IDB in private browsing mode, which is basically what Playright does.
-     * Possible solutions I could check: Playwright's `browserType.launchPersistentContext(userDataDir)` ?
-     * I tried `storageState` as per https://playwright.dev/docs/auth but that didn't help.
-     * If all else fails, one comment I read said they stored File objects as Base64 encoded strings instead... */
-    //{ name: 'WebKit',   use: { ...devices['Desktop Safari'],  }, },
-    //{ name: 'Mobile Safari',  use: { ...devices['iPhone 12'], }, },
+    { name: 'Mobile Safari',  use: { ...devices['iPhone 12'], }, },
   ],
   webServer: {
     // NOTE this command only runs the server - need to run `npm run build` or `npm start` first!

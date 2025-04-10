@@ -20,6 +20,9 @@ import { test, expect } from '@playwright/test'
 test('smoke test', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
-  await page.getByRole('button', { name: 'Ich verstehe' }).click()  // alpha version warning
+  const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })
+  await expect( betaWarningBtn ).toBeVisible()
+  await betaWarningBtn.click()  // alpha version warning
+  await expect( betaWarningBtn ).toBeHidden()
   await expect( page.getByRole('button', { name: 'Messprotokolle' }) ).toBeVisible()  // JS-generated content
 })
