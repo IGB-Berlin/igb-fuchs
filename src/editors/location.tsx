@@ -102,12 +102,16 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
     if (!areWgs84CoordsValid(nomCoords))
       rowNomCoords.classList.add('d-none')
+    inpNomCoords.setAttribute('data-test-id','nomCoords')
 
     this.actCoords = this.initObj.actCoords.deepClone()  // don't modify the original object directly!
     this.inpActCoords = makeCoordinateEditor(this.actCoords, false)
+    this.inpActCoords.setAttribute('data-test-id','actCoords')
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
+    this.inpStart.el.setAttribute('data-test-id','locStartTime')
     this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
+    this.inpEnd.el.setAttribute('data-test-id','locEndTime')
 
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
       label: tr('Notes'), helpText: <>{tr('loc-notes-help')} {tr('notes-help')}</>, startExpanded: true })

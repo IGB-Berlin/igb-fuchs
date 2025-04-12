@@ -50,10 +50,12 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
     this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, SampleTemplate.sStyle,
       this.selItem, {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.commonSamples)))
+    this.sampEdit.el.setAttribute('data-test-id','sampEdit')
 
     this.locEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.locations), LocationTemplateEditor, SamplingLocationTemplate.sStyle,
       this.selItem, {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
+    this.locEdit.el.setAttribute('data-test-id','locEdit')
 
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),

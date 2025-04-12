@@ -69,7 +69,8 @@ export class GlobalContext {
     setTimeout(() => {  // don't scroll until rendered
       target.style.setProperty('scroll-margin-top',    `${this.header.getBoundingClientRect().height+5}px`)
       target.style.setProperty('scroll-margin-bottom', `${this.footer.getBoundingClientRect().height+5}px`)
-      target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      // It seems to me that `auto` behavior depends on `prefers-reduced-motion`, which is good for tests
+      target.scrollIntoView({ block: 'center', behavior: 'auto' })
     }, 1)  // I think this should ensure we fire after any other `setTimeout(..., 0)`s
   }
   genId(name ?:string|null) { return `_gen${name?.trim().length ? '_'+name : ''}_${this.counter++}_` }

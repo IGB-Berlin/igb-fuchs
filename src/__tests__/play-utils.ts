@@ -15,24 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { test, expect } from '@playwright/test'
-import { initPageTest } from './play-utils'
+import { expect, Page } from '@playwright/test'
 
-test('smoke test', async ({ page }) => {
-  await initPageTest(page)
-  await expect( page.getByRole('button', { name: 'Sampling Logs' }) ).toBeVisible()  // JS-generated content
-})
-
-test.describe('German', () => {
-  test.use({ locale: 'de-DE' })
-  test('smoke test DE', async ({ page }) => {
-    // do the same as initPageTest
-    await page.goto('/')
-    await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
-    const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })  // alpha version warning
-    await expect( betaWarningBtn ).toBeVisible()
-    await betaWarningBtn.click()
-    await expect( betaWarningBtn ).toBeHidden()
-    await expect( page.getByRole('button', { name: 'Messprotokolle' }) ).toBeVisible()  // JS-generated content
-  })
-})
+export async function initPageTest(page :Page) {
+  // note this also serves as a significant part of the smoke test
+  await page.goto('/')
+  await expect(page).toHaveTitle(/IGB-FUCHS/)
+  await expect(page.getByTestId('betaWarningDialog')).toBeVisible()
+  await page.getByRole('button', { name: 'I understand' }).click()
+  await expect(page.getByTestId('betaWarningDialog')).toBeHidden()
+}

@@ -31,6 +31,7 @@ export default defineConfig({
   use: {  // Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions
     baseURL: 'http://localhost:1234',  // Base URL to use in actions like `await page.goto('/')`.
     trace: 'on-first-retry',  // Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer
+    testIdAttribute: 'data-test-id',
     // https://playwright.dev/docs/emulation
     locale: 'en-US',
     timezoneId: 'Europe/Berlin',

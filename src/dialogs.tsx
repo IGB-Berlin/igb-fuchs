@@ -213,7 +213,7 @@ export async function betaWarning(ctx :GlobalContext, force :boolean = false) :P
   const hideUntilMs = await ctx.storage.settings.get('hideBetaWarningUntilTimeMs')
   if (!force && Number.isFinite(hideUntilMs) && Date.now()<hideUntilMs)
     return
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
+  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false" data-test-id="betaWarningDialog"
     class="modal fade" tabindex="-1" aria-labelledby="betaWarningLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">

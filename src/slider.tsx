@@ -29,11 +29,11 @@ export class Slider {
   private readonly tip
   constructor(text :string|HTMLElement, callback :()=>void) {
     this.btn = <div class="slider-button rounded-pill text-bg-primary position-absolute top-0 start-0
-    d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3">
+    d-flex justify-content-center align-items-center overflow-hidden cursor-pointer px-3" data-test-id="sliderButton">
       <i class="bi-arrow-right"/></div>
     this.textSpan = <span>{text}</span>
     this.el = <div class="slider-bar rounded-pill bg-body-tertiary border border-primary-subtle position-relative
-      d-flex justify-content-center align-items-center px-3">
+      d-flex justify-content-center align-items-center px-3" data-test-id="sliderBar">
       {this.btn}{this.textSpan}</div>
     let isDragging = false
     let isSwiping = false

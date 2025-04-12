@@ -82,9 +82,11 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
+    this.inpStart.el.setAttribute('data-test-id','logStartTime')
     /* TODO Later: When creating a new object from scratch, without a template, and saving it without an end time (i.e. ignoring the warning), then re-opening that object,
      * the "auto set end time" check box is enabled, maybe we don't want that?. Note that this.initObj.template is initialized to an empty template... */
     this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
+    this.inpEnd.el.setAttribute('data-test-id','logEndTime')
 
     //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
