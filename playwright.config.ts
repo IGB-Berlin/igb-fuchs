@@ -32,7 +32,7 @@ export default defineConfig({
     baseURL: 'http://localhost:1234',  // Base URL to use in actions like `await page.goto('/')`.
     trace: 'on-first-retry',  // Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer
     // https://playwright.dev/docs/emulation
-    locale: 'de-DE',
+    locale: 'en-US',
     timezoneId: 'Europe/Berlin',
     geolocation: { latitude: 52.516312, longitude: 13.377657 },
     permissions: ['geolocation'],

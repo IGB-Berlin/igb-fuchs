@@ -20,9 +20,22 @@ import { test, expect } from '@playwright/test'
 test('smoke test', async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
-  const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })
+  const betaWarningBtn = page.getByRole('button', { name: 'I understand' })  // alpha version warning
   await expect( betaWarningBtn ).toBeVisible()
-  await betaWarningBtn.click()  // alpha version warning
+  await betaWarningBtn.click()
   await expect( betaWarningBtn ).toBeHidden()
-  await expect( page.getByRole('button', { name: 'Messprotokolle' }) ).toBeVisible()  // JS-generated content
+  await expect( page.getByRole('button', { name: 'Sampling Logs' }) ).toBeVisible()  // JS-generated content
+})
+
+test.describe('German', () => {
+  test.use({ locale: 'de-DE' })
+  test('smoke test DE', async ({ page }) => {  // same test as above, just in German
+    await page.goto('/')
+    await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
+    const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })  // alpha version warning
+    await expect( betaWarningBtn ).toBeVisible()
+    await betaWarningBtn.click()
+    await expect( betaWarningBtn ).toBeHidden()
+    await expect( page.getByRole('button', { name: 'Messprotokolle' }) ).toBeVisible()  // JS-generated content
+  })
 })
