@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, Download } from '@playwright/test'
 import { initPageTest } from './play-utils'
+import * as zip from '@zip.js/zip.js'
 import { assert } from '../utils'
+import Papa from 'papaparse'
 
 test.setTimeout(60000)  // long test, timeout 60s instead of default 30s
 test('full integration test', async ({ page }) => {
@@ -31,7 +33,7 @@ test('full integration test', async ({ page }) => {
     expect(page.getByTestId('accLogTemp')).toBeVisible() ])
 
   // New Sampling Procedure
-  //TODO Later: For all items here, check that the list shows a "No items" text
+  await expect(page.getByRole('listitem')).toHaveText(['No items'])
   await page.getByRole('button', { name: 'New' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Procedure' })).toBeVisible()
   await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
@@ -147,8 +149,9 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
-  //TODO Later: for all warnings, check the warnings text here too
+  await expect(page.getByRole('listitem')).toHaveText(['No maximum value', 'No precision'])
   await page.getByRole('button', { name: 'Save & Close' }).click()
+  await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
   await expect(page.getByRole('heading', { name: 'Sample Template' })).toBeVisible()
   // Done with Sample at S3
   await page.getByRole('button', { name: 'Save & Close' }).click()
@@ -159,6 +162,7 @@ test('full integration test', async ({ page }) => {
   // Done with Sampling Procedure
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByTestId('accLogTemp')).toBeVisible()
+  await expect(page.getByRole('listitem')).toHaveText([/^Spree.*3 sampling locations/])
 
   // Switch to Sampling Logs accordion
   await page.getByRole('button', { name: 'Sampling Logs' }).click()
@@ -167,9 +171,9 @@ test('full integration test', async ({ page }) => {
     expect(page.getByTestId('accSampLog')).toBeVisible(),
     expect(page.getByTestId('accLogTemp')).toBeHidden() ])
 
-  // utility function for operating the slider
   const sliderBar = page.getByTestId('sliderBar').filter({ visible: true })
   const sliderButton = page.getByTestId('sliderButton').filter({ visible: true })
+  /** Utility function for operating the slider */
   const doSlider = async () => {
     await sliderButton.hover()
     await page.mouse.down()
@@ -180,14 +184,15 @@ test('full integration test', async ({ page }) => {
   }
 
   // Start new Sampling Log from Template
+  await expect(page.getByRole('listitem')).toHaveText(['No items'])
   await page.getByRole('button', { name: 'From Template' }).click()
   await expect(page.getByRole('heading', { name: 'New Sampling Log from Procedure' })).toBeVisible()
+  await page.clock.setFixedTime('2025-01-02T03:00')  // log start time
   await page.getByLabel('New Sampling Log from Procedure').getByText('Spree').dblclick()
   await expect(page.getByRole('heading', { name: /Sampling Log\s*$/ })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('Spree')
-
-  //const possibleValues = ['123', '456', '789']  //TODO: generate possible datetimes
-  //expect( possibleValues ).toContain( await page.getByTestId('logStartTime').getByRole('textbox').inputValue() )
+  await page.clock.setFixedTime('2025-01-02T03:10')
+  await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('2025-01-02T03:00')
   await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
   await page.getByRole('textbox', { name: 'Persons' }).fill('Me, You')
@@ -196,15 +201,17 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Take Beta probe' }).check()
 
   // Start first sampling location
+  await page.clock.setFixedTime('2025-01-02T04:00')  // S1 start time
   await page.getByRole('listitem').filter({ hasText: 'S1 / Upper' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S1')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Upper')
+  await page.clock.setFixedTime('2025-01-02T04:10')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
-  //TODO: As above, check the start time
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T04:00')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
@@ -233,7 +240,9 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('listitem').filter({ hasText: 'pH pH' }).getByRole('textbox').fill('6.9')
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: /Subjective quality.+please provide details/ })).toBeVisible()
   await page.getByRole('button', { name: 'Save & Close' }).click()
+  await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('listitem').filter({ hasText: 'Flowing surface water / Beta' }).dblclick()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
@@ -249,31 +258,37 @@ test('full integration test', async ({ page }) => {
 
   // finish up sampling location (intentionally with warnings etc.)
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  await page.clock.setFixedTime('2025-01-02T04:30')  // S1 end time
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: /^One/ })).toHaveText([ 'One task not completed', 'One planned sample left' ])
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S1')
   await page.getByRole('listitem').filter({ hasText: 'Sediment' }).getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
   await expect(page.getByLabel('Sample Type')).toHaveValue('sediment')
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('listitem').filter({ hasText: 'Collect 1l water for lab' }).getByText('Completed').click()
+  await page.clock.setFixedTime('2025-01-02T05:00')  // S2 start time
   await doSlider()
 
   // Now at second sampling location
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S2')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Middle')
+  await page.clock.setFixedTime('2025-01-02T05:10')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
-  //TODO: As above, check the start time
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T05:00')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
+  const isFirefox = page.context().browser()?.browserType().name() === 'firefox'
   // get current coordinates (for fake coords see Playwright config file)
-  if (page.context().browser()?.browserType().name() !== 'firefox') {  //TODO: Why is this not working on Firefox?
+  if (!isFirefox) {  //TODO Later: Why is geolocation emulation not working on Firefox?
     await page.getByTestId('actCoords').getByRole('button', { name: 'Coordinates' }).click()
     await expect(page.getByRole('button', { name: 'Use current location' })).toBeVisible()
     await page.getByRole('button', { name: 'Use current location' }).click()
@@ -297,8 +312,8 @@ test('full integration test', async ({ page }) => {
   // Pretend the "Beta" probe failed and skip that
   await page.getByRole('textbox', { name: 'Notes' }).fill('Beta probe not working')
 
-  await page.mouse.move(0,0)  // workaround for the test sometimes hanging here (at least on Chrome):
-  // I think the mouse hovering over the Save & Close button and the resulting tooltip was causing the page to never be "stable"?
+  await page.mouse.move(0,0)  /* Workaround for the test sometimes hanging here (at least on Chrome):
+   * I think the mouse hovering over the Save & Close button and the resulting tooltip was causing the page to never be "stable"? */
 
   await page.getByRole('listitem').filter({ hasText: 'Sediment' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
@@ -306,20 +321,27 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: /Save\s*$/ }).click()
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  await page.clock.setFixedTime('2025-01-02T05:30')  // S2 end time
 
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: /^(One|Large)/ }))
+    .toHaveText( isFirefox ? [ 'One planned sample left' ] :
+      [ /^Large difference in the nominal and actual coordinates/, 'One planned sample left' ])
+  await page.clock.setFixedTime('2025-01-02T06:00')  // S3 start time
   await doSlider()
+  await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
 
   // Now at third and last sampling location
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S3')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Lower')
+  await page.clock.setFixedTime('2025-01-02T06:10')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.300000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.300000')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' }).fill('52.300100')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' }).fill('13.300100')
-  //TODO: As above, check the start time
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T06:00')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
@@ -332,12 +354,45 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
 
   await page.getByRole('button', { name: 'Save & Close' }).click()
+  await page.clock.setFixedTime('2025-01-02T06:30')  // S3 end time
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
+  await page.clock.setFixedTime('2025-01-02T07:00')  // log end time
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByTestId('accSampLog')).toBeVisible()
+  await expect(page.getByRole('listitem')).toHaveText([/^Spree/])
+  await page.clock.setFixedTime('2025-01-03T08:00')  // export time
 
-  //TODO: Export and check export!
+  /** Utility function to convert a Playwright Download to a Blob */
+  const dl2blob = async (dl :Download) => {
+    const stream = await dl.createReadStream()
+    const chunks: BlobPart[] = []
+    for await (const chunk of stream) chunks.push(chunk as BlobPart)
+    return new Blob(chunks)
+  }
+
+  const extractZip = async (zr :zip.ZipReader<unknown>) :Promise<[string, string][]> => {
+    return Promise.all((await zr.getEntries()).map(async e => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      assert(e.getData)
+      return [e.filename, await e.getData(new zip.TextWriter())]
+    }))
+  }
+
+  // Export and check export
+  await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'As ZIP' }).click()
+  const zipReader = new zip.ZipReader(new zip.BlobReader(await dl2blob(await downloadPromise)))
+  const files = await extractZip(zipReader)
+  expect(files.length).toStrictEqual(2)
+  files.sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
+  expect(files[0]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-070000.fuchs-log.csv')
+  expect(files[1]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-070000.fuchs-log.json')
+  const csv = Papa.parse(files[0]?.[1] ?? '', { delimiter: ',' })
+  expect(csv.errors.length).toStrictEqual(0)
+  console.log(csv.data)  //TODO: check this
+  console.log(JSON.parse(files[1]?.[1]  ?? ''))  //TODO Later: check this?
 
 })

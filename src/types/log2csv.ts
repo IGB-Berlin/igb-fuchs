@@ -18,7 +18,6 @@
 import { areWgs84CoordsValid, EMPTY_COORDS, WGS84_PRECISION } from './coords'
 import { toDMYUtc, toIsoUtc, toUtcTime } from '../editors/date-time'
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
-import { unparse as papaUnparse } from 'papaparse'
 import { MeasurementType } from './measurement'
 import { distanceBearing } from '../geo-func'
 import { makeFilename } from '../idb-store'
@@ -27,6 +26,7 @@ import { deduplicatedSet } from './set'
 import { infoDialog } from '../dialogs'
 import { assert } from '../utils'
 import { tr } from '../i18n'
+import Papa from 'papaparse'
 
 type CsvRow = { [key :string]: string }
 function isCsvRow(o :unknown) :o is CsvRow {
@@ -160,6 +160,6 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
   })
 
   // https://www.papaparse.com/docs#json-to-csv
-  return new File([papaUnparse(data, { columns: columns, newline: '\r\n' } )],
+  return new File([Papa.unparse(data, { columns: columns, newline: '\r\n' } )],
     makeFilename(log, 'csv'), { type: 'text/csv', endings: 'transparent', lastModified: log.lastModified })
 }
