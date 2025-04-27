@@ -27,7 +27,7 @@ export function getTzOffsetStr(date :Date) :string {
   const off = date.getTimezoneOffset()
   const hrs = Math.abs(Math.floor(off/60))
   const mins = Math.abs(off) % 60
-  return (off<0?'+':'-')+hrs.toString().padStart(2,'0')+':'+mins.toString().padStart(2,'0')
+  return (!off?'':off<0?'+':'-')+hrs.toString().padStart(2,'0')+':'+mins.toString().padStart(2,'0')
 }
 
 export const dateToLocalString = (date :Date) :string =>
@@ -104,6 +104,7 @@ export class DateTimeInput {
     this.input.addEventListener('change', () => {
       const dt = dateTimeLocalInputToDate(this.input)
       this._ts = dt===null ? NO_TIMESTAMP : dt.getTime()
+      console.debug('Retrieved datetime-local value',dt,'TS',this._ts)
       this._el.dispatchEvent(new CustomChangeEvent())
     })
     this.timestamp = this._ts
@@ -119,7 +120,9 @@ export class DateTimeInput {
   }
   set timestamp(value :Timestamp) {
     this._ts = value
-    this.input.value = isTimestampSet(value) ? dateTimeToLocalString(new Date(value)) : ''
+    const newVal = isTimestampSet(value) ? dateTimeToLocalString(new Date(value)) : ''
+    console.debug('Setting datetime-local to value',newVal,'TS',this._ts)
+    this.input.value = newVal
   }
   get timestamp() :Timestamp {
     return this._ts
@@ -137,6 +140,7 @@ export class DateTimeInputAutoSet extends DateTimeInput {
     this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id={id} />)
     this.checkBox.checked = autoSet
     this.checkBox.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()) )
+    this._el.addEventListener(CustomChangeEvent.NAME, () => this._el2.dispatchEvent(new CustomChangeEvent()))  // bubble event
     this._el2 = safeCastElement(HTMLDivElement,
       <div> {this._el}
         <div class="form-check mt-1"> {this.checkBox}

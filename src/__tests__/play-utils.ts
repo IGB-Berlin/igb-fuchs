@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { expect, Page } from '@playwright/test'
+import { expect, Page, Download } from '@playwright/test'
 
 export async function initPageTest(page :Page) {
   // note this also serves as a significant part of the smoke test
@@ -24,4 +24,12 @@ export async function initPageTest(page :Page) {
   await expect(page.getByTestId('betaWarningDialog')).toBeVisible()
   await page.getByRole('button', { name: 'I understand' }).click()
   await expect(page.getByTestId('betaWarningDialog')).toBeHidden()
+}
+
+/** Utility function to convert a Playwright Download to a File (=Blob) */
+export async function dl2file(dl :Download) {
+  const stream = await dl.createReadStream()
+  const chunks: BlobPart[] = []
+  for await (const chunk of stream) chunks.push(chunk as BlobPart)
+  return new File(chunks, dl.suggestedFilename())
 }

@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { test, expect, Download } from '@playwright/test'
-import { initPageTest } from './play-utils'
+import { initPageTest, dl2file } from './play-utils'
+import { test, expect } from '@playwright/test'
 import * as zip from '@zip.js/zip.js'
 import { assert } from '../utils'
 import Papa from 'papaparse'
@@ -364,14 +364,6 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('listitem')).toHaveText([/^Spree/])
   await page.clock.setFixedTime('2025-01-03T08:00')  // export time
 
-  /** Utility function to convert a Playwright Download to a Blob */
-  const dl2blob = async (dl :Download) => {
-    const stream = await dl.createReadStream()
-    const chunks: BlobPart[] = []
-    for await (const chunk of stream) chunks.push(chunk as BlobPart)
-    return new Blob(chunks)
-  }
-
   const extractZip = async (zr :zip.ZipReader<unknown>) :Promise<[string, string][]> => {
     return Promise.all((await zr.getEntries()).map(async e => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -384,7 +376,7 @@ test('full integration test', async ({ page }) => {
   await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'As ZIP' }).click()
-  const zipReader = new zip.ZipReader(new zip.BlobReader(await dl2blob(await downloadPromise)))
+  const zipReader = new zip.ZipReader(new zip.BlobReader(await dl2file(await downloadPromise)))
   const files = await extractZip(zipReader)
   expect(files.length).toStrictEqual(2)
   files.sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)

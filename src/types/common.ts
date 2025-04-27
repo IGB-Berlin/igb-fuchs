@@ -135,5 +135,11 @@ export function isTimestampSet(v :unknown) :v is Timestamp {
 export function isValidAndSetTs(v :unknown) :v is Timestamp {
   return typeof v === 'number' && Number.isFinite(v) && v > MIN_TIMESTAMP && v < MAX_TIMESTAMP }
 export function validateTimestamp(t :Timestamp) {
-  if (!isValidAndSetTs(t)) throw new Error(`${tr('Invalid timestamp')}: ${String(t)} (${new Date(t).toISOString()})`) }
+  if (!isValidAndSetTs(t)) {
+    let s :string
+    try { s = new Date(t).toISOString() }  // can throw error on WebKit
+    catch (ex) { s = String(ex) }
+    throw new Error(`${tr('Invalid timestamp')}: ${String(t)} (${s})`)
+  }
+}
 export function timestampsEqual(a :Timestamp|null|undefined, b :Timestamp|null|undefined) { return numbersEqual(a,b) }
