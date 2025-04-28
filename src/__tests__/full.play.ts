@@ -25,6 +25,7 @@ test.setTimeout(60000)  // long test, timeout 60s instead of default 30s
 test('full integration test', async ({ page }) => {
   await initPageTest(page)
   await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
+  await page.clock.setFixedTime('2025-01-02T01:01Z')
 
   await page.getByRole('button', { name: 'Log Templates' }).click()
   // At this point, while the animation is running, there are two "New" buttons visible, so wait for animation to finish.
@@ -187,12 +188,12 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('listitem')).toHaveText(['No items'])
   await page.getByRole('button', { name: 'From Template' }).click()
   await expect(page.getByRole('heading', { name: 'New Sampling Log from Procedure' })).toBeVisible()
-  await page.clock.setFixedTime('2025-01-02T03:00')  // log start time
+  await page.clock.setFixedTime('2025-01-02T03:03Z')  // log start time
   await page.getByLabel('New Sampling Log from Procedure').getByText('Spree').dblclick()
   await expect(page.getByRole('heading', { name: /Sampling Log\s*$/ })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('Spree')
-  await page.clock.setFixedTime('2025-01-02T03:10')
-  await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('2025-01-02T03:00')
+  await page.clock.setFixedTime('2025-01-02T03:13Z')  // just to make sure it took the right time
+  await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('2025-01-02T04:03')
   await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
   await page.getByRole('textbox', { name: 'Persons' }).fill('Me, You')
@@ -201,17 +202,17 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Take Beta probe' }).check()
 
   // Start first sampling location
-  await page.clock.setFixedTime('2025-01-02T04:00')  // S1 start time
+  await page.clock.setFixedTime('2025-01-02T04:04Z')  // S1 start time
   await page.getByRole('listitem').filter({ hasText: 'S1 / Upper' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S1')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Upper')
-  await page.clock.setFixedTime('2025-01-02T04:10')
+  await page.clock.setFixedTime('2025-01-02T04:14Z')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
-  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T04:00')
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T05:04')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
@@ -258,7 +259,7 @@ test('full integration test', async ({ page }) => {
 
   // finish up sampling location (intentionally with warnings etc.)
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
-  await page.clock.setFixedTime('2025-01-02T04:30')  // S1 end time
+  await page.clock.setFixedTime('2025-01-02T04:34Z')  // S1 end time
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
   await expect(page.getByRole('listitem').filter({ hasText: /^One/ })).toHaveText([ 'One task not completed', 'One planned sample left' ])
@@ -270,19 +271,19 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('listitem').filter({ hasText: 'Collect 1l water for lab' }).getByText('Completed').click()
-  await page.clock.setFixedTime('2025-01-02T05:00')  // S2 start time
+  await page.clock.setFixedTime('2025-01-02T05:05Z')  // S2 start time
   await doSlider()
 
   // Now at second sampling location
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S2')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Middle')
-  await page.clock.setFixedTime('2025-01-02T05:10')
+  await page.clock.setFixedTime('2025-01-02T05:15Z')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
-  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T05:00')
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T06:05')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
@@ -321,14 +322,14 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: /Save\s*$/ }).click()
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
-  await page.clock.setFixedTime('2025-01-02T05:30')  // S2 end time
+  await page.clock.setFixedTime('2025-01-02T05:35Z')  // S2 end time
 
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
   await expect(page.getByRole('listitem').filter({ hasText: /^(One|Large)/ }))
     .toHaveText( isFirefox ? [ 'One planned sample left' ] :
       [ /^Large difference in the nominal and actual coordinates/, 'One planned sample left' ])
-  await page.clock.setFixedTime('2025-01-02T06:00')  // S3 start time
+  await page.clock.setFixedTime('2025-01-02T06:06Z')  // S3 start time
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
 
@@ -336,12 +337,12 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S3')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Lower')
-  await page.clock.setFixedTime('2025-01-02T06:10')
+  await page.clock.setFixedTime('2025-01-02T06:16Z')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.300000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.300000')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' }).fill('52.300100')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' }).fill('13.300100')
-  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T06:00')
+  await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T07:06')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
@@ -354,15 +355,15 @@ test('full integration test', async ({ page }) => {
   await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
 
   await page.getByRole('button', { name: 'Save & Close' }).click()
-  await page.clock.setFixedTime('2025-01-02T06:30')  // S3 end time
+  await page.clock.setFixedTime('2025-01-02T06:36Z')  // S3 end time
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
-  await page.clock.setFixedTime('2025-01-02T07:00')  // log end time
+  await page.clock.setFixedTime('2025-01-02T07:07Z')  // log end time & last modified time
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByTestId('accSampLog')).toBeVisible()
   await expect(page.getByRole('listitem')).toHaveText([/^Spree/])
-  await page.clock.setFixedTime('2025-01-03T08:00')  // export time
+  await page.clock.setFixedTime('2025-01-03T08:08Z')  // export time
 
   const extractZip = async (zr :zip.ZipReader<unknown>) :Promise<[string, string][]> => {
     return Promise.all((await zr.getEntries()).map(async e => {
@@ -376,12 +377,14 @@ test('full integration test', async ({ page }) => {
   await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'As ZIP' }).click()
-  const zipReader = new zip.ZipReader(new zip.BlobReader(await dl2file(await downloadPromise)))
+  const zipFile = await dl2file(await downloadPromise)
+  expect(zipFile.name).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.zip')
+  const zipReader = new zip.ZipReader(new zip.BlobReader(zipFile))
   const files = await extractZip(zipReader)
   expect(files.length).toStrictEqual(2)
   files.sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
-  expect(files[0]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-070000.fuchs-log.csv')
-  expect(files[1]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-070000.fuchs-log.json')
+  expect(files[0]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.csv')
+  expect(files[1]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.json')
   const csv = Papa.parse(files[0]?.[1] ?? '', { delimiter: ',' })
   expect(csv.errors.length).toStrictEqual(0)
   console.log(csv.data)  //TODO: check this
