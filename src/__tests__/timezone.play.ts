@@ -39,7 +39,7 @@ test('different timezone', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Use current time' })).toBeVisible()
   await page.getByRole('button', { name: 'Use current time' }).click()
   await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('2024-01-02T02:02')
-
+  // Log End Time
   const isWebkit = page.context().browser()?.browserType().name() === 'webkit'
   await page.clock.setFixedTime('2024-01-02T05:05Z')
   if (isWebkit) { // WebKit apparently can't parse manually entered date/times...?
@@ -74,18 +74,26 @@ test('different timezone', async ({ page }) => {
   // Finish sampling log
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
+  await page.clock.setFixedTime('2024-01-02T06:06Z')  // last modified time
+  await page.getByRole('textbox', { name: 'Notes' }).fill('Foo')
   await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByTestId('accSampLog')).toBeVisible()
 
   // Export
-  await page.clock.setFixedTime('2024-01-02T06:06Z')  // export time
+  await page.clock.setFixedTime('2024-02-02T07:07Z')  // export time
   await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'As CSV' }).click()
   const expFile = await dl2file(await downloadPromise)
-  console.log(expFile.name)
-  const csv = await expFile.text()
-  console.log(csv)  //TODO: Inspect CSV File!
+
+  // Export filename is based on last modified time, not export time
+  expect(expFile.name).toStrictEqual('Spree_2024-01-02.2024-01-02-060600.fuchs-log.csv')
+
+  expect(await expFile.text()).toStrictEqual(
+    'Timestamp,Date_DMY,Time_UTC,Location,Latitude_WGS84,Longitude_WGS84,SampleType,SampleDesc,SubjectiveQuality,SampleNotes,SamplingLog,LogNotes,LocationNotes,LocationTasksCompleted\r\n'
+    +'2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,'
+    +                                 'S1,'  +'52.100000,'+   '13.100000,'+       ','+       ','+              ','+        ',Spree; Start 2024-01-02 02:02:00 UTC,'
+    +                                                                                                                                        'Foo,,')
 
 })
