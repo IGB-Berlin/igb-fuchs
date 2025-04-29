@@ -110,6 +110,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpStart.el.setAttribute('data-test-id','locStartTime')
+    //TODO Later: Users ask if it maybe makes sense to have End Time "auto set" always checked?
     this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
     this.inpEnd.el.setAttribute('data-test-id','locEndTime')
 
