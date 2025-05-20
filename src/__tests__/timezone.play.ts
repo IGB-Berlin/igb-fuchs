@@ -57,6 +57,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
       await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('')
       await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
+      //TODO Later: Test the "current timezone" text under the input box
 
       // Set Log times
       await page.clock.setFixedTime('2024-01-02T02:02Z')  // log start time
