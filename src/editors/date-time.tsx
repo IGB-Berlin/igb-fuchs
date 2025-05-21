@@ -23,11 +23,14 @@ import { tr } from '../i18n'
 
 // I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
 
-export function getTzOffsetStr(date :Date) :string {
+/** Returns the current local time zone offset and name as a descriptive string. */
+export function getTzOffsetStr() :string {
+  const date = new Date()
   const off = date.getTimezoneOffset()
   const hrs = Math.abs(Math.floor(off/60))
   const mins = Math.abs(off) % 60
   return (!off?'':off<0?'+':'-')+hrs.toString().padStart(2,'0')+':'+mins.toString().padStart(2,'0')
+    + ' (' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')'
 }
 
 export const dateToLocalString = (date :Date) :string =>
@@ -54,21 +57,22 @@ export function toIsoUtc(t :Timestamp) {
     +':'+d.getUTCMinutes().toString().padStart(2,'0')
     +':'+d.getUTCSeconds().toString().padStart(2,'0')
 }
-/** Return the timestamp in UTC formatted as "HH:MM:SS" - no "Z"/"UTC" suffix! */
-export function toUtcTime(t :Timestamp) {
+
+/** Return the timestamp in local time formatted as "HH:MM:SS" - no TZ suffix! */
+export function toLocalTime(t :Timestamp) {
   if (!isValidAndSetTs(t)) return ''
   const d = new Date(t)
-  return d.getUTCHours().toString().padStart(2,'0')
-    +':'+d.getUTCMinutes().toString().padStart(2,'0')
-    +':'+d.getUTCSeconds().toString().padStart(2,'0')
+  return d.getHours().toString().padStart(2,'0')
+    +':'+d.getMinutes().toString().padStart(2,'0')
+    +':'+d.getSeconds().toString().padStart(2,'0')
 }
-/** Return the timestamp in UTC formatted as "DD.MM.YYYY" - no "Z"/"UTC" suffix! */
-export function toDMYUtc(t :Timestamp) {
+/** Return the timestamp in local time formatted as "DD.MM.YYYY" - no TZ suffix! */
+export function toLocalDMY(t :Timestamp) {
   if (!isValidAndSetTs(t)) return ''
   const d = new Date(t)
-  return d.getUTCDate().toString().padStart(2,'0')
-    +'.'+(d.getUTCMonth() + 1).toString().padStart(2,'0')
-    +'.'+d.getUTCFullYear().toString().padStart(4,'0')
+  return d.getDate().toString().padStart(2,'0')
+    +'.'+(d.getMonth() + 1).toString().padStart(2,'0')
+    +'.'+d.getFullYear().toString().padStart(4,'0')
 }
 
 function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {

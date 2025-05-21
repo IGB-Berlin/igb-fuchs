@@ -129,7 +129,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
-    const tzOff = getTzOffsetStr(new Date())
+    const tzOff = getTzOffsetStr()
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
@@ -138,7 +138,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       this.makeRow(this.inpActCoords, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
       this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong>{tzOff}</strong></> }),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong data-test-id='loc-tz'>{tzOff}</strong></> }),
       this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
         helpText: <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></> }),
       rowNotes,

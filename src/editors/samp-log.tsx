@@ -111,13 +111,13 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )
 
-    const tzOff = getTzOffsetStr(new Date())
+    const tzOff = getTzOffsetStr()
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       rowInst,
       this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong>{tzOff}</strong></> }),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong data-test-id='log-tz'>{tzOff}</strong></> }),
       this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
         helpText: <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></> }),
       this.makeRow(this.inpPersons, { label: tr('Persons'), helpText: <>{tr('persons-help')}</> }),

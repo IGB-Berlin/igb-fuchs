@@ -20,6 +20,7 @@ import { test, expect } from '@playwright/test'
 
 const tz_tests = {
   'UTC': {
+    'tzOff': '00:00',
     'logStartTime': '2024-01-02T02:02',
     'logEndTime': '2024-01-02T05:05',
     'locStartTime': '2024-01-02T03:03',
@@ -27,18 +28,20 @@ const tz_tests = {
     'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
   'Europe/Berlin': {
+    'tzOff': '+01:00',
     'logStartTime': '2024-01-02T03:02',
     'logEndTime': '2024-01-02T06:05',
     'locStartTime': '2024-01-02T04:03',
     'filename': 'Spree_2024-01-02.2024-01-02-070600.fuchs-log.csv',
-    'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
+    'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,04:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
   'America/New_York': {
+    'tzOff': '-05:00',
     'logStartTime': '2024-01-01T21:02',
-    'locStartTime': '2024-01-01T22:03',
     'logEndTime': '2024-01-02T00:05',
+    'locStartTime': '2024-01-01T22:03',
     'filename': 'Spree_2024-01-01.2024-01-02-010600.fuchs-log.csv',
-    'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
+    'csvLine': '2024-01-02 03:03:00 UTC,01.01.2024,22:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
 } as const
 Object.entries(tz_tests).forEach(([tz,v]) => {
@@ -57,7 +60,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
       await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('')
       await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
-      //TODO Later: Test the "current timezone" text under the input box
+      await expect(page.getByTestId('log-tz')).toHaveText(`${v['tzOff']} (${tz})`)
 
       // Set Log times
       await page.clock.setFixedTime('2024-01-02T02:02Z')  // log start time
@@ -83,6 +86,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await page.getByRole('textbox', { name: 'Name' }).fill('S1')
       await page.getByRole('textbox', { name: 'Latitude' }).fill('52.1')
       await page.getByRole('textbox', { name: 'Longitude' }).fill('13.1')
+      await expect(page.getByTestId('loc-tz')).toHaveText(`${v['tzOff']} (${tz})`)
 
       // Set Location times
       await page.clock.setFixedTime('2024-01-02T03:03Z')
@@ -113,7 +117,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       // Export filename is based on last modified time, not export time
       expect(expFile.name).toStrictEqual(v['filename'])
       expect(await expFile.text()).toStrictEqual(
-        'Timestamp,Date_DMY,Time_UTC,Location,Latitude_WGS84,Longitude_WGS84,SampleType,SampleDesc'
+        `Timestamp[UTC],LocalDate[DMY],LocalTime[${tz}],Location,Latitude_WGS84,Longitude_WGS84,SampleType,SampleDesc`
         +',SubjectiveQuality,SampleNotes,SamplingLog,LogNotes,LocationNotes,LocationTasksCompleted\r\n'
         +v['csvLine'])
     })

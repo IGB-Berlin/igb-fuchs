@@ -387,7 +387,7 @@ test('full integration test', async ({ page }) => {
   expect(files[1]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.json')
   const csv = Papa.parse(files[0]?.[1] ?? '', { delimiter: ',' })
   expect(csv.errors.length).toStrictEqual(0)
-  console.log(csv.data)  //TODO: check this
-  console.log(JSON.parse(files[1]?.[1]  ?? ''))  //TODO Later: check this?
+  //console.log(csv.data)  //TODO: check this
+  //console.log(JSON.parse(files[1]?.[1]  ?? ''))  //TODO Later: check this
 
 })

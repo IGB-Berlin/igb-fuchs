@@ -4,7 +4,9 @@ IGB-FUCHS Änderungshistorie
 v0.0.8-alpha - *in Arbeit*
 --------------------------
 
-- *in Arbeit*
+- In CSV-Dateien wurden die Spalten `Date_DMY` und `Time_UTC` durch die Spalten
+  `LocalDate` und `LocalTime` in Ortszeit ersetzt. Zeitzone der Ortszeit ist die
+  des exportierenden Geräts.
 
 v0.0.7-alpha - 2025-03-10
 -------------------------

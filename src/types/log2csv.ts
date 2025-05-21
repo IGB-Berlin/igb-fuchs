@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { areWgs84CoordsValid, EMPTY_COORDS, WGS84_PRECISION } from './coords'
-import { toDMYUtc, toIsoUtc, toUtcTime } from '../editors/date-time'
+import { toLocalDMY, toIsoUtc, toLocalTime } from '../editors/date-time'
 import { isValidAndSetTs, NO_TIMESTAMP, Timestamp } from './common'
 import { MeasurementType } from './measurement'
 import { distanceBearing } from '../geo-func'
@@ -45,13 +45,12 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
     await infoDialog('error', tr('No sampling locations'), tr('export-no-locations'))
     return null
   }
+  const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   // Gather measurement types to generate column headers
   const allTypes :MeasurementType[] = deduplicatedSet( log.locations.flatMap(loc => loc.samples.flatMap(samp => samp.measurements.map(meas => meas.type))) )
-  /* TODO NEXT: Users request the Date_DMY and Time_UTC columns to be in local time instead, so that we have both time zones available in the output.
-   * I will have to think about whether using the time zone of the exporting user is enough (probably is!), or we need to record the time zone in the data sets.
-   * Also, would be nice to have proper time zone names and not just offsets... */
-  const columns = ['Timestamp','Date_DMY','Time_UTC','Location','Latitude_WGS84','Longitude_WGS84','SampleType','SampleDesc','SubjectiveQuality',
+  const columns = ['Timestamp[UTC]','LocalDate[DMY]','LocalTime['+tzName+']',
+    'Location','Latitude_WGS84','Longitude_WGS84','SampleType','SampleDesc','SubjectiveQuality',
     'SampleNotes','SamplingLog','LogNotes','LocationNotes','LocationTasksCompleted']
   // typeId normally has the units in square brackets as a suffix, but if it doesn't (unitless), name collisions are possible, so add "[]" in those rare cases
   const measCols = allTypes.map(t => columns.includes(t.typeId) ? t.typeId+'[]' : t.typeId)
@@ -97,9 +96,9 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
     // if there are no samples, emit a dummy line so the notes for this location get recorded
     if (!loc.samples.length) {
       if (isValidAndSetTs(loc.startTime)) {
-        baseRow['Timestamp'] = toIsoUtc(loc.startTime)+' UTC'
-        baseRow['Date_DMY']  = toDMYUtc(loc.startTime)
-        baseRow['Time_UTC']  = toUtcTime(loc.startTime)
+        baseRow['Timestamp[UTC]'] = toIsoUtc(loc.startTime)+' UTC'
+        baseRow['LocalDate[DMY]']  = toLocalDMY(loc.startTime)
+        baseRow[`LocalTime[${tzName}]`]  = toLocalTime(loc.startTime)
       }
       return [baseRow]
     }
@@ -151,9 +150,9 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       const time :Timestamp = isValidAndSetTs(firstMeasTime) ? firstMeasTime
         : ( isValidAndSetTs(loc.startTime) ? loc.startTime : NO_TIMESTAMP )
       if (isValidAndSetTs(time)) {
-        row['Timestamp'] = toIsoUtc(time)+' UTC'
-        row['Date_DMY'] = toDMYUtc(time)
-        row['Time_UTC'] = toUtcTime(time)
+        row['Timestamp[UTC]'] = toIsoUtc(time)+' UTC'
+        row['LocalDate[DMY]'] = toLocalDMY(time)
+        row[`LocalTime[${tzName}]`] = toLocalTime(time)
       }
 
       return row  /* ***** Done with row ***** */
