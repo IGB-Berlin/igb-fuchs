@@ -16,16 +16,15 @@ Please see [the installation instructions](src/images/IGB-FUCHS_Mobile-Installat
 The installation on mobile devices is useful to ensure the app still works even when there
 is no Internet connection.
 
-Alpha Version
--------------
+Beta Version
+------------
 
-This is an **early alpha testing version** which certainly still contains bugs.
+This is a **beta version** which certainly still contains bugs.
 
 **DATA MAY BE LOST.**
-You should always perform regular backups via the "Export" function, **however**,
-it is very likely that you will not be able to restore these backups when new versions of this app are released.
+You should always perform regular backups via the "Export" function.
 
-As soon as the testing phase is completed and the data format has been stabilized, this message will be updated accordingly.
+This message will be updated according to the current state of development.
 
 
 Author, Copyright, and License

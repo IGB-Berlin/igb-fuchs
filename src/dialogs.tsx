@@ -33,7 +33,6 @@ export function noStorageAlert() {
         </div>
         <div class="modal-body">
           <p>{tr('alert-no-storage-text')}</p>
-          <p class="mb-0">{tr('alert-no-storage-alpha')}</p>
         </div>
       </div>
     </div>
@@ -217,7 +216,7 @@ export async function betaWarning(ctx :GlobalContext, force :boolean = false) :P
     class="modal fade" tabindex="-1" aria-labelledby="betaWarningLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header text-bg-danger">
+        <div class="modal-header text-bg-warning">
           <h1 class="modal-title fs-5" id="betaWarningLabel">
             <i class="bi-exclamation-triangle-fill" /> {tr('beta-warning-title')}</h1>
         </div>
@@ -241,10 +240,10 @@ export async function betaWarning(ctx :GlobalContext, force :boolean = false) :P
     })
     modal.show()
   })
-  await ctx.storage.settings.set('hideBetaWarningUntilTimeMs', Date.now() + 1000*60*60*24*7)
+  await ctx.storage.settings.set('hideBetaWarningUntilTimeMs', Date.now() + 1000*60*60*24*30)
 }
 export function makeBetaVersionNoticeLink(ctx :GlobalContext) :HTMLElement {
-  const a = <a href="#" class="ms-3 link-danger">{tr('beta-warning-title')}</a>
+  const a = <a href="#" class="ms-3 link-warning">{tr('beta-warning-title')}</a>
   a.addEventListener('click', async event => {
     event.preventDefault()
     await betaWarning(ctx, true)

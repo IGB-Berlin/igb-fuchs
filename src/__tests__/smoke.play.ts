@@ -29,7 +29,7 @@ test.describe('German', () => {
     // do the same as initPageTest
     await page.goto('/')
     await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
-    const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })  // alpha version warning
+    const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })  // beta version warning
     await expect( betaWarningBtn ).toBeVisible()
     await betaWarningBtn.click()
     await expect( betaWarningBtn ).toBeHidden()

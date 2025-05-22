@@ -1,12 +1,15 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
-v0.0.8-alpha - *in Arbeit*
---------------------------
+v0.1.0-beta - 2025-05-22
+------------------------
 
 - In CSV-Dateien wurden die Spalten `Date_DMY` und `Time_UTC` durch die Spalten
   `LocalDate` und `LocalTime` in Ortszeit ersetzt. Zeitzone der Ortszeit ist die
   des exportierenden Geräts.
+- Die App wird nun automatisierten Tests unterzogen und das Speicherformat ist in den
+  letzten Monaten stabil geblieben, weswegen nun von einer Alpha-Testversion
+  zum Betatest übergegangen werden kann. Alle Meldungen wurden entsprechend aktualisiert.
 
 v0.0.7-alpha - 2025-03-10
 -------------------------
