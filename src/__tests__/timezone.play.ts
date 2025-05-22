@@ -20,6 +20,7 @@ import { test, expect } from '@playwright/test'
 
 const tz_tests = {
   'UTC': {
+    'baseDate': '2024-01-02',
     'tzOff': '00:00',
     'logStartTime': '2024-01-02T02:02',
     'logEndTime': '2024-01-02T05:05',
@@ -28,6 +29,7 @@ const tz_tests = {
     'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
   'Europe/Berlin': {
+    'baseDate': '2024-01-02',
     'tzOff': '+01:00',
     'logStartTime': '2024-01-02T03:02',
     'logEndTime': '2024-01-02T06:05',
@@ -35,7 +37,17 @@ const tz_tests = {
     'filename': 'Spree_2024-01-02.2024-01-02-070600.fuchs-log.csv',
     'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,04:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
+  'Europe/Paris': {  // DST; Paris is basically the same zone as Berlin
+    'baseDate': '2024-07-08',
+    'tzOff': '+02:00',
+    'logStartTime': '2024-07-08T04:02',
+    'logEndTime': '2024-07-08T07:05',
+    'locStartTime': '2024-07-08T05:03',
+    'filename': 'Spree_2024-07-08.2024-07-08-080600.fuchs-log.csv',
+    'csvLine': '2024-07-08 03:03:00 UTC,08.07.2024,05:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-07-08 02:02:00 UTC,Foo,,',
+  },
   'America/New_York': {
+    'baseDate': '2024-01-02',
     'tzOff': '-05:00',
     'logStartTime': '2024-01-01T21:02',
     'logEndTime': '2024-01-02T00:05',
@@ -48,9 +60,9 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
   test.describe(`Timezone: ${tz}`, () => {
     test.use({ timezoneId: tz })
     test(`Timezone: ${tz}`, async ({ page }) => {
+      await page.clock.setFixedTime(v['baseDate']+'T01:01Z')
       await initPageTest(page)
       await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
-      await page.clock.setFixedTime('2024-01-02T01:01Z')
 
       // Create a new Sampling Log
       await expect(page.getByTestId('accSampLog')).toBeVisible()
@@ -63,14 +75,14 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await expect(page.getByTestId('log-tz')).toHaveText(`${v['tzOff']} (${tz})`)
 
       // Set Log times
-      await page.clock.setFixedTime('2024-01-02T02:02Z')  // log start time
+      await page.clock.setFixedTime(v['baseDate']+'T02:02Z')  // log start time
       await page.getByTestId('logStartTime').getByRole('button').click()
       await expect(page.getByRole('button', { name: 'Use current time' })).toBeVisible()
       await page.getByRole('button', { name: 'Use current time' }).click()
       await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue(v['logStartTime'])
       // Log End Time
       const isWebkit = page.context().browser()?.browserType().name() === 'webkit'
-      await page.clock.setFixedTime('2024-01-02T05:05Z')
+      await page.clock.setFixedTime(v['baseDate']+'T05:05Z')
       if (isWebkit) { // WebKit apparently can't parse manually entered date/times...?
         await page.getByTestId('logEndTime').getByRole('button').click()
         await expect(page.getByRole('button', { name: 'Use current time' })).toBeVisible()
@@ -89,26 +101,26 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await expect(page.getByTestId('loc-tz')).toHaveText(`${v['tzOff']} (${tz})`)
 
       // Set Location times
-      await page.clock.setFixedTime('2024-01-02T03:03Z')
+      await page.clock.setFixedTime(v['baseDate']+'T03:03Z')
       await page.getByTestId('locStartTime').getByRole('button').click()
       await expect(page.getByRole('button', { name: 'Use current time' })).toBeVisible()
       await page.getByRole('button', { name: 'Use current time' }).click()
       await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue(v['locStartTime'])
-      await page.clock.setFixedTime('2024-01-02T04:04Z')  // location end time
+      await page.clock.setFixedTime(v['baseDate']+'T04:04Z')  // location end time
       await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).not.toBeChecked()
       await page.getByRole('checkbox', { name: 'Automatically set end time' }).check()
 
       // Finish sampling log
       await page.getByRole('button', { name: 'Save & Close' }).click()
       await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
-      await page.clock.setFixedTime('2024-01-02T06:06Z')  // last modified time
+      await page.clock.setFixedTime(v['baseDate']+'T06:06Z')  // last modified time
       await page.getByRole('textbox', { name: 'Notes' }).fill('Foo')
       await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
       await page.getByRole('button', { name: 'Save & Close' }).click()
       await expect(page.getByTestId('accSampLog')).toBeVisible()
 
       // Export
-      await page.clock.setFixedTime('2024-02-02T07:07Z')  // export time
+      await page.clock.setFixedTime('2025-01-01T07:07Z')  // export time
       await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
       const downloadPromise = page.waitForEvent('download')
       await page.getByRole('button', { name: 'As CSV' }).click()
