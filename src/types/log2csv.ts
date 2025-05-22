@@ -90,7 +90,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       SamplingLog: sampLog,
       LogNotes: logNotes,
       LocationNotes: locNotes,
-      LocationTasksCompleted: loc.completedTasks.join(', '),
+      LocationTasksCompleted: loc.completedTasks.join('; '),
     }
 
     // if there are no samples, emit a dummy line so the notes for this location get recorded
