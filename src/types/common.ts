@@ -100,7 +100,6 @@ export abstract class DataObjectTemplate<T extends DataObjectTemplate<T, D>, D e
 export abstract class DataObjectWithTemplate<D extends DataObjectWithTemplate<D, T>, T extends DataObjectTemplate<T, D>> extends DataObjectBase<D> {
   /** The template on which this object was based. */
   abstract get template() :T|null
-  //TODO Later: extractTemplate() is not made use of in the UI yet
   /** Generate a new template based on this object. */
   abstract extractTemplate() :T
 }

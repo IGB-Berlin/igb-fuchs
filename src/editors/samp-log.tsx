@@ -101,9 +101,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')
 
-    /* TODO Later: The location list should also be sorted by distance from our current location.
-     * This also applies to all other places where locations lists occur! (e.g. From Template dialog) */
-    //TODO Later (low priority): Consider how difficult it would be to show all sampling locations on a map
     // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
     this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, SamplingLocation.sStyle,
       this.selItem, { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
