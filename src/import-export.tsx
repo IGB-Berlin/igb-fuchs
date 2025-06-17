@@ -37,7 +37,6 @@ async function zipFiles(name :string, files :File[]) {
 export function makeImportExport(ctx :GlobalContext,
   logEdit: ListEditorWithTemp<SamplingProcedure, SamplingLog>,
   procEdit: ListEditor<SamplingProcedure>) :HTMLElement {
-  //TODO Later: Could offer a function for selecting multiple logs/procedures to export
   const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
   const inpImportFile = safeCastElement(HTMLInputElement,
     <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
@@ -52,7 +51,6 @@ export function makeImportExport(ctx :GlobalContext,
     <div class="mt-1 text-secondary">{tr('export-all-help')}</div>
   </div>
 
-  //TODO Later: The "export all" button sometimes only works once on Chrome for Android?
   btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
   inpImportFile.addEventListener('change', async () => {
@@ -77,7 +75,6 @@ export function makeImportExport(ctx :GlobalContext,
     inpImportFile.value = ''
   })
 
-  //TODO: The "Export" dropdowns don't get disabled when nothing is selected
   procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
     [tr('export-as-json'), (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
   ])
