@@ -28,9 +28,6 @@ type SampleType = typeof sampleTypes[number]
 export function isSampleType(v :unknown) :v is SampleType {
   return typeof v==='string' && sampleTypes.includes(v as SampleType) }
 
-/* TODO Later: Users ask whether a "repeated sample" could make sense, e.g. for daily/hourly
- * manual measurements (but then the CSV would need to have one row per sample) */
-
 //TODO Later: "Subjective quality" maybe there's a better term b/c some ppl use it for completed tasks (also perhaps rename "Good" to indicate "Success")
 export const qualityFlags = ['undefined',  // Remember to keep in sync with translations 'qf-*' !
   'good', 'questionable', 'bad'] as const
@@ -94,8 +91,6 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     if (!(!this.subjectiveQuality.length || this.subjectiveQuality==='undefined' || this.subjectiveQuality==='good')
       && !this.notes.trim().length) rv.push(tr('qual-no-notes'))
     const mtIds = this.measurements.map(m => m.type.typeId)
-    /* TODO Later: Multiple measurements of the same type are sometimes taken to have an average - if only few, users could
-     * solve this with types "Temp1" "Temp2" "Temp3" - could we also provide an average calculator in this app? */
     if ( new Set(mtIds).size !== mtIds.length ) rv.push(tr('meas-type-duplicate'))
     if (!skipInitWarns) {
       if (this.template) {
