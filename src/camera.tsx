@@ -19,8 +19,6 @@ import { jsx, safeCastElement } from './jsx-dom'
 import * as bootstrap from 'bootstrap'
 import { assert } from './utils'
 
-//TODO Later: I'll probably just use the <input>, everything else can be removed
-
 export function takePicture() :Promise<Blob|null> {
   const errMsg = <p className="mb-0">Unknown error</p>
   const videoAlert = <div className="alert alert-warning d-none" role="alert">

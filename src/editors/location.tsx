@@ -161,7 +161,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
       completedTasks: this.taskEditor.completedTasks(),
-      photos: [/*TODO Later*/] })
+      photos: [/*...*/] })
   }
 
   protected override customValidation(skipInitWarns :boolean) {

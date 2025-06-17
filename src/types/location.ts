@@ -72,7 +72,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
   notes :string
   readonly samples :Sample[]
   readonly completedTasks :string[]
-  /** Pictures taken at this location - TODO Later: how to represent as JSON? Filenames? */
+  /** Pictures taken at this location */
   readonly photos :string[]
   readonly template :SamplingLocationTemplate|null
   constructor(o :ISamplingLocation|null) {
