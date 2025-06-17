@@ -632,7 +632,7 @@ test('full integration test', async ({ page }) => {
 
   const isFirefox = page.context().browser()?.browserType().name() === 'firefox'
   // get current coordinates (for fake coords see Playwright config file)
-  if (!isFirefox) {  //TODO Later: Why is geolocation emulation not working on Firefox?
+  if (!isFirefox) {
     await page.getByTestId('actCoords').getByRole('button', { name: 'Coordinates' }).click()
     await expect(page.getByRole('button', { name: 'Use current location' })).toBeVisible()
     await page.getByRole('button', { name: 'Use current location' }).click()

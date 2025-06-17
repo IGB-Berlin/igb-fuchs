@@ -28,7 +28,6 @@ import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
 export interface ISamplingLog extends HasId {
-  //TODO Later: Would be good if a log knew whether it has been exported or not, to warn users both of unexported data but also making changes to already exported data
   readonly id :string
   name :string
   startTime :Timestamp|null
@@ -61,8 +60,6 @@ export function isISamplingLog(o :unknown) :o is ISamplingLog {
     && ( !('template' in o) || o.template===null || isISamplingProcedure(o.template) )
   )
 }
-/* TODO Later: For the future, when this project is released and changes happen to the schema,
- * there should be a Migrator class that upgrades/converts older objects to newer ones. */
 
 export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingProcedure> implements ISamplingLog {
   static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
