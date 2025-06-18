@@ -447,7 +447,6 @@ export class IdbStorage {
   }
 
   private async selfTest() :Promise<boolean> {
-    /* TODO Later: IIRC I was hoping this self-test would detect running in private windows, but it does not? */
     console.log('Running storage test...')
     if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
     const d1 = new DummyObj({ id: 'one', foo: 'bar' })
