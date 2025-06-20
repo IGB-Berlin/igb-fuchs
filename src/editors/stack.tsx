@@ -83,9 +83,6 @@ export class EditorStack {
     Array.from(this.navList.children).forEach((l,i) => {
       assert(l instanceof HTMLAnchorElement)
       const s = this.stack[i]
-      /* TODO Bug: The following assert fails when the last edit to a Sample is changing the Subjective Quality to Questionable/Bad,
-       * then entering text into the Notes, and immediately from there clicking on "Save & Close" without letting the text box
-       * lose focus first. (Initial suspicion: some events might be firing out of order.) */
       assert(s, `i=${i} stack.length=${this.stack.length} link=${l.innerHTML}`)
       l.classList.toggle('unsaved', s.unsavedChanges)
       l.title = i ? `${s.style.fullTitle} "${s.currentName()}"` : s.currentName()
@@ -207,11 +204,6 @@ export class EditorStack {
     top.el.dispatchEvent(new CustomStackEvent({ action: 'shown', other: del }))
   }
 
-  /** TODO Later: Consider the common workflow where a sample is being measured by a probe while the technician is already driving to the next location,
-   * so the probe's values won't be recorded until the arrival at the next location.
-   * So it might be nice to have a "navigate to the next location" button/link on the last sample, or similar?
-   */
-
   /** Initialize the Next button if provided by this Editor, which gets shown when this Editor has a child Editor on top of it.
    *
    * NOTE: Call me before `Editor.shown()` because I change the footer height, which needs to happen before `doScroll` (`ctx.scrollTo`).
@@ -228,7 +220,7 @@ export class EditorStack {
      * 4. `Stack.pop()` fires a `CustomStackEvent` of type `shown`, which we handle below,
      *    and if this flag variable is set, we call `Editor.doNext()`.
      *
-     * TODO Later: Somewhat Rube Goldberg. Are there conditions under which the above chain can be interrupted and `nextDoNext` needs to be reset?
+     * See GH issue #35: Are there conditions under which the above chain can be interrupted and `nextDoNext` needs to be reset?
      */
     let nextDoNext = false
     const sliderNext = new Slider('', async () => {
