@@ -101,7 +101,6 @@ class MiniMeasEditor {
     if (cks.length) {  // warnings
       this.color('warn')
       // If the only warning is "No input", suppress the tooltip since it should be obvious...
-      //TODO Later: I think the original idea was to suppress the "No input" warning only for *new* Samples? (But is the current behavior ok now?)
       if (cks.length===1 && cks[0]===tr('No input')) this.tipInp.update(null)
       else this.tipInp.update( tr('Warnings')+': '+cks.join('; ') )
     }
