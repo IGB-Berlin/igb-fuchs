@@ -36,13 +36,13 @@ export interface EditorParent {
   el :HTMLElement
 }
 
-interface MakeRowOps {
+interface MakeRowOpts {
   label :HTMLElement|string
   helpText ?:HTMLElement|string
   invalidText ?:HTMLElement|string
 }
 
-interface MakeTextAreaRowOpts extends MakeRowOps {
+interface MakeTextAreaRowOpts extends MakeRowOpts {
   readonly ?:boolean
   startExpanded :boolean
   hideWhenEmpty ?:boolean
@@ -377,7 +377,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   private static _inputCounter = 0
   protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
-    opts: MakeRowOps, btnExtra ?:HTMLButtonElement) :HTMLElement {
+    opts: MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
     const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
     input.setAttribute('id', inpId)
