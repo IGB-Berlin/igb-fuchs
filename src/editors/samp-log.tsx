@@ -81,8 +81,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpStart.el.setAttribute('data-test-id','logStartTime')
-    /* TODO Later: When creating a new object from scratch, without a template, and saving it without an end time (i.e. ignoring the warning), then re-opening that object,
-     * the "auto set end time" check box is enabled, maybe we don't want that?. Note that this.initObj.template is initialized to an empty template... */
     this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
     this.inpEnd.el.setAttribute('data-test-id','logEndTime')
 
@@ -98,10 +96,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')
 
-    // TODO Later: In general, when deduplicating lists of templates, do we need a less strict `equals`?
     this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, SamplingLocation.sStyle,
       this.selItem, { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
-      //TODO Later: In general, maybe don't filter out options, e.g. for cases where there are multiple temperature measurements
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )
 
