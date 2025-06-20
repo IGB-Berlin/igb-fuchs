@@ -74,8 +74,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    //TODO Later: Hide checklist in accordion when all items are completed, and hide start & end time in the same accordion b/c they're set automatically (at least when using template)
-
     this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
@@ -88,7 +86,6 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
     this.inpEnd.el.setAttribute('data-test-id','logEndTime')
 
-    //TODO Later: For all "Notes" fields, the row label could include the object type. Though an alternative might be a sticky editor title?
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
