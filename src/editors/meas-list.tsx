@@ -30,8 +30,6 @@ import { MyTooltip } from '../tooltip'
 import { tr } from '../i18n'
 
 class MiniMeasEditor {
-  /* TODO Later: When opening a sample that already had all its measurements entered, consider making the measurement input fields readonly
-   * to prevent accidental changes to samples that have already been finished? */
   readonly el
   readonly meas
   private readonly parent
@@ -47,8 +45,6 @@ class MiniMeasEditor {
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
       pattern={makeValidNumberPat(meas.type.precision)} value={meas.value}/>)
     numericTextInputStuff(this.inp)
-    /* TODO: Long Measurement Type names like "Sauerstoffsättigung" cause ugly wrapping of the input groups on mobile.
-     * Also, the minimum width of the input box is not enough. */
     this.inp.addEventListener('click', event => event.stopPropagation())  // prevent the list entry from selecting & highlighting
     this.inp.addEventListener('dblclick', event => event.stopPropagation())
     let info :HTMLElement|string = ''
@@ -113,8 +109,6 @@ class MiniMeasEditor {
     return cks
   }
   private plainChecks() :string[] {
-    /* TODO Later: Investigate user reports that sometimes popups appear over the input field? Also, when switching to the next
-     * input field in the list and getting a warning for the previous item, the popup tends to cover the item with the problem? */
     if (!this.inp.value.trim().length) return [tr('No input')]
     const newMeas = this.meas.deepClone()
     newMeas.value = this.inp.value
