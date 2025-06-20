@@ -27,10 +27,6 @@ const _pat = makeValidNumberPat()
 const VALID_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
 
 export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boolean) :HTMLDivElement {
-  /* TODO: In the field, it is much less common to type coordinates, and the two buttons "set actual coords to current location"
-   * and "navigate to nominal coords" are much more important - make the buttons bigger, and hide the rest in a dropdown?
-   * ("navigate to" on the left and "set coords" on the right) */
-
   const coordIcon = <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
   const spinIcon = <div class="spinner-border spinner-border-sm" role="status">
     <span class="visually-hidden">{tr('Please wait')}</span>
@@ -65,7 +61,7 @@ export function makeCoordinateEditor(coord :RawWgs84Coordinates, readonly :boole
   const preventClick = (event :Event) => event.preventDefault()
   const coordsUpdated = (fire :boolean = false) => {
     if (areWgs84CoordsValid(coord)) {
-      //TODO Later: On mobile, how to open location in *any* navigation app?
+      // see also GH issue #37 about opening coords in *any* navigation app on mobile
       //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
       // https://developers.google.com/maps/documentation/urls/get-started#search-action
       mapLink.href = `https://www.google.com/maps/search/?api=1&query=${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
