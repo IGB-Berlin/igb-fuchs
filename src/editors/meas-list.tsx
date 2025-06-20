@@ -143,7 +143,6 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
       /* The following is very similar to ListEditorTemp.addNew(), except we only fire one event (below)
        * so there's only one redraw and we don't call ListEditor.newEditor(). */
       for (const t of types) {
-        //TODO Later: Would be nice if the MeasurementEditor's isNew flag was still set for new objects (also I need to check and write down *why* this flag would be nice to have here)
         const newMeas = this.makeNew(t)
         console.debug('Adding',newMeas,'...')
         const newId = await this.theStore.add(newMeas)
