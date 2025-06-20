@@ -137,8 +137,6 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
    * **Warning:** You must call `initialize()` after constructing a new object of this class or its subclasses!
    */
   constructor(parent :ListEditorParent, theStore :AbstractStore<B>, editorClass :EditorClass<B>, editorStyle :StyleValue,
-    /* TODO Later: I don't really like the separate editorClass and editorStyle parameters. Is there a way to link them?
-     * At least maybe via the generic <B>? Can I add that to StyleValue? */
     selItem :SelectedItemContainer, texts :ILETexts) {
     this.ctx = parent.ctx
     this.parent = parent
@@ -317,7 +315,6 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
     await super.initialize()
     const redrawPlanned = async () => {
       this.pEl.classList.toggle('d-none', !this.plannedLeft.length)
-      //TODO Later: Consider a green alert "all planned tasks completed" once they are all gone (only if there were planned tasks to begin with)
       this.pUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
         btnNew.addEventListener('click', async () => {

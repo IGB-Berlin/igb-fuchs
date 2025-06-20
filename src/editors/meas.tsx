@@ -95,7 +95,6 @@ export class MeasurementEditor extends Editor<Measurement> {
       rowInst,
       this.makeRow(grpValue, { label: tr('Value'), invalidText: tr('Invalid value'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}. {tr('dot-minus-hack')}</> }),
-      //TODO Later: Add time zone offset to help
       this.makeRow(this.inpTime.el, { label: tr('Timestamp'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>,
         invalidText: tr('Invalid timestamp') }),
     ])

@@ -56,7 +56,7 @@ export class HomePage implements StackAble, ListEditorParent {
   doSaveAndClose() :Promise<boolean> { throw new Error('HomePage.doSaveAndClose shouldn\'t happen') }
   close() :Promise<void> { throw new Error('HomePage.close shouldn\'t happen') }
   doNext() :Promise<void> { throw new Error('HomePage.doNext shouldn\'t happen') }
-  selfUpdate() :Promise<void> { /*throw new Error('HomePage.selfUpdate shouldn\'t happen')*/ return Promise.resolve() }  //TODO Later: Why is HomePage.selfUpdate being called now?
+  selfUpdate() :Promise<void> { /*throw new Error('HomePage.selfUpdate shouldn\'t happen') - this gets called now? see GH issue #27 */ return Promise.resolve() }
   nextButtonText() { return null }
   currentName() { return this.style.briefTitle }
   shown() {}
@@ -78,7 +78,6 @@ export class HomePage implements StackAble, ListEditorParent {
 
     const settings = await makeSettings(ctx)
 
-    /* TODO: Unter "Messprotokolle" die Knöpfe "Neu" und "Löschen" in einem Dropdown "Erweitert" verstecken */
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
       {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
       {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Sampling Procedures')} ({tr('Log Templates')})</>, procEdit.el)}
