@@ -25,8 +25,8 @@ export default defineConfig({
   testMatch: /[^/]+\.play\.ts$/,  // https://playwright.dev/docs/api/class-testconfig#test-config-test-match
   fullyParallel: true,  // Run tests in files in parallel
   forbidOnly: !!process.env['CI'],  // Fail the build on CI if you accidentally left test.only in the source code.
-  retries: process.env['CI'] ? 2 : 0,  // Retry on CI only
-  workers: process.env['CI'] ? 1 : 5,  // Opt out of parallel tests on CI.
+  retries: process.env['CI'] ? 2 : process.env['CODESPACES'] ? 1 : 0,  // Retry on CI and Codespaces only
+  workers: process.env['CI'] ? 1 : process.env['CODESPACES'] ? 2 : 5,  // Opt out of parallel tests on CI; limit in Codespaces.
   reporter: 'list',  // https://playwright.dev/docs/test-reporters
   use: {  // Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions
     baseURL: 'http://localhost:1234',  // Base URL to use in actions like `await page.goto('/')`.

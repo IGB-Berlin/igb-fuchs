@@ -12,11 +12,12 @@
     // https://github.com/devcontainers/features/tree/main/src/node
     //"ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/haukex/devcontainer-features/perl:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {},
     "ghcr.io/lukewiwa/features/shellcheck:0": {},
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/guiyomh/features/vim:0": {}
   },
-  "forwardPorts": [ 1234 ]
-  /*"postCreateCommand": "npm ci"*/
+  "forwardPorts": [ 1234 ],
+  "postCreateCommand": "npm ci && npx playwright install --with-deps"  // NOTE: doesn't work in DevPod?
 }
 /* vim: set filetype=javascript ts=2 sw=2 expandtab : */
