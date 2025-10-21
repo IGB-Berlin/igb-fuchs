@@ -48,7 +48,7 @@ interface IDummyObj {
   readonly foo :string
 }
 function isIDummyObj(o :unknown) :o is IDummyObj {
-  return !!( hasId(o) && 'foo' in o && typeof o.foo === 'string' ) }
+  return hasId(o) && 'foo' in o && typeof o.foo === 'string' }
 class DummyObj implements IDummyObj {
   readonly id
   readonly foo

@@ -80,7 +80,7 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
     const max = Number.parseFloat(this.inpMax.value)
     return new MeasurementType({ name: this.inpName.value, unit: this.inpUnit.value,
       min: Number.isFinite(min) ? min : -Infinity,
-      max: Number.isFinite(max) ? max : +Infinity,
+      max: Number.isFinite(max) ? max :  Infinity,
       precision: Number.isFinite(prc) && prc>=0 ? Math.floor(prc) : NaN,
       instructions: this.inpInst.value.trim() })
   }

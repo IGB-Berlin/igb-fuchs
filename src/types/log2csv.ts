@@ -123,7 +123,7 @@ export async function samplingLogToCsv(log :SamplingLog) :Promise<File|null> {
       const ms = Array.from(samp.measurements)
       ms.sort((a,b) => b.time-a.time)
 
-      let firstMeasTime = +Infinity
+      let firstMeasTime = Infinity
       allTypes.forEach((type,ti) => {
         const meas = ms.find(m => type.equals(m.type))
         const key = measCols[ti]

@@ -715,11 +715,8 @@ test('full integration test', async ({ page }) => {
   await page.clock.setFixedTime('2025-01-03T08:08Z')  // export time
 
   const extractZip = async (zr :zip.ZipReader<unknown>) :Promise<[string, string][]> => {
-    return Promise.all((await zr.getEntries()).map(async e => {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      assert(e.getData)
-      return [e.filename, await e.getData(new zip.TextWriter())]
-    }))
+    return Promise.all((await zr.getEntries()).filter(e => !e.directory).map(async e =>
+      [e.filename, await e.getData(new zip.TextWriter())] ))
   }
 
   // Export and check export

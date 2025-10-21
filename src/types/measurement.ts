@@ -131,7 +131,7 @@ export class MeasurementType extends DataObjectTemplate<MeasurementType, Measure
     this.name = o?.name ?? ''
     this.unit = o?.unit ?? ''
     this.min = o && 'min' in o && o.min!==null && Number.isFinite(o.min) ? o.min : -Infinity
-    this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max : +Infinity
+    this.max = o && 'max' in o && o.max!==null && Number.isFinite(o.max) ? o.max :  Infinity
     this.precision = o && 'precision' in o && o.precision!==null && Number.isFinite(o.precision) && o.precision>=0 ? Math.floor(o.precision) : NaN
     this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions.trim() : ''
   }
