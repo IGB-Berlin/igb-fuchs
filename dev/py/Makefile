@@ -8,7 +8,7 @@ build: web/index.html
 	test -d .venv || python -m venv .venv
 	PY_DIR=".venv/$$(test -d .venv/Scripts && echo Scripts || echo bin)"
 	"$$PY_DIR/python" -m pip --disable-pip-version-check install pyinstaller
-	"$$PY_DIR/pyinstaller" --onefile --add-data "web:web" --name igb-fuchs-dev-local run-local.py
+	"$$PY_DIR/pyinstaller" --onefile --add-data "web:web" --name igb-fuchs-dev-local"$${CUSTOM_DEV_VERSION:+-$$CUSTOM_DEV_VERSION}" run-local.py
 
 web/index.html:
 	@set -euxo pipefail

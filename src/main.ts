@@ -108,9 +108,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   const appVersion = document.getElementById('appVersion')
   const versionBadge = document.getElementById('versionBadge')
   assert(appVersion instanceof HTMLElement && versionBadge instanceof HTMLElement)
-  appVersion.innerText = ( process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
+  const version = ( process.env['CUSTOM_DEV_VERSION'] ?? process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
+  appVersion.innerText = version
   appVersion.insertAdjacentElement('afterend', makeBetaVersionNoticeLink(ctx))
-  versionBadge.title = ( process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
+  versionBadge.title = version
 
   await betaWarning(ctx)
 })
