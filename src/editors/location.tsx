@@ -17,14 +17,14 @@
  */
 import { DateTimeInput, DateTimeInputAutoSet, getTzOffsetStr } from './date-time'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
-import { areWgs84CoordsValid, EMPTY_COORDS } from '../types/coords'
 import { isTimestampSet, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
-import { makeCoordinateEditor } from './coords'
+import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
+import { CoordinatesEditor } from './coords'
 import { Sample } from '../types/sample'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
@@ -78,8 +78,7 @@ class TaskList {
 export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpName
   private readonly inpDesc
-  private readonly actCoords
-  private readonly inpActCoords
+  private readonly edActCoords
   private readonly inpStart
   private readonly inpEnd
   private readonly inpNotes
@@ -96,17 +95,15 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
-    const nomCoords = this.initObj.template?.nomCoords.deepClone() ?? EMPTY_COORDS
-    const inpNomCoords = makeCoordinateEditor(nomCoords, true)
-    const rowNomCoords = this.makeRow(inpNomCoords, {
+    const edNomCoords = new CoordinatesEditor(this.initObj.template?.nomCoords ?? EMPTY_COORDS, true)
+    const rowNomCoords = this.makeRow(edNomCoords.el, {
       label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
-    if (!areWgs84CoordsValid(nomCoords))
+    if (!edNomCoords.isValid())
       rowNomCoords.classList.add('d-none')
-    inpNomCoords.setAttribute('data-test-id','nomCoords')
+    edNomCoords.el.setAttribute('data-test-id','nomCoords')
 
-    this.actCoords = this.initObj.actCoords.deepClone()  // don't modify the original object directly!
-    this.inpActCoords = makeCoordinateEditor(this.actCoords, false)
-    this.inpActCoords.setAttribute('data-test-id','actCoords')
+    this.edActCoords = new CoordinatesEditor(this.initObj.actCoords, false)
+    this.edActCoords.el.setAttribute('data-test-id','actCoords')
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpStart.el.setAttribute('data-test-id','locStartTime')
@@ -134,7 +131,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
       rowInst, rowNomCoords,
-      this.makeRow(this.inpActCoords, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
+      this.makeRow(this.edActCoords.el, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
       this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong data-test-id='loc-tz'>{tzOff}</strong></> }),
@@ -156,7 +153,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   protected override form2obj(saving :boolean) {
     if (saving) this.inpEnd.doSave()
     return new SamplingLocation({ template: this.initObj.template, name: this.inpName.value,
-      shortDesc: this.inpDesc.value, actualCoords: this.actCoords.deepClone(),
+      shortDesc: this.inpDesc.value, actualCoords: this.edActCoords.getCoords(),
       startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
       completedTasks: this.taskEditor.completedTasks(),
@@ -171,7 +168,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
   protected override doScroll(pushNotPop :boolean) {
     this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
-      : !areWgs84CoordsValid(this.actCoords) ? this.inpActCoords
+      : !this.edActCoords.isValid() ? this.edActCoords.el
         : this.sampEdit.plannedLeftCount ? this.sampEdit.plannedTitleEl
           : ( this.taskEditor.firstUncheckedEl() ?? ( this.selItem.el ?? this.btnSaveClose ) ) )
   }

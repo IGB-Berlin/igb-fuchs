@@ -19,12 +19,11 @@ import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
-import { areWgs84CoordsValid } from '../types/coords'
 import { SampleTemplateEditor } from './samp-temp'
 import { SampleTemplate } from '../types/sample'
-import { makeCoordinateEditor } from './coords'
 import { VALID_NAME_RE } from '../types/common'
 import { Editor, EditorParent } from './base'
+import { CoordinatesEditor } from './coords'
 import { setRemove } from '../types/set'
 import { tr } from '../i18n'
 
@@ -33,8 +32,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   private readonly inpDesc
   private readonly inpTasks
   private readonly inpInst
-  private readonly nomCoords
-  private readonly inpNomCoords
+  private readonly edNomCoords
   private readonly sampEdit
   private readonly selItem :SelectedItemContainer = { el: null }
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocationTemplate>, targetObj :SamplingLocationTemplate|null, isNew :boolean) {
@@ -45,8 +43,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
     const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
-    this.nomCoords = this.initObj.nomCoords.deepClone()  // don't modify the original object directly!
-    this.inpNomCoords = makeCoordinateEditor(this.nomCoords, false)
+    this.edNomCoords = new CoordinatesEditor(this.initObj.nomCoords, false)
     const [rowTasks, inpTasks] = this.makeTextAreaRow(this.initObj.tasklist.join('\n'), {
       label: tr('Task List'), helpText: <>{tr('tasklist-temp-help')}</>, startExpanded: this.isNew })
     this.inpTasks = inpTasks
@@ -61,7 +58,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
       rowInst,
-      this.makeRow(this.inpNomCoords, { label: tr('nom-coord'), invalidText: tr('invalid-coords'),
+      this.makeRow(this.edNomCoords.el, { label: tr('nom-coord'), invalidText: tr('invalid-coords'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('nom-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
       rowTasks,
       this.sampEdit.elWithTitle,
@@ -78,7 +75,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
   protected override form2obj() {
     return new SamplingLocationTemplate({ name: this.inpName.value, shortDesc: this.inpDesc.value,
       tasklist: this.inpTasks.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l.length),
-      instructions: this.inpInst.value.trim(),  nominalCoords: this.nomCoords.deepClone(),
+      instructions: this.inpInst.value.trim(), nominalCoords: this.edNomCoords.getCoords(),
       samples: this.initObj.samples })
   }
 
@@ -86,7 +83,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
 
   protected override doScroll(pushNotPop :boolean) {
     this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
-      : !areWgs84CoordsValid(this.nomCoords) ? this.inpNomCoords
+      : !this.edNomCoords.isValid() ? this.edNomCoords.el
         : ( this.selItem.el ?? this.btnSaveClose ))
   }
 

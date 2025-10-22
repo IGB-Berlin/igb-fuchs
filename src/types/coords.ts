@@ -37,7 +37,7 @@ export interface IWgs84Coordinates extends RawWgs84Coordinates {
 /** <https://gis.stackexchange.com/a/8674>: eight decimal places ~1.1mm, Google Maps now gives six for ~11cm */
 export const WGS84_PRECISION = 6
 
-export const EMPTY_COORDS :RawWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN }
+export const EMPTY_COORDS :RawWgs84Coordinates = { wgs84lat: NaN, wgs84lon: NaN } as const
 export function areWgs84CoordsValid(c :RawWgs84Coordinates) :c is IWgs84Coordinates {
   return c.wgs84lat!==null && Number.isFinite(c.wgs84lat) && c.wgs84lat >=  -90 && c.wgs84lat <=  90
       && c.wgs84lon!==null && Number.isFinite(c.wgs84lon) && c.wgs84lon >= -180 && c.wgs84lon <= 180 }
