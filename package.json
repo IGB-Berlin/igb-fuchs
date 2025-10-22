@@ -13,7 +13,8 @@
   "type": "module",
   "_comment": "NOTE naming the test script `test` apparently always causes the VSCode test runner to use that",
   "scripts": {
-    "clean": "git clean -dxf -e node_modules",
+    "dist-clean": "git clean -dxf",
+    "clean": "git clean -dxf -e node_modules -e dev/py/.venv",
     "start": "npm run clean && parcel --port 1234",
     "build": "npm run clean && npm run lint && parcel build",
     "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint",
