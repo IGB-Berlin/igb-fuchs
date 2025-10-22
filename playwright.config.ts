@@ -1,7 +1,7 @@
 // @ts-check
 /** This file is part of IGB-FUCHS.
  *
- * Copyright © 2024 Hauke Dämpfling (haukex@zero-g.net)
+ * Copyright © 2024-2025 Hauke Dämpfling (haukex@zero-g.net)
  * at the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB),
  * Berlin, Germany, <https://www.igb-berlin.de/>
  *

@@ -30,7 +30,7 @@ This message will be updated according to the current state of development.
 Author, Copyright, and License
 ------------------------------
 
-Copyright © 2024 Hauke Dämpfling (haukex@zero-g.net)
+Copyright © 2024-2025 Hauke Dämpfling (haukex@zero-g.net)
 at the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB),
 Berlin, Germany, <https://www.igb-berlin.de/>
 

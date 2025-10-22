@@ -1,3 +1,4 @@
+# https://bit.ly/cffinit
 cff-version: 1.2.0
 title: IGB-FUCHS
 message: If you use this software, please cite it using the metadata from this file.
@@ -7,10 +8,20 @@ url: 'https://fuchs.igb-berlin.de'
 repository-code: 'https://gitlab.igb-berlin.de/haukex/igb-fuchs'
 repository: 'https://github.com/IGB-Berlin/igb-fuchs'
 license: GPL-3.0-or-later
-authors:
+preferred-citation:
+  type: software
+  title: IGB-FUCHS
+  # https://github.com/citation-file-format/citation-file-format/issues/70#issuecomment-3430665540
+  copyright: "© 2024-2025 Hauke Dämpfling at the IGB Berlin"
+  authors:
   - given-names: Hauke
     family-names: Dämpfling
     email: haukex@zero-g.net
+    affiliation: IGB Berlin
+authors:
+  - given-names: Hauke
+    family-names: Dämpfling
+    email: hauke.daempfling@igb-berlin.de
     affiliation: Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in the Forschungsverbund Berlin e.V.
     orcid: 'https://orcid.org/0000-0002-0554-757X'
   - given-names: Franziska
