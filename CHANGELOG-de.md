@@ -1,6 +1,15 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
+v0.2.0-beta - *noch nicht released*
+------------------------
+
+- In Messstellen sind die Koordinaten jetzt in einem "Dropdown" versteckt und nur
+  die Knöpfe "Standort" (aktuellen Standort verwenden) und "Karte" (auf Karte zeigen)
+  werden standardmäßig angezeigt. Dies wurde geändert weil Messstellen meist im
+  Feld ausgefüllt werden und es daher weniger wahrscheinlich ist, dass Koordinaten
+  von Hand eingetippt werden.
+
 v0.1.0-beta - 2025-05-22
 ------------------------
 
