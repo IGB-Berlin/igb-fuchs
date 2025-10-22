@@ -43,7 +43,7 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
     const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
-    this.edNomCoords = new CoordinatesEditor(this.initObj.nomCoords, false)
+    this.edNomCoords = new CoordinatesEditor(this.initObj.nomCoords)
     const [rowTasks, inpTasks] = this.makeTextAreaRow(this.initObj.tasklist.join('\n'), {
       label: tr('Task List'), helpText: <>{tr('tasklist-temp-help')}</>, startExpanded: this.isNew })
     this.inpTasks = inpTasks

@@ -24,7 +24,7 @@ import { SamplingLocation } from '../types/location'
 import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
-import { CoordinatesEditor } from './coords'
+import { SuperCoordEditor } from './coords'
 import { Sample } from '../types/sample'
 import { setRemove } from '../types/set'
 import { SampleEditor } from './sample'
@@ -78,7 +78,7 @@ class TaskList {
 export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpName
   private readonly inpDesc
-  private readonly edActCoords
+  private readonly coordEditor :SuperCoordEditor<SamplingLocation>
   private readonly inpStart
   private readonly inpEnd
   private readonly inpNotes
@@ -95,15 +95,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
-    const edNomCoords = new CoordinatesEditor(this.initObj.template?.nomCoords ?? EMPTY_COORDS, true)
-    const rowNomCoords = this.makeRow(edNomCoords.el, {
-      label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
-    if (!edNomCoords.isValid())
-      rowNomCoords.classList.add('d-none')
-    edNomCoords.el.setAttribute('data-test-id','nomCoords')
-
-    this.edActCoords = new CoordinatesEditor(this.initObj.actCoords, false)
-    this.edActCoords.el.setAttribute('data-test-id','actCoords')
+    this.coordEditor = new SuperCoordEditor(this, this.initObj.template?.nomCoords ?? EMPTY_COORDS, this.initObj.actCoords)
 
     this.inpStart = new DateTimeInput(this.initObj.startTime, true)
     this.inpStart.el.setAttribute('data-test-id','locStartTime')
@@ -130,9 +122,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
-      rowInst, rowNomCoords,
-      this.makeRow(this.edActCoords.el, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> }),
+      rowInst, this.coordEditor.el,
       this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong data-test-id='loc-tz'>{tzOff}</strong></> }),
       this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
@@ -153,7 +143,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   protected override form2obj(saving :boolean) {
     if (saving) this.inpEnd.doSave()
     return new SamplingLocation({ template: this.initObj.template, name: this.inpName.value,
-      shortDesc: this.inpDesc.value, actualCoords: this.edActCoords.getCoords(),
+      shortDesc: this.inpDesc.value, actualCoords: this.coordEditor.getActCoords(),
       startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
       samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
       completedTasks: this.taskEditor.completedTasks(),
@@ -168,7 +158,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
   protected override doScroll(pushNotPop :boolean) {
     this.ctx.scrollTo( this.isNew && pushNotPop || !this.inpName.value.trim().length ? this.inpName
-      : !this.edActCoords.isValid() ? this.edActCoords.el
+      : !this.coordEditor.isActValid() ? this.coordEditor.el
         : this.sampEdit.plannedLeftCount ? this.sampEdit.plannedTitleEl
           : ( this.taskEditor.firstUncheckedEl() ?? ( this.selItem.el ?? this.btnSaveClose ) ) )
   }

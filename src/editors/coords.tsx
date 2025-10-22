@@ -15,45 +15,53 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { areWgs84CoordsValid, EMPTY_COORDS, RawWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
+import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { makeValidNumberPat } from '../types/common'
+import { DataObjectBase, makeValidNumberPat } from '../types/common'
 import { numericTextInputStuff } from '../utils'
 import { CustomChangeEvent } from '../events'
-import { Alert } from 'bootstrap'
+import { Alert, Collapse } from 'bootstrap'
+import { Editor } from './base'
 import { tr } from '../i18n'
 
-const _pat = makeValidNumberPat()
-const VALID_CLIPBOARD_COORD_RE = new RegExp(`^\\s*(${_pat})\\s*,\\s*(${_pat})\\s*$`)
+const VALID_CLIPBOARD_COORD_RE = new RegExp(`^\\s*(${makeValidNumberPat()})\\s*,\\s*(${makeValidNumberPat()})\\s*$`)
+
+interface CoordEditorOpts {
+  readonly ?:boolean
+  noGetBtn ?:boolean
+}
+
+const ALERT_EVENT_NAME = 'FUCHS.CoordinatesEditor.Alert'
 
 export class CoordinatesEditor {
   readonly el :HTMLDivElement
   protected readonly coords
-  readonly mapLink
-  readonly btnCoords
+  readonly elGetCoords
   protected readonly inpLat
   protected readonly inpLon
-  constructor(initCoords :RawWgs84Coordinates = EMPTY_COORDS, readonly :boolean = false) {
+  constructor(initCoords :RawWgs84Coordinates, opts :CoordEditorOpts = {}) {
     this.coords = new Wgs84Coordinates(initCoords).deepClone()
 
     this.inpLat = safeCastElement(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lat) ? this.coords.wgs84lat.toFixed(WGS84_PRECISION) : '' }
-        required={!readonly} readonly={readonly}
+        required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
     numericTextInputStuff(this.inpLat)
 
     this.inpLon = safeCastElement(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lon) ? this.coords.wgs84lon.toFixed(WGS84_PRECISION) : '' }
-        required={!readonly} readonly={readonly}
+        required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
     numericTextInputStuff(this.inpLon)
 
-    this.el = safeCastElement(HTMLDivElement, <div class="input-group">
+    const inpGrp = safeCastElement(HTMLDivElement, <div class="input-group">
       <span class="input-group-text d-none d-sm-flex" title={tr('Latitude')}>{tr('Lat')}</span> {this.inpLat}
       <span class="input-group-text d-none d-sm-flex" title={tr('Longitude')}>{tr('Lon')}</span> {this.inpLon}
+      {this.makeMapButton(false)}
     </div>)
+    this.el = safeCastElement(HTMLDivElement, <div>{inpGrp}</div>)
 
     this.inpLat.addEventListener('change', () => {
       this.coords.wgs84lat = Number.parseFloat(this.inpLat.value)
@@ -64,8 +72,13 @@ export class CoordinatesEditor {
       this.el.dispatchEvent(new CustomChangeEvent())
     })
 
+    const fireAlert = () => this.el.dispatchEvent(new Event(ALERT_EVENT_NAME, { bubbles: false, cancelable: false }))
+    // bubble events from form validation:
+    this.inpLat.addEventListener('invalid', fireAlert)
+    this.inpLon.addEventListener('invalid', fireAlert)
+
     /* ***** Clipboard Handler ***** */
-    if (!readonly) {
+    if (!opts.readonly) {
       const pasteHandler = (event :ClipboardEvent) => {
         const txt = event.clipboardData?.getData('text/plain')
         if (txt) {
@@ -86,46 +99,29 @@ export class CoordinatesEditor {
       this.inpLon.addEventListener('paste', pasteHandler)
     }
 
-    /* ***** "Show on Map" Link (Button) ***** */
-    this.mapLink = safeCastElement(HTMLAnchorElement,
-      <a class="btn btn-outline-primary" href="#" target="_blank" title={tr('Show on map')}>
-        <i class="bi-pin-map"/><span class="visually-hidden"> {tr('Show on map')}</span></a>)
-    const preventEventDefault = (event :Event) => event.preventDefault()
-    const updateMapLink = () => {
-      if (areWgs84CoordsValid(this.coords)) {
-        // see also GH issue #37 about opening coords in *any* navigation app on mobile
-        //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
-        // https://developers.google.com/maps/documentation/urls/get-started#search-action
-        this.mapLink.href = 'https://www.google.com/maps/search/?api=1&'
-          +`query=${this.coords.wgs84lat.toFixed(WGS84_PRECISION)},${this.coords.wgs84lon.toFixed(WGS84_PRECISION)}`
-        this.mapLink.removeEventListener('click', preventEventDefault)
-      }
-      else {  // These are not valid coords, disable the maps link
-        this.mapLink.href = '#'
-        this.mapLink.addEventListener('click', preventEventDefault)
-      }
-    }
-    this.el.addEventListener(CustomChangeEvent.NAME, updateMapLink)
-    updateMapLink()
-    this.el.appendChild(this.mapLink)  //TODO: Remove
-
     /* ***** "Get Coordinates" Dropdown Button ***** */
-    const coordIcon = <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
-    const spinIcon = <div class="spinner-border spinner-border-sm" role="status">
-      <span class="visually-hidden">{tr('Please wait')}</span>
-    </div>
+    const coordIcon = opts.noGetBtn
+      ? <span><i class="bi-crosshair"/><span class="mx-1"> {tr('Location')}</span></span>
+      : <span><i class="bi-crosshair"/><span class="visually-hidden"> {tr('Coordinates')}</span></span>
+    const spinIcon = opts.noGetBtn
+      ? <div class="d-inline"><div class="spinner-border spinner-border-sm" role="status"/><span class="ms-1"> {tr('Please wait')}</span> </div>
+      : <div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"> {tr('Please wait')}</span> </div>
     const btnCoordsDrop = <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
-      disabled={readonly}>{coordIcon}</button>
-    btnCoordsDrop.classList.add( readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
+      disabled={!!opts.readonly} title={tr( opts.noGetBtn ? 'Location' : 'Coordinates' )}>{coordIcon}</button>
+    btnCoordsDrop.classList.add( opts.readonly ? 'btn-outline-secondary' : 'btn-outline-primary' )
+
     const btnGetCoords = <button type="button" class="dropdown-item">{tr('Use current location')}</button>
     const dropdownMenu = <ul class="dropdown-menu">{btnGetCoords}</ul>
-    this.btnCoords = <>{btnCoordsDrop}{dropdownMenu}</>
-    this.el.insertBefore(dropdownMenu, this.el.firstChild); this.el.insertBefore(btnCoordsDrop, dropdownMenu)  //TODO: Remove
+    if (!opts.noGetBtn) {
+      inpGrp.insertBefore(dropdownMenu, inpGrp.firstChild)
+      inpGrp.insertBefore(btnCoordsDrop, dropdownMenu)
+      this.elGetCoords = <></>
+    }
+    else this.elGetCoords = <>{btnCoordsDrop}{dropdownMenu}</>
 
-    const alertTarget = this.el  //TODO: Not correct, the div.input-group previously had a div parent that was the target
     let curAlert :Alert|null = null
     btnGetCoords.addEventListener('click', () => {
-      if (readonly) throw new Error('The control should be readonly, how was the button clicked?')
+      if (opts.readonly) throw new Error('The control should be readonly, how was the button clicked?')
       setTimeout(()=>{  // if we were to immediately disable the button, the dropdown wouldn't auto-hide
         btnCoordsDrop.setAttribute('disabled', 'disabled')
         btnCoordsDrop.replaceChildren(spinIcon)
@@ -147,15 +143,41 @@ export class CoordinatesEditor {
                   : 'geo-unknown-error' )}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
-          alertTarget.appendChild(alertDiv)
+          this.el.appendChild(alertDiv)
           const bsAlert = Alert.getOrCreateInstance(alertDiv)
           alertDiv.addEventListener('close.bs.alert', () => { if (curAlert===bsAlert) curAlert=null })
           alertDiv.addEventListener('closed.bs.alert', () => bsAlert.dispose() )
+          fireAlert()
           curAlert = bsAlert
         }, { maximumAge: 1000*30, timeout: 1000*10, enableHighAccuracy: true })
       })
     })
+  }
 
+  makeMapButton(withText :boolean) {
+    const btnMap = safeCastElement(HTMLButtonElement,
+      <button class="btn btn-outline-primary" title={tr('Show on map')}><i class="bi-pin-map"/></button>)
+    btnMap.appendChild( withText
+      ? <span class="ms-1">{tr('Map')}</span> : <span class="visually-hidden"> {tr('Show on map')}</span> )
+    btnMap.addEventListener('click', event => {
+      event.preventDefault()  // prevent form submission
+      if (areWgs84CoordsValid(this.coords))
+        // see also GH issue #37 about opening coords in *any* navigation app on mobile
+        //mapLink.href = `https://www.google.com/maps/place/${coord.wgs84lat.toFixed(WGS84_PRECISION)},${coord.wgs84lon.toFixed(WGS84_PRECISION)}`
+        // https://developers.google.com/maps/documentation/urls/get-started#search-action
+        window.open('https://www.google.com/maps/search/?api=1&'
+          +`query=${this.coords.wgs84lat.toFixed(WGS84_PRECISION)},${this.coords.wgs84lon.toFixed(WGS84_PRECISION)}`)
+    })
+    const updateBtnMap = () => {
+      if (areWgs84CoordsValid(this.coords))
+        btnMap.removeAttribute('disabled')
+      else
+        btnMap.setAttribute('disabled','disabled')
+    }
+    setTimeout(() =>  // delay because this.el may not be set yet
+      this.el.addEventListener(CustomChangeEvent.NAME, updateBtnMap) )
+    updateBtnMap()
+    return btnMap
   }
 
   setCoords(lat :number, lon :number) {
@@ -166,8 +188,68 @@ export class CoordinatesEditor {
     this.el.dispatchEvent(new CustomChangeEvent())
   }
 
-  /** Get a copy of the coordinates being edited by this editor. */
+  /** Get a *copy* of the coordinates being edited by this editor. */
   getCoords() { return this.coords.deepClone() }
 
   isValid() { return areWgs84CoordsValid(this.coords) }
+}
+
+export class SuperCoordEditor<B extends DataObjectBase<B>> {
+  readonly el
+  private readonly edActCoords
+  constructor(parent :Editor<B>, nomCoords :RawWgs84Coordinates, actCoords :RawWgs84Coordinates) {
+
+    const edNomCoords = new CoordinatesEditor(nomCoords, { readonly: true, noGetBtn: true })
+    this.edActCoords = new CoordinatesEditor(actCoords, { readonly: false, noGetBtn: true })
+    const btnUseCurrent = this.edActCoords.elGetCoords
+    const btnShowMap = areWgs84CoordsValid(nomCoords) ? edNomCoords.makeMapButton(true) : this.edActCoords.makeMapButton(true)
+    this.edActCoords.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
+    edNomCoords.el.setAttribute('data-test-id','nomCoords')
+    this.edActCoords.el.setAttribute('data-test-id','actCoords')
+
+    const rowNom = parent.makeRow(edNomCoords.el, {
+      label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
+    const rowAct = parent.makeRow(this.edActCoords.el, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
+      helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> })
+    rowAct.classList.remove('mb-2','mb-sm-3')
+    if (!areWgs84CoordsValid(nomCoords))
+      rowNom.classList.add('d-none')
+
+    const accId = parent.ctx.genId('SuperCoord')
+    const accParentId = accId+'-parent'
+    const accordCollapse =
+      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
+        <div class="accordion-body p-3">
+          {rowNom} {rowAct}
+        </div>
+      </div>
+    /* NOTE the `data-bs-toggle="collapse" data-bs-target` on the input-group is important to prevent the buttons inside from
+     * opening/closing the accordion. And if those attributes are on the buttons, the click events apparently don't work! */
+    this.el = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
+      <div class="accordion" id={accParentId}>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
+              data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId} data-test-id="coord-accord">
+              <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
+                <div class="w-25 text-end-sm pe-4 w-min-fit">{tr('Coordinates')}</div>
+                <div class="pe-2"><div class="input-group" data-bs-toggle="collapse" data-bs-target>{btnUseCurrent}{btnShowMap}</div></div>
+              </div>
+            </button>
+          </h2>
+          {accordCollapse}
+        </div>
+      </div>
+    </div></div>
+
+    setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
+      if (!areWgs84CoordsValid(actCoords))
+        // NOTE simply doing getOrCreateInstance already seems to show the element!
+        Collapse.getOrCreateInstance(accordCollapse).show()
+      this.edActCoords.el.addEventListener(ALERT_EVENT_NAME, () => Collapse.getOrCreateInstance(accordCollapse).show())
+    })
+
+  }
+  getActCoords() { return this.edActCoords.getCoords() }
+  isActValid() { return this.edActCoords.isValid() }
 }

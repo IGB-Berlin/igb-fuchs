@@ -375,13 +375,12 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
-  private static _inputCounter = 0
-  protected makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
-    opts: MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
+  makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
+    opts :MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
-    const inpId = `_Editor_Input_ID-${Editor._inputCounter++}`
+    const inpId = this.ctx.genId('Editor_Input')
     input.setAttribute('id', inpId)
-    //input.setAttribute('placeholder', label)  // they're actually kind of distracting
+    //input.setAttribute('placeholder', label)  // they're actually kind of distracting - and not all `input`s are <input>s anymore!
     if (input instanceof HTMLDivElement)  // custom <div> containing e.g. <input>s
       input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
     else { // <input>, <textarea>, <select>

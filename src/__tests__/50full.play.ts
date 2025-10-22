@@ -547,6 +547,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S1')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Upper')
   await page.clock.setFixedTime('2025-01-02T04:14Z')
+  await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
@@ -622,6 +623,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S2')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Middle')
   await page.clock.setFixedTime('2025-01-02T05:15Z')
+  await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
@@ -633,9 +635,12 @@ test('full integration test', async ({ page }) => {
   const isFirefox = page.context().browser()?.browserType().name() === 'firefox'
   // get current coordinates (for fake coords see Playwright config file)
   if (!isFirefox) {
-    await page.getByTestId('actCoords').getByRole('button', { name: 'Coordinates' }).click()
-    await expect(page.getByRole('button', { name: 'Use current location' })).toBeVisible()
-    await page.getByRole('button', { name: 'Use current location' }).click()
+    await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // collapse
+    await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toBeHidden()
+    await page.getByRole('button', { name: /^[^\w]*Location$/ }).click()
+    await expect(page.getByRole('button', { name: 'Use current location', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Use current location', exact: true }).click()
+    await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
     await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.516312')
     await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.377657')
   }
@@ -686,6 +691,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S3')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Lower')
   await page.clock.setFixedTime('2025-01-02T06:16Z')
+  await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.300000')
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.300000')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' }).fill('52.300100')
