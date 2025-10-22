@@ -16,8 +16,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-@use "../node_modules/bootstrap/scss/bootstrap" as bs;
-bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here, it's fine
+@use "../node_modules/bootstrap/scss/bootstrap" as bs with (
+  $color-mode-type: media-query
+);
 
 :root {
   // darker color variants = foreground
@@ -71,6 +72,10 @@ bs.$color-mode-type: media-query;  // can ignore the error shown in VSCode here,
 }
 .cursor-auto {
   cursor: auto;
+}
+
+.w-min-fit {
+  min-width: fit-content;
 }
 
 .mini-meas-edit {

@@ -48,7 +48,8 @@ export function jsx(tag: Tag, props: Props, ...children: Children) :JSX.Element 
     else if ( typeof val === 'boolean' ) {
       if (val) el.setAttribute(key, key)
     }
-    else throw new Error(`can't handle ${key}=${val.toString()} (type=${typeof val})`)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    else throw new Error(`can't handle ${key}=${val?.toString()} (type=${typeof val})`)
   })
   const appendChild = (parent :Node, child :Node|Node[]|string) => {
     if (child instanceof Node)

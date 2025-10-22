@@ -60,7 +60,7 @@ export function isISamplingLocation(o :unknown) :o is ISamplingLocation {
 /** Records and actual sampling point. */
 export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, SamplingLocationTemplate> implements ISamplingLocation {
   static readonly sStyle :StyleValue = { isTemplate: false, opposite: null,
-    fullTitle: tr('Sampling Location'), briefTitle: tr('Location'),
+    fullTitle: tr('Sampling Location'), briefTitle: tr('samp-loc'),
     cssId: 'location', icon: 'pin-map-fill' }  // alternative icon might be geo-fill
   override get style() { return SamplingLocation.sStyle }
   name :string

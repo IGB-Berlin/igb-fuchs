@@ -23,7 +23,7 @@ import { tr } from './i18n'
 
 let globalHide = false
 
-function initOrRemoveCollapse(el :HTMLElement) {
+function initOrRemoveCollapse(el :Element) {
   el.classList.toggle('collapse', globalHide)
   const c = Collapse.getOrCreateInstance(el, { toggle: false })
   if (!globalHide) c.dispose()
@@ -33,10 +33,7 @@ function initOrRemoveCollapse(el :HTMLElement) {
 export function globalHideHelp(hide :boolean) {
   globalHide = hide
   document.body.classList.toggle('hide-help-texts', globalHide)
-  document.querySelectorAll('.hideable-help').forEach(el => {
-    assert(el instanceof HTMLElement)
-    initOrRemoveCollapse(el)
-  })
+  document.querySelectorAll('.hideable-help').forEach(el => initOrRemoveCollapse(el))
 }
 
 /** Just the button, no functionality. */
@@ -45,7 +42,7 @@ export function makeHelpButton() :HTMLButtonElement {
     title={tr('Help')}><i class="bi-question-circle" /><span class="visually-hidden"> {tr('Help')}</span></button>)
 }
 
-export function makeHelp(ctx :GlobalContext, target :HTMLElement) :[string, HTMLButtonElement] {
+export function makeHelp(ctx :GlobalContext, target :HTMLElement) :[helpId :string, helpButton :HTMLButtonElement] {
   assert(!target.hasAttribute('id') && !target.classList.contains('hideable-help'))
   const helpId = ctx.genId('Help')
   target.setAttribute('id', helpId)
