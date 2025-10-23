@@ -36,7 +36,7 @@ class CheckList {
   constructor(ctx :GlobalContext, initialCheckStates :{ [key :string]: boolean }) {
     this.checkStates = initialCheckStates
     const checks = Object.keys(initialCheckStates)
-    let allChecked :boolean = true
+    let allChecked = true as boolean
     this.checkItems = checks.map(c => {
       if (!this.checkStates[c]) allChecked = false
       const id = ctx.genId('ChecklistCb')
