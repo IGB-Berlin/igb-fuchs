@@ -12,9 +12,7 @@ jobs:
     steps:
       - name: Disable autocrlf on Windows
         # https://github.com/actions/checkout/issues/135
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v5
         with:
           lfs: true
@@ -25,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Smudge
-        run: perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
+        run: PERLIO=':raw:encoding(UTF-8)' perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
       - name: Build .exe
         run: make build
         working-directory: dev/py
