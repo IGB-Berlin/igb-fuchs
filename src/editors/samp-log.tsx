@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DateTimeInput, DateTimeInputAutoSet, getTzOffsetStr } from './date-time'
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { SamplingLocationEditor } from './location'
+import { StartEndTimeEditor } from './date-time'
 import { SamplingLog } from '../types/sampling'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -63,8 +63,7 @@ class CheckList {
 
 export class SamplingLogEditor extends Editor<SamplingLog> {
   private readonly inpName
-  private readonly inpStart
-  private readonly inpEnd
+  private readonly edTimes :StartEndTimeEditor<SamplingLog>
   private readonly inpPersons
   private readonly inpWeather
   private readonly inpNotes
@@ -79,10 +78,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
 
-    this.inpStart = new DateTimeInput(this.initObj.startTime, true)
-    this.inpStart.el.setAttribute('data-test-id','logStartTime')
-    this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
-    this.inpEnd.el.setAttribute('data-test-id','logEndTime')
+    this.edTimes = new StartEndTimeEditor(this, this.initObj.startTime, this.initObj.endTime,
+      !this.isUnsaved && !isTimestampSet(this.initObj.endTime), 'log')
 
     this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
     this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
@@ -101,20 +98,13 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
       ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
       this.initObj.template?.locations )
 
-    const tzOff = getTzOffsetStr()
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
-      rowInst,
-      this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('log-start-time-help')}: <strong data-test-id='log-tz'>{tzOff}</strong></> }),
-      this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><em>{tr('Recommended')}.</em> {tr('log-end-time-help')}: <strong>{tzOff}</strong></> }),
+      rowInst, this.edTimes.el,
       this.makeRow(this.inpPersons, { label: tr('Persons'), helpText: <>{tr('persons-help')}</> }),
       this.makeRow(this.inpWeather, { label: tr('Weather'), helpText: <>{tr('weather-help')}</> }),
-      rowNotes,
-      rowCheck,
-      this.locEdit.elWithTitle,
+      rowNotes, rowCheck, this.locEdit.elWithTitle,
     ])
   }
   override async initialize() {
@@ -126,16 +116,16 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   protected override newObj() { return new SamplingLog(null) }
 
   protected override form2obj(saving :boolean) {
-    if (saving) this.inpEnd.doSave()
+    if (saving) this.edTimes.doSaveEnd()
     return new SamplingLog({ id: this.initObj.id, template: this.initObj.template,
-      name: this.inpName.value, startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
+      name: this.inpName.value, startTime: this.edTimes.getStart(), endTime: this.edTimes.getEnd(),
       lastModified: timestampNow(), persons: this.inpPersons.value.trim(), weather: this.inpWeather.value.trim(),
       notes: this.inpNotes.value.trim(), locations: this.initObj.locations,
       checkedTasks: this.checkList.checkedTasks() })
   }
 
   protected override customValidation(skipInitWarns :boolean) {
-    return skipInitWarns || isTimestampSet(this.inpEnd.timestamp) || this.inpEnd.isAutoSetOn ? [] : [tr('No end time')]
+    return skipInitWarns || isTimestampSet(this.edTimes.getEnd()) || this.edTimes.isAutoSetEndOn() ? [] : [tr('No end time')]
   }
 
   override currentName() { return this.inpName.value }

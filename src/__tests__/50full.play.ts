@@ -532,6 +532,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Sampling Log\s*$/ })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('Spree')
   await page.clock.setFixedTime('2025-01-02T03:13Z')  // just to make sure it took the right time
+  await page.getByTestId('log-times-accord').click()  // expand
   await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('2025-01-02T04:03')
   await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
@@ -552,6 +553,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.100000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.100000')
+  await page.getByTestId('loc-times-accord').click()  // expand
   await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T05:04')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
@@ -628,6 +630,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.200000')
   await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.200000')
+  await page.getByTestId('loc-times-accord').click()  // expand
   await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T06:05')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
@@ -696,6 +699,7 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.300000')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' }).fill('52.300100')
   await page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' }).fill('13.300100')
+  await page.getByTestId('loc-times-accord').click()  // expand
   await expect(page.getByTestId('locStartTime').getByRole('textbox')).toHaveValue('2025-01-02T07:06')
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()

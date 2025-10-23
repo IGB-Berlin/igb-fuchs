@@ -15,10 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp, timestampNow } from '../types/common'
-import { jsx, safeCastElement } from '../jsx-dom'
+import { DataObjectBase, isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp, timestampNow } from '../types/common'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { CustomChangeEvent } from '../events'
 import { GlobalContext } from '../main'
+import { Collapse } from 'bootstrap'
+import { assert } from '../utils'
+import { Editor } from './base'
 import { tr } from '../i18n'
 
 // I used to have a separate `date.ts` utility function file but for now all the utils are in one place in this file.
@@ -59,12 +62,12 @@ export function toIsoUtc(t :Timestamp) {
 }
 
 /** Return the timestamp in local time formatted as "HH:MM:SS" - no TZ suffix! */
-export function toLocalTime(t :Timestamp) {
+export function toLocalTime(t :Timestamp, seconds :boolean = true) {
   if (!isValidAndSetTs(t)) return ''
   const d = new Date(t)
   return d.getHours().toString().padStart(2,'0')
     +':'+d.getMinutes().toString().padStart(2,'0')
-    +':'+d.getSeconds().toString().padStart(2,'0')
+    +( seconds ? ':'+d.getSeconds().toString().padStart(2,'0') : '' )
 }
 /** Return the timestamp in local time formatted as "DD.MM.YYYY" - no TZ suffix! */
 export function toLocalDMY(t :Timestamp) {
@@ -99,8 +102,8 @@ function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
 export class DateTimeInput {
   protected readonly _el
   get el() { return this._el }
-  private _ts
-  private readonly input
+  private _ts :Timestamp
+  readonly input
   constructor(initialTs :Timestamp|null, required :boolean) {
     this._ts = isTimestamp(initialTs) && isValidAndSetTs(initialTs) ? initialTs : NO_TIMESTAMP
     this.input = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local" />)
@@ -158,4 +161,104 @@ export class DateTimeInputAutoSet extends DateTimeInput {
       this.checkBox.checked = false
     }
   }
+}
+
+export class StartEndTimeEditor<B extends DataObjectBase<B>> {
+  readonly el
+  protected readonly inpStart
+  protected readonly inpEnd
+  constructor(parent :Editor<B>, initialStart :Timestamp, initialEnd :Timestamp, autoSetEnd :boolean, prefix :'log'|'loc') {
+    this.inpStart = new DateTimeInput(initialStart, true)
+    this.inpStart.el.setAttribute('data-test-id', prefix+'StartTime')
+    this.inpEnd = new DateTimeInputAutoSet(parent.ctx, initialEnd, false, autoSetEnd)
+    this.inpEnd.el.setAttribute('data-test-id', prefix+'EndTime')
+
+    const rowStart = parent.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
+      helpText: <><strong>{tr('Required')}.</strong> {tr(prefix==='log'?'log-start-time-help':'loc-start-time-help')}</> })
+    const rowEnd = parent.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
+      helpText: <><em>{tr('Recommended')}.</em> {tr(prefix==='log'?'log-end-time-help':'loc-end-time-help')}</> })
+
+    const rowTz = parent.makeRow(
+      safeCastElement(HTMLInputElement, <input type="text" readonly value={getTzOffsetStr()} data-test-id={prefix+'-tz'}/>),
+      { label: tr('Timezone'), helpText: tr('timezone-help') })
+    rowTz.classList.remove('mb-2','mb-sm-3')
+
+    const accId = parent.ctx.genId('StartEndEd')
+    const accParentId = accId+'-parent'
+    const accordCollapse =
+      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
+        <div class="accordion-body p-3"> {rowStart} {rowEnd} {rowTz} </div>
+      </div>
+    const lblCommon = <span></span>
+    const lblStart = <span>?</span>
+    const lblEnd = <span>?</span>
+    this.el = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
+      <div class="accordion" id={accParentId}>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
+              data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId} data-test-id={prefix+'-times-accord'}>
+              <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
+                <div class="w-25 text-end-sm pe-4 w-min-fit">{tr('Times')}</div>
+                <div class="pe-2 text-body-secondary">{lblCommon} {lblStart} – {lblEnd}</div>
+              </div>
+            </button>
+          </h2>
+          {accordCollapse}
+        </div>
+      </div>
+    </div></div>
+
+    const updateLabels = (inp :DateTimeInput, lbl :HTMLElement) => {
+      assert( Object.is(inp, this.inpStart) && Object.is(lbl, lblStart) || Object.is(inp, this.inpEnd) && Object.is(lbl, lblEnd) )
+      let sameDate :boolean = false
+      if ( isValidAndSetTs(this.inpStart.timestamp) && isValidAndSetTs(this.inpEnd.timestamp)
+        && toLocalDMY(this.inpStart.timestamp)===toLocalDMY(this.inpEnd.timestamp)
+        || isValidAndSetTs(this.inpStart.timestamp) && this.inpEnd.isAutoSetOn
+        && toLocalDMY(this.inpStart.timestamp)===toLocalDMY(timestampNow()) ) {
+        lblCommon.innerText = toLocalDMY(this.inpStart.timestamp)
+        sameDate = true
+      } else lblCommon.innerText = ''
+      if ( Object.is(inp, this.inpEnd) && this.inpEnd.isAutoSetOn ) {
+        lbl.title = tr('auto-set-end-time')
+        lbl.innerText = tr('auto')
+        lbl.classList.add('fst-italic')
+        lbl.classList.remove('text-warning')
+      }
+      else if (isValidAndSetTs(inp.timestamp)) {
+        lbl.title = toLocalDMY(inp.timestamp)+' '+toLocalTime(inp.timestamp)+' '+getTzOffsetStr()
+        lbl.innerText = ( sameDate ? '' : toLocalDMY(inp.timestamp)+' ' ) + toLocalTime(inp.timestamp, false)
+        lbl.classList.remove('fst-italic','text-warning')
+      }
+      else {
+        lbl.title = tr('not set')
+        lbl.innerText = '?'
+        lbl.classList.remove('fst-italic')
+        lbl.classList.add('text-warning')
+      }
+    }
+    const changeEventHandler = (event ?:Event) => {
+      updateLabels(this.inpStart, lblStart)
+      updateLabels(this.inpEnd, lblEnd)
+      if (event instanceof Event)
+        this.el.dispatchEvent(new CustomChangeEvent())  // bubble
+    }
+    this.inpStart.el.addEventListener(CustomChangeEvent.NAME, changeEventHandler)
+    this.inpEnd.el.addEventListener(CustomChangeEvent.NAME, changeEventHandler)
+    changeEventHandler()
+
+    setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
+      if ( !isTimestamp(initialStart) || !isValidAndSetTs(initialStart) ||
+        !autoSetEnd && (!isTimestamp(initialEnd) || !isValidAndSetTs(initialEnd)) )
+        // NOTE simply doing getOrCreateInstance already seems to show the element!
+        Collapse.getOrCreateInstance(accordCollapse).show()
+      this.inpStart.input.addEventListener('invalid', () => Collapse.getOrCreateInstance(accordCollapse).show())
+      this.inpEnd.input.addEventListener('invalid', () => Collapse.getOrCreateInstance(accordCollapse).show())
+    })
+
+  }
+  getStart() { return this.inpStart.timestamp }
+  getEnd() { return this.inpEnd.timestamp }
+  doSaveEnd() { this.inpEnd.doSave() }
+  isAutoSetEndOn() { return this.inpEnd.isAutoSetOn }
 }

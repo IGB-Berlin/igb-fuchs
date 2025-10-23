@@ -72,7 +72,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
       await expect(page.getByTestId('logStartTime').getByRole('textbox')).toHaveValue('')
       await expect(page.getByTestId('logEndTime').getByRole('textbox')).toHaveValue('')
-      await expect(page.getByTestId('log-tz')).toHaveText(`${v['tzOff']} (${tz})`)
+      await expect(page.getByTestId('log-tz')).toHaveValue(`${v['tzOff']} (${tz})`)
 
       // Set Log times
       await page.clock.setFixedTime(v['baseDate']+'T02:02Z')  // log start time
@@ -98,7 +98,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       await page.getByRole('textbox', { name: 'Name' }).fill('S1')
       await page.getByRole('textbox', { name: 'Latitude' }).fill('52.1')
       await page.getByRole('textbox', { name: 'Longitude' }).fill('13.1')
-      await expect(page.getByTestId('loc-tz')).toHaveText(`${v['tzOff']} (${tz})`)
+      await expect(page.getByTestId('loc-tz')).toHaveValue(`${v['tzOff']} (${tz})`)
 
       // Set Location times
       await page.clock.setFixedTime(v['baseDate']+'T03:03Z')

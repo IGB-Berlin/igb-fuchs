@@ -12,6 +12,10 @@ v0.2.0-beta - *noch nicht released*
 - Auf der Hauptseite wurde der Reiter "Messprozeduren (Protokoll-Vorlagen)" (engl. "Sampling
   Procedures (Log Templates)") umbenannt in "Vorlagen (Prozeduren)" ("Templates (Procedures)"),
   da der Name zu ähnlich zu "Messprotokolle" ("Sampling Logs") war.
+- Da die Anfangs- und End-Zeiten von Protokollen und Messstellen bei Nutzung einer
+  Vorlage meistens vollständig automatisch gesetzt werden können, wurden die Eingabefelder
+  in einem Dropdown versteckt.
+- Im Hilfetext des Messung-Zeitstempels wird nun die Zeitzone angezeigt.
 
 v0.1.0-beta - 2025-05-22
 ------------------------

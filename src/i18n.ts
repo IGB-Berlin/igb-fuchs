@@ -240,11 +240,11 @@ const translations = {
   'Show on map': ['Auf Karte zeigen'],
   'Map': ['Karte'],
   'loc-start-time-help': [
-    'Ankunftszeit an der Messstelle bzw. Beginn der Messungen. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'Arrival time at the sampling location / beginning of measurements. Timezone is that of this device (usually local time)' ],
+    'Ankunftszeit an der Messstelle bzw. Beginn der Messungen.',
+    'Arrival time at the sampling location / beginning of measurements.' ],
   'loc-end-time-help': [
-    'Ende der Messungen bzw. Abfahrtszeit von der Messstelle. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'End of measurements / departure time from the sampling location. Timezone is that of this device (usually local time)' ],
+    'Ende der Messungen bzw. Abfahrtszeit von der Messstelle.',
+    'End of measurements / departure time from the sampling location.' ],
   'loc-notes-help': ['Optionale Notizen zur Messstelle im Allgemeinen.', 'Optional notes about the sampling location in general.'],
   'planed-samp-remain': [
     { zero: 'Alle geplanten Proben gespeichert', one: 'Eine geplante Probe übrig', other: '%{count} geplante Proben übrig' },
@@ -299,25 +299,28 @@ const translations = {
   'auto-set-end-time': [
     'Beim Speichern End-Zeit automatisch auf aktuelle Uhrzeit setzen',
     'Automatically set end time to current time when saving' ],
+  'auto': ['autom.'],
+  'not set': ['nicht gesetzt'],
+  'Timezone': ['Zeitzone'],
+  'timezone-help': [
+    'Zeitzone der Zeiten ist die dieses Geräts, meist Ortszeit.',
+    'Timezone of the times is that of this device, usually local time.' ],
 
   // editor: sampling log
   'proc-inst-help': [
     'Anleitung für die Messprozedur.',
     'Instructions for the sampling procedure.' ],
   'Start time': ['Anfangs-Zeit'],
-  'log-start-time-help': [
-    'Wann das Messprotokoll begonnen wurde. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'When the sampling log was started. Timezone is that of this device (usually local time)' ],
+  'log-start-time-help': [ 'Wann das Messprotokoll bzw. die Messdurchführung begonnen wurde.', 'When the sampling / sampling log was started.' ],
   'End time': ['End-Zeit'],
-  'log-end-time-help': [
-    'Wann das Messprotokoll endete. Zeitzone ist die dieses Geräts (meist Ortszeit)',
-    'When the sampling log ended. Timezone is that of this device (usually local time)' ],
+  'log-end-time-help': [ 'Wann das Messprotokoll bzw. die Messdurchführung endete.', 'When the sampling / sampling log ended.' ],
   'Persons': ['Personen'],
   'persons-help': ['Optional. Welche Personen an der Probenahme beteiligt waren.', 'Optional. Who was involved in the sampling.'],
   'Weather': ['Wetter'],
   'weather-help': ['Optional. Wie das Wetter während der Probenahme war.', 'Optional. How the weather during the sampling was.'],
   'log-notes-help': ['Optionale Notizen zum Messprotokoll im Allgemeinen.', 'Optional notes about the sampling log in general.'],
   'Time': ['Zeit'],
+  'Times': ['Zeiten'],
   'Use current time': ['Aktuelle Zeit verwenden'],
   'new-log-from-proc': [
     'Neues Messprotokoll aus Messprozedur',
@@ -380,7 +383,9 @@ const translations = {
   'Timestamp': ['Zeitstempel'],
   'Value': ['Messwert'],
   'meas-value-help': [ 'Der gemessene Wert. Muss in dem Bereich liegen:', 'The measured value. Must be in the range:' ],
-  'meas-time-help': ['Wann die Messung genommen bzw. aufgezeichnet wurde.', 'When the measurement was taken / recorded.'],
+  'meas-time-help': [
+    'Wann die Messung genommen bzw. aufgezeichnet wurde. Zeitzone ist die dieses Geräts (meist Ortszeit)',
+    'When the measurement was taken / recorded. Timezone is that of this device (usually local time)' ],
   'meas-type-help': ['Messtyp.', 'Type of the measurement.'],
   'sel-meas-type': [ 'Messtyp Auswählen', 'Select Measurement Type' ],
   'no units': ['keine Einheit'],

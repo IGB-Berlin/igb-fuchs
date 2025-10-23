@@ -18,13 +18,13 @@
 import { MeasurementType, Measurement } from '../types/measurement'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { makeValidNumberPat } from '../types/common'
 import { numericTextInputStuff } from '../utils'
 import { listSelectDialog } from './list-dialog'
 import { Editor, EditorParent } from './base'
 import { MeasTypeEditor } from './meas-type'
-import { DateTimeInput } from './date-time'
 import { tr } from '../i18n'
 
 export class MeasurementEditor extends Editor<Measurement> {
@@ -87,6 +87,7 @@ export class MeasurementEditor extends Editor<Measurement> {
     typeChange()
 
     const typeStyle = MeasurementType.sStyle
+    const tzOff = getTzOffsetStr()
     this.setFormContents([
       this.makeRow(this.grpType, {
         label: <span class={`editor-${typeStyle.cssId}-text`}><i class={`bi-${typeStyle.icon}`}/> {tr('Measurement Type')}</span>,
@@ -95,8 +96,8 @@ export class MeasurementEditor extends Editor<Measurement> {
       rowInst,
       this.makeRow(grpValue, { label: tr('Value'), invalidText: tr('Invalid value'),
         helpText: <><strong>{tr('Required')}.</strong> {tr('meas-value-help')} {lblRange}{lblPrc}. {tr('dot-minus-hack')}</> }),
-      this.makeRow(this.inpTime.el, { label: tr('Timestamp'), helpText: <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}</>,
-        invalidText: tr('Invalid timestamp') }),
+      this.makeRow(this.inpTime.el, { label: tr('Timestamp'), invalidText: tr('Invalid timestamp'),
+        helpText: <><strong>{tr('Required')}.</strong> {tr('meas-time-help')}: <strong>{tzOff}</strong></> }),
     ])
   }
   override async initialize() {

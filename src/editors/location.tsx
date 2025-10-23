@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { DateTimeInput, DateTimeInputAutoSet, getTzOffsetStr } from './date-time'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
 import { isTimestampSet, VALID_NAME_RE } from '../types/common'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
+import { StartEndTimeEditor } from './date-time'
 import { EMPTY_COORDS } from '../types/coords'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -79,8 +79,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   private readonly inpName
   private readonly inpDesc
   private readonly coordEditor :SuperCoordEditor<SamplingLocation>
-  private readonly inpStart
-  private readonly inpEnd
+  private readonly edTimes :StartEndTimeEditor<SamplingLocation>
   private readonly inpNotes
   private readonly sampEdit
   private readonly taskEditor
@@ -97,10 +96,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
 
     this.coordEditor = new SuperCoordEditor(this, this.initObj.template?.nomCoords ?? EMPTY_COORDS, this.initObj.actCoords)
 
-    this.inpStart = new DateTimeInput(this.initObj.startTime, true)
-    this.inpStart.el.setAttribute('data-test-id','locStartTime')
-    this.inpEnd = new DateTimeInputAutoSet(this.ctx, this.initObj.endTime, false, !this.isUnsaved && !isTimestampSet(this.initObj.endTime))
-    this.inpEnd.el.setAttribute('data-test-id','locEndTime')
+    this.edTimes = new StartEndTimeEditor(this, this.initObj.startTime, this.initObj.endTime,
+      !this.isUnsaved && !isTimestampSet(this.initObj.endTime), 'loc')
 
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
       label: tr('Notes'), helpText: <>{tr('loc-notes-help')} {tr('notes-help')}</>, startExpanded: true })
@@ -117,19 +114,11 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 
-    const tzOff = getTzOffsetStr()
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
         helpText: <><strong>{tr('Required')}.</strong> {this.makeNameHelp()}</>, invalidText: tr('Invalid name') }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('loc-short-desc-help')}</> }),
-      rowInst, this.coordEditor.el,
-      this.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><strong>{tr('Required')}.</strong> {tr('loc-start-time-help')}: <strong data-test-id='loc-tz'>{tzOff}</strong></> }),
-      this.makeRow(this.inpEnd.el, { label: tr('End time'), invalidText: tr('Invalid timestamp'),
-        helpText: <><em>{tr('Recommended')}.</em> {tr('loc-end-time-help')}: <strong>{tzOff}</strong></> }),
-      rowNotes,
-      this.sampEdit.elWithTitle,
-      this.taskEditor.el,
+      rowInst, this.coordEditor.el, this.edTimes.el, rowNotes, this.sampEdit.elWithTitle, this.taskEditor.el,
     ])
   }
   override async initialize() {
@@ -141,17 +130,17 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   protected override newObj() { return new SamplingLocation(null) }
 
   protected override form2obj(saving :boolean) {
-    if (saving) this.inpEnd.doSave()
+    if (saving) this.edTimes.doSaveEnd()
     return new SamplingLocation({ template: this.initObj.template, name: this.inpName.value,
       shortDesc: this.inpDesc.value, actualCoords: this.coordEditor.getActCoords(),
-      startTime: this.inpStart.timestamp, endTime: this.inpEnd.timestamp,
+      startTime: this.edTimes.getStart(), endTime: this.edTimes.getEnd(),
       samples: this.initObj.samples, notes: this.inpNotes.value.trim(),
       completedTasks: this.taskEditor.completedTasks(),
       photos: [/*...*/] })
   }
 
   protected override customValidation(skipInitWarns :boolean) {
-    return skipInitWarns || isTimestampSet(this.inpEnd.timestamp) || this.inpEnd.isAutoSetOn ? [] : [tr('No end time')]
+    return skipInitWarns || isTimestampSet(this.edTimes.getEnd()) || this.edTimes.isAutoSetEndOn() ? [] : [tr('No end time')]
   }
 
   override currentName() { return this.inpName.value }
