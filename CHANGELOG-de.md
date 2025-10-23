@@ -9,6 +9,9 @@ v0.2.0-beta - *noch nicht released*
   werden standardmäßig angezeigt. Dies wurde geändert weil Messstellen meist im
   Feld ausgefüllt werden und es daher weniger wahrscheinlich ist, dass Koordinaten
   von Hand eingetippt werden.
+- Auf der Hauptseite wurde der Reiter "Messprozeduren (Protokoll-Vorlagen)" (engl. "Sampling
+  Procedures (Log Templates)") umbenannt in "Vorlagen (Prozeduren)" ("Templates (Procedures)"),
+  da der Name zu ähnlich zu "Messprotokolle" ("Sampling Logs") war.
 
 v0.1.0-beta - 2025-05-22
 ------------------------

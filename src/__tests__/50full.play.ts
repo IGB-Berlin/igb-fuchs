@@ -366,7 +366,7 @@ test('full integration test', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
   await page.clock.setFixedTime('2025-01-02T01:01Z')
 
-  await page.getByRole('button', { name: 'Log Templates' }).click()
+  await page.getByRole('button', { name: 'Templates (Procedures)' }).click()
   // At this point, while the animation is running, there are two "New" buttons visible, so wait for animation to finish.
   await Promise.all([
     expect(page.getByTestId('accSampLog')).toBeHidden(),

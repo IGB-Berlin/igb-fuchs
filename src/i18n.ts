@@ -47,6 +47,7 @@ const translations = {
   'Expand': ['Erweitern'],
   'Collapse': ['Verkleinern'],
   'Next': ['Nächste'],
+  'Procedures': ['Prozeduren'],
 
   // import-export
   'Export': ['Export'],
@@ -438,7 +439,6 @@ const translations = {
   'Sampling Logs': ['Messprotokolle'],
   'Sampling Procedure': ['Messprozedur'],
   'Sampling Procedures': ['Messprozeduren'],
-  'Log Templates': ['Protokoll-Vorlagen'],
   'Sampling Location': ['Messstelle'],
   'Sampling Locations': ['Messstellen'],
   'Sampling Location Template': ['Messstellen-Vorlage'],

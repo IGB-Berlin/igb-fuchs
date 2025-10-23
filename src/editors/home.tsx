@@ -80,7 +80,7 @@ export class HomePage implements StackAble, ListEditorParent {
 
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
       {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
-      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Sampling Procedures')} ({tr('Log Templates')})</>, procEdit.el)}
+      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, procEdit.el)}
       {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp)}
       {makeAcc(ctx, 'accSett', tr('Settings'), settings)}
     </div>)
