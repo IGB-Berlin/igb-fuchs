@@ -1,0 +1,30 @@
+name: Generate a Release Candidate .exe
+
+on:
+  push:
+    tags:
+      - 'rc*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Smudge
+        run: perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
+      - name: Build .exe
+        run: make build
+        working-directory: dev/py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: igb-fuchs-dev-local-exe
+          path: dev/py/dist/*.exe
