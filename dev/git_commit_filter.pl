@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use warnings;
 use strict;
-use open ':std', ':raw:encoding(UTF-8)';
+use open ':std', IO => ':raw :encoding(UTF-8)';
 
 my $CMD = shift // '';
 my $repl = '$Commit$';  # default for clean
