@@ -25,6 +25,8 @@ jobs:
       - name: Smudge
         run: perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
       - name: Build .exe
+        env:
+          CUSTOM_DEV_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'local-dev' }}
         run: make build
         working-directory: dev/py
       - uses: actions/upload-artifact@v4
