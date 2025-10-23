@@ -23,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Smudge
-        run: PERLIO=':raw:encoding(UTF-8)' perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
+        run: perl -i dev/git_commit_filter.pl smudge worker/service-worker.ts src/main.ts
       - name: Build .exe
         run: make build
         working-directory: dev/py
