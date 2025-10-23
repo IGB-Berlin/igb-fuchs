@@ -27,7 +27,7 @@ import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { setRemove } from '../types/set'
 import { GlobalContext } from '../main'
-import { tr } from '../i18n'
+import { i18n, tr } from '../i18n'
 
 class CheckList {
   readonly el
@@ -36,7 +36,9 @@ class CheckList {
   constructor(ctx :GlobalContext, initialCheckStates :{ [key :string]: boolean }) {
     this.checkStates = initialCheckStates
     const checks = Object.keys(initialCheckStates)
+    let allChecked :boolean = true
     this.checkItems = checks.map(c => {
+      if (!this.checkStates[c]) allChecked = false
       const id = ctx.genId('ChecklistCb')
       const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
         checked={!!this.checkStates[c]} onchange={()=>{
@@ -47,10 +49,19 @@ class CheckList {
         {cb}<label class="form-check-label" for={id}>{c}</label></li>
       return [li, cb]
     })
-    this.el = safeCastElement(HTMLDivElement,
-      <div><ul class="list-group custom-checklist">
-        {this.checkItems.map(i=>i[0])}
-      </ul></div> )
+    const theList = <ul class="list-group custom-checklist">{this.checkItems.map(i=>i[0])}</ul>
+    const lnkShowList = <a href="#">{tr('Show checklist')}</a>
+    const showList = <ul class="list-group"><li class="list-group-item">
+      <span class="text-success-emphasis me-1">{i18n.t('checklist-complete', { count: this.checkItems.length })}.</span>
+      {lnkShowList} </li></ul>
+    lnkShowList.addEventListener('click', event => {
+      event.preventDefault()
+      theList.classList.remove('d-none')
+      showList.classList.add('d-none')
+    })
+    if ( allChecked && this.checkItems.length>1 ) theList.classList.add('d-none')
+    else showList.classList.add('d-none')
+    this.el = safeCastElement(HTMLDivElement, <div>{showList}{theList}</div> )
   }
   checkedTasks() :string[] {
     return Object.entries(this.checkStates).flatMap(([k,v]) => v ? [k] : [])

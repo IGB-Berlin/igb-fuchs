@@ -16,6 +16,8 @@ v0.2.0-beta - *noch nicht released*
   Vorlage meistens vollständig automatisch gesetzt werden können, wurden die Eingabefelder
   in einem Dropdown versteckt.
 - Im Hilfetext des Messung-Zeitstempels wird nun die Zeitzone angezeigt.
+- Wenn man ein Messprotokoll öffnet, bei dem alle Checklist-Aufgaben erledigt sind,
+  wird die Checkliste erst nach einem Klick auf den entsprechenden Link angezeigt.
 
 v0.1.0-beta - 2025-05-22
 ------------------------

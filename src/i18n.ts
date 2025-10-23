@@ -328,6 +328,10 @@ const translations = {
   'checklist-help': [
     'Kontrollliste zur Hilfe bei der Vorbereitung dieser Messprozedur. Die Checkliste ist im CSV Export nicht enthalten.',
     'Checklist for help in preparation of this sampling procedure. The checklist is not exported in the CSV format.' ],
+  'checklist-complete': [
+    { zero: 'Checkliste war leer', one: 'Checklist-Aufgabe erledigt', other: 'Alle %{count} Checklist-Aufgaben erledigt' },
+    { zero: 'Checklist was empty', one: 'Checklist task completed', other: 'All %{count} checklist tasks completed' } ],
+  'Show checklist': ['Checkliste anzeigen'],
   'check-not-completed': [
     { zero: 'Alle Checklist-Aufgaben erledigt', one: 'Eine Checklist-Aufgabe nicht erledigt', other: '%{count} Checklist-Aufgaben nicht erledigt' },
     { zero: 'All checklist tasks complete', one: 'One checklist task not completed', other: '%{count} checklist tasks not completed' } ],
