@@ -1,4 +1,4 @@
 /src/images/*.png  filter=lfs diff=lfs merge=lfs -text
 /src/images/*.pdf  filter=lfs diff=lfs merge=lfs -text
-/worker/service-worker.ts  filter=git_commit -text
-/src/main.ts               filter=git_commit -text
+/worker/service-worker.ts  filter=git_commit text eol=lf
+/src/main.ts               filter=git_commit text eol=lf
