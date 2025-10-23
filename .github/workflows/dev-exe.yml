@@ -8,8 +8,11 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: windows-latest
+    runs-on: Windows-latest
     steps:
+      - name: Disable autocrlf on Windows
+        # https://github.com/actions/checkout/issues/135
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v5
         with:
           lfs: true
