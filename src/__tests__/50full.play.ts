@@ -361,7 +361,7 @@ const csvData :string[][] = [
 ] as const
 
 test.setTimeout(60000)  // long test, timeout 60s instead of default 30s
-test('full integration test', async ({ page }) => {
+test('full integration test', async ({ page, context }) => {
   await initPageTest(page)
   await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
   await page.clock.setFixedTime('2025-01-02T01:01Z')
@@ -635,22 +635,17 @@ test('full integration test', async ({ page }) => {
   await expect(page.getByTestId('locEndTime').getByRole('textbox')).toHaveValue('')
   await expect(page.getByRole('checkbox', { name: 'Automatically set end time' })).toBeChecked()
 
-  const isFirefox = page.context().browser()?.browserType().name() === 'firefox'
   // get current coordinates (for fake coords see Playwright config file)
-  if (!isFirefox) {
-    await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // collapse
-    await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toBeHidden()
-    await page.getByRole('button', { name: /^[^\w]*Location$/ }).click()
-    await expect(page.getByRole('button', { name: 'Use current location', exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Use current location', exact: true }).click()
-    await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
-    await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.516312')
-    await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.377657')
-  }
-  else {
-    await page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' }).fill('52.516312')
-    await page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' }).fill('13.377657')
-  }
+  // (even though the geolocation permissions are granted in playwright.config.ts, Firefox apparently needs them again)
+  await context.grantPermissions(['geolocation'])
+  await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // collapse
+  await expect(page.getByTestId('nomCoords').getByRole('textbox', { name: 'Latitude' })).toBeHidden()
+  await page.getByRole('button', { name: /^[^\w]*Location$/ }).click()
+  await expect(page.getByRole('button', { name: 'Use current location', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Use current location', exact: true }).click()
+  await page.getByTestId('coord-accord').click({ position: { x: 2, y: 2 } })  // expand
+  await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Latitude' })).toHaveValue('52.516312')
+  await expect(page.getByTestId('actCoords').getByRole('textbox', { name: 'Longitude' })).toHaveValue('13.377657')
 
   // Second sampling location first sample
   await page.getByRole('listitem').filter({ hasText: 'Surface water (general) / Gamma' }).getByRole('button', { name: 'Start' }).click()
