@@ -16,8 +16,9 @@
     "dist-clean": "git clean -dxf",
     "clean": "git clean -dxf -e node_modules -e dev/py/.venv",
     "start": "npm run clean && parcel --port 1234",
-    "build": "npm run clean && npm run lint && parcel build",
-    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint",
+    "build": "npm run clean && npm run lint && npm run just-build",
+    "just-build": "rm -rf dist && parcel build && cp -v src/types/igb-fuchs.schema.json dist/",
+    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint src/types/igb-fuchs.schema.json",
     "all-test": "npm run build && jest && playwright test"
   },
   "@parcel/transformer-js": {
@@ -35,6 +36,7 @@
     "@parcel/transformer-typescript-tsc": "^2.16.0",
     "@parcel/transformer-webmanifest": "^2.16.0",
     "@playwright/test": "^1.56.1",
+    "@sourcemeta/jsonschema": "^12.0.0",
     "@stylistic/eslint-plugin": "^5.5.0",
     "@types/bootstrap": "^5.2.10",
     "@types/node": "^22.18.12",
@@ -51,6 +53,7 @@
     "typescript-eslint": "^8.46.2"
   },
   "dependencies": {
+    "@cfworker/json-schema": "^4.1.1",
     "@parcel/service-worker": "^2.16.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",

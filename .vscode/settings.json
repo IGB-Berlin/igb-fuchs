@@ -25,5 +25,8 @@
     "unitless",
     "unparse"
   ],
+  "jest.runMode": {
+    "type": "on-demand"
+  },
 }
 /* vim: set filetype=javascript ts=2 sw=2 expandtab : */

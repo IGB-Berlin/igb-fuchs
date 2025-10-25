@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "https://json-schema.org/draft-07/draft-handrews-json-schema-validation-01",
+  "$id": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json",
+  "title": "IGB-FUCHS Data Schema v0",
+  "type": "object",
+  "properties": {
+    "_comment": { "type": "string" },
+    "version": { "const": 0 },
+    "$schema": { "const": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json" },
+    "samplingLogs": {
+      "type": "object",
+      "propertyNames": { "$ref": "#Ident" },
+      "additionalProperties": { "$ref": "#SamplingLog" },
+      "description": "Keys must match the ID of their objects."
+    },
+    "samplingProcedures": {
+      "type": "object",
+      "propertyNames": { "$ref": "#Ident" },
+      "additionalProperties": { "$ref": "#SamplingProcedure" },
+      "description": "Keys must match the ID of their objects."
+    }
+  },
+  "required": [ "samplingLogs", "samplingProcedures" ],
+  "additionalProperties": false,
+  "definitions": {
+    "SamplingLog": { "$id": "#SamplingLog",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#Ident" },
+        "name": { "$ref": "#ObjectName" },
+        "startTime": { "$ref": "#Timestamp" },
+        "endTime": { "$ref": "#Timestamp" },
+        "lastModified": { "$ref": "#Timestamp" },
+        "persons": { "$ref": "#OptionalTrimmedString" },
+        "weather": { "$ref": "#OptionalTrimmedString" },
+        "notes": { "$ref": "#OptionalTrimmedString" },
+        "checkedTasks": { "$ref": "#OptionalStringArray" },
+        "locations": { "type": "array", "items": { "$ref": "#SamplingLocation" } },
+        "template": { "anyOf": [
+          { "type": "null", "description": "Key should be omitted if value is null." },
+          { "$ref": "#SamplingProcedure" } ] }
+      },
+      "required": [ "id", "name", "startTime", "locations" ],
+      "additionalProperties": false
+    },
+    "SamplingProcedure": { "$id": "#SamplingProcedure",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#Ident" },
+        "name": { "$ref": "#ObjectName" },
+        "instructions": { "$ref": "#OptionalTrimmedString" },
+        "checklist": { "$ref": "#OptionalStringArray" },
+        "locations": { "type": "array", "items": { "$ref": "#SamplingLocationTemplate" } },
+        "commonSamples": { "type": "array", "items": { "$ref": "#SampleTemplate" } }
+      },
+      "required": [ "id", "name", "locations", "commonSamples" ],
+      "additionalProperties": false
+    },
+    "Ident": { "$id": "#Ident",
+      "type": "string",
+      "pattern": "^[-._a-zA-Z0-9]{3,}$"
+    },
+    "SamplingLocation": { "$id": "#SamplingLocation",
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#ObjectName" },
+        "shortDesc": { "$ref": "#OptionalTrimmedString" },
+        "actualCoords": { "$ref": "#WGS84Coordinates" },
+        "startTime": { "$ref": "#Timestamp" },
+        "endTime": { "$ref": "#Timestamp" },
+        "notes": { "$ref": "#OptionalTrimmedString" },
+        "samples": { "type": "array", "items": { "$ref": "#Sample" } },
+        "completedTasks": { "$ref": "#OptionalStringArray" },
+        "photos": { "type": "array", "items": { "type": "string" },
+          "maxItems": 0, "description": "Currently unused." },
+        "template": { "anyOf": [
+          { "type": "null", "description": "Key should be omitted if value is null." },
+          { "$ref": "#SamplingLocationTemplate" } ] }
+      },
+      "required": [ "name", "actualCoords", "startTime", "samples" ],
+      "additionalProperties": false
+    },
+    "SamplingLocationTemplate": { "$id": "#SamplingLocationTemplate",
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#ObjectName" },
+        "shortDesc": { "$ref": "#OptionalTrimmedString" },
+        "instructions": { "$ref": "#OptionalTrimmedString" },
+        "nominalCoords": { "$ref": "#WGS84Coordinates" },
+        "samples": { "type": "array", "items": { "$ref": "#SampleTemplate" } },
+        "tasklist": { "$ref": "#OptionalStringArray" }
+      },
+      "required": [ "name", "nominalCoords", "samples" ],
+      "additionalProperties": false
+    },
+    "OptionalStringArray": { "$id": "#OptionalStringArray",
+      "anyOf": [
+        { "type": "null", "description": "Key should be omitted if value is null." },
+        { "type": "array", "items": { "type": "string" },
+          "description": "Key should be omitted if array is empty." } ]
+    },
+    "WGS84Coordinates": { "$id": "#WGS84Coordinates",
+      "type": "object",
+      "description": "Coordinates are typically limited to 6 decimal places (~11cm precision).",
+      "properties": {
+        "wgs84lat": { "anyOf": [
+            { "type": "number", "minimum":  -90, "maximum":  90 },
+            { "type": "null", "description": "NaN" } ] },
+        "wgs84lon": { "anyOf": [
+            { "type": "number", "minimum": -180, "maximum": 180 },
+            { "type": "null", "description": "NaN" } ] }
+      },
+      "required": [ "wgs84lat", "wgs84lon" ],
+      "additionalProperties": false
+    },
+    "Sample": { "$id": "#Sample",
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#SampleType" },
+        "shortDesc": { "$ref": "#OptionalTrimmedString" },
+        "subjectiveQuality": { "$ref": "#QualityFlag" },
+        "notes": { "$ref": "#OptionalTrimmedString" },
+        "measurements": { "type": "array", "items": { "$ref": "#Measurement" } },
+        "template": { "anyOf": [ { "$ref": "#SampleTemplate" },
+          { "type": "null", "description": "Key should be omitted if value is null." } ] }
+      },
+      "required": [ "type", "subjectiveQuality", "measurements" ],
+      "additionalProperties": false
+    },
+    "QualityFlag": { "$id": "#QualityFlag",
+      "enum": [ "undefined", "good", "questionable", "bad" ]
+    },
+    "SampleTemplate": { "$id": "#SampleTemplate",
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#SampleType" },
+        "shortDesc": { "$ref": "#OptionalTrimmedString" },
+        "instructions": { "$ref": "#OptionalTrimmedString" },
+        "measurementTypes": { "type": "array", "items": { "$ref": "#MeasurementType" } }
+      },
+      "required": [ "type", "measurementTypes" ],
+      "additionalProperties": false
+    },
+    "SampleType": { "$id": "#SampleType",
+      "enum": [ "undefined", "surface-water", "surface-water-flowing", "surface-water-standing",
+        "ground-water", "water-precipitation", "sediment", "soil", "vegetation", "organism",
+        "fish", "insect", "data-logger", "probe", "other" ]
+    },
+    "Measurement": { "$id": "#Measurement",
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#MeasurementType" },
+        "time": { "$ref": "#Timestamp" },
+        "value": { "type": "string", "pattern": "^[-+]?([1-9][0-9]+|[0-9]?)(\\.[0-9]+)?$",
+          "description": "Is stored as string to avoid floating-point inaccuracies. Decimal places are limited to type's precision." }
+      },
+      "required": [ "type", "time", "value" ],
+      "additionalProperties": false
+    },
+    "Timestamp": { "$id": "#Timestamp",
+      "anyOf": [
+        { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 32503676400000,
+          "description": "Number of milliseconds elapsed since midnight, January 1, 1970 UTC. Minimum (1970) and maximum (year 3000) may be extended in the future." },
+        { "type": "null", "description": "NaN (no timestamp set)" } ]
+    },
+    "MeasurementType": { "$id": "#MeasurementType",
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#ObjectName" },
+        "unit": { "type": "string", "pattern": "^[^ \\t\\n\\r](.*[^ \\t\\n\\r])?$" },
+        "min": { "anyOf": [
+          { "type": "number", "description": "Must be less than or equal to max." },
+          { "type": "null", "description": "NaN; Key should be omitted if value is null." } ] },
+        "max": { "anyOf": [
+          { "type": "number" },
+          { "type": "null", "description": "NaN; Key should be omitted if value is null." } ] },
+        "precision": { "anyOf": [
+          { "type": "integer", "minimum": 0 },
+          { "type": "null", "description": "NaN; Key should be omitted if value is null." } ] },
+        "instructions": { "$ref": "#OptionalTrimmedString" }
+      },
+      "required": [ "name", "unit" ],
+      "additionalProperties": false
+    },
+    "ObjectName": { "$id": "#ObjectName",
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9].+$",
+      "description": "Additional stricter validation in code!"
+    },
+    "OptionalTrimmedString": { "$id": "#OptionalTrimmedString",
+      "anyOf": [
+        { "type": "null", "description": "Key should be omitted if value is null." },
+        { "type": "string", "description": "Whitespace is typically trimmed. If string is empty, omit the key." } ]
+    }
+  }
+}

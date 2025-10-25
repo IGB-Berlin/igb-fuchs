@@ -18,6 +18,11 @@ v0.2.0-beta - *noch nicht released*
 - Im Hilfetext des Messung-Zeitstempels wird nun die Zeitzone angezeigt.
 - Wenn man ein Messprotokoll öffnet, bei dem alle Checklist-Aufgaben erledigt sind,
   wird die Checkliste erst nach einem Klick auf den entsprechenden Link angezeigt.
+- Interne Änderung: die `id` Attribute in den JSON-Daten wird nun ein wenig strikter validiert.
+  Dies wird nur Benutzer betreffen, die diese Attribute in den JSON Dateien von Hand geändert
+  haben und dabei nun ungültige Zeichen (z.B. Leerzeichen) eingefügt haben.
+- Es existiert nun eine erste Testversion eines sog. "JSON Schema", welches das Datenformat
+  von IGB-FUCHS JSON Dateien Programmiersprachen-unabhängig definiert.
 
 v0.1.0-beta - 2025-05-22
 ------------------------

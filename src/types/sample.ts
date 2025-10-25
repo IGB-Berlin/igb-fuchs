@@ -20,7 +20,7 @@ import { DataObjectTemplate, DataObjectWithTemplate, isArrayOf, StyleValue } fro
 import { i18n, tr } from '../i18n'
 import { assert } from '../utils'
 
-export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' !
+export const sampleTypes = ['undefined',  // Remember to keep in sync with translations 'st-*' and JSON Schema !
   'surface-water', 'surface-water-flowing', 'surface-water-standing', 'ground-water', 'water-precipitation',
   'sediment', 'soil', 'vegetation', 'organism', 'fish', 'insect', 'data-logger', 'probe', 'other'
 ] as const
@@ -28,7 +28,7 @@ type SampleType = typeof sampleTypes[number]
 export function isSampleType(v :unknown) :v is SampleType {
   return typeof v==='string' && sampleTypes.includes(v as SampleType) }
 
-export const qualityFlags = ['undefined',  // Remember to keep in sync with translations 'qf-*' !
+export const qualityFlags = ['undefined',  // Remember to keep in sync with translations 'qf-*' and JSON Schema !
   'good', 'questionable', 'bad'] as const
 export type QualityFlag = typeof qualityFlags[number]
 export function isQualityFlag(v :unknown) :v is QualityFlag {

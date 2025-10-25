@@ -21,6 +21,8 @@ import { SamplingLocation, SamplingLocationTemplate } from './types/location'
 import { hasId, isTimestampSet, timestampNow } from './types/common'
 import { openDB, DBSchema, IDBPDatabase, StoreNames } from 'idb'
 import { importOverwriteQuestion, yesNoDialog } from './dialogs'
+import { Validator, Schema } from '@cfworker/json-schema'
+import FUCHS_SCHEMA from './types/igb-fuchs.schema.json'
 import { MeasurementType } from './types/measurement'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
@@ -28,11 +30,15 @@ import { AbstractStore} from './storage'
 import { i18n, tr } from './i18n'
 import { assert } from './utils'
 
+const VALIDATOR = new Validator(FUCHS_SCHEMA as Schema, '7', false)
+
 const IDB_NAME = 'IGB-FUCHS'
-const JSON_COMMENT = 'This is a data file for IGB-FUCHS: https://fuchs.igb-berlin.de/'
+const JSON_COMMENT = 'This is a data file for IGB-FUCHS: https://fuchs.igb-berlin.de/' as const
+const SCHEMA_URL = 'https://fuchs.igb-berlin.de/igb-fuchs.schema.json' as const
 
 interface JsonFileFormat {
   _comment :typeof JSON_COMMENT,
+  $schema :typeof SCHEMA_URL
   version :0,
   samplingLogs: { [key :string]: ISamplingLog }
   samplingProcedures: { [key :string]: ISamplingProcedure }
@@ -329,7 +335,7 @@ export class IdbStorage {
   }
 
   async export() :Promise<File> {
-    const data :JsonFileFormat = { _comment: JSON_COMMENT, version: 0, samplingLogs: {}, samplingProcedures: {} }
+    const data :JsonFileFormat = { _comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
     const stores = ['samplingLogs', 'samplingProcedures'] as const
     const trans = this.db.transaction(stores, 'readonly')
     await Promise.all(stores.map(async storeName => {
@@ -341,14 +347,16 @@ export class IdbStorage {
           : isISamplingProcedure(cur.value) ? new SamplingProcedure(cur.value).toJSON('')
             : cur.value  // NOTE this is intentional, to still allow *all* objects to be exported after schema changes
       } }) )
+    this.schemaValidate(data)
     return new File( [JSON.stringify( data, null, 2 )], makeFilename(null,'json'), { type: 'application/json' } )
   }
 
   // This could be static but whatever
   exportOne(obj :SamplingProcedure|SamplingLog) :File {
-    const data :JsonFileFormat = { _comment: JSON_COMMENT, version: 0, samplingLogs: {}, samplingProcedures: {} }
+    const data :JsonFileFormat = { _comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
     if (obj instanceof SamplingProcedure) data.samplingProcedures[obj.id] = obj
     else data.samplingLogs[obj.id] = obj
+    this.schemaValidate(data)
     return new File( [JSON.stringify( data, null, 2 )], makeFilename(obj,'json'), { type: 'application/json' } )
   }
 
@@ -361,6 +369,8 @@ export class IdbStorage {
      * Since we may need to `await` overwrite confirmation dialogs, it would fail. */
     if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
     const rv :ImportResults = { info: [], errors: [] }
+
+    this.schemaValidate(data)
 
     let ver :number = -1
     if ('version' in data) {
@@ -444,6 +454,16 @@ export class IdbStorage {
     }
 
     return rv
+  }
+
+  /** For now, this is just for testing our schema. */
+  private schemaValidate(data :unknown) {
+    try {
+      const results = VALIDATOR.validate(data)
+      if (results.valid) console.debug('Schema validation passed')
+      else console.warn('Schema validation failed', results.errors)
+    }
+    catch (ex) { console.error('Error during Schema validation', ex) }
   }
 
   private async selfTest() :Promise<boolean> {

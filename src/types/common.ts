@@ -104,8 +104,9 @@ export abstract class DataObjectWithTemplate<D extends DataObjectWithTemplate<D,
   abstract extractTemplate() :T
 }
 
+const VALID_ID_RE = /^[-._a-zA-Z0-9]{3,}$/
 export function validateId(id :string) {
-  if (!id.length) throw new Error(`${tr('invalid-id')}: ${id}`) }
+  if (!id.match(VALID_ID_RE)) throw new Error(`${tr('invalid-id')}: ${id}`) }
 
 // Also https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // The backslash is required when RE.source is used as <input type="text" pattern={...} />

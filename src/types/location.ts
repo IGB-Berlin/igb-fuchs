@@ -222,7 +222,7 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     super()
     this.name = o?.name ?? ''
     this.shortDesc = o && 'shortDesc' in o && o.shortDesc!==null ? o.shortDesc.trim() : ''
-    this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions : ''
+    this.instructions = o && 'instructions' in o && o.instructions!==null ? o.instructions.trim() : ''
     this.nominalCoords = o?.nominalCoords ?? new Wgs84Coordinates(null)
     this.samples = o===null ? [] : isArrayOf(SampleTemplate, o.samples) ? o.samples : o.samples.map(s => new SampleTemplate(s))
     this.tasklist = o && 'tasklist' in o && o.tasklist ? o.tasklist : []
