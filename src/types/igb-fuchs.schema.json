@@ -39,7 +39,7 @@
         "locations": { "type": "array", "items": { "$ref": "#SamplingLocation" } },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
-          { "$ref": "#SamplingProcedure" } ] }
+          { "$ref": "#SamplingProcedure" }, { "$ref": "#BlankSamplingProcedure" } ] }
       },
       "required": [ "id", "name", "startTime", "locations" ],
       "additionalProperties": false
@@ -53,6 +53,18 @@
         "checklist": { "$ref": "#OptionalStringArray" },
         "locations": { "type": "array", "items": { "$ref": "#SamplingLocationTemplate" } },
         "commonSamples": { "type": "array", "items": { "$ref": "#SampleTemplate" } }
+      },
+      "required": [ "id", "name", "locations", "commonSamples" ],
+      "additionalProperties": false
+    },
+    "BlankSamplingProcedure": { "$id": "#BlankSamplingProcedure",
+      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#Ident" },
+        "name": { "const": "" },
+        "locations": { "type": "array", "maxItems": 0 },
+        "commonSamples": { "type": "array", "maxItems": 0 }
       },
       "required": [ "id", "name", "locations", "commonSamples" ],
       "additionalProperties": false
@@ -76,7 +88,7 @@
           "maxItems": 0, "description": "Currently unused." },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
-          { "$ref": "#SamplingLocationTemplate" } ] }
+          { "$ref": "#SamplingLocationTemplate" }, { "$ref": "#BlankSamplingLocationTemplate" } ] }
       },
       "required": [ "name", "actualCoords", "startTime", "samples" ],
       "additionalProperties": false
@@ -94,11 +106,24 @@
       "required": [ "name", "nominalCoords", "samples" ],
       "additionalProperties": false
     },
+    "BlankSamplingLocationTemplate": { "$id": "#BlankSamplingLocationTemplate",
+      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "type": "object",
+      "properties": {
+        "name": { "const": "" },
+        "nominalCoords": { "type": "object",
+          "properties": { "wgs84lat": { "type": "null" }, "wgs84lon": { "type": "null" } },
+          "required": [ "wgs84lat", "wgs84lon" ], "additionalProperties": false },
+        "samples": { "type": "array", "maxItems": 0 }
+      },
+      "required": [ "name", "nominalCoords", "samples" ],
+      "additionalProperties": false
+    },
     "OptionalStringArray": { "$id": "#OptionalStringArray",
       "anyOf": [
         { "type": "null", "description": "Key should be omitted if value is null." },
         { "type": "array", "items": { "type": "string" },
-          "description": "Key should be omitted if array is empty." } ]
+          "description": "Key should be omitted if the array is empty." } ]
     },
     "WGS84Coordinates": { "$id": "#WGS84Coordinates",
       "type": "object",
@@ -122,8 +147,9 @@
         "subjectiveQuality": { "$ref": "#QualityFlag" },
         "notes": { "$ref": "#OptionalTrimmedString" },
         "measurements": { "type": "array", "items": { "$ref": "#Measurement" } },
-        "template": { "anyOf": [ { "$ref": "#SampleTemplate" },
-          { "type": "null", "description": "Key should be omitted if value is null." } ] }
+        "template": { "anyOf": [
+          { "type": "null", "description": "Key should be omitted if value is null." },
+          { "$ref": "#SampleTemplate" }, { "$ref": "#BlankSampleTemplate" } ] }
       },
       "required": [ "type", "subjectiveQuality", "measurements" ],
       "additionalProperties": false
@@ -138,6 +164,16 @@
         "shortDesc": { "$ref": "#OptionalTrimmedString" },
         "instructions": { "$ref": "#OptionalTrimmedString" },
         "measurementTypes": { "type": "array", "items": { "$ref": "#MeasurementType" } }
+      },
+      "required": [ "type", "measurementTypes" ],
+      "additionalProperties": false
+    },
+    "BlankSampleTemplate": { "$id": "#BlankSampleTemplate",
+      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "undefined" },
+        "measurementTypes": { "type": "array", "maxItems": 0 }
       },
       "required": [ "type", "measurementTypes" ],
       "additionalProperties": false
@@ -191,7 +227,7 @@
     "OptionalTrimmedString": { "$id": "#OptionalTrimmedString",
       "anyOf": [
         { "type": "null", "description": "Key should be omitted if value is null." },
-        { "type": "string", "description": "Whitespace is typically trimmed. If string is empty, omit the key." } ]
+        { "type": "string", "description": "Whitespace is typically trimmed. Key should be omitted if the string is empty." } ]
     }
   }
 }
