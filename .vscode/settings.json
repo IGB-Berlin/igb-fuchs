@@ -28,5 +28,19 @@
   "jest.runMode": {
     "type": "on-demand"
   },
+  "githubIssues.queries": [
+    {
+      "label": "Open Issues",
+      "query": "repo:${owner}/${repository} is:issue state:open sort:updated-desc",
+    },
+    {
+      "label": "Closed Issues",
+      "query": "repo:${owner}/${repository} is:issue state:closed sort:updated-desc",
+    },
+    {
+      "label": "Milestone v0.3.0-beta",
+      "query": "repo:${owner}/${repository} milestone:v0.3.0-beta sort:updated-desc",
+    },
+  ]
 }
 /* vim: set filetype=javascript ts=2 sw=2 expandtab : */
