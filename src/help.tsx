@@ -38,7 +38,7 @@ export function globalHideHelp(hide :boolean) {
 
 /** Just the button, no functionality. */
 export function makeHelpButton() :HTMLButtonElement {
-  return safeCastElement(HTMLButtonElement, <button type="button" class="btn btn-sm px-1 py-0 my-0 ms-1 me-0 help-button"
+  return safeCastElement(HTMLButtonElement, <button type="button" class="btn btn-sm mini-button px-1 py-0 my-0 ms-1 me-0 help-button"
     title={tr('Help')}><i class="bi-question-circle" /><span class="visually-hidden"> {tr('Help')}</span></button>)
 }
 

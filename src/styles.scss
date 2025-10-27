@@ -121,6 +121,9 @@ body.hide-help-texts {
 body:not(.hide-help-texts) {
   .help-button { display: none; }
 }
+.mini-button:focus-visible {
+  border: 1px dashed var(--#{bs.$prefix}secondary-color)
+}
 
 .list-group-item:has( .mini-meas-edit ) {
   padding: bs.$spacer * 0.25;

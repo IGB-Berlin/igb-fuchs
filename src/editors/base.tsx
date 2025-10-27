@@ -427,7 +427,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     // Begin Auto-Expand stuff
     // someday: https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing
     const btnExpand = safeCastElement(HTMLButtonElement,
-      <button type="button" class="btn btn-sm px-1 py-0 my-0 ms-1 me-0"></button>)
+      <button type="button" class="btn btn-sm mini-button px-1 py-0 my-0 ms-1 me-0"></button>)
     let currentlyExpanded = opts.startExpanded || !initValue?.trim().length
     const updateButton = () => {
       btnExpand.setAttribute('title', tr(currentlyExpanded ? 'Collapse' : 'Expand') )
