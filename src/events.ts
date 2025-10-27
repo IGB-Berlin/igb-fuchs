@@ -24,9 +24,17 @@ import { StackAble } from './editors/stack'
  * to the `Editor`'s `.el`, where listeners can register to listen for any changes in the `Editor`, e.g. like `EditorStack` does.
  */
 export class CustomChangeEvent extends CustomEvent<never> {
-  static NAME = 'custom.change'
+  static readonly NAME = 'custom.change'
   constructor() {
     super(CustomChangeEvent.NAME, { bubbles: false, cancelable: false })
+  }
+}
+
+/** Currently only used in very limited cases where one UI element needs to signal an alert to another. */
+export class CustomAlertEvent extends CustomEvent<never> {
+  static readonly NAME = 'custom.alert'
+  constructor() {
+    super(CustomAlertEvent.NAME, { bubbles: false, cancelable: false })
   }
 }
 

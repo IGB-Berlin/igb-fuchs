@@ -16,10 +16,10 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase, makeValidNumberPat } from '../types/common'
+import { CustomChangeEvent, CustomAlertEvent } from '../events'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'
-import { CustomChangeEvent } from '../events'
 import { Alert, Collapse } from 'bootstrap'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -30,8 +30,6 @@ interface CoordEditorOpts {
   readonly ?:boolean
   noGetBtn ?:boolean
 }
-
-const ALERT_EVENT_NAME = 'FUCHS.CoordinatesEditor.Alert'
 
 export class CoordinatesEditor {
   readonly el :HTMLDivElement
@@ -72,7 +70,7 @@ export class CoordinatesEditor {
       this.el.dispatchEvent(new CustomChangeEvent())
     })
 
-    const fireAlert = () => this.el.dispatchEvent(new Event(ALERT_EVENT_NAME, { bubbles: false, cancelable: false }))
+    const fireAlert = () => this.el.dispatchEvent(new CustomAlertEvent())
     // bubble events from form validation:
     this.inpLat.addEventListener('invalid', fireAlert)
     this.inpLon.addEventListener('invalid', fireAlert)
@@ -246,7 +244,7 @@ export class SuperCoordEditor<B extends DataObjectBase<B>> {
       if (!areWgs84CoordsValid(actCoords))
         // NOTE simply doing getOrCreateInstance already seems to show the element!
         Collapse.getOrCreateInstance(accordCollapse).show()
-      this.edActCoords.el.addEventListener(ALERT_EVENT_NAME, () => Collapse.getOrCreateInstance(accordCollapse).show())
+      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () => Collapse.getOrCreateInstance(accordCollapse).show())
     })
 
   }
