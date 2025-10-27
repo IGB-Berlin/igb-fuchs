@@ -54,7 +54,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   readonly titleEl :HTMLElement
   readonly elWithTitle :HTMLElement
 
-  private readonly btnDiv
+  private readonly divButtons
   private readonly extraButtons :HTMLButtonElement[] = []
   private selId :string|null = null
   private readonly btnDel
@@ -92,13 +92,13 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
   }
 
   addDropdown(title :string|HTMLElement, items :[string|HTMLElement, (sel:B)=>unknown][]) {
-    const b = safeCastElement(HTMLButtonElement,
+    const btn = safeCastElement(HTMLButtonElement,
       <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap ms-3 mt-1"
         data-bs-toggle="dropdown" aria-expanded="false"> {title}</button>)
-    const d = <div class="dropdown"> {b}
+    const div = <div class="dropdown"> {btn}
       <ul class="dropdown-menu">
         {items.map(([t, cb]) => {
-          const btn = <button type="button" class="dropdown-item">{t}</button>
+          const btn = safeCastElement(HTMLButtonElement, <button type="button" class="dropdown-item">{t}</button>)
           btn.addEventListener('click', async () => {
             if (this.selId===null) return  // shouldn't happen
             return cb( await this.theStore.get(this.selId) )
@@ -107,8 +107,8 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
         })}
       </ul>
     </div>
-    this.extraButtons.push(b)
-    this.btnDiv.appendChild(d)
+    this.extraButtons.push(btn)
+    this.divButtons.appendChild(div)
   }
 
   protected async newEditor(obj :B|null, isNew :boolean) {
@@ -144,13 +144,16 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     this.editorClass = editorClass
     this.selItem = selItem
 
-    this.btnDel = <button type="button" class="btn btn-outline-danger text-nowrap mt-1" disabled><i class="bi-trash3"/> {tr('Delete')}</button>
-    this.btnNew = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>
-    this.btnEdit = <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>
+    this.btnDel = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-outline-danger text-nowrap mt-1" disabled><i class="bi-trash3"/> {tr('Delete')}</button>)
+    this.btnNew = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-plus-circle"/> {tr('New')}</button>)
+    this.btnEdit = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-outline-primary text-nowrap ms-3 mt-1" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>)
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
     this.theUl = <ul class="list-group my-2"></ul>
-    this.btnDiv = <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
-    this.el = <div>{this.theUl}{this.btnDiv}{this.disableNotice}</div>
+    this.divButtons = <div class="d-flex flex-row justify-content-end flex-wrap">{this.btnDel}{this.btnNew}{this.btnEdit}</div>
+    this.el = <div>{this.theUl}{this.divButtons}{this.disableNotice}</div>
     this.btnDel.addEventListener('click', async () => {
       const delId = this.selId  // b/c the event handlers may change this
       if (delId===null) return  // shouldn't happen
@@ -168,14 +171,14 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
         break }
       }
     })
-    const helpDiv = <div class="form-text my-0">{texts.help??''}</div>
-    const [_helpId, helpBtn] = makeHelp(this.ctx, helpDiv)
+    const divHelp = <div class="form-text my-0">{texts.help??''}</div>
+    const [_helpId, helpBtn] = makeHelp(this.ctx, divHelp)
     this.titleEl = <h5 class={`mb-0 editor-${editorStyle.cssId}-text`}><i class={`bi-${editorStyle.icon} me-1`}/>
       {texts.title} {texts.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
       <hr class="mt-4 mb-2" />
       {this.titleEl}
-      {texts.help?helpDiv:''}
+      {texts.help?divHelp:''}
       {this.el}
     </div>
 
@@ -210,11 +213,13 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
         Array.from(theList).forEach(([id,item],i) => {
           let content :HTMLElement = this.contentFor(item)
           if (this.theStore instanceof OrderedStore) {
-            const btnUp = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
-              <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>
+            const btnUp = safeCastElement(HTMLButtonElement,
+              <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
+                <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>)
             if (!i) btnUp.setAttribute('disabled','disabled')
-            const btnDown = <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
-              <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>
+            const btnDown = safeCastElement(HTMLButtonElement,
+              <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
+                <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>)
             if (i===theList.length-1) btnDown.setAttribute('disabled','disabled')
             content = <><div class="flex-grow-1">{content}</div><div class="d-flex flex-column gap-0 flex-nowrap justify-content-end">{btnUp}{btnDown}</div></>
             btnUp.addEventListener('click', async event => {
@@ -269,7 +274,8 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
     selItem :SelectedItemContainer, texts :ILETexts,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>) {
     super(parent, theStore, editorClass, editorStyle, selItem, texts)
-    this.btnTemp = <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>
+    this.btnTemp = safeCastElement(HTMLButtonElement,
+      <button type="button" class="btn btn-outline-info text-nowrap ms-3 mt-1"><i class="bi-copy"/> {tr('From Template')}</button>)
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(dialogTitle, await templateSource())
       if (template===null) return
@@ -316,7 +322,8 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
     const redrawPlanned = async () => {
       this.pEl.classList.toggle('d-none', !this.plannedLeft.length)
       this.pUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
-        const btnNew = <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>
+        const btnNew = safeCastElement(HTMLButtonElement,
+          <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>)
         btnNew.addEventListener('click', async () => {
           // NOTE the similarity to this.startFirstPlannedItem()
           const rm = this.plannedLeft.splice(ti,1)[0]  // remove the desired template from the `planned` array
