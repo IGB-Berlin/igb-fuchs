@@ -23,6 +23,12 @@ v0.2.0-beta - *noch nicht released*
   haben und dabei nun ungültige Zeichen (z.B. Leerzeichen) eingefügt haben.
 - Es existiert nun eine erste Testversion eines sog. "JSON Schema", welches das Datenformat
   von IGB-FUCHS JSON Dateien Programmiersprachen-unabhängig definiert.
+- Kleinere Änderungen in der grafischen Oberfläche:
+  - Wenn alle geplanten Messstellen/Proben/Messungen fertig sind, wird eine grüne Meldung
+    "alles erledigt" angezeigt.
+  - Die Zusammenfassung von Messstellen zeigt nun die Anzahl von erledigten und nicht
+    erledigten Aufgaben an.
+  - Bei kleinen Knöpfen wie "Hilfe" wird nun eine Tastatur-Navigations-Hilfe angezeigt.
 
 v0.1.0-beta - 2025-05-22
 ------------------------
