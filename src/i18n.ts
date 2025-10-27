@@ -48,6 +48,7 @@ const translations = {
   'Collapse': ['Verkleinern'],
   'Next': ['Nächste'],
   'Procedures': ['Prozeduren'],
+  'All completed': ['Alle erledigt'],
 
   // import-export
   'Export': ['Export'],

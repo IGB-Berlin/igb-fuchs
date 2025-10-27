@@ -304,23 +304,29 @@ export class ListEditorForTemp<T extends DataObjectTemplate<T, D>, D extends Dat
 }
 export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends DataObjectWithTemplate<D, T>> extends ListEditorTemp<T, D> {
   private readonly plannedLeft :T[]
+  private readonly plannedCount :number
   get plannedLeftCount() { return this.plannedLeft.length }
   readonly plannedTitleEl  // is only public so it can be used as a scroll target
   private readonly pUl
   private readonly pEl
+  private readonly pDone
   constructor(parent :ListEditorParent, theStore :AbstractStore<D>, editorClass :EditorClass<D>, editorStyle :StyleValue,
     selItem :SelectedItemContainer, texts :ILETextsWithTemp,
     dialogTitle :string|HTMLElement, templateSource :()=>Promise<T[]>, planned :T[]|null|undefined) {
     super(parent, theStore, editorClass, editorStyle, selItem, texts, dialogTitle, templateSource)
+    this.plannedCount = planned?.length ?? 0
     this.plannedLeft = planned ?? []
     this.pUl = <ul class="list-group"></ul>
     this.plannedTitleEl = <div class="mb-2 fs-5"><i class={`bi-${editorStyle.opposite?.icon}`}/> {texts.planned}</div>
     this.pEl = <div class="mt-1 d-none"> {this.plannedTitleEl} {this.pUl} </div>
     this.el.appendChild(this.pEl)
+    this.pDone = <div class="my-2 text-success fw-semibold fs-5 d-none"><i class="bi-check-lg me-1"/> {texts.planned}: {tr('All completed')}</div>
+    this.el.appendChild(this.pDone)
   }
   override async initialize() {
     await super.initialize()
     const redrawPlanned = async () => {
+      if (this.plannedCount && !this.plannedLeft.length) this.pDone.classList.remove('d-none')
       this.pEl.classList.toggle('d-none', !this.plannedLeft.length)
       this.pUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
         const btnNew = safeCastElement(HTMLButtonElement,
