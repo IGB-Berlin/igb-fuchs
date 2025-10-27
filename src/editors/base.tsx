@@ -421,7 +421,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** Helper function for subclasses to make a textarea row. */
   protected makeTextAreaRow(initValue :string|undefined, opts :MakeTextAreaRowOpts) :[HTMLElement, HTMLTextAreaElement] {
-    const input = safeCastElement(HTMLTextAreaElement, <textarea rows="2">{initValue?.trim()??''}</textarea>)
+    const input = safeCastElement(HTMLTextAreaElement, <textarea class="max-vh-75" rows="2">{initValue?.trim()??''}</textarea>)
     if (opts.readonly) input.setAttribute('readonly', 'readonly')
 
     // Begin Auto-Expand stuff
@@ -441,15 +441,17 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       currentlyExpanded = !currentlyExpanded
       updateButton()
       if (!currentlyExpanded) {
-        input.style.removeProperty('overflow-y')
+        //input.style.removeProperty('overflow-y')
         input.style.removeProperty('height')
       } else updateHeight()
     })
     const updateHeight = () => {
       if (!currentlyExpanded) return
-      input.style.setProperty('overflow-y', 'hidden')
+      /* The overflow-y hiding doesn't seem to be needed anymore since we started doing scrollHeight+1
+       * below, plus we need the scrollbar now that the field's max height is limited! */
+      //input.style.setProperty('overflow-y', 'hidden')
       input.style.setProperty('height', '') // trick to allow shrinking
-      input.style.setProperty('height', `${input.scrollHeight}px`)
+      input.style.setProperty('height', `${input.scrollHeight+1}px`)
     }
     input.addEventListener('input', updateHeight)
     setTimeout(updateHeight)  // delay update until after render

@@ -28,6 +28,8 @@ v0.2.0-beta - *noch nicht released*
     "alles erledigt" angezeigt.
   - Die Zusammenfassung von Messstellen zeigt nun die Anzahl von erledigten und nicht
     erledigten Aufgaben an.
+  - Die maximale Höhe von Text-Eingabefeldern ist nun begrenzt, damit der Benutzer besser
+    die Übersicht behalten kann, welches Feld aktuell bearbeitet wird.
   - Bei kleinen Knöpfen wie "Hilfe" wird nun eine Tastatur-Navigations-Hilfe angezeigt.
 
 v0.1.0-beta - 2025-05-22
