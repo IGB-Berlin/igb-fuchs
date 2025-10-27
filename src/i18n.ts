@@ -471,9 +471,9 @@ const translations = {
   'tasks': [
     { zero: 'keine Aufgaben', one: 'eine Aufgabe', other: '%{count} Aufgaben' },
     { zero: 'no tasks', one: 'one task', other: '%{count} tasks' } ],
-  'comp-tasks': [
-    { zero: 'keine erledigten Aufgaben', one: 'eine erledigte Aufgabe', other: '%{count} erledigte Aufgaben' },
-    { zero: 'no completed tasks', one: 'one completed task', other: '%{count} completed tasks' } ],
+  'comp-tasks': [  // the count here is actually the total tasks, this is prefixed with "completed task count" + "/"
+    { one: '1 erledigte Aufgabe', other: '%{count} erledigte Aufgaben' },
+    { one: '1 completed task', other: '%{count} completed tasks' } ],
   // partially abbrev. for breadcrumbs
   'Templates': ['Vorlagen'],
   'Logs': ['Protokolle'],

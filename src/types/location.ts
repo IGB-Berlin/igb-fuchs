@@ -172,8 +172,9 @@ function locSummary(loc :SamplingLocation|SamplingLocationTemplate) :[string,str
   } else if (!loc.samples.length) samp = ''
   const ts = loc instanceof SamplingLocationTemplate && loc.tasklist.length
     ? i18n.t('tasks', {count:loc.tasklist.length})
-    : loc instanceof SamplingLocation && loc.completedTasks.length
-      ? i18n.t('comp-tasks', {count:loc.completedTasks.length}) : ''
+    : loc instanceof SamplingLocation && loc.template?.tasklist.length
+      ? `${loc.completedTasks.length}/`+i18n.t('comp-tasks', {count:loc.template.tasklist.length})
+      : ''
   return [ loc.name + ( loc.shortDesc.trim().length ? ' / '+loc.shortDesc.trim() : '' ),
     [samp, ts].filter(s => s.length).join('; ')
     /*+'\u2003['+loc.nomCoords.summaryDisplay()[0]+']'*/ ]
