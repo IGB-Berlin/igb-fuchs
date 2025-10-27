@@ -35,7 +35,8 @@
         "persons": { "$ref": "#OptionalTrimmedString" },
         "weather": { "$ref": "#OptionalTrimmedString" },
         "notes": { "$ref": "#OptionalTrimmedString" },
-        "checkedTasks": { "$ref": "#OptionalStringArray" },
+        "checkedTasks": { "$ref": "#OptionalStringArray",
+          "description": "Each element of this array must equal one of the elements from the template's checklist!" },
         "locations": { "type": "array", "items": { "$ref": "#SamplingLocation" } },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
@@ -83,7 +84,8 @@
         "endTime": { "$ref": "#Timestamp" },
         "notes": { "$ref": "#OptionalTrimmedString" },
         "samples": { "type": "array", "items": { "$ref": "#Sample" } },
-        "completedTasks": { "$ref": "#OptionalStringArray" },
+        "completedTasks": { "$ref": "#OptionalStringArray",
+          "description": "Each element of this array must equal an element from the template's tasklist!" },
         "photos": { "type": "array", "items": { "type": "string" },
           "maxItems": 0, "description": "Currently unused." },
         "template": { "anyOf": [
@@ -122,7 +124,7 @@
     "OptionalStringArray": { "$id": "#OptionalStringArray",
       "anyOf": [
         { "type": "null", "description": "Key should be omitted if value is null." },
-        { "type": "array", "items": { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "uniqueItems": true,
           "description": "Key should be omitted if the array is empty." } ]
     },
     "WGS84Coordinates": { "$id": "#WGS84Coordinates",
