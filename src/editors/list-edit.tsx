@@ -16,12 +16,12 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary, StyleValue } from '../types/common'
+import { CustomSelectEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, OrderedStore } from '../storage'
 import { EditorClass, EditorParent } from './base'
 import { listSelectDialog } from './list-dialog'
 import { deleteConfirmation } from '../dialogs'
-import { CustomStoreEvent } from '../events'
 import { assert, paranoia } from '../utils'
 import { GlobalContext } from '../main'
 import { makeHelp } from '../help'
@@ -204,6 +204,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
         }
       })
       this.selId = id
+      this.el.dispatchEvent(new CustomSelectEvent(id))
       this.enable()
     }
     const redrawList = async (selAfter :string|null = null) => {

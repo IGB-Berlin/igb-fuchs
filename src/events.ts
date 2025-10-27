@@ -38,6 +38,17 @@ export class CustomAlertEvent extends CustomEvent<never> {
   }
 }
 
+interface SelectEventDetails<T extends NonNullable<unknown>> {
+  selected :null|T
+}
+/** A custom, generic "item was (de-)selected" event. */
+export class CustomSelectEvent<T extends NonNullable<unknown>> extends CustomEvent<SelectEventDetails<T>> {
+  static readonly NAME = 'custom.select'
+  constructor(selected :null|T) {
+    super(CustomSelectEvent.NAME, { detail: { selected: selected }, bubbles: false, cancelable: false })
+  }
+}
+
 interface StoreEventDetails {
   action :'add'|'upd'|'del'
   id :string|null
