@@ -74,12 +74,13 @@ const translations = {
     'Es gab beim Import der Daten folgende Fehler:',
     'The following errors occurred during import of the data:' ],
   'import-success': ['Import erfolgreich!', 'Import successful!'],
-  'import-logs-info': [
-    { zero: 'Keine Messprotokolle importiert.', one: 'Ein Messprotokoll importiert.', other: '%{count} Messprotokolle importiert.' },
-    { zero: 'No sampling logs imported.', one: 'One sampling log imported.', other: '%{count} sampling logs imported.' } ],
-  'import-proc-info': [
-    { zero: 'Keine Messprozeduren importiert.', one: 'Eine Messprozedur importiert.', other: '%{count} Messprozeduren importiert.' },
-    { zero: 'No sampling procedures imported.', one: 'One sampling procedure imported.', other: '%{count} sampling procedures imported.' } ],
+  'processed-objects': [
+    { zero: 'Keine Objekte verarbeitet.', one: 'Ein Objekt verarbeitet:', other: '%{count} Objekte verarbeitet:' },
+    { zero: 'No objects processed.', one: 'One object processed:', other: '%{count} objects processed:' } ],
+  'import-res-unchanged': ['Unverändert', 'Unchanged'],
+  'import-res-overwritten': ['Überschrieben', 'Overwritten'],
+  'import-res-skipped': ['Nicht importiert', 'Not imported'],
+  'import-res-new': ['Neu', 'New'],
   'import-bad-log': [
     'Das Objekt mit folgendem Schlüssel wurde nicht als Messprotokoll erkannt:',
     'The object with the following key was not recognized as a sampling log:' ],

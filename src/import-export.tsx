@@ -25,8 +25,8 @@ import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
 import * as zip from '@zip.js/zip.js'
 import { shareFile } from './share'
+import { i18n, tr } from './i18n'
 import { assert } from './utils'
-import { tr } from './i18n'
 
 async function zipFiles(name :string, files :File[]) {
   const zw = new zip.ZipWriter(new zip.BlobWriter('application/zip'))
@@ -59,8 +59,10 @@ export function makeImportExport(ctx :GlobalContext,
     const file = files[0]
     assert(file)
     const res = await ctx.storage.import(JSON.parse(await file.text()))
-    const infos = res.info.length ? <><p>{tr('Information')}:</p>
-      <ul>{res.info.map(i => <li>{i}</li>)}</ul></> : ''
+    const infos = <><p>{i18n.t('processed-objects', { count: res.summaries.length })}</p>
+      <ul>{res.summaries.map(([inf,stat]) =>
+        <li><div class="d-flex flex-wrap align-items-center column-gap-3"><em>{i18n.t('import-res-'+stat, {defaultValue:stat})}:</em>{inf}</div></li>
+      )} </ul></>
     if (res.errors.length)
       await infoDialog('error', tr('Import Data'),
         <><p><strong class="text-danger">{tr('import-with-errors')}</strong></p>

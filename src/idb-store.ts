@@ -27,8 +27,8 @@ import { MeasurementType } from './types/measurement'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
 import { AbstractStore} from './storage'
-import { i18n, tr } from './i18n'
 import { assert } from './utils'
+import { tr } from './i18n'
 
 const VALIDATOR = new Validator(FUCHS_SCHEMA as Schema, '7', false)
 
@@ -46,7 +46,8 @@ interface JsonFileFormat {
 
 interface ImportResults {
   errors :string[]
-  info :string[]
+  // REMEMBER to keep the following in sync with the translations 'import-res-*' !
+  summaries :[HTMLElement, 'unchanged'|'overwritten'|'skipped'|'new'][]
 }
 
 interface IDummyObj {
@@ -367,8 +368,8 @@ export class IdbStorage {
      * transaction, otherwise the transaction will close before you're done. An IDB transaction
      * auto-closes if it doesn't have anything left do once microtasks have been processed."
      * Since we may need to `await` overwrite confirmation dialogs, it would fail. */
-    if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], info: [] }
-    const rv :ImportResults = { info: [], errors: [] }
+    if (!data || typeof data !== 'object') return { errors: ['Not a JSON object.'], summaries: [] }
+    const rv :ImportResults = { errors: [], summaries: [] }
 
     this.schemaValidate(data)
 
@@ -386,7 +387,6 @@ export class IdbStorage {
     }
 
     if ('samplingLogs' in data && data.samplingLogs && typeof data.samplingLogs==='object') {
-      let counter = 0
       console.debug('Import samplingLogs',Object.keys(data.samplingLogs).length,'keys')
       await Promise.all(Object.entries(data.samplingLogs).map(async ([k,v]) => {
         if (!isISamplingLog(v)) {
@@ -400,27 +400,33 @@ export class IdbStorage {
           const imp = new SamplingLog(v)
           const have = await this.samplingLogs.tryGet(v.id)
           if (have) {
-            if (have.equals(v)) {  // nothing needed, but just report it as imported b/c I think that's better info for the user (?)
+            if (have.equals(v)) {
               console.debug('Import key',k,'already have this samplingLog (.equals match)')
-              counter++ }
+              rv.summaries.push([ imp.summaryAsHtml(true), 'unchanged' ])
+            }
             else {
               console.debug('Import key',k,'asking user: have',have,'importing',imp)
               if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-                await this.samplingLogs.upd(have,imp); counter++ } }
+                await this.samplingLogs.upd(have,imp)
+                rv.summaries.push([ imp.summaryAsHtml(true), 'overwritten' ])
+              } else
+                rv.summaries.push([ imp.summaryAsHtml(true), 'skipped' ])
+            }
           }
-          else { await this.samplingLogs.add(imp); counter++ }
+          else {
+            await this.samplingLogs.add(imp)
+            rv.summaries.push([ imp.summaryAsHtml(true), 'new' ])
+          }
         } catch (ex) {
           console.warn('Error on key',k,ex)
           rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
       }))
-      rv.info.push(i18n.t('import-logs-info', { count: counter }))
     } else {
       console.warn('No samplingLogs in file, or bad format:',data)
       rv.errors.push('No samplingLogs in file, or bad format.')
     }
 
     if ('samplingProcedures' in data && data.samplingProcedures && typeof data.samplingProcedures==='object') {
-      let counter = 0
       console.debug('Import samplingProcedures',Object.keys(data.samplingProcedures).length,'keys')
       await Promise.all(Object.entries(data.samplingProcedures).map(async ([k,v]) => {
         if (!isISamplingProcedure(v)) {
@@ -436,18 +442,25 @@ export class IdbStorage {
           if (have) {
             if (have.equals(v)) {
               console.debug('Import key',k,'already have this samplingProcedure (.equals match)')
-              counter++ }
+              rv.summaries.push([ imp.summaryAsHtml(true), 'unchanged' ])
+            }
             else {
               console.debug('Import key',k,'asking user: have',have,'importing',imp)
               if ( (await yesNoDialog(importOverwriteQuestion(have,imp),tr('Import Data'),false,false)) == 'yes' ) {
-                await this.samplingProcedures.upd(have,imp); counter++ } }
+                await this.samplingProcedures.upd(have,imp)
+                rv.summaries.push([ imp.summaryAsHtml(true), 'overwritten' ])
+              } else
+                rv.summaries.push([ imp.summaryAsHtml(true), 'skipped' ])
+            }
           }
-          else { await this.samplingProcedures.add(imp); counter++ }
+          else {
+            await this.samplingProcedures.add(imp)
+            rv.summaries.push([ imp.summaryAsHtml(true), 'new' ])
+          }
         } catch (ex) {
           console.warn('Error on key',k,ex)
           rv.errors.push(`Key ${v.id}: ${String(ex)}`) }
       }))
-      rv.info.push(i18n.t('import-proc-info', { count: counter }))
     } else {
       console.warn('No samplingProcedures in file, or bad format:',data)
       rv.errors.push('No samplingProcedures in file, or bad format.')

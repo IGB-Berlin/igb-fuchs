@@ -180,7 +180,7 @@ type InfoDialogType = 'info'|'warning'|'error'
 export function infoDialog(type :InfoDialogType, title :string, content :string|HTMLElement) :Promise<void> {
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="infoDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class={'modal-header '+( type==='info' ? 'text-info' : type==='warning' ? 'text-bg-warning' : 'text-bg-danger' )}>
           <h1 class="modal-title fs-5" id="infoDialogLabel">
