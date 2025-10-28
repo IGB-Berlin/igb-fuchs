@@ -47,14 +47,16 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
 
-    this.sampEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.commonSamples), SampleTemplateEditor, SampleTemplate.sStyle,
-      this.selItem, {title:tr('common-samples'), help:tr('common-samples-help')}, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.commonSamples)))
+    this.sampEdit = new ListEditorForTemp({ parent: this, theStore: new ArrayStore(this.initObj.commonSamples),
+      editorClass: SampleTemplateEditor, editorStyle: SampleTemplate.sStyle,
+      selItem: this.selItem, title: tr('common-samples'), help: tr('common-samples-help'), dialogTitle: tr('new-samp-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.commonSamples)) })
     this.sampEdit.el.setAttribute('data-test-id','sampEdit')
 
-    this.locEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.locations), LocationTemplateEditor, SamplingLocationTemplate.sStyle,
-      this.selItem, {title:tr('Sampling Locations')}, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))))
+    this.locEdit = new ListEditorForTemp({ parent: this, theStore: new ArrayStore(this.initObj.locations),
+      editorClass: LocationTemplateEditor, editorStyle: SamplingLocationTemplate.sStyle,
+      selItem: this.selItem, title: tr('Sampling Locations'), dialogTitle: tr('new-loc-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.cloneNoSamples()))) })
     this.locEdit.el.setAttribute('data-test-id','locEdit')
 
     this.setFormContents([

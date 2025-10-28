@@ -77,22 +77,22 @@ export function makeImportExport(ctx :GlobalContext,
     inpImportFile.value = ''
   })
 
-  procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
-    [tr('export-as-json'), (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
+  procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, true, [
+    [<><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>, (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
   ])
 
-  logEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, [
-    [tr('export-as-csv'), async (s :SamplingLog) => {
-      const f = await samplingLogToCsv(s)
-      if (f) await shareFile(f)
-    }],
-    [tr('export-as-json'), async (s :SamplingLog) => {
-      await shareFile(ctx.storage.exportOne(s))
-    }],
-    [tr('export-as-zip'), async (s :SamplingLog) => {
+  logEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, true, [
+    [<><i class="bi-file-earmark-zip text-success"/> {tr('export-as-zip')}</>, async (s :SamplingLog) => {
       const f = await samplingLogToCsv(s)
       const j = ctx.storage.exportOne(s)
       await shareFile( await zipFiles( makeFilename(s,'zip'), f ? [f, j] : [j] ))
+    }],
+    [<><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>, async (s :SamplingLog) => {
+      await shareFile(ctx.storage.exportOne(s))
+    }],
+    [<><i class="bi-file-earmark-spreadsheet text-warning"/> {tr('export-as-csv')}</>, async (s :SamplingLog) => {
+      const f = await samplingLogToCsv(s)
+      if (f) await shareFile(f)
     }],
   ])
 

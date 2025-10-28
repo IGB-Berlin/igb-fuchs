@@ -52,10 +52,9 @@ const translations = {
 
   // import-export
   'Export': ['Export'],
-  'Export CSV': ['CSV Export.'],
-  'export-as-csv': ['Als CSV (Zusammenfassung)', 'As CSV (summary)'],
-  'export-as-json': ['Als JSON (vollständig; für Import)', 'As JSON (complete; for Import)'],
-  'export-as-zip': ['Als ZIP (empfohlen; CSV+JSON)', 'As ZIP (recommended; CSV+JSON)'],
+  'export-as-csv': ['als CSV (nur Zusammenfassung)', 'as CSV (summary only)'],
+  'export-as-json': ['als JSON (vollständig; für import)', 'as JSON (complete; for import)'],
+  'export-as-zip': ['als ZIP (empfohlen; CSV+JSON)', 'as ZIP (recommended; CSV+JSON)'],
   'import-export': ['Daten-Import/-Export', 'Data Import/Export'],
   'Export All Data': ['Alle Daten Exportieren'],
   'Import Data': ['Daten Importieren'],

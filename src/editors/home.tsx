@@ -66,13 +66,16 @@ export class HomePage implements StackAble, ListEditorParent {
   static async new(ctx :GlobalContext) {
     const homePage = new HomePage(ctx, <div class="p-2 p-sm-3"></div>)
 
-    const logEdit = await new ListEditorWithTemp(homePage, ctx.storage.samplingLogs, SamplingLogEditor, SamplingLog.sStyle,
-      { el: null }, { title: tr('saved-pl')+' '+tr('Sampling Logs'), planned: tr('planned-pl')+' '+tr('Sampling Logs') },
-      tr('new-log-from-proc'), async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t), null).initialize()
+    const logEdit = await new ListEditorWithTemp({
+      parent: homePage, theStore: ctx.storage.samplingLogs, editorClass: SamplingLogEditor, editorStyle: SamplingLog.sStyle,
+      title: tr('saved-pl')+' '+tr('Sampling Logs'), txtPlanned: tr('planned-pl')+' '+tr('Sampling Logs'),
+      dialogTitle: tr('new-log-from-proc'), templateSource: async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t),
+      planned: null }).initialize()
     logEdit.highlightButton('temp')
 
-    const procEdit = await new ListEditor(homePage, ctx.storage.samplingProcedures, SamplingProcedureEditor, SamplingProcedure.sStyle,
-      { el: null }, { title: tr('Sampling Procedures') } ).initialize()
+    const procEdit = await new ListEditor({
+      parent: homePage, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
+      title: tr('Sampling Procedures') }).initialize()
 
     const inpExp = makeImportExport(ctx, logEdit, procEdit)
 

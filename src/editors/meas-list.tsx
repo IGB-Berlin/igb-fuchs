@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { ListEditorTemp, SelectedItemContainer } from './list-edit'
 import { MeasurementType, Measurement } from '../types/measurement'
 import { makeValidNumberPat, timestampNow } from '../types/common'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'
+import { ListEditorTemp } from './list-edit'
 import { MeasurementEditor } from './meas'
 import { setRemove } from '../types/set'
 import { Sample } from '../types/sample'
@@ -127,12 +127,14 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
   private sample
   private readonly editors :MiniMeasEditor[] = []
   constructor(parent :SampleEditor, sample :Readonly<Sample>) {
-    const selItem :SelectedItemContainer = { el: null }
-    super(parent, new ArrayStore(sample.measurements), MeasurementEditor, Measurement.sStyle, selItem,
-      { title:tr('Measurements'), help:<>{tr('meas-list-help')}
-        {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</> },
-      tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate()))) )
+    super({
+      parent: parent, theStore: new ArrayStore(sample.measurements), editorClass: MeasurementEditor,
+      editorStyle: Measurement.sStyle, title: tr('Measurements'),
+      help: <>{tr('meas-list-help')}
+        {' '} {tr('dot-minus-hack')} <strong>{tr('Caution')}:</strong> {tr('meas-list-help-important')}</>,
+      dialogTitle: tr('new-meas-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, sample.measurements.map(m => m.extractTemplate())))
+    })
     this.sample = sample
   }
   override async initialize() {
@@ -167,7 +169,7 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     return this.editors.find(ed => {
       try { return ed.checks().length }
       catch (_) { return true }
-    })?.el ?? this.selItem.el
+    })?.el ?? this.selItem?.el
   }
   protected override contentFor(meas :Measurement) {
     const ed = this.editors.find(e => Object.is(meas, e.meas))  // expensive search
@@ -189,6 +191,6 @@ export class MeasListEditor extends ListEditorTemp<MeasurementType, Measurement>
     await Promise.all( this.editors.map(ed => ed.close()) )
     this.editors.length = 0
   }
-  /** For use by MiniMeasEditor only. */
+  /** For use by {@link MiniMeasEditor} only! */
   fireChange() { this.parent.el?.dispatchEvent(new CustomChangeEvent()) }
 }

@@ -49,9 +49,10 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
       label: tr('Instructions'), helpText: <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst
 
-    this.measEdit = new ListEditorForTemp(this, new ArrayStore(this.initObj.measurementTypes), MeasTypeEditor, MeasurementType.sStyle,
-      this.selItem, {title:tr('Measurement Types')}, tr('new-meas-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)))
+    this.measEdit = new ListEditorForTemp({ parent: this, theStore: new ArrayStore(this.initObj.measurementTypes),
+      editorClass: MeasTypeEditor, editorStyle: MeasurementType.sStyle,
+      selItem: this.selItem, title: tr('Measurement Types'), dialogTitle: tr('new-meas-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allMeasurementTemplates, this.initObj.measurementTypes)) })
 
     this.setFormContents([
       this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),

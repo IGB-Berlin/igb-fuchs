@@ -104,10 +104,10 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
     this.inpNotes = inpNotes
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorWithTemp(this, sampStore, SampleEditor, Sample.sStyle, this.selItem,
-      { title:tr('saved-pl')+' '+tr('Samples'), planned:tr('planned-pl')+' '+tr('Samples') }, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
-      this.initObj.template?.samples )
+    this.sampEdit = new ListEditorWithTemp({ parent: this, theStore: sampStore, editorClass: SampleEditor, editorStyle: Sample.sStyle, selItem: this.selItem,
+      title: tr('saved-pl')+' '+tr('Samples'), txtPlanned: tr('planned-pl')+' '+tr('Samples'), dialogTitle: tr('new-samp-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples.map(s => s.extractTemplate()))),
+      planned: this.initObj.template?.samples })
 
     const tasks = this.initObj.template?.tasklist ?? []
     this.taskEditor = new TaskList(this.ctx, Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )

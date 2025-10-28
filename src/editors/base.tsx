@@ -225,7 +225,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     // Check if the form passes validation
     if (!this.form.checkValidity()) throw new Error(tr('form-invalid'))
     /** Skip some warnings if this is a brand new (unsaved) object and we're not closing the editor.
-     * This first save is required to enable the list editor(s); see also the corresponding discussion in ListEditor.enable(). */
+     * This first save is required to enable the list editor(s); see also the corresponding discussion in ListEditor.checkGlobalEnable(). */
     const skipInitWarns = this.isUnsaved && !andClose
     // Get custom validation stuff (can throw error, so do this first)
     const customWarn = this.customValidation(skipInitWarns)

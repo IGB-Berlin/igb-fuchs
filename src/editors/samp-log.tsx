@@ -104,10 +104,10 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     const rowCheck = this.makeRow(this.checkList.el, { label: tr('Checklist'), helpText: tr('checklist-help') })
     if (!checklist.length) rowCheck.classList.add('d-none')
 
-    this.locEdit = new ListEditorWithTemp(this, new ArrayStore(this.initObj.locations), SamplingLocationEditor, SamplingLocation.sStyle,
-      this.selItem, { title:tr('saved-pl')+' '+tr('Sampling Locations'), planned:tr('planned-pl')+' '+tr('Sampling Locations') }, tr('new-loc-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
-      this.initObj.template?.locations )
+    this.locEdit = new ListEditorWithTemp({ parent: this, theStore: new ArrayStore(this.initObj.locations), editorClass: SamplingLocationEditor, editorStyle: SamplingLocation.sStyle,
+      selItem: this.selItem, title: tr('saved-pl')+' '+tr('Sampling Locations'), txtPlanned: tr('planned-pl')+' '+tr('Sampling Locations'), dialogTitle: tr('new-loc-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allLocationTemplates, this.initObj.locations.map(l => l.extractTemplate().cloneNoSamples()))),
+      planned: this.initObj.template?.locations })
 
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),

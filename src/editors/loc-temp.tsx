@@ -49,9 +49,9 @@ export class LocationTemplateEditor extends Editor<SamplingLocationTemplate> {
     this.inpTasks = inpTasks
 
     const sampStore = new ArrayStore(this.initObj.samples)
-    this.sampEdit = new ListEditorForTemp(this, sampStore, SampleTemplateEditor, SampleTemplate.sStyle, this.selItem,
-      {title:tr('Samples')}, tr('new-samp-from-temp'),
-      ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)))
+    this.sampEdit = new ListEditorForTemp({ parent: this, theStore: sampStore, editorClass: SampleTemplateEditor, editorStyle: SampleTemplate.sStyle,
+      selItem: this.selItem, title: tr('Samples'), dialogTitle: tr('new-samp-from-temp'),
+      templateSource: ()=>Promise.resolve(setRemove(this.ctx.storage.allSampleTemplates, this.initObj.samples)) })
 
     this.setFormContents([
       this.makeRow(this.inpName, { label: tr('Name'),
