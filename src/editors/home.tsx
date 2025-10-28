@@ -17,11 +17,12 @@
  */
 import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
 import { SamplingLog, SamplingProcedure } from '../types/sampling'
+import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { DataObjectBase, StyleValue } from '../types/common'
 import { SamplingProcedureEditor } from './samp-proc'
-import { makeImportExport } from '../import-export'
+import { ImportExportTool } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
-import { jsx, jsxFragment } from '../jsx-dom'
-import { StyleValue } from '../types/common'
+import { CustomStoreEvent } from '../events'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
@@ -77,16 +78,46 @@ export class HomePage implements StackAble, ListEditorParent {
       parent: homePage, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
       title: tr('Sampling Procedures') }).initialize()
 
-    const inpExp = makeImportExport(ctx, logEdit, procEdit)
+    const inpExp = new ImportExportTool(ctx)
+    inpExp.el.addEventListener(CustomStoreEvent.NAME, () => {
+      // inform the list editors of the import so they update themselves
+      logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+      procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    })
+    addDropdown(procEdit, <><i class="bi-share-fill"/> {tr('Export')}</>, true, [
+      [inpExp.makeLabel('json'), s => inpExp.exportAsJson(s)],
+    ])
+    addDropdown(logEdit, <><i class="bi-share-fill"/> {tr('Export')}</>, true, [
+      [inpExp.makeLabel('zip'), s => inpExp.exportAsZip(s)],
+      [inpExp.makeLabel('json'), s => inpExp.exportAsJson(s)],
+      [inpExp.makeLabel('csv'), s => inpExp.exportAsCsv(s)],
+    ])
 
     const settings = await makeSettings(ctx)
 
     homePage.el.appendChild(<div class="accordion" id="homeAccordion">
       {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
       {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, procEdit.el)}
-      {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp)}
+      {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp.el)}
       {makeAcc(ctx, 'accSett', tr('Settings'), settings)}
     </div>)
     return homePage
   }
+}
+
+/** Helper to generate a dropdown button with the specified elements and add it to the buttons on the ListEditor. */
+function addDropdown<B extends DataObjectBase<B>>(target :ListEditor<B>, title :string|HTMLElement, selReq :boolean, items :[string|HTMLElement, (selItem:B)=>unknown][]) {
+  const btn = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
+      data-bs-toggle="dropdown" aria-expanded="false" disabled>{title}</button>)
+  const div = safeCastElement(HTMLDivElement, <div class="dropdown"> {btn}
+    <ul class="dropdown-menu">
+      {items.map(([t, cb]) => {
+        const btn = safeCastElement(HTMLButtonElement, <button type="button" class="dropdown-item">{t}</button>)
+        btn.addEventListener('click', target.makeSelClickHandler(cb))
+        return <li>{btn}</li>
+      })}
+    </ul>
+  </div>)
+  target.addButton(btn, selReq, div)
 }

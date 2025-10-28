@@ -235,27 +235,21 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     return globalEnable
   }
 
-  /** Helper to generate a dropdown button with the specified elements and add it to the buttons on this ListEditor. */
-  addDropdown(title :string|HTMLElement, selReq :boolean, items :[string|HTMLElement, (sel:B)=>unknown][]) {
-    const btn = safeCastElement(HTMLButtonElement,
-      <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
-        data-bs-toggle="dropdown" aria-expanded="false" disabled>{title}</button>)
-    const div = <div class="dropdown"> {btn}
-      <ul class="dropdown-menu">
-        {items.map(([t, cb]) => {
-          const btn = safeCastElement(HTMLButtonElement, <button type="button" class="dropdown-item">{t}</button>)
-          btn.addEventListener('click', async () => {
-            if (this.selId===null) return  // shouldn't happen
-            return cb( await this.theStore.get(this.selId) )
-          })
-          return <li>{btn}</li>
-        })}
-      </ul>
-    </div>
+  /** Add a button to this ListEditor's buttons. */
+  addButton(btn :HTMLButtonElement, selReq :boolean, outerDiv :HTMLDivElement|null = null) {
     if (selReq) this.selReqButtons.push(btn)
     else this.otherButtons.push(btn)
-    this.divButtons.appendChild(div)
+    this.divButtons.appendChild( outerDiv ?? btn )
     this.checkGlobalEnable()
+  }
+
+  /** Wraps the given function in an async handler that can then be used as e.g. a click handler.
+   * When you use this, it is strongly recommended to disable the link/button/whatever when nothing is selected! */
+  makeSelClickHandler(func :(selItem :B)=>unknown) {
+    return async (_ :PointerEvent) => {
+      if (this.selId===null) return
+      return func( await this.theStore.get(this.selId) )
+    }
   }
 
   /** Open a new {@link Editor} object for an item in this list. */

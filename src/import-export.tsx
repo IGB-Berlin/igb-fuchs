@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { ListEditor, ListEditorWithTemp } from './editors/list-edit'
 import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { samplingLogToCsv } from './types/log2csv'
@@ -34,67 +33,74 @@ async function zipFiles(name :string, files :File[]) {
   return new File([await zw.close()], name, { type: 'application/zip' })
 }
 
-export function makeImportExport(ctx :GlobalContext,
-  logEdit: ListEditorWithTemp<SamplingProcedure, SamplingLog>,
-  procEdit: ListEditor<SamplingProcedure>) :HTMLElement {
-  const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
-  const inpImportFile = safeCastElement(HTMLInputElement,
-    <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
-  const el = <div class="p-3 d-flex flex-column">
-    <div class="mt-1 mb-4">{tr('export-help')}</div>
-    <div class="mt-1 input-group">
-      <label class="input-group-text btn btn-outline-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
-      {inpImportFile}
+export class ImportExportTool {
+
+  readonly ctx
+  readonly el
+
+  constructor(ctx :GlobalContext) {
+    this.ctx = ctx
+    const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
+    const inpImportFile = safeCastElement(HTMLInputElement,
+      <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
+    this.el = <div class="p-3 d-flex flex-column">
+      <div class="mt-1 mb-4">{tr('export-help')}</div>
+      <div class="mt-1 input-group">
+        <label class="input-group-text btn btn-outline-primary" for="importDataInput"><i class="bi-box-arrow-in-down-right me-1"/> {tr('Import Data')}</label>
+        {inpImportFile}
+      </div>
+      <div class="mt-1 text-secondary mb-4">{tr('import-help')}</div>
+      {btnExportAll}
+      <div class="mt-1 text-secondary">{tr('export-all-help')}</div>
     </div>
-    <div class="mt-1 text-secondary mb-4">{tr('import-help')}</div>
-    {btnExportAll}
-    <div class="mt-1 text-secondary">{tr('export-all-help')}</div>
-  </div>
 
-  btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
+    btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
-  inpImportFile.addEventListener('change', async () => {
-    const files = inpImportFile.files
-    if (!files || files.length!==1) return
-    const file = files[0]
-    assert(file)
-    const res = await ctx.storage.import(JSON.parse(await file.text()))
-    const infos = <><p>{i18n.t('processed-objects', { count: res.summaries.length })}</p>
-      <ul>{res.summaries.map(([inf,stat]) =>
-        <li><div class="d-flex flex-wrap align-items-center column-gap-3"><em>{i18n.t('import-res-'+stat, {defaultValue:stat})}:</em>{inf}</div></li>
-      )} </ul></>
-    if (res.errors.length)
-      await infoDialog('error', tr('Import Data'),
-        <><p><strong class="text-danger">{tr('import-with-errors')}</strong></p>
-          <ul> { res.errors.map(e => <li>{e}</li>) } </ul>
+    inpImportFile.addEventListener('change', async () => {
+      const files = inpImportFile.files
+      if (!files || files.length!==1) return
+      const file = files[0]
+      assert(file)
+      const res = await ctx.storage.import(JSON.parse(await file.text()))
+      const infos = <><p>{i18n.t('processed-objects', { count: res.summaries.length })}</p>
+        <ul>{res.summaries.map(([inf,stat]) =>
+          <li><div class="d-flex flex-wrap align-items-center column-gap-3"><em>{i18n.t('import-res-'+stat, {defaultValue:stat})}:</em>{inf}</div></li>
+        )} </ul></>
+      if (res.errors.length)
+        await infoDialog('error', tr('Import Data'),
+          <><p><strong class="text-danger">{tr('import-with-errors')}</strong></p>
+            <ul> { res.errors.map(e => <li>{e}</li>) } </ul>
+            {infos}</>)
+      else await infoDialog('info', tr('Import Data'),
+        <><p><strong class="text-success">{tr('import-success')}</strong></p>
           {infos}</>)
-    else await infoDialog('info', tr('Import Data'),
-      <><p><strong class="text-success">{tr('import-success')}</strong></p>
-        {infos}</>)
-    // inform the list editors of the import so they update themselves
-    logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-    procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-    inpImportFile.value = ''
-  })
+      inpImportFile.value = ''
+      // use a store event on our element to inform about changes to the storage
+      this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    })
+  }  // ImportExportTool constructor
 
-  procEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, true, [
-    [<><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>, (s :SamplingProcedure) => shareFile(ctx.storage.exportOne(s))],
-  ])
+  makeLabel(what :'json'|'zip'|'csv') {  // could be static but whatever
+    switch (what) {
+    case 'json': return <><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>
+    case 'zip':  return <><i class="bi-file-earmark-zip text-success"/> {tr('export-as-zip')}</>
+    case 'csv':  return <><i class="bi-file-earmark-spreadsheet text-warning"/> {tr('export-as-csv')}</>
+    }
+  }
 
-  logEdit.addDropdown(<><i class="bi-share-fill"/> {tr('Export')}</>, true, [
-    [<><i class="bi-file-earmark-zip text-success"/> {tr('export-as-zip')}</>, async (s :SamplingLog) => {
-      const f = await samplingLogToCsv(s)
-      const j = ctx.storage.exportOne(s)
-      await shareFile( await zipFiles( makeFilename(s,'zip'), f ? [f, j] : [j] ))
-    }],
-    [<><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>, async (s :SamplingLog) => {
-      await shareFile(ctx.storage.exportOne(s))
-    }],
-    [<><i class="bi-file-earmark-spreadsheet text-warning"/> {tr('export-as-csv')}</>, async (s :SamplingLog) => {
-      const f = await samplingLogToCsv(s)
-      if (f) await shareFile(f)
-    }],
-  ])
+  async exportAsJson(s :SamplingLog|SamplingProcedure) {
+    await shareFile(this.ctx.storage.exportOne(s))
+  }
 
-  return el
-}
+  async exportAsZip(s :SamplingLog) {
+    const f = await samplingLogToCsv(s)
+    const j = this.ctx.storage.exportOne(s)
+    await shareFile( await zipFiles( makeFilename(s,'zip'), f ? [f, j] : [j] ))
+  }
+
+  async exportAsCsv(s :SamplingLog) {
+    const f = await samplingLogToCsv(s)
+    if (f) await shareFile(f)
+  }
+
+}  // class ImportExportTool
