@@ -40,9 +40,13 @@ export class ImportExportTool {
 
   constructor(ctx :GlobalContext) {
     this.ctx = ctx
+
     const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
+    btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
+
     const inpImportFile = safeCastElement(HTMLInputElement,
       <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
+
     this.el = <div class="p-3 d-flex flex-column">
       <div class="mt-1 mb-4">{tr('export-help')}</div>
       <div class="mt-1 input-group">
@@ -53,8 +57,6 @@ export class ImportExportTool {
       {btnExportAll}
       <div class="mt-1 text-secondary">{tr('export-all-help')}</div>
     </div>
-
-    btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
     inpImportFile.addEventListener('change', async () => {
       const files = inpImportFile.files
@@ -78,15 +80,8 @@ export class ImportExportTool {
       // use a store event on our element to inform about changes to the storage
       this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
     })
-  }  // ImportExportTool constructor
 
-  makeLabel(what :'json'|'zip'|'csv') {  // could be static but whatever
-    switch (what) {
-    case 'json': return <><i class="bi-file-earmark-medical text-success"/> {tr('export-as-json')}</>
-    case 'zip':  return <><i class="bi-file-earmark-zip text-success"/> {tr('export-as-zip')}</>
-    case 'csv':  return <><i class="bi-file-earmark-spreadsheet text-warning"/> {tr('export-as-csv')}</>
-    }
-  }
+  }  // ImportExportTool constructor
 
   async exportAsJson(s :SamplingLog|SamplingProcedure) {
     await shareFile(this.ctx.storage.exportOne(s))

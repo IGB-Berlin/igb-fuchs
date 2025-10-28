@@ -18,11 +18,11 @@
 import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
 import { SamplingLog, SamplingProcedure } from '../types/sampling'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
-import { DataObjectBase, StyleValue } from '../types/common'
 import { SamplingProcedureEditor } from './samp-proc'
 import { ImportExportTool } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
 import { CustomStoreEvent } from '../events'
+import { StyleValue } from '../types/common'
 import { makeSettings } from '../settings'
 import { GlobalContext } from '../main'
 import { StackAble } from './stack'
@@ -84,14 +84,8 @@ export class HomePage implements StackAble, ListEditorParent {
       logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
       procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
     })
-    addDropdown(procEdit, <><i class="bi-share-fill"/> {tr('Export')}</>, true, [
-      [inpExp.makeLabel('json'), s => inpExp.exportAsJson(s)],
-    ])
-    addDropdown(logEdit, <><i class="bi-share-fill"/> {tr('Export')}</>, true, [
-      [inpExp.makeLabel('zip'), s => inpExp.exportAsZip(s)],
-      [inpExp.makeLabel('json'), s => inpExp.exportAsJson(s)],
-      [inpExp.makeLabel('csv'), s => inpExp.exportAsCsv(s)],
-    ])
+    modifyLogEditButtons(logEdit, inpExp)
+    modifyProcEditButtons(procEdit, inpExp)
 
     const settings = await makeSettings(ctx)
 
@@ -105,19 +99,62 @@ export class HomePage implements StackAble, ListEditorParent {
   }
 }
 
-/** Helper to generate a dropdown button with the specified elements and add it to the buttons on the ListEditor. */
-function addDropdown<B extends DataObjectBase<B>>(target :ListEditor<B>, title :string|HTMLElement, selReq :boolean, items :[string|HTMLElement, (selItem:B)=>unknown][]) {
-  const btn = safeCastElement(HTMLButtonElement,
+function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, SamplingLog>, inpExp :ImportExportTool) {
+  const btnExport = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-zip')}
+      data-test-id="export-log-as-zip"><i class="bi-file-earmark-zip"/><i class="bi-share-fill"/> {tr('Export')}</button>)
+  logEdit.registerButton(btnExport, s => inpExp.exportAsZip(s))
+  logEdit.addToButtons(btnExport)
+
+  const btnDel = logEdit.popButton('del')
+  btnDel.classList.add('dropdown-item','text-danger')
+
+  const btnNew = logEdit.popButton('new')
+  btnNew.classList.add('dropdown-item','text-info')
+
+  const btnJson = safeCastElement(HTMLButtonElement,
+    <button type="button" class="dropdown-item" disabled>
+      <i class="bi-file-earmark-medical text-success"/><i class="bi-share-fill text-success"/> {tr('Export')+' '+tr('export-as-json')}</button>)
+  logEdit.registerButton(btnJson, s => inpExp.exportAsJson(s))
+
+  const btnCsv = safeCastElement(HTMLButtonElement,
+    <button type="button" class="dropdown-item" disabled>
+      <i class="bi-file-earmark-spreadsheet text-warning"/><i class="bi-share-fill text-warning"/> {tr('Export')+' '+tr('export-as-csv')}</button>)
+  logEdit.registerButton(btnCsv, s => inpExp.exportAsCsv(s))
+
+  const btnMore = safeCastElement(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
-      data-bs-toggle="dropdown" aria-expanded="false" disabled>{title}</button>)
-  const div = safeCastElement(HTMLDivElement, <div class="dropdown"> {btn}
+      data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
+  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
     <ul class="dropdown-menu">
-      {items.map(([t, cb]) => {
-        const btn = safeCastElement(HTMLButtonElement, <button type="button" class="dropdown-item">{t}</button>)
-        btn.addEventListener('click', target.makeSelClickHandler(cb))
-        return <li>{btn}</li>
-      })}
+      <li>{btnJson}</li>
+      <li>{btnCsv}</li>
+      <li><hr class="dropdown-divider"/></li>
+      <li>{btnNew}</li>
+      <li><hr class="dropdown-divider"/></li>
+      <li>{btnDel}</li>
     </ul>
   </div>)
-  target.addButton(btn, selReq, div)
+  logEdit.addToButtons(divMore)
+}
+
+function modifyProcEditButtons(procEdit :ListEditor<SamplingProcedure>, inpExp :ImportExportTool) {
+  const btnExport = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-json')}>
+      <i class="bi-filetype-json"/><i class="bi-share-fill"/> {tr('Export')}</button>)
+  procEdit.registerButton(btnExport, s => inpExp.exportAsJson(s))
+  procEdit.addToButtons(btnExport)
+
+  const btnDel = procEdit.popButton('del')
+  btnDel.classList.add('dropdown-item','text-danger')
+
+  const btnMore = safeCastElement(HTMLButtonElement,
+    <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
+      data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
+  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
+    <ul class="dropdown-menu">
+      <li>{btnDel}</li>
+    </ul>
+  </div>)
+  procEdit.addToButtons(divMore)
 }

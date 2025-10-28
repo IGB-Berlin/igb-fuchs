@@ -727,7 +727,7 @@ test('full integration test', async ({ page, context }) => {
   // Export and check export
   await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'As ZIP' }).click()
+  await page.getByTestId('export-log-as-zip').click()
   const zipFile = await dl2file(await downloadPromise)
   expect(zipFile.name).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.zip')
   const zipReader = new zip.ZipReader(new zip.BlobReader(zipFile))

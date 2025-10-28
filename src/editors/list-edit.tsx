@@ -235,22 +235,25 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     return globalEnable
   }
 
-  /** Add a button to this ListEditor's buttons. */
-  addButton(btn :HTMLButtonElement, selReq :boolean, outerDiv :HTMLDivElement|null = null) {
-    if (selReq) this.selReqButtons.push(btn)
-    else this.otherButtons.push(btn)
-    this.divButtons.appendChild( outerDiv ?? btn )
+  /** *Only* for use by {@link popButton}! */
+  protected _popButton(btn :HTMLButtonElement) :HTMLButtonElement {
+    btn.classList.remove('btn','text-nowrap','btn-outline-info','btn-outline-danger','btn-outline-primary')
+    btn.parentElement?.removeChild(btn)
+    return btn
+  }
+  /** Removes the button from the ListEditor, and also removes its styling. Currently *only* for use by {@link HomePage}. */
+  popButton(which :'new'|'del'|'edit') { return this._popButton( which==='new' ? this.btnNew : which==='del' ? this.btnDel : this.btnEdit ) }
+  /** Registers a button whose click handler operates on the currently selected item. Currently *only* for use by {@link HomePage}. */
+  registerButton(btn :HTMLButtonElement, onclick :(selItem :B)=>unknown) {
+    btn.addEventListener('click', async () => {
+      if (this.selId===null) return
+      return onclick( await this.theStore.get(this.selId) )
+    })
+    this.selReqButtons.push(btn)
     this.checkGlobalEnable()
   }
-
-  /** Wraps the given function in an async handler that can then be used as e.g. a click handler.
-   * When you use this, it is strongly recommended to disable the link/button/whatever when nothing is selected! */
-  makeSelClickHandler(func :(selItem :B)=>unknown) {
-    return async (_ :PointerEvent) => {
-      if (this.selId===null) return
-      return func( await this.theStore.get(this.selId) )
-    }
-  }
+  /** Add an element to this ListEditor's button div. Currently *only* for use by {@link HomePage}. */
+  addToButtons(what :HTMLElement) { this.divButtons.appendChild(what) }
 
   /** Open a new {@link Editor} object for an item in this list. */
   protected async newEditor(obj :B|null, isNew :boolean) {
@@ -307,6 +310,8 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
       this.btnTemp.classList.add('btn-info')
     }
   }
+
+  override popButton(which :'new'|'del'|'edit'|'temp') { return which==='temp' ? super._popButton(this.btnTemp) : super.popButton(which) }
 
   /** Creates a new (unsaved) object from a template. */
   protected abstract makeNew(t :T) :B

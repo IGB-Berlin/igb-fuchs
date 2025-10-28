@@ -49,6 +49,7 @@ const translations = {
   'Next': ['Nächste'],
   'Procedures': ['Prozeduren'],
   'All completed': ['Alle erledigt'],
+  'More': ['Mehr'],
 
   // import-export
   'Export': ['Export'],

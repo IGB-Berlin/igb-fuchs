@@ -67,6 +67,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
       // Create a new Sampling Log
       await expect(page.getByTestId('accSampLog')).toBeVisible()
       await expect(page.getByRole('listitem')).toHaveText(['No items'])
+      await page.getByRole('button', { name: 'More' }).click()
       await page.getByRole('button', { name: 'New' }).click()
       await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
       await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
@@ -121,9 +122,9 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
 
       // Export
       await page.clock.setFixedTime('2025-01-01T07:07Z')  // export time
-      await page.getByTestId('accSampLog').getByRole('button', { name: 'Export' }).click()
+      await page.getByTestId('accSampLog').getByRole('button', { name: 'More' }).click()
       const downloadPromise = page.waitForEvent('download')
-      await page.getByRole('button', { name: 'As CSV' }).click()
+      await page.getByRole('button', { name: 'Export as CSV' }).click()
       const expFile = await dl2file(await downloadPromise)
 
       // Export filename is based on last modified time, not export time

@@ -12,6 +12,9 @@ v0.2.0-beta - *noch nicht released*
 - Auf der Hauptseite wurde der Reiter "Messprozeduren (Protokoll-Vorlagen)" (engl. "Sampling
   Procedures (Log Templates)") umbenannt in "Vorlagen (Prozeduren)" ("Templates (Procedures)"),
   da der Name zu ähnlich zu "Messprotokolle" ("Sampling Logs") war.
+- Auf der Hauptseite sind nun die Knöpfe für Messprotokolle und Messprozeduren neu angeordnet,
+  so dass die am häufigsten verwendeten Funktionen immer zu sehen sind und weniger häufig
+  verwendete Funktionen in einem Dropdown "Mehr" zu finden sind.
 - Da die Anfangs- und End-Zeiten von Protokollen und Messstellen bei Nutzung einer
   Vorlage meistens vollständig automatisch gesetzt werden können, wurden die Eingabefelder
   in einem Dropdown versteckt.
