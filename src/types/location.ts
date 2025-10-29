@@ -143,7 +143,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
       ...( this.completedTasks.length && { completedTasks: Array.from(this.completedTasks) } ),
       ...( this.photos.length && { photos: Array.from(this.photos) } ),
-      ...( this.template!==null && { template: this.template.toJSON('template') } ) }
+      ...( this.template!==null && !isSampLocBlank(this.template) && { template: this.template.toJSON('template') } ) }
   }
   override deepClone() :SamplingLocation {
     const clone :unknown = JSON.parse(JSON.stringify(this))
@@ -203,6 +203,11 @@ export function isISamplingLocationTemplate(o :unknown) :o is ISamplingLocationT
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
     && ( !('tasklist' in o) || o.tasklist===null || Array.isArray(o.tasklist) && o.tasklist.every(c => typeof c === 'string') )
   )
+}
+
+export function isSampLocBlank(l :ISamplingLocationTemplate) :boolean {
+  return !l.name.length && !l.shortDesc?.trim().length && !l.instructions?.trim().length && !l.samples.length && !l.tasklist?.length
+    && !Number.isFinite(l.nominalCoords.wgs84lat) && !Number.isFinite(l.nominalCoords.wgs84lon)
 }
 
 export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocationTemplate, SamplingLocation> implements ISamplingLocationTemplate {

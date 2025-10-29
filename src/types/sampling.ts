@@ -141,7 +141,7 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
       ...( this.weather.trim().length && { weather: this.weather.trim() } ),
       ...( this.checkedTasks.length && { checkedTasks: Array.from(this.checkedTasks) } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
-      ...( this.template!==null && { template: this.template.toJSON('template') } ) }
+      ...( this.template!==null && !isSampProcBlank(this.template) && { template: this.template.toJSON('template') } ) }
   }
   override deepClone() :SamplingLog {
     const clone :unknown = JSON.parse(JSON.stringify(this))
@@ -195,6 +195,10 @@ export function isISamplingProcedure(o :unknown) :o is ISamplingProcedure {
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
     && ( !('checklist' in o) || o.checklist===null || Array.isArray(o.checklist) && o.checklist.every(c => typeof c === 'string') )
   )
+}
+
+export function isSampProcBlank(p :ISamplingProcedure) :boolean {
+  return !p.name.length && !p.instructions?.trim().length && !p.checklist?.length && !p.locations.length && !p.commonSamples.length
 }
 
 export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, SamplingLog> implements ISamplingProcedure {

@@ -5,7 +5,7 @@
   "title": "IGB-FUCHS Data Schema v0",
   "type": "object",
   "properties": {
-    "_comment": { "type": "string" },
+    "_comment": { "type": "string" }, "$comment": { "type": "string" },
     "version": { "const": 0 },
     "$schema": { "const": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json" },
     "samplingLogs": {
@@ -40,7 +40,8 @@
         "locations": { "type": "array", "items": { "$ref": "#SamplingLocation" } },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
-          { "$ref": "#SamplingProcedure" }, { "$ref": "#BlankSamplingProcedure" } ] }
+          { "$ref": "#SamplingProcedure" },
+          { "$ref": "#BlankSamplingProcedure", "description": "Do not use, is only for backward compatibility!" } ] }
       },
       "required": [ "id", "name", "startTime", "locations" ],
       "additionalProperties": false
@@ -90,7 +91,8 @@
           "maxItems": 0, "description": "Currently unused." },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
-          { "$ref": "#SamplingLocationTemplate" }, { "$ref": "#BlankSamplingLocationTemplate" } ] }
+          { "$ref": "#SamplingLocationTemplate" },
+          { "$ref": "#BlankSamplingLocationTemplate", "description": "Do not use, is only for backward compatibility!" } ] }
       },
       "required": [ "name", "actualCoords", "startTime", "samples" ],
       "additionalProperties": false
@@ -151,7 +153,8 @@
         "measurements": { "type": "array", "items": { "$ref": "#Measurement" } },
         "template": { "anyOf": [
           { "type": "null", "description": "Key should be omitted if value is null." },
-          { "$ref": "#SampleTemplate" }, { "$ref": "#BlankSampleTemplate" } ] }
+          { "$ref": "#SampleTemplate" },
+          { "$ref": "#BlankSampleTemplate", "description": "Do not use, is only for backward compatibility!" } ] }
       },
       "required": [ "type", "subjectiveQuality", "measurements" ],
       "additionalProperties": false
@@ -224,12 +227,12 @@
     "ObjectName": { "$id": "#ObjectName",
       "type": "string",
       "pattern": "^[a-zA-Z0-9].+$",
-      "description": "Additional stricter validation in code!"
+      "description": "IMPORTANT: Additional stricter validation in code!"
     },
     "OptionalTrimmedString": { "$id": "#OptionalTrimmedString",
       "anyOf": [
         { "type": "null", "description": "Key should be omitted if value is null." },
-        { "type": "string", "description": "Whitespace is typically trimmed. Key should be omitted if the string is empty." } ]
+        { "type": "string", "description": "Whitespace is typically trimmed on input, for equality checks, etc. Key should be omitted if the string is empty." } ]
     }
   }
 }

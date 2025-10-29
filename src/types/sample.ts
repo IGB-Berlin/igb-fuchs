@@ -112,7 +112,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
       measurements: this.measurements.map((m,mi) => m.toJSON(mi.toString())),
       ...( this.shortDesc.trim().length && { shortDesc: this.shortDesc.trim() } ),
       ...( this.notes.trim().length && { notes: this.notes.trim() } ),
-      ...( this.template!==null && { template: this.template.toJSON('template') } ) }
+      ...( this.template!==null && !isSampTempBlank(this.template) && { template: this.template.toJSON('template') } ) }
   }
   override deepClone() :Sample {
     const clone :unknown = JSON.parse(JSON.stringify(this))
@@ -158,6 +158,10 @@ export function isISampleTemplate(o :unknown) :o is ISampleTemplate {
     && ( !('shortDesc' in o) || o.shortDesc===null || typeof o.shortDesc === 'string' )
     && ( !('instructions' in o) || o.instructions===null || typeof o.instructions === 'string' )
   )
+}
+
+export function isSampTempBlank(s :ISampleTemplate) :boolean {
+  return s.type==='undefined' && !s.shortDesc?.trim().length && !s.instructions?.trim().length && !s.measurementTypes.length
 }
 
 export class SampleTemplate extends DataObjectTemplate<SampleTemplate, Sample> implements ISampleTemplate {
