@@ -86,7 +86,7 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
     this.samples = o===null ? [] : isArrayOf(Sample, o.samples) ? o.samples : o.samples.map(s => new Sample(s))
     this.completedTasks = o && 'completedTasks' in o && o.completedTasks ? o.completedTasks : []
     this.photos = o && 'photos' in o ? o.photos : []
-    this.template = o && 'template' in o ? ( o.template instanceof SamplingLocationTemplate ? o.template : new SamplingLocationTemplate(o.template) ) : null
+    this.template = o && 'template' in o && o.template ? ( o.template instanceof SamplingLocationTemplate ? o.template : new SamplingLocationTemplate(o.template) ) : null
   }
   override validate(others :SamplingLocation[]) {
     validateName(this.name)

@@ -90,7 +90,7 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
     this.checkedTasks = o && 'checkedTasks' in o && o.checkedTasks ? o.checkedTasks : []
     this.locations = o===null ? [] : isArrayOf(SamplingLocation, o.locations) ? o.locations : o.locations.map(l => new SamplingLocation(l))
-    this.template = o && 'template' in o ? ( o.template instanceof SamplingProcedure ? o.template : new SamplingProcedure(o.template) ) : null
+    this.template = o && 'template' in o && o.template ? ( o.template instanceof SamplingProcedure ? o.template : new SamplingProcedure(o.template) ) : null
   }
   override validate(others :SamplingLog[]) {
     validateId(this.id)

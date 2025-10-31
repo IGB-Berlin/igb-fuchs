@@ -60,7 +60,7 @@
       "additionalProperties": false
     },
     "BlankSamplingProcedure": { "$id": "#BlankSamplingProcedure",
-      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "description": "Older data files may contain such invalid blank templates; such template fields can be deleted.",
       "type": "object",
       "properties": {
         "id": { "$ref": "#Ident" },
@@ -111,7 +111,7 @@
       "additionalProperties": false
     },
     "BlankSamplingLocationTemplate": { "$id": "#BlankSamplingLocationTemplate",
-      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "description": "Older data files may contain such invalid blank templates; such template fields can be deleted.",
       "type": "object",
       "properties": {
         "name": { "const": "" },
@@ -174,7 +174,7 @@
       "additionalProperties": false
     },
     "BlankSampleTemplate": { "$id": "#BlankSampleTemplate",
-      "description": "Due to Issue #50 (see GitHub), data files produced before this issue was fixed may contain such blank templates; such template fields can be deleted.",
+      "description": "Older data files may contain such invalid blank templates; such template fields can be deleted.",
       "type": "object",
       "properties": {
         "type": { "const": "undefined" },

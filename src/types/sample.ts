@@ -76,7 +76,7 @@ export class Sample extends DataObjectWithTemplate<Sample, SampleTemplate> imple
     this.subjectiveQuality = o?.subjectiveQuality ?? 'undefined'
     this.measurements = o===null ? [] : isArrayOf(Measurement, o.measurements) ? o.measurements : o.measurements.map(m => new Measurement(m))
     this.notes = o && 'notes' in o && o.notes!==null ? o.notes.trim() : ''
-    this.template = o && 'template' in o ? ( o.template instanceof SampleTemplate ? o.template : new SampleTemplate(o.template) ) : null
+    this.template = o && 'template' in o && o.template ? ( o.template instanceof SampleTemplate ? o.template : new SampleTemplate(o.template) ) : null
   }
   override validate(_others :Sample[]) {
     if (!isSampleType(this.type)) throw new Error(`${tr('Invalid sample type')} '${String(this.type)}'`)

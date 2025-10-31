@@ -113,6 +113,8 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
 
       // Finish sampling log
       await page.getByRole('button', { name: 'Save & Close' }).click()
+      await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+      await page.getByRole('button', { name: 'Save & Close' }).click()  // ignore warning: no samples
       await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
       await page.clock.setFixedTime(v['baseDate']+'T06:06Z')  // last modified time
       await page.getByRole('textbox', { name: 'Notes' }).fill('Foo')
