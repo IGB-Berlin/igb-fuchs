@@ -112,6 +112,9 @@ export class SamplingLocation extends DataObjectWithTemplate<SamplingLocation, S
         for (const c of this.template.tasklist)
           if (!this.completedTasks.includes(c))
             taskCount++
+        for (const c of this.completedTasks)
+          if (!this.template.tasklist.includes(c))
+            rv.push(`Internal Error: Completed task '${c}' not on Tasklist!`)
         if (taskCount) rv.push(i18n.t('task-not-completed', { count: taskCount }))
         if (this.template.samples.length) rv.push(i18n.t('planed-samp-remain', { count: this.template.samples.length }))
       } // else, no template
@@ -238,11 +241,13 @@ export class SamplingLocationTemplate extends DataObjectTemplate<SamplingLocatio
     this.nomCoords.validate([])  // b/c the coords don't have their own Editor
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
+    const ts = this.tasklist.map(c => c.trim())
+    if ( new Set(ts).size !== ts.length )
+      throw new Error(tr('tasklist-duplicates'))
   }
   override warningsCheck(_skipInitWarns :boolean) {
     const rv :string[] = []
     const ts = this.tasklist.map(c => c.trim())
-    if ( new Set(ts).size !== ts.length ) rv.push(tr('tasklist-duplicates'))
     if ( ts.some(t => !t.length) ) rv.push(tr('tasklist-empty-lines'))
     // temporarily disabled (see GH issue #13): if (!skipInitWarns && !this.samples.length) rv.push(tr('No samples'))
     return rv

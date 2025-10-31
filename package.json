@@ -18,7 +18,7 @@
     "start": "npm run clean && parcel --port 1234",
     "build": "npm run clean && npm run lint && npm run just-build",
     "just-build": "rm -rf dist && parcel build && cp -v src/types/igb-fuchs.schema.json dist/",
-    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint src/types/igb-fuchs.schema.json",
+    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint --strict src/types/igb-fuchs.schema.json",
     "all-test": "npm run build && jest && playwright test"
   },
   "@parcel/transformer-js": {

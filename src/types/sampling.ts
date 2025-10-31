@@ -110,6 +110,9 @@ export class SamplingLog extends DataObjectWithTemplate<SamplingLog, SamplingPro
         for (const c of this.template.checklist)
           if (!this.checkedTasks.includes(c))
             taskCount++
+        for (const c of this.checkedTasks)
+          if (!this.template.checklist.includes(c))
+            rv.push(`Internal Error: Checked Task '${c}' not on Checklist!`)
         if (taskCount) rv.push(i18n.t('check-not-completed', { count: taskCount }))
         if (this.template.locations.length) rv.push(i18n.t('planed-loc-remain', { count: this.template.locations.length }))
       } // else, no template
@@ -229,11 +232,13 @@ export class SamplingProcedure extends DataObjectTemplate<SamplingProcedure, Sam
     validateName(this.name)
     if (others.some(o => o.name === this.name))
       throw new Error(`${tr('duplicate-name')}: ${this.name}`)
+    const ck = this.checklist.map(c => c.trim())
+    if ( new Set(ck).size !== ck.length )
+      throw new Error(tr('checklist-duplicates'))
   }
   override warningsCheck(skipInitWarns :boolean) {
     const rv :string[] = []
     const ck = this.checklist.map(c => c.trim())
-    if ( new Set(ck).size !== ck.length ) rv.push(tr('checklist-duplicates'))
     if ( ck.some(c => !c.length) ) rv.push(tr('checklist-empty-lines'))
     if (!skipInitWarns && !this.locations.length) rv.push(tr('no-samp-log-loc'))
     return rv
