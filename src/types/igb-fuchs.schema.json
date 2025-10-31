@@ -226,7 +226,7 @@
     "ObjectName": { "$id": "#ObjectName",
       "type": "string",
       "pattern": "^[a-zA-Z0-9].+$",
-      "description": "IMPORTANT: Additional stricter validation in code!"
+      "description": "IMPORTANT: Additional stricter validation in code! JS regex: /^(?!CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])[a-zA-Z0-9][a-zA-Z0-9\\.\\-_\\(\\)\\u0020ÄäÜüÖöß]+(?<![\\.\\u0020])$/u"
     },
     "OptionalTrimmedString": { "$id": "#OptionalTrimmedString",
       "anyOf": [
