@@ -764,7 +764,7 @@ function checkExport(allData :unknown, procedures :ISamplingProcedure[], logs :I
   isObjectAnyKey(allData)
   const allKeys = Object.keys(allData)
   allKeys.sort()
-  expect(allKeys).toStrictEqual(['$schema','_comment','samplingLogs','samplingProcedures','version'])
+  expect(allKeys).toStrictEqual(['$comment','$schema','samplingLogs','samplingProcedures','version'])
   expect(allData['version']).toStrictEqual(0)
 
   const matchThem = (got :unknown, exp :ISamplingProcedure[]|ISamplingLog[]) => {

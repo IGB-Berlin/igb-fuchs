@@ -37,7 +37,7 @@ const JSON_COMMENT = 'This is a data file for IGB-FUCHS: https://fuchs.igb-berli
 const SCHEMA_URL = 'https://fuchs.igb-berlin.de/igb-fuchs.schema.json' as const
 
 interface JsonFileFormat {
-  _comment :typeof JSON_COMMENT,
+  $comment :typeof JSON_COMMENT,
   $schema :typeof SCHEMA_URL
   version :0,
   samplingLogs: { [key :string]: ISamplingLog }
@@ -336,7 +336,7 @@ export class IdbStorage {
   }
 
   async export() :Promise<File> {
-    const data :JsonFileFormat = { _comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
+    const data :JsonFileFormat = { $comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
     const stores = ['samplingLogs', 'samplingProcedures'] as const
     const trans = this.db.transaction(stores, 'readonly')
     await Promise.all(stores.map(async storeName => {
@@ -354,7 +354,7 @@ export class IdbStorage {
 
   // This could be static but whatever
   exportOne(obj :SamplingProcedure|SamplingLog) :File {
-    const data :JsonFileFormat = { _comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
+    const data :JsonFileFormat = { $comment: JSON_COMMENT, $schema: SCHEMA_URL, version: 0, samplingLogs: {}, samplingProcedures: {} }
     if (obj instanceof SamplingProcedure) data.samplingProcedures[obj.id] = obj
     else data.samplingLogs[obj.id] = obj
     this.schemaValidate(data)

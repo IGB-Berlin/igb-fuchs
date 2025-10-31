@@ -2,12 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$comment": "https://json-schema.org/draft-07/draft-handrews-json-schema-validation-01",
   "$id": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json",
-  "title": "IGB-FUCHS Data Schema v0",
+  "title": "IGB-FUCHS Data Schema",
   "type": "object",
   "properties": {
     "_comment": { "type": "string" }, "$comment": { "type": "string" },
-    "version": { "const": 0 },
-    "$schema": { "const": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json" },
+    "version": { "const": 0 }, "$schema": { "const": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json" },
     "samplingLogs": {
       "type": "object",
       "propertyNames": { "$ref": "#Ident" },
