@@ -26,7 +26,7 @@ import FUCHS_SCHEMA from './types/igb-fuchs.schema.json'
 import { MeasurementType } from './types/measurement'
 import { SampleTemplate } from './types/sample'
 import { deduplicatedSet } from './types/set'
-import { AbstractStore} from './storage'
+import { AbstractStore } from './storage'
 import { assert } from './utils'
 import { tr } from './i18n'
 

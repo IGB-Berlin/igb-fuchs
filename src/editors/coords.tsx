@@ -242,9 +242,9 @@ export class SuperCoordEditor<B extends DataObjectBase<B>> {
 
     setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
       if (!areWgs84CoordsValid(actCoords))
-        // NOTE simply doing getOrCreateInstance already seems to show the element!
-        Collapse.getOrCreateInstance(accordCollapse).show()
-      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () => Collapse.getOrCreateInstance(accordCollapse).show())
+        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show()
+      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () =>
+        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
     })
 
   }

@@ -250,10 +250,11 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
     setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
       if ( !isTimestamp(initialStart) || !isValidAndSetTs(initialStart) ||
         !autoSetEnd && (!isTimestamp(initialEnd) || !isValidAndSetTs(initialEnd)) )
-        // NOTE simply doing getOrCreateInstance already seems to show the element!
-        Collapse.getOrCreateInstance(accordCollapse).show()
-      this.inpStart.input.addEventListener('invalid', () => Collapse.getOrCreateInstance(accordCollapse).show())
-      this.inpEnd.input.addEventListener('invalid', () => Collapse.getOrCreateInstance(accordCollapse).show())
+        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show()
+      this.inpStart.input.addEventListener('invalid', () =>
+        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
+      this.inpEnd.input.addEventListener('invalid', () =>
+        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
     })
 
   }
