@@ -1,7 +1,7 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
-v0.3.0-beta - *noch nicht released*
+v0.3.0-beta - 2025-11-03
 ------------------------
 
 - In Messstellen sind die Koordinaten jetzt in einem "Dropdown" versteckt und nur

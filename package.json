@@ -1,7 +1,7 @@
 {
   "name": "igb-fuchs",
   "displayName": "IGB-FUCHS",
-  "version": "0.1.0-beta",
+  "version": "0.3.0-beta",
   "description": "IGB-FUCHS is an Electronic Lab Notebook with a focus on fieldwork, developed at IGB Berlin.",
   "author": {
     "name": "Hauke Dämpfling at the IGB Berlin",
