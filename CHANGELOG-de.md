@@ -1,6 +1,15 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
+v0.4.0-beta - *noch nicht released*
+------------------------
+
+- Internes:
+  - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben (welche
+    eigentlich ungültig sind aber toleriert werden).
+  - Die interne Validierung von Datenobjekten wurde etwas verbessert.
+  - Kleinere Änderungen an der Testversion des JSON Schemas.
+
 v0.3.0-beta - 2025-11-03
 ------------------------
 
@@ -36,6 +45,8 @@ v0.3.0-beta - 2025-11-03
   - Die maximale Höhe von Text-Eingabefeldern ist nun begrenzt, damit der Benutzer besser
     die Übersicht behalten kann, welches Feld aktuell bearbeitet wird.
   - Bei kleinen Knöpfen wie "Hilfe" wird nun eine Tastatur-Navigations-Hilfe angezeigt.
+  - Der "Export" Knopf wurde zuvor nicht deaktiviert, wenn kein/e Protokoll/Prozedur
+    ausgewählt war.
 
 v0.1.0-beta - 2025-05-22
 ------------------------
