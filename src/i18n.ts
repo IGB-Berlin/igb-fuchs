@@ -589,6 +589,14 @@ const translations = {
   'qf-questionable': ['Fraglich', 'Questionable'],
   'qf-bad': ['Schlecht', 'Bad'],
 
+  // WTW module
+  'wtw-legal': [
+    'WTW® ist eine eingetragene Marke der Xylem Analytics Germany GmbH.'
+    +' Dieses Projekt steht in keiner Verbindung zu Xylem oder deren Tochtergesellschaften und wird von diesen weder autorisiert noch unterstützt.',
+    'WTW® is a registered trademark of Xylem Analytics Germany GmbH.'
+    +' This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.',
+  ],
+
   // '': [''],
 } as const
 
