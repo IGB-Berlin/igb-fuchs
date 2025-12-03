@@ -26,6 +26,22 @@ You should always perform regular backups via the "Export" function.
 
 This message will be updated according to the current state of development.
 
+Development Environment
+-----------------------
+
+Requirements:
+- Latest Node.js LTS, currently v24 (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/TypeScript.md))
+- Strongly recommended: VSCode and Git Bash (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/DevEnv.md))
+
+Setup and notes:
+- `./setup_git_filter.sh` to set up git filter config
+- `npm ci` to install all dependencies
+- `npx playwright install` to install Playwright browsers for tests
+- `npm run all-test` to run all tests
+- `npm run build` to build static pages to `dist` directory
+- `npm start` to run development server
+- `npm run clean` to clean up files
+
 
 Author, Copyright, and License
 ------------------------------
