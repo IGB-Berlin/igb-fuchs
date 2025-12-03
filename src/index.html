@@ -35,11 +35,13 @@
           <p>Version: <code id="appVersion">(unknown)</code></p>
           <p lang="en">Copyright &copy; 2024-2025 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
             at the <a href="https://www.igb-berlin.de/en" target="_blank">Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB)</a>,
-            Berlin, Germany</p>
+            Berlin, Germany &bullet; <a href="https://www.igb-berlin.de/en/imprint" target="_blank">Imprint</a></p>
           <p lang="de">Copyright &copy; 2024-2025 <a href="https://www.zero-g.net" target="_blank">Hauke Dämpfling</a>
             am <a href="https://www.igb-berlin.de/" target="_blank">Leibniz-Institut für Gewässerökologie und
-            Binnenfischerei (IGB) im Forschungsverbund Berlin e.V.</a></p>
+            Binnenfischerei (IGB) im Forschungsverbund Berlin e.V.</a>
+            &bullet; <a href="https://www.igb-berlin.de/impressum" target="_blank">Impressum</a></p>
           <div class="accordion" id="aboutAccordion">
+
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHelp"
@@ -74,14 +76,17 @@
                 </div>
               </div>
             </div>
+
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicense"
-                    aria-expanded="false" aria-controls="collapseLicense">
-                    <span lang="en">License</span> <span lang="de">Lizenz</span></button>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLegal"
+                    aria-expanded="false" aria-controls="collapseLegal">
+                    <span lang="en">Legal</span> <span lang="de">Rechtliches</span></button>
               </h2>
-              <div id="collapseLicense" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+              <div id="collapseLegal" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
                 <div class="accordion-body">
+
+                  <h3><span lang="en">License</span> <span lang="de">Lizenz</span></h3>
                   <p lang="de"><em>[Deutsche Übersetzung; Original s.u.]</em></p>
                   <p lang="de">IGB-FUCHS ist Freie Software: Sie können es unter den Bedingungen
                     der GNU General Public License, wie von der Free Software Foundation,
@@ -106,20 +111,11 @@
                     IGB-FUCHS. If not, see <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
                   <p>The source code for IGB-FUCHS is available at <a href="https://gitlab.igb-berlin.de/haukex/igb-fuchs"
                     target="_blank">https://gitlab.igb-berlin.de/haukex/igb-fuchs</a>.</p>
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLibraries"
-                    aria-expanded="false" aria-controls="collapseLibraries">
-                    <span lang="en">Used Libraries</span> <span lang="de">Verwendete Bibliotheken</span></button>
-              </h2>
-              <div id="collapseLibraries" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
-                <div class="accordion-body">
+
+                  <h3><span lang="en">Used Libraries</span> <span lang="de">Verwendete Bibliotheken</span></h3>
                   <ul id="licensesList">
                     <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap</a>,
-                      Copyright (c) 2011-2024 The Bootstrap Authors,
+                      Copyright (c) 2011-2025 The Bootstrap Authors,
                       <a href="https://github.com/twbs/bootstrap/blob/main/LICENSE" target="_blank">License: MIT</a></li>
                     <li><a href="https://icons.getbootstrap.com/" target="_blank">Bootstrap Icons</a>,
                       Copyright (c) 2019-2024 The Bootstrap Authors,
@@ -142,27 +138,20 @@
                     <li><a href="https://gildas-lormeau.github.io/zip.js/" target="_blank">zip.js</a>,
                       Copyright (c) 2023, Gildas Lormeau,
                       <a href="https://github.com/gildas-lormeau/zip.js/blob/master/LICENSE" target="_blank">License: BSD 3-Clause License</a></li>
+                    <li><a href="https://github.com/cfworker/cfworker/tree/main/packages/json-schema#readme" target="_blank">@cfworker/json-schema</a>,
+                      Copyright (c) 2020 Jeremy Danyow,
+                      <a href="https://github.com/cfworker/cfworker/blob/main/LICENSE.md" target="_blank">License: MIT</a></li>
                   </ul>
-                  <p class="mb-0" lang="en">For the full text of the licenses, see "Open-Source Licenses" below.</p>
-                  <p class="mb-0" lang="de">Der vollständige Text der Lizenzen ist im Abschnitt "Open-Source Licenses" enthalten (steht nur auf Englisch zur Verfügung).</p>
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLicenses"
-                    aria-expanded="false" aria-controls="collapseLicenses">
-                    <span lang="en">Open-Source Licenses</span> <span lang="de">Open-Source Lizenzen</span></button>
-              </h2>
-              <div id="collapseLicenses" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
-                <div class="accordion-body">
-                  <p lang="de">Dieser Abschnitt steht nur auf Englisch zur Verfügung.</p>
+                  <p lang="en">The full text of the licenses follows:</p>
+                  <p lang="de">Der vollständige Text der Lizenzen folgt (steht nur auf Englisch zur Verfügung):</p>
                   <pre id="licensesText" style="max-height: 50vh" class="border rounded overflow-auto p-1">
-                    Licenses should be loaded and shown here. If not, see the links above,
+                    Licenses should be loaded and shown here. If this fails, see the links above,
                     or the file "licenses.txt" that is part of the source distribution.</pre>
+
                 </div>
               </div>
             </div>
+
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataProtection"
@@ -182,7 +171,7 @@
                     </li>
                     <li>Data entered into this page/app are processed exclusively within this page/app. Data may be exported by
                       the user via the "Export" functions. The user receives control over these exports. The exports consist of
-                      text, image, and "Zip" files which can be viewed in the commonly available programs for these file types.</li>
+                      text-based and "Zip" files which can be viewed in the commonly available programs for these file types.</li>
                     <li>Device location data is only stored on explicit request by the user (by pressing the corresponding buttons).
                       All saved location data is viewable through the user interface.</li>
                   </ul>
@@ -197,7 +186,7 @@
                     </li>
                     <li>In dieser Seite/App eingegebene Daten werden ausschließlich innerhalb dieser Seite/App verarbeitet.
                       Über Daten, welche der Nutzer über die "Export" Funktionen exportiert, erhält der Benutzer die Kontrolle.
-                      Der Export geschieht in Form von Text-, Bild-, und "Zip"-Dateien, welche der Benutzer in den jeweilig
+                      Der Export geschieht in Form von textbasierten und "Zip"-Dateien, welche der Benutzer in den jeweilig
                       dafür üblichen Betrachtungsprogrammen einsehen kann.</li>
                     <li>Standortdaten des Geräts werden nur durch explizite Eingabe durch den Benutzer (durch das Drücken der
                       entsprechenden Schaltflächen) in die gespeicherten Daten übernommen. Sämtliche gespeicherten Standortdaten
@@ -206,9 +195,8 @@
                 </div>
               </div>
             </div>
+
           </div>
-          <div class="ms-1 mt-2" lang="en"><a href="https://www.igb-berlin.de/en/imprint" target="_blank">Imprint</a></div>
-          <div class="ms-1 mt-2" lang="de"><a href="https://www.igb-berlin.de/impressum" target="_blank">Impressum</a></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" data-bs-dismiss="modal"><i class="bi-x-lg"></i>
