@@ -13,7 +13,7 @@ jobs:
       - name: Disable autocrlf on Windows
         # https://github.com/actions/checkout/issues/135
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           lfs: true
       - uses: actions/setup-node@v6
@@ -29,7 +29,7 @@ jobs:
           CUSTOM_DEV_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'local-dev' }}
         run: make build
         working-directory: dev/py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: igb-fuchs-local-dev-exe
           path: dev/py/dist/*.exe
