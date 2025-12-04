@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import eslint from '@eslint/js'
 import { defineConfig, globalIgnores } from 'eslint/config'
-import tseslint from 'typescript-eslint'
 import stylistic from '@stylistic/eslint-plugin'
+import tseslint from 'typescript-eslint'
+import eslint from '@eslint/js'
 
 export default defineConfig([
   globalIgnores(['./dist/**', './coverage/**']),
@@ -44,10 +44,10 @@ export default defineConfig([
       '@stylistic': stylistic
     },
     rules: {
-      'linebreak-style': [ 'error', 'unix' ],
-      'semi': [ 'warn', 'never' ],
-      'indent': [ 'warn', 2 ],
-      'quotes': [ 'warn', 'single' ],
+      '@stylistic/linebreak-style': [ 'error', 'unix' ],
+      '@stylistic/semi': [ 'warn', 'never' ],
+      '@stylistic/indent': [ 'warn', 2 ],
+      '@stylistic/quotes': [ 'warn', 'single' ],
       '@stylistic/arrow-parens': [ 'warn', 'as-needed' ],
       '@typescript-eslint/switch-exhaustiveness-check': 'warn',
       '@typescript-eslint/no-confusing-void-expression': [ 'error', { 'ignoreArrowShorthand': true } ],

@@ -5,7 +5,9 @@
   "makefile.configureOnOpen": false,
   "eslint.validate": [
     "javascript",
-    "typescript"
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
   ],
   "indentRainbow.ignoreErrorLanguages": [
     "markdown"
