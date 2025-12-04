@@ -367,26 +367,25 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     if ( !curObj.equals(prevObj) ) {
       console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
       switch( await unsavedChangesQuestion(tr('Save & Close'), curObj.summaryAsHtml(true)) ) {
-      case 'save': return this.doSave(true)
-      case 'cancel': return false
-      case 'discard': return true
+        case 'save': return this.doSave(true)
+        case 'cancel': return false
+        case 'discard': return true
       }
     } else return true
   }
 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
-  makeRow(input :HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLDivElement,
-    opts :MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
-    assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby') && !input.hasAttribute('placeholder'))
+  makeRow(input :HTMLElement, opts :MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
+    assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby'))
     const inpId = this.ctx.genId('Editor_Input')
     input.setAttribute('id', inpId)
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting - and not all `input`s are <input>s anymore!
-    if (input instanceof HTMLDivElement)  // custom <div> containing e.g. <input>s
-      input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
-    else { // <input>, <textarea>, <select>
+    if ( input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement || input instanceof HTMLSelectElement ) {
+      // <input>, <textarea>, <select>
       input.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
       input.classList.add('form-control')
-    }
+    } else  // custom element (e.g. <div>) containing its own inputs; assume it uses CustomChangeEvent to signal changes
+      input.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))  // bubble
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
     if (opts.helpText) {

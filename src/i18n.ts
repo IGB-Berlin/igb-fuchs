@@ -17,6 +17,8 @@
  */
 import { I18n } from 'i18n-js'
 
+// spell-checker: ignore Datenlogger EPSG Koord. Nieders. Oberfl. Precip. Proz. Templ. Unbek. Werbungs autom. fließ. wasser
+
 const translations = {
   //     'English (en-US)': ['Deutsch (de-DE)'],   (but key can't contain dots!)
   // For long texts: 'key': ['Deutsch (de-DE)', 'English (en-US)'],
@@ -596,6 +598,15 @@ const translations = {
     'WTW® is a registered trademark of Xylem Analytics Germany GmbH.'
     +' This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.',
   ],
+  'Not available': ['Nicht verfügbar'],
+  'Connect': ['Verbinden'],
+  'Connecting': ['Wird verbunden'],
+  'Disconnect': ['Verbindung trennen'],
+  'Disconnecting': ['Wird getrennt'],
+  'wtw-access-denied': ['Zugriff wurde vom Benutzer oder Browser verweigert.',
+    'Access was denied by the user or the browser.' ],
+  'wtw-failed-open': ['Die Schnittstelle konnte aufgrund eines Fehlers nicht geöffnet werden.',
+    'There was an error when trying to open the connection.' ],
 
   // '': [''],
 } as const

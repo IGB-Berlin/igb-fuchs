@@ -17,12 +17,14 @@
  */
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { MeasListEditor } from './meas-list'
 import { AbstractStore } from '../storage'
 import { makeHelpButton } from '../help'
 import { i18n, tr } from '../i18n'
+import { assert } from '../utils'
 
 class QualityEditor {
   readonly el
@@ -55,10 +57,10 @@ class QualityEditor {
         </div>
       </div>)
     switch(initialQuality) {
-    case 'good': inpQualGood.checked = true; break
-    case 'questionable': inpQualQuest.checked = true; break
-    case 'bad': inpQualBad.checked = true; break
-    case 'undefined': break
+      case 'good': inpQualGood.checked = true; break
+      case 'questionable': inpQualQuest.checked = true; break
+      case 'bad': inpQualBad.checked = true; break
+      case 'undefined': break
     }
     this._quality = initialQuality
     const updQual = () => {
@@ -115,12 +117,19 @@ export class SampleEditor extends Editor<Sample> {
 
     this.measEdit = new MeasListEditor(this, this.initObj)
 
+    const wtwCtrl = new WtwConnControl()
+    wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, event => {
+      assert(event instanceof WtwDataReceivedEvent)
+      console.log(event.detail.results)  //TODO
+    })
+
     this.setFormContents([
       this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
       this.makeRow(this.inpDesc, { label: tr('Short Description'), helpText: <>{tr('samp-short-desc-help')}</> }),
       rowInst,
       this.makeRow(this.qualEditor.el, { label: this.qualEditor.titleEl }),
       rowNotes,
+      this.makeRow(wtwCtrl, { label: 'WTW®', helpText: <>{tr('wtw-legal')}</> }),
       this.measEdit.elWithTitle,
     ])
   }
