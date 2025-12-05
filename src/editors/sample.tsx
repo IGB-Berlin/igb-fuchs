@@ -18,6 +18,7 @@
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
+import { Measurement } from '../types/measurement'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { MeasListEditor } from './meas-list'
@@ -120,7 +121,22 @@ export class SampleEditor extends Editor<Sample> {
     const wtwCtrl = new WtwConnControl()
     wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, event => {
       assert(event instanceof WtwDataReceivedEvent)
-      console.log(event.detail.results)  //TODO
+      if (!event.detail.results.length) return
+      // Note we'll assume that typically, we're only getting one result at a time, so all of the processing is *inside* this loop:
+      for (const res of event.detail.results) {
+        const overwrites :Measurement[][] = []
+        for (const m of res.meas) {
+          // see if we already have this measurement
+          const found :Measurement[] = this.measEdit.measurements.filter(hm => m.type.name == hm.type.name && m.type.unit == hm.type.unit)
+          if (found.length)
+            overwrites.push([m].concat(found))
+          console.log('New measurement', m)  //TODO: Debug, remove
+          //TODO: else, add this measurement (need method in ListEditor/MeasListEditor to add)
+        }
+        console.log('Overwrites', overwrites)  //TODO: Debug, remove
+        //TODO: ask about overwrites (overAppendDialog) (need method in ListEditor/MeasListEditor to delete)
+        //TODO: add res.raw to notes field
+      }
     })
 
     this.setFormContents([

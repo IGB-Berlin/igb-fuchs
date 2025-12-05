@@ -129,6 +129,7 @@ export class WtwConnector extends EventTarget {
       try { await textReader.cancel() } catch (_) {/* ignore */}
       await readUntilClosed
       this.closeHandler = null
+      this.rx.clear()
       this.state = 'disconnected'
     }
     this.state = 'connected'
@@ -139,6 +140,7 @@ export class WtwConnector extends EventTarget {
 export class WtwConnControl extends HTMLElement {
 
   private readonly btnConnect :HTMLButtonElement
+  private readonly elStatus :HTMLElement
   constructor() {
     super()
     this.btnConnect = safeCastElement(HTMLButtonElement, <button class="btn" disabled></button>)
@@ -148,10 +150,13 @@ export class WtwConnControl extends HTMLElement {
       else if (WtwConnector.instance.state==='connected') await WtwConnector.instance.disconnect()
     })
     this.appendChild(this.btnConnect)
+    this.elStatus = <span class="ms-3"></span>
+    this.appendChild(this.elStatus)
   }
 
   private updateState(state :State) {
     this.btnConnect.classList.remove('btn-success','btn-danger','btn-outline-danger','btn-outline-success')
+    this.elStatus.replaceChildren()
     switch (state) {
       case 'not-available':
         this.btnConnect.classList.add('btn-outline-secondary')
@@ -162,6 +167,7 @@ export class WtwConnControl extends HTMLElement {
         this.btnConnect.disabled = false
         this.btnConnect.classList.add('btn-success')
         this.btnConnect.replaceChildren(<span><i class="bi-plug me-1"/> {tr('Connect')}</span>)
+        this.elStatus.replaceChildren(<span class="text-danger"><i class="bi-x-lg"/> {tr('Disconnected')}</span>)
         break
       case 'connecting':
         this.btnConnect.classList.add('btn-outline-success')
@@ -173,6 +179,7 @@ export class WtwConnControl extends HTMLElement {
         this.btnConnect.disabled = false
         this.btnConnect.classList.add('btn-danger')
         this.btnConnect.replaceChildren(<span><i class="bi-x-octagon me-1"/> {tr('Disconnect')}</span>)
+        this.elStatus.replaceChildren(<span class="text-success"><i class="bi-check-lg"/> {tr('Connected')}</span>)
         break
       case 'disconnecting':
         this.btnConnect.classList.add('btn-outline-danger')

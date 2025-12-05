@@ -18,7 +18,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Measurement } from './types/measurement'
+import { makeValidNumberPat, Timestamp, timestampNow } from './types/common'
+import { Measurement, MeasurementType } from './types/measurement'
+import { assert } from './utils'
 
 /* Example of a "printout" from a WTW device (CRLF, CP1252/Latin-1):
 17.08.2024 16:00:30
@@ -48,14 +50,46 @@ export interface WtwParseResults {
   meas :Measurement[]
 }
 
+// $ perl -wM5.014 -MRegexp::Common=number -e 'say $RE{num}{real}'
+// (?:(?i)(?:[-+]?)(?:(?=[.]?[0123456789])(?:[0123456789]*)(?:(?:[.])(?:[0123456789]{0,}))?)(?:(?:[E])(?:(?:[-+]?)(?:[0123456789]+))|))
+// const NUM_RE = /[-+]?(?=[.]?[0-9])[0-9]*(?:[.][0-9]*)?(?:[Ee][-+]?[0-9]+)?\b/
+const NUM_PAT = makeValidNumberPat()  // currently [-+]?(?:(?!0[0-9])[0-9]+(?:\.[0-9]+)?|\.[0-9]+)
+const MEAS_RE = new RegExp(
+  '^(?:'+
+    //TODO Later: Can EC ever be reported in mS/cm?
+    `(?i:Cond)\\s+(?<ec>${NUM_PAT})\\s*[µu]S/cm`+
+    `|pH\\s+(?<ph>${NUM_PAT})`+
+    `|(?i:Ox)\\s+(?<ox>${NUM_PAT})\\s*mg/l`+
+  `)\\s+(?<t>${NUM_PAT})\\s*°C\\b`, 'mug')
+
 export class WtwReceiver {
   private buf :string = ''
-  add(data :string) :WtwParseResults[] {
+  clear() { this.buf='' }
+  add(data :string, override_time_for_test ?:Timestamp) :WtwParseResults[] {
+    const time = override_time_for_test ?? timestampNow()  // override is just for testing
     this.buf += data
-    const m = this.buf.match( /^(.+)(?:\r?\n|\r)[-_]{5,}(?:\r?\n|\r)/s )
-    if (m) {
-      //TODO NEXT
+    const blocks = this.buf.split(/^(?:-{5,}|_{5,})(?:\r?\n|\r)/m)
+    this.buf = blocks.pop() ?? ''
+    const res :WtwParseResults[] = []
+    for (const block of blocks) {
+      const raw = block.replaceAll('\r\n','\n').replaceAll('\r','\n').replaceAll(/\n{2,}/g,'\n').replaceAll(/[ \t]+/g,' ').trim()
+      const meas :Measurement[] = []
+      const matches = raw.matchAll(MEAS_RE)
+      for (const m of matches) {
+        assert(m.groups)
+        if (m.groups['ec'] && m.groups['t'])
+          meas.push(new Measurement({ type: new MeasurementType({ name: 'Cond', unit: 'µS/cm' }), time: time, value: m.groups['ec'] }),
+            new Measurement({ type: new MeasurementType({ name: 'Temp(Cond)', unit: '°C' }), time: time, value: m.groups['t'] }))
+        else if (m.groups['ph'] && m.groups['t'])
+          meas.push(new Measurement({ type: new MeasurementType({ name: 'pH', unit: 'pH' }), time: time, value: m.groups['ph'] }),
+            new Measurement({ type: new MeasurementType({ name: 'Temp(pH)', unit: '°C' }), time: time, value: m.groups['t'] }))
+        else if (m.groups['ox'] && m.groups['t'])
+          meas.push(new Measurement({ type: new MeasurementType({ name: 'Ox', unit: 'mg/l' }), time: time, value: m.groups['ox'] }),
+            new Measurement({ type: new MeasurementType({ name: 'Temp(Ox)', unit: '°C' }), time: time, value: m.groups['t'] }))
+        else console.warn('unhandled match', m)  // shouldn't happen
+      }
+      res.push({ raw: raw, meas: meas })
     }
-    return []
+    return res
   }
 }

@@ -601,12 +601,16 @@ const translations = {
   'Not available': ['Nicht verfügbar'],
   'Connect': ['Verbinden'],
   'Connecting': ['Wird verbunden'],
+  'Connected': ['Verbunden'],
   'Disconnect': ['Verbindung trennen'],
   'Disconnecting': ['Wird getrennt'],
+  'Disconnected': ['Getrennt'],
   'wtw-access-denied': ['Zugriff wurde vom Benutzer oder Browser verweigert.',
     'Access was denied by the user or the browser.' ],
   'wtw-failed-open': ['Die Schnittstelle konnte aufgrund eines Fehlers nicht geöffnet werden.',
     'There was an error when trying to open the connection.' ],
+  'Overwrite': ['Überschreiben'],
+  'Append': ['Anhängen'],
 
   // '': [''],
 } as const
