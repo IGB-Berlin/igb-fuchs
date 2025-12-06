@@ -113,17 +113,9 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       const delId = this.selId  // b/c the event handlers may change this
       if (delId===null) return  // shouldn't happen
       const selItem = await this.theStore.get(delId)
-      switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
-      case 'cancel': break
-      case 'delete': {
-        console.debug('Deleting',selItem,'...')
-        /* REMEMBER deletion may change some object's ids!
-         * Redrawing the list is handled via the event listener below. */
-        const oldId = await this.theStore.del(selItem)
+      if ( await deleteConfirmation(selItem.summaryAsHtml(true)) === 'delete' ) {
+        const oldId = await this.deleteItem(selItem)
         paranoia(delId === oldId, `${delId}!==${oldId}`)
-        this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
-        console.debug('... deleted id',oldId)
-        break }
       }
     })
 
@@ -267,6 +259,28 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     })
   }
 
+  /** Takes a **new** object and saves it to this store. Currently intended for external use when importing measurements. */
+  async addItem(newObj :B) {
+    console.debug('Adding',newObj,'...')
+    const newId = await this.theStore.add(newObj)
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
+    console.debug('... added with id',newId)
+    return newId
+  }
+
+  /** Deletes an item from this store **without confirmation**. Currently intended for external use when importing measurements.
+   *
+   * REMEMBER deletion may change some object's ids!
+   * Redrawing this list is handled via the corresponding event listener in this class.
+   */
+  async deleteItem(delItem :B) {
+    console.debug('Deleting',delItem,'...')
+    const oldId = await this.theStore.del(delItem)
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
+    console.debug('... deleted id',oldId)
+    return oldId
+  }
+
   /** So subclasses can override. */
   protected contentFor(item :B) :HTMLElement { return item.summaryAsHtml(false) }
 
@@ -304,10 +318,10 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
 
   override highlightButton(which: 'new'|'temp'): void {
     switch(which) {
-    case 'new': super.highlightButton('new'); break
-    case 'temp':
-      this.btnTemp.classList.remove('btn-outline-info')
-      this.btnTemp.classList.add('btn-info')
+      case 'new': super.highlightButton('new'); break
+      case 'temp':
+        this.btnTemp.classList.remove('btn-outline-info')
+        this.btnTemp.classList.add('btn-info')
     }
   }
 
@@ -319,10 +333,8 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
   /** Creates a new object from a template, saves it to this store being edited, and opens a new {@link Editor} for the object. */
   protected async addNew(template :T) {
     const newObj = this.makeNew(template)
-    console.debug('Adding',newObj,'...')
-    const newId = await this.theStore.add(newObj)
-    this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
-    console.debug('... added with id',newId,'now editing')
+    const newId = await this.addItem(newObj)
+    console.debug('Now editing the new object that has id',newId)
     return this.newEditor(newObj, true)
   }
 

@@ -131,10 +131,10 @@ export class SampleEditor extends Editor<Sample> {
           if (found.length)
             overwrites.push([m].concat(found))
           console.log('New measurement', m)  //TODO: Debug, remove
-          //TODO: else, add this measurement (need method in ListEditor/MeasListEditor to add)
+          //TODO: else, add this measurement
         }
         console.log('Overwrites', overwrites)  //TODO: Debug, remove
-        //TODO: ask about overwrites (overAppendDialog) (need method in ListEditor/MeasListEditor to delete)
+        //TODO: ask about overwrites (overAppendDialog)
         //TODO: add res.raw to notes field
       }
     })
