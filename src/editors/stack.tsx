@@ -242,50 +242,50 @@ export class EditorStack {
     ed.el.addEventListener(CustomStackEvent.NAME, async evt1 => {
       if (!(evt1 instanceof CustomStackEvent)) return
       switch(evt1.detail.action) {
-      case 'opened':
-        thisEditorHasChild = false
-        this.footer.appendChild(theEl)
-        break
-      case 'closed':
-        await sliderNext.close()
-        thisEditorHasChild = false
-        this.footer.removeChild(theEl)
-        break
-      case 'hidden': {  // this editor was hidden by another editor on top of it
-        thisEditorHasChild = true
-        const childEd = evt1.detail.other
-        const updSliderColor = async () => {
-          if (!updSliderVis()) return
-          const [valid, detail] = await childEd.checkValidity(false, true)
-          sliderNext.setToolTip(detail)
-          switch (valid) {
-          case 'error': sliderNext.setColor('danger'); break
-          case 'warn': sliderNext.setColor('warning'); break
-          case 'good': sliderNext.setColor('success'); break
+        case 'opened':
+          thisEditorHasChild = false
+          this.footer.appendChild(theEl)
+          break
+        case 'closed':
+          await sliderNext.close()
+          thisEditorHasChild = false
+          this.footer.removeChild(theEl)
+          break
+        case 'hidden': {  // this editor was hidden by another editor on top of it
+          thisEditorHasChild = true
+          const childEd = evt1.detail.other
+          const updSliderColor = async () => {
+            if (!updSliderVis()) return
+            const [valid, detail] = await childEd.checkValidity(false, true)
+            sliderNext.setToolTip(detail)
+            switch (valid) {
+              case 'error': sliderNext.setColor('danger'); break
+              case 'warn': sliderNext.setColor('warning'); break
+              case 'good': sliderNext.setColor('success'); break
+            }
           }
+          childEd.el.addEventListener(CustomChangeEvent.NAME, updSliderColor)
+          childEd.el.addEventListener(CustomStackEvent.NAME, evt2 => {
+            if (!(evt2 instanceof CustomStackEvent)) return
+            switch (evt2.detail.action) {
+              case 'closed':
+              case 'hidden':
+                thisEditorsChildIsVisible = false
+                break
+              case 'opened':
+              case 'shown':
+                thisEditorsChildIsVisible = true
+                break
+            }
+            return updSliderColor()
+          })
+          break
         }
-        childEd.el.addEventListener(CustomChangeEvent.NAME, updSliderColor)
-        childEd.el.addEventListener(CustomStackEvent.NAME, evt2 => {
-          if (!(evt2 instanceof CustomStackEvent)) return
-          switch (evt2.detail.action) {
-          case 'closed':
-          case 'hidden':
-            thisEditorsChildIsVisible = false
-            break
-          case 'opened':
-          case 'shown':
-            thisEditorsChildIsVisible = true
-            break
-          }
-          return updSliderColor()
-        })
-        break
-      }
-      case 'shown':  // this editor was revealed after the editor on top of it was closed
-        thisEditorHasChild = false
-        updSliderVis()
-        if (nextDoNext) await ed.doNext()
-        break
+        case 'shown':  // this editor was revealed after the editor on top of it was closed
+          thisEditorHasChild = false
+          updSliderVis()
+          if (nextDoNext) await ed.doNext()
+          break
       }
       nextDoNext = false
     })

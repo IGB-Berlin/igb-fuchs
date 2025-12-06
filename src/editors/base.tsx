@@ -367,9 +367,9 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     if ( !curObj.equals(prevObj) ) {
       console.debug('Unsaved changes, prev', prevObj, 'vs. cur', curObj)
       switch( await unsavedChangesQuestion(tr('Save & Close'), curObj.summaryAsHtml(true)) ) {
-      case 'save': return this.doSave(true)
-      case 'cancel': return false
-      case 'discard': return true
+        case 'save': return this.doSave(true)
+        case 'cancel': return false
+        case 'discard': return true
       }
     } else return true
   }

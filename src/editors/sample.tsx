@@ -55,10 +55,10 @@ class QualityEditor {
         </div>
       </div>)
     switch(initialQuality) {
-    case 'good': inpQualGood.checked = true; break
-    case 'questionable': inpQualQuest.checked = true; break
-    case 'bad': inpQualBad.checked = true; break
-    case 'undefined': break
+      case 'good': inpQualGood.checked = true; break
+      case 'questionable': inpQualQuest.checked = true; break
+      case 'bad': inpQualBad.checked = true; break
+      case 'undefined': break
     }
     this._quality = initialQuality
     const updQual = () => {

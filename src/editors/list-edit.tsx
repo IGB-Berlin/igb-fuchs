@@ -114,16 +114,16 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       if (delId===null) return  // shouldn't happen
       const selItem = await this.theStore.get(delId)
       switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
-      case 'cancel': break
-      case 'delete': {
-        console.debug('Deleting',selItem,'...')
-        /* REMEMBER deletion may change some object's ids!
-         * Redrawing the list is handled via the event listener below. */
-        const oldId = await this.theStore.del(selItem)
-        paranoia(delId === oldId, `${delId}!==${oldId}`)
-        this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
-        console.debug('... deleted id',oldId)
-        break }
+        case 'cancel': break
+        case 'delete': {
+          console.debug('Deleting',selItem,'...')
+          /* REMEMBER deletion may change some object's ids!
+          * Redrawing the list is handled via the event listener below. */
+          const oldId = await this.theStore.del(selItem)
+          paranoia(delId === oldId, `${delId}!==${oldId}`)
+          this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
+          console.debug('... deleted id',oldId)
+          break }
       }
     })
 
@@ -304,10 +304,10 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
 
   override highlightButton(which: 'new'|'temp'): void {
     switch(which) {
-    case 'new': super.highlightButton('new'); break
-    case 'temp':
-      this.btnTemp.classList.remove('btn-outline-info')
-      this.btnTemp.classList.add('btn-info')
+      case 'new': super.highlightButton('new'); break
+      case 'temp':
+        this.btnTemp.classList.remove('btn-outline-info')
+        this.btnTemp.classList.add('btn-info')
     }
   }
 
