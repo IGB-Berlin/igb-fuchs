@@ -19,6 +19,7 @@ import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
 import { Measurement } from '../types/measurement'
+import { overAppendDialog } from '../dialogs'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { MeasListEditor } from './meas-list'
@@ -119,23 +120,16 @@ export class SampleEditor extends Editor<Sample> {
     this.measEdit = new MeasListEditor(this, this.initObj)
 
     const wtwCtrl = new WtwConnControl()
-    wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, event => {
+    wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, async event => {
       assert(event instanceof WtwDataReceivedEvent)
       if (!event.detail.results.length) return
       // Note we'll assume that typically, we're only getting one result at a time, so all of the processing is *inside* this loop:
       for (const res of event.detail.results) {
-        const overwrites :Measurement[][] = []
-        for (const m of res.meas) {
-          // see if we already have this measurement
-          const found :Measurement[] = this.measEdit.measurements.filter(hm => m.type.name == hm.type.name && m.type.unit == hm.type.unit)
-          if (found.length)
-            overwrites.push([m].concat(found))
-          console.log('New measurement', m)  //TODO: Debug, remove
-          //TODO: else, add this measurement
+        const anyImported = await this.importMeasurements(res.meas)
+        if (anyImported) {
+          inpNotes.value += '\n-----\n' + res.raw + '\n-----\n'
+          this.el.dispatchEvent(new CustomChangeEvent())  // b/c setting `.value` doesn't fire a `change` event
         }
-        console.log('Overwrites', overwrites)  //TODO: Debug, remove
-        //TODO: ask about overwrites (overAppendDialog)
-        //TODO: add res.raw to notes field
       }
     })
 
@@ -177,5 +171,54 @@ export class SampleEditor extends Editor<Sample> {
 
   protected override customValidation() :string[] { return this.measEdit.customValidation() }
   protected override async onClose() { await this.measEdit.close() }
+
+  private async importMeasurements(meas :Measurement[]) {
+    const overwrites :Measurement[][] = []
+    let anyImported = false
+    for (const nm of meas) {
+      const have = this.measEdit.measurements.filter(hm => nm.type.name == hm.type.name && nm.type.unit == hm.type.unit)
+      // we only want to ask the user once about overwrites, not per measurement, so gather for now and ask below
+      if (have.length) overwrites.push([nm].concat(have))
+      else {
+        console.debug('Adding new and not existing measurement',nm)
+        await this.measEdit.addItem(nm)
+        anyImported = true
+      }
+    }
+    if (overwrites.length) {
+      console.debug('Asking user about append/overwrite',overwrites)
+      const act = await overAppendDialog(<>
+        <p>{tr('ask-over-append')}</p>
+        <ol>{
+          overwrites.map(([nm, ...os]) => {
+            assert(nm && os.length)
+            return <ul>
+              <li class="text-success"><i class="bi-plus-circle me-1"/> {tr('New')}: {nm.summaryAsHtml(false)}</li>
+              {os.map(o => <li class="text-warning">{tr('Existing')}: {o.summaryAsHtml(false)}</li>)}
+            </ul>
+          })
+        }</ol>
+      </>, tr('Importing Measurements'))
+      if (act==='append') {
+        for(const [nm, ..._os] of overwrites) {
+          assert(nm)
+          console.debug('Appending measurement',nm)
+          await this.measEdit.addItem(nm)
+          anyImported = true
+        }
+      }
+      else if (act==='overwrite') {
+        for(const [nm, ...os] of overwrites) {
+          assert(nm && os.length)
+          console.debug('New measurement',nm,'overwrites',os)
+          for (const o of os)
+            await this.measEdit.deleteItem(o)
+          await this.measEdit.addItem(nm)
+          anyImported = true
+        }
+      } // else, canceled
+    }
+    return anyImported
+  }
 
 }

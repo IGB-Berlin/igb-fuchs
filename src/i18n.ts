@@ -611,6 +611,11 @@ const translations = {
     'There was an error when trying to open the connection.' ],
   'Overwrite': ['Überschreiben'],
   'Append': ['Anhängen'],
+  'Importing Measurements': ['Importieren von Messungen'],
+  'ask-over-append': [
+    'Sollen die folgende(n) neue(n) Messung(en) an die existierende(n) Messung(en) angehängt werden, oder die existierende(n) Messung(en) ersetzen?',
+    'Should the following new measurement(s) be appended to the existing measurement(s), or overwrite the existing measurement(s)?' ],
+  'Existing': ['Bereits vorhanden'],
 
   // '': [''],
 } as const

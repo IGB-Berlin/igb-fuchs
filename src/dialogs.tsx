@@ -148,7 +148,7 @@ export function overAppendDialog(body :string|HTMLElement, title :string) :Promi
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
             <i class="bi-trash3-fill"/> {tr('Cancel')}</button>
-          <button type="button" class='btn btn-success' data-bs-dismiss="modal" onclick={()=>result='append'}>
+          <button type="button" class='btn btn-info' data-bs-dismiss="modal" onclick={()=>result='append'}>
             <i class="bi-file-earmark-plus"/> {tr('Append')}</button>
           <button type="button" class='btn btn-danger' data-bs-dismiss="modal" onclick={()=>result='overwrite'}>
             <i class="bi-file-earmark-arrow-down"/> {tr('Overwrite')}</button>
