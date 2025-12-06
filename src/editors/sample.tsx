@@ -16,9 +16,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
+import { IMeasurement, Measurement } from '../types/measurement'
 import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
-import { Measurement } from '../types/measurement'
 import { overAppendDialog } from '../dialogs'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -172,16 +172,17 @@ export class SampleEditor extends Editor<Sample> {
   protected override customValidation() :string[] { return this.measEdit.customValidation() }
   protected override async onClose() { await this.measEdit.close() }
 
-  private async importMeasurements(meas :Measurement[]) {
+  private async importMeasurements(meas :IMeasurement[]) {
     const overwrites :Measurement[][] = []
     let anyImported = false
     for (const nm of meas) {
+      //TODO: only care about measurements of the same type *with different values*!
       const have = this.measEdit.measurements.filter(hm => nm.type.name == hm.type.name && nm.type.unit == hm.type.unit)
       // we only want to ask the user once about overwrites, not per measurement, so gather for now and ask below
-      if (have.length) overwrites.push([nm].concat(have))
+      if (have.length) overwrites.push([new Measurement(nm)].concat(have))
       else {
         console.debug('Adding new and not existing measurement',nm)
-        await this.measEdit.addItem(nm)
+        await this.measEdit.addItem(new Measurement(nm))
         anyImported = true
       }
     }

@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { Measurement, MeasurementType } from '../types/measurement'
 import { expect, test } from '@jest/globals'
 import { WtwReceiver } from '../wtw-parse'
 
@@ -30,12 +29,12 @@ test('WtwReceiver', () => {
     +'SC-FDO 45678901\nOx 8.51 mg/l 22.9 °C AR, S: +++'
   const exp = { raw: rec,
     meas: [
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'Cond', unit: 'µS/cm' }), value: '0.0' }),
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'Temp(Cond)', unit: '°C' }), value: '22.6' }),
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'pH', unit: 'pH' }), value: '7.040' }),
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'Temp(pH)', unit: '°C' }), value: '22.5' }),
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'Ox', unit: 'mg/l' }), value: '8.51' }),
-      new Measurement({ time: 123, type: new MeasurementType({ name: 'Temp(Ox)', unit: '°C' }), value: '22.9' }),
+      { time: 123, type: { name: 'Cond', unit: 'µS/cm' }, value: '0.0' },
+      { time: 123, type: { name: 'Temp(Cond)', unit: '°C' }, value: '22.6' },
+      { time: 123, type: { name: 'pH', unit: 'pH' }, value: '7.040' },
+      { time: 123, type: { name: 'Temp(pH)', unit: '°C' }, value: '22.5' },
+      { time: 123, type: { name: 'Ox', unit: 'mg/l' }, value: '8.51' },
+      { time: 123, type: { name: 'Temp(Ox)', unit: '°C' }, value: '22.9' },
     ]}
   // a real record, split up
   expect( rx.add('') ).toStrictEqual([])

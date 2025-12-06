@@ -19,7 +19,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { makeValidNumberPat, Timestamp, timestampNow } from './types/common'
-import { Measurement, MeasurementType } from './types/measurement'
+import { IMeasurement } from './types/measurement'
 import { assert } from './utils'
 
 /* Example of a "printout" from a WTW device (CRLF, CP1252/Latin-1):
@@ -47,7 +47,7 @@ _____________________________
 
 export interface WtwParseResults {
   raw :string
-  meas :Measurement[]
+  meas :IMeasurement[]
 }
 
 // $ perl -wM5.014 -MRegexp::Common=number -e 'say $RE{num}{real}'
@@ -73,19 +73,19 @@ export class WtwReceiver {
     const res :WtwParseResults[] = []
     for (const block of blocks) {
       const raw = block.replaceAll('\r\n','\n').replaceAll('\r','\n').replaceAll(/\n{2,}/g,'\n').replaceAll(/[ \t]+/g,' ').trim()
-      const meas :Measurement[] = []
+      const meas :IMeasurement[] = []
       const matches = raw.matchAll(MEAS_RE)
       for (const m of matches) {
         assert(m.groups)
         if (m.groups['ec'] && m.groups['t'])
-          meas.push(new Measurement({ type: new MeasurementType({ name: 'Cond', unit: 'µS/cm' }), time: time, value: m.groups['ec'] }),
-            new Measurement({ type: new MeasurementType({ name: 'Temp(Cond)', unit: '°C' }), time: time, value: m.groups['t'] }))
+          meas.push({ type: { name: 'Cond', unit: 'µS/cm' }, time: time, value: m.groups['ec'] },
+            { type: { name: 'Temp(Cond)', unit: '°C' }, time: time, value: m.groups['t'] } )
         else if (m.groups['ph'] && m.groups['t'])
-          meas.push(new Measurement({ type: new MeasurementType({ name: 'pH', unit: 'pH' }), time: time, value: m.groups['ph'] }),
-            new Measurement({ type: new MeasurementType({ name: 'Temp(pH)', unit: '°C' }), time: time, value: m.groups['t'] }))
+          meas.push({ type: { name: 'pH', unit: 'pH' }, time: time, value: m.groups['ph'] },
+            { type: { name: 'Temp(pH)', unit: '°C' }, time: time, value: m.groups['t'] } )
         else if (m.groups['ox'] && m.groups['t'])
-          meas.push(new Measurement({ type: new MeasurementType({ name: 'Ox', unit: 'mg/l' }), time: time, value: m.groups['ox'] }),
-            new Measurement({ type: new MeasurementType({ name: 'Temp(Ox)', unit: '°C' }), time: time, value: m.groups['t'] }))
+          meas.push({ type: { name: 'Ox', unit: 'mg/l' }, time: time, value: m.groups['ox'] },
+            { type: { name: 'Temp(Ox)', unit: '°C' }, time: time, value: m.groups['t'] } )
         else console.warn('unhandled match', m)  // shouldn't happen
       }
       res.push({ raw: raw, meas: meas })
