@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { expect, test } from '@jest/globals'
+import { test, expect } from 'playwright-test-coverage'
 import { dataSetsEqual } from '../set'
 
 test('dataSetsEqual', () => {

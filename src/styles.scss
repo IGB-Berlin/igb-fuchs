@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-@use "../node_modules/bootstrap/scss/bootstrap" as bs with (
+@use "~/node_modules/bootstrap/scss/bootstrap" as bs with (
   $color-mode-type: media-query
 );
 

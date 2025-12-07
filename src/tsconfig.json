@@ -1,5 +1,6 @@
 {
   "extends": "..",
+  "include": [ "**/*.ts", "**/*.tsx", "types/igb-fuchs.schema.json" ],
   "compilerOptions": {
     "composite": true,
     "target": "ES2022",

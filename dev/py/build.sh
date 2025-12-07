@@ -7,7 +7,7 @@ cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"
 # 1. Build the pages into the `web` folder
 if [ ! -e web/index.html ]; then
   ( cd ../.. && npm run build )  # NOTE this cleans out this directory as well (except .venv)
-  cp -r ../../dist web
+  cp -r ../../dist/default web
 fi
 
 # 2. Set up Python
