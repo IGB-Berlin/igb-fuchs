@@ -37,11 +37,16 @@ Setup and notes:
 - `./setup_git_filter.sh` to set up git filter config
 - `npm ci` to install all dependencies
 - `npx playwright install` to install Playwright browsers for tests
-- `npm run all-test` to run all tests
-- `npm run build` to build static pages to `dist` directory
-- `npm start` to run development server
-- `npm run clean` to clean up files
+- See the following places for things that can be run:
+  - `package.json` section `scripts` for things that can be run with `npm run ...`
+  - Readme in `dev/py`
+  - Readme in `dev/issue-bak`
+  - Comment at the top of `dev/validator.cjs`
+  - `dev/make_licenses_txt.pl` generates `licenses.txt`
+    (requires a modern Perl with Mojolicious installed)
 
+
+<!-- spell-checker: ignore Mojolicious backronym mweltdaten -->
 
 Author, Copyright, and License
 ------------------------------

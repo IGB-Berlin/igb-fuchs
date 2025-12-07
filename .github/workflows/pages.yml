@@ -35,5 +35,5 @@ jobs:
         run: npm run build
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: ./dist
+          path: ./dist/default
       - uses: actions/deploy-pages@v4

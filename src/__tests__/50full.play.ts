@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ISamplingLog, ISamplingProcedure } from '../types/sampling'
+import { test, expect } from 'playwright-test-coverage'
 import { initPageTest, dl2file } from './play-utils'
-import { test, expect } from '@playwright/test'
 import * as zip from '@zip.js/zip.js'
 import { assert } from '../utils'
 import Papa from 'papaparse'

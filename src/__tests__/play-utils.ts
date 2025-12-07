@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { expect, Page, Download } from '@playwright/test'
+import { Page, Download } from '@playwright/test'
+import { expect } from 'playwright-test-coverage'
 
 export async function initPageTest(page :Page) {
   // note this also serves as a significant part of the smoke test

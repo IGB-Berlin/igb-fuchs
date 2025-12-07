@@ -9,5 +9,4 @@ trap 'rm -rf "$temp_dir"' EXIT
 gh2md --idempotent --multiple-files IGB-Berlin/igb-fuchs "$temp_dir"
 
 # if we got here, gh2md didn't fail
-rm -rf issues
-mv "$temp_dir" issues
+mv -f "$temp_dir" issues

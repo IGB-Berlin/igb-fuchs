@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { test, expect } from 'playwright-test-coverage'
 import { initPageTest, dl2file } from './play-utils'
-import { test, expect } from '@playwright/test'
 
 const tz_tests = {
   'UTC': {

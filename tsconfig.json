@@ -7,7 +7,8 @@
   ],
   "compilerOptions": {
     "esModuleInterop": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "isolatedModules": true,
     "removeComments": true,
     "noEmitOnError": true,
@@ -29,5 +30,9 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": false,
+    "verbatimModuleSyntax": false,
   }
 }

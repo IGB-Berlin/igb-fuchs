@@ -27,9 +27,6 @@
     "unitless",
     "unparse"
   ],
-  "jest.runMode": {
-    "type": "on-demand"
-  },
   "githubIssues.queries": [
     {
       "label": "Open Issues",
