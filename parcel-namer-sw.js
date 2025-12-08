@@ -37,7 +37,7 @@ export default new Namer({
     if (!asset) return null
     const fp = asset.filePath
     if ( path.basename(fp) == 'service-worker.ts' ) {
-      logger.log({message: `handling ${fp}`})
+      logger.log({message: `handling ${fp.replace(/\\/g,'/')}`})
       return 'service-worker.js'
     }
     // Allow the next namer to handle this bundle.

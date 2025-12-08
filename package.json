@@ -18,7 +18,8 @@
     "build": "npm run clean && parcel build --target prod && cp -v src/types/igb-fuchs.schema.json dist-prod/",
     "dist-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist-prod playwright test",
     "coverage": "bash dev/coverage.sh",
-    "full-test": "npm run dist-test && bash dev/coverage.sh"
+    "full-test": "npm run dist-test && bash dev/coverage.sh",
+    "tasklist": "grep --color=auto --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir='.venv*' --exclude-dir='.*cache' --exclude-dir=node_modules --exclude='LICENSE*' --exclude=licenses.txt --exclude='.*.swp'  --exclude=package-lock.json --exclude-dir='dist-*' --exclude-dir=coverage --exclude-dir=.nyc_output --exclude-dir=issue-bak --exclude-dir=web -Eri '\\bto.?do\\b'"
   },
   "targets": {
     "prod": {
