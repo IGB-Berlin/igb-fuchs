@@ -3,6 +3,8 @@ use warnings;
 use strict;
 use open ':std', IO => ':raw :encoding(UTF-8)';
 
+# Simple git filter that handles $Commit$ (see setup_git_filter.sh)
+
 my $CMD = shift // '';
 my $repl = '$Commit$';  # default for clean
 if ($CMD eq 'smudge') {

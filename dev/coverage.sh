@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euxo pipefail
-cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"
+cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"/..
 
 # clean only the directories that this build uses
 rm -rf dist-tsc/ dist-inst/ dist-test/ .nyc_output coverage

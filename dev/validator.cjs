@@ -1,6 +1,7 @@
 const fs = require('fs')
 const { Validator } = require('@cfworker/json-schema')
 
+// Simple Node.js script to validate JSON files against a schema, for example:
 // find <PATH> -iname '*.json' -exec node dev/validator.cjs src/types/igb-fuchs.schema.json '{}' +
 
 const args = process.argv.slice(2)  // exclude 'node' and this script's path
