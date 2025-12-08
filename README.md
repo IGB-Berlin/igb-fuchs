@@ -34,16 +34,12 @@ Requirements:
 - Strongly recommended: VSCode and Git Bash (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/DevEnv.md))
 
 Setup and notes:
-- `./setup_git_filter.sh` to set up git filter config
+- `dev/setup_git_filter.sh` to set up git filter config
 - `npm ci` to install all dependencies
-- `npx playwright install` to install Playwright browsers for tests
+- `npx playwright install` to install Playwright browsers for tests (on Linux: `--with-deps`)
 - See the following places for things that can be run:
   - `package.json` section `scripts` for things that can be run with `npm run ...`
-  - Readme in `dev/py`
-  - Readme in `dev/issue-bak`
-  - Comment at the top of `dev/validator.cjs`
-  - `dev/make_licenses_txt.pl` generates `licenses.txt`
-    (requires a modern Perl with Mojolicious installed)
+  - Various scripts in `dev/`
 
 
 <!-- spell-checker: ignore Mojolicious backronym mweltdaten -->

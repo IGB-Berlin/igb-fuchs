@@ -22,7 +22,7 @@ import tseslint from 'typescript-eslint'
 import eslint from '@eslint/js'
 
 export default defineConfig([
-  globalIgnores(['./dist/**', './coverage/**']),
+  globalIgnores(['./dist-*/**', './coverage/**']),
   {
     files: ['./*.js', '**/*.ts', '**/*.tsx'],
     extends: [

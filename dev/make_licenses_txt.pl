@@ -5,6 +5,9 @@ use Mojo::DOM;
 use Mojo::File qw/curfile/;
 use Mojo::UserAgent;
 
+# This generates the `licenses.txt` from the project list in `src/index.html`.
+# Requires a modern Perl and Mojolicious.
+
 my $ua = Mojo::UserAgent->new(max_redirects => 10);
 my $dom = Mojo::DOM->new( curfile->dirname->sibling('src','index.html')->slurp('UTF-8') );
 my $out = curfile->dirname->sibling('licenses.txt');

@@ -13,18 +13,20 @@
   "_comment": "NOTE naming the test script `test` apparently always causes the VSCode test runner to use that",
   "scripts": {
     "clean": "git clean -dxf -e node_modules -e dev/py/.venv -e dev/issue-bak/.venv",
-    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint --strict src/types/igb-fuchs.schema.json",
-    "start": "npm run clean && parcel --target default --port 1234",
-    "build": "npm run clean && parcel build --target default && cp -v src/types/igb-fuchs.schema.json dist/default/",
-    "dist-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist/default playwright test",
-    "coverage": "bash coverage.sh",
-    "full-test": "npm run dist-test && bash coverage.sh"
+    "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint --strict src/types/igb-fuchs.schema.json && bash dev/shellcheck.sh",
+    "start": "npm run clean && parcel --target prod --port 1234",
+    "build": "npm run clean && parcel build --target prod && cp -v src/types/igb-fuchs.schema.json dist-prod/",
+    "dist-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist-prod playwright test",
+    "coverage": "bash dev/coverage.sh",
+    "full-test": "npm run dist-test && bash dev/coverage.sh"
   },
   "targets": {
-    "default": {
-      "source": "src/index.html"
+    "prod": {
+      "source": "src/index.html",
+      "distDir": "dist-prod"
     },
     "test": {
+      "distDir": "dist-test",
       "optimize": false,
       "sourceMap": {
         "inline": true,
