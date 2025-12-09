@@ -24,10 +24,12 @@
   "targets": {
     "prod": {
       "source": "src/index.html",
-      "distDir": "dist-prod"
+      "distDir": "dist-prod",
+      "publicUrl": "./"
     },
     "test": {
       "distDir": "dist-test",
+      "publicUrl": "./",
       "optimize": false,
       "sourceMap": {
         "inline": true,

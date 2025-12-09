@@ -40,7 +40,9 @@ if (module.hot) module.hot.accept()  // for the parcel development environment
 
 // register the Service Worker (if possible)
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(new URL('../worker/service-worker.ts', import.meta.url), {type: 'module', scope: '/'}).then(
+  /* MDN: "The default scope for a service worker registration is the directory where the service worker script
+   * is located (resolving ./ against scriptURL)." and our Parcel bundler puts everything in one directory. */
+  navigator.serviceWorker.register(new URL('../worker/service-worker.ts', import.meta.url), {type: 'module'}).then(
     registration => console.debug('SW register ok', registration),
     (error :unknown) => console.error('Service Worker registration failed', error),
   )
