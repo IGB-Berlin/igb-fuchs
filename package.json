@@ -14,7 +14,7 @@
   "scripts": {
     "clean": "git clean -dxf -e node_modules -e dev/py/.venv -e dev/issue-bak/.venv",
     "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint --strict src/types/igb-fuchs.schema.json && bash dev/shellcheck.sh",
-    "start": "npm run clean && parcel --target prod --port 1234",
+    "start": "npm run clean && parcel --target prod --dist-dir dist-live --port 1234",
     "build": "npm run clean && parcel build --target prod && cp -v src/types/igb-fuchs.schema.json dist-prod/",
     "dist-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist-prod playwright test",
     "coverage": "bash dev/coverage.sh",
