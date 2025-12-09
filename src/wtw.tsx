@@ -20,6 +20,7 @@
  */
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
 import { jsx, safeCastElement } from './jsx-dom'
+import { FuchsInterface } from './global'
 import { assert } from './utils'
 import { tr } from './i18n'
 
@@ -46,6 +47,9 @@ export class WtwConnector extends EventTarget {
   static readonly instance = new WtwConnector()
 
   private readonly rx = new WtwReceiver()
+  static {
+    FuchsInterface.instance.fakeSerialRx = (val :string) => WtwConnector.instance.receive(val)
+  }
 
   private _state :State = 'serial' in navigator ? 'disconnected' : 'not-available'
   get state() { return this._state }
@@ -62,6 +66,11 @@ export class WtwConnector extends EventTarget {
     if (this.state != 'connected') throw new Error(`unexpected disconnect in state ${this.state}`)
     if (!this.closeHandler) throw new Error('bad state: closeHandler should be set')
     await this.closeHandler()
+  }
+
+  private receive(val :string) {
+    const res = this.rx.add(val)
+    if (res.length) this.dispatchEvent(new WtwDataReceivedEvent(res))
   }
 
   async connect() {
@@ -100,10 +109,7 @@ export class WtwConnector extends EventTarget {
           let rv :ReadableStreamReadResult<string>
           try { rv = await textReader.read() }
           catch (ex) { console.warn('WTW: Breaking readTextLoop because', ex); break }
-          if (rv.value!=undefined) {
-            const res = this.rx.add(rv.value)
-            if (res.length) this.dispatchEvent(new WtwDataReceivedEvent(res))
-          }
+          if (rv.value!=undefined) this.receive(rv.value)
           if (rv.done) break
         }
       } finally { textReader.releaseLock() }

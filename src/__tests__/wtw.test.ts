@@ -54,4 +54,7 @@ test('WtwReceiver', () => {
   expect( rx.add(rec.replaceAll('\n','\r\n')+'\r\n-----') ).toStrictEqual([])
   expect( rx.add('\r', 123) ).toStrictEqual([exp])
   expect( rx.add('\n'+rec.replaceAll('\n','\r\n')+'\r\n-----\r\n', 123) ).toStrictEqual([exp])
+  // send the minimum required for parsing
+  const min = 'Cond 0.0 µS/cm 22.6 °C\npH 7.040 22.5 °C\nOx 8.51 mg/l 22.9 °C'
+  expect( rx.add(min+'\n-----\n', 123 )).toStrictEqual([{ raw: min, meas: exp.meas }])
 })
