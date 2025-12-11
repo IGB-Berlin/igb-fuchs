@@ -193,9 +193,15 @@ export class SampleEditor extends Editor<Sample> {
         <ol>{
           overwrites.map(([nm, ...os]) => {
             assert(nm && os.length)
+            const nmh = nm.summaryAsHtml(false)
+            nmh.classList.replace('d-flex','d-inline-flex')
             return <ul>
-              <li class="text-success"><i class="bi-plus-circle me-1"/> {tr('New')}: {nm.summaryAsHtml(false)}</li>
-              {os.map(o => <li class="text-warning">{tr('Existing')}: {o.summaryAsHtml(false)}</li>)}
+              <li class="text-info"><i class="bi-plus-circle me-1"/> <span class="me-1">{tr('New')}:</span> {nmh}</li>
+              {os.map(o => {
+                const oh = o.summaryAsHtml(false)
+                oh.classList.replace('d-flex','d-inline-flex')
+                return <li class="text-warning"><span class="me-1">{tr('Existing')}:</span> {oh}</li>
+              })}
             </ul>
           })
         }</ol>
