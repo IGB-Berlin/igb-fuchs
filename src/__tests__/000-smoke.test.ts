@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest } from './play-utils'
+import { initPageTest } from './test-utils'
 
 test('smoke test', async ({ page }) => {
   await initPageTest(page)

@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest, dl2file } from './play-utils'
+import { initPageTest, dl2file } from './test-utils'
 
 const tz_tests = {
   'UTC': {
