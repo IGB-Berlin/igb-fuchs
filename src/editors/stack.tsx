@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CustomChangeEvent, CustomStackEvent } from '../events'
-import { jsx } from '@haukex/simple-jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { StyleValue } from '../types/common'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
@@ -50,9 +50,7 @@ export class EditorStack {
   private readonly footer
   constructor(footer :HTMLElement) {
     this.footer = footer
-    const navPageTitle = document.getElementById('navPageTitle')
-    assert(navPageTitle instanceof HTMLElement)
-    this.navPageTitle = navPageTitle
+    this.navPageTitle = safeCast(HTMLElement, document.getElementById('navPageTitle'))
   }
   private redrawNavbar() {
     this.navList.replaceChildren(

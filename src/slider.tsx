@@ -102,8 +102,7 @@ export class Slider {
     }
   }
   setText(text :string|HTMLElement) {
-    if (text instanceof HTMLElement) this.textSpan.replaceChildren(text)
-    else this.textSpan.innerText = text
+    this.textSpan.replaceChildren( text instanceof Node ? text : document.createTextNode(text) )
   }
   setToolTip(text :string|null) { this.tip.update(text) }
   async close() {

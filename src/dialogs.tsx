@@ -54,7 +54,7 @@ export function unsavedChangesQuestion(saveBtnLabel :string, details :HTMLElemen
         </div>
         <div class="modal-body">
           <p><strong>{tr('unsaved-changes')}</strong></p>
-          { details instanceof HTMLElement ? details : <p>{details}</p> }
+          { details instanceof Node ? details : <p>{details}</p> }
           <p class="mt-3 mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
         </div>
         <div class="modal-footer">
@@ -143,7 +143,7 @@ export function overAppendDialog(body :string|HTMLElement, title :string) :Promi
             <i class="bi-question-circle-fill"/> {title}</h1>
         </div>
         <div class="modal-body">
-          { body instanceof HTMLElement ? body : <p><strong>{body}</strong></p> }
+          { body instanceof Node ? body : <p><strong>{body}</strong></p> }
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
@@ -185,7 +185,7 @@ export function yesNoDialog(question :string|HTMLElement, title :string, cancel 
             <i class="bi-question-circle-fill"/> {title}</h1>
         </div>
         <div class="modal-body">
-          { question instanceof HTMLElement ? question : <p><strong>{question}</strong></p> }
+          { question instanceof Node ? question : <p><strong>{question}</strong></p> }
         </div>
         <div class="modal-footer">
           <button type="button" class={yesIsGood?'btn btn-success':'btn btn-warning'} data-bs-dismiss="modal" onclick={()=>result='yes'}>
