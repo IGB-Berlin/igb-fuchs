@@ -16,23 +16,26 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { dataSetsEqual } from '../set'
 
-test('dataSetsEqual', () => {
-  class X {
-    readonly x :string
-    constructor(x :string) { this.x = x }
-    equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
-  }
-  expect( dataSetsEqual([],[]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x')],[]) ).toStrictEqual( false )
-  expect( dataSetsEqual([new X('x')],[new X('y')]) ).toStrictEqual( false )
-  expect( dataSetsEqual([new X('x')],[new X('x')]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x'), new X('y')],[new X('x'), new X('y')]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x'), new X('y')],[new X('y'), new X('x')]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x'), new X('y')],[new X('z'), new X('y')]) ).toStrictEqual( false )
-  expect( dataSetsEqual([new X('x'), new X('x'), new X('x')],[new X('x'), new X('x'), new X('x')]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x'), new X('x'), new X('y')],[new X('y'), new X('y'), new X('x')]) ).toStrictEqual( false )
-  expect( dataSetsEqual([new X('y'), new X('x'), new X('y')],[new X('x'), new X('y'), new X('y')]) ).toStrictEqual( true )
-  expect( dataSetsEqual([new X('x'), new X('y'), new X('z')],[new X('z'), new X('x'), new X('y')]) ).toStrictEqual( true )
+test('dataSetsEqual', async ({ page }) => {
+  await page.goto('/')
+  expect( await page.evaluate(() => {
+    class X {
+      readonly x :string
+      constructor(x :string) { this.x = x }
+      equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
+    }
+    const dataSetsEqual = window.Fuchs.dataSetsEqual
+    return dataSetsEqual([],[])
+      && !dataSetsEqual([new X('x')],[])
+      && !dataSetsEqual([new X('x')],[new X('y')])
+      &&  dataSetsEqual([new X('x')],[new X('x')])
+      &&  dataSetsEqual([new X('x'), new X('y')],[new X('x'), new X('y')])
+      &&  dataSetsEqual([new X('x'), new X('y')],[new X('y'), new X('x')])
+      && !dataSetsEqual([new X('x'), new X('y')],[new X('z'), new X('y')])
+      &&  dataSetsEqual([new X('x'), new X('x'), new X('x')],[new X('x'), new X('x'), new X('x')])
+      && !dataSetsEqual([new X('x'), new X('x'), new X('y')],[new X('y'), new X('y'), new X('x')])
+      &&  dataSetsEqual([new X('y'), new X('x'), new X('y')],[new X('x'), new X('y'), new X('y')])
+      &&  dataSetsEqual([new X('x'), new X('y'), new X('z')],[new X('z'), new X('x'), new X('y')])
+  })).toStrictEqual( true )
 })

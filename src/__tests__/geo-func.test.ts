@@ -16,10 +16,13 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { distanceBearing } from '../geo-func'
+import { IWgs84Coordinates } from '../types/coords'
 
-test('haversineKm', () => {
-  const x = distanceBearing(
+test('haversineKm', async ({ page }) => {
+  await page.goto('/')
+  const db = (one :IWgs84Coordinates, two :IWgs84Coordinates) =>
+    page.evaluate(c => window.Fuchs.distanceBearing(c.one,c.two), {one:one,two:two})
+  const x = await db(
     { wgs84lat: 52.516312, wgs84lon: 13.377657 },
     { wgs84lat: 52.514556, wgs84lon: 13.350120 } )
   expect( x.distKm ).toBeCloseTo( 1.874, 2 )

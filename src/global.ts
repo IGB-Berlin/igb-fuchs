@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { distanceBearing } from './geo-func'
+import { dataSetsEqual } from './types/set'
 import { WtwReceiver } from './wtw-parse'
 
 declare global {
@@ -33,6 +35,8 @@ export class FuchsInterface {
 
   // Expose classes/functions for testing
   readonly WtwReceiver = WtwReceiver
+  readonly dataSetsEqual = dataSetsEqual
+  readonly distanceBearing = distanceBearing
 
   private _fakeSerialRx :null|((v :string)=>void) = null
   /** Is set from inside FUCHS, not to be set by the user! */
