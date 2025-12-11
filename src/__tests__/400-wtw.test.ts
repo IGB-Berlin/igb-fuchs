@@ -19,6 +19,24 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
+import { initPageTest } from './test-utils'
+
+test('wtw-ctrl', async ({ page }) => {
+  await initPageTest(page)
+  await page.evaluate(async () => {
+    await window.FuchsTest.ctx.storage.samplingLogs.add({
+      id: 'test', name: 'TestLog', startTime: 123, locations: [{
+        name: 'TestLoc', actualCoords: { wgs84lat: 52.5, wgs84lon: 13.4 }, startTime: 123,
+        samples: [
+          { type: 'surface-water', subjectiveQuality: 'good', measurements: [] },
+          { type: 'probe', subjectiveQuality: 'good', measurements: [] },
+        ] }] })
+    window.FuchsTest.ctx.stack.signalImport()
+  })
+  await expect(page.getByTestId('accSampLog')).toBeVisible()
+  await expect(page.getByRole('listitem')).toHaveText([/^TestLog/])
+  //TODO NEXT
+})
 
 test('WtwReceiver', async ({ page }) => {
   await page.goto('/')

@@ -17,6 +17,7 @@
  */
 import { betaWarning, internalErrorDialog, makeBetaVersionNoticeLink, noStorageAlert } from './dialogs'
 import licenses_txt from 'bundle-text:../licenses.txt'
+import { FuchsTestInterface } from './for-tests'
 import { EditorStack } from './editors/stack'
 import { HomePage } from './editors/home'
 import { IdbStorage } from './idb-store'
@@ -102,6 +103,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const ctx = new GlobalContext(storage, htmlHeader, htmlFooter, new EditorStack(htmlFooter))
   ctx.stack.initialize(navbarMain, await HomePage.new(ctx))
   htmlMain.appendChild(ctx.stack.el)
+  FuchsTestInterface.instance.ctx = ctx
 
   const licensesText = document.getElementById('licensesText')
   assert(licensesText instanceof HTMLElement)

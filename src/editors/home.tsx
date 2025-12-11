@@ -63,39 +63,47 @@ export class HomePage implements StackAble, ListEditorParent {
   shown() {}
   readonly ctx
   readonly el
-  private constructor(ctx :GlobalContext, el :HTMLElement) { this.ctx = ctx; this.el = el }
-  static async new(ctx :GlobalContext) {
-    const homePage = new HomePage(ctx, <div class="p-2 p-sm-3"></div>)
-
-    const logEdit = await new ListEditorWithTemp({
-      parent: homePage, theStore: ctx.storage.samplingLogs, editorClass: SamplingLogEditor, editorStyle: SamplingLog.sStyle,
+  private readonly logEdit
+  private readonly procEdit
+  private constructor(ctx :GlobalContext, el :HTMLElement) {
+    this.ctx = ctx
+    this.el = el
+    this.logEdit = new ListEditorWithTemp({
+      parent: this, theStore: ctx.storage.samplingLogs, editorClass: SamplingLogEditor, editorStyle: SamplingLog.sStyle,
       title: tr('saved-pl')+' '+tr('Sampling Logs'), txtPlanned: tr('planned-pl')+' '+tr('Sampling Logs'),
       dialogTitle: tr('new-log-from-proc'), templateSource: async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t),
-      planned: null }).initialize()
-    logEdit.highlightButton('temp')
+      planned: null })
+    this.procEdit = new ListEditor({
+      parent: this, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
+      title: tr('Sampling Procedures') })
+  }
+  static async new(ctx :GlobalContext) {
+    const hp = new HomePage(ctx, <div class="p-2 p-sm-3"></div>)
 
-    const procEdit = await new ListEditor({
-      parent: homePage, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
-      title: tr('Sampling Procedures') }).initialize()
+    await hp.logEdit.initialize()
+    hp.logEdit.highlightButton('temp')
+
+    await hp.procEdit.initialize()
 
     const inpExp = new ImportExportTool(ctx)
-    inpExp.el.addEventListener(CustomStoreEvent.NAME, () => {
-      // inform the list editors of the import so they update themselves
-      logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-      procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-    })
-    modifyLogEditButtons(logEdit, inpExp)
-    modifyProcEditButtons(procEdit, inpExp)
+    modifyLogEditButtons(hp.logEdit, inpExp)
+    modifyProcEditButtons(hp.procEdit, inpExp)
 
     const settings = await makeSettings(ctx)
 
-    homePage.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
-      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, procEdit.el)}
+    hp.el.appendChild(<div class="accordion" id="homeAccordion">
+      {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, hp.logEdit.el, true)}
+      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, hp.procEdit.el)}
       {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp.el)}
       {makeAcc(ctx, 'accSett', tr('Settings'), settings)}
     </div>)
-    return homePage
+    return hp
+  }
+  /** Used to signal that an import has occurred. */
+  signalImport() {
+    // inform the list editors of the import so they update themselves
+    this.logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    this.procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
   }
 }
 

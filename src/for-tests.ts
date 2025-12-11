@@ -18,6 +18,7 @@
 import { distanceBearing } from './geo-func'
 import { dataSetsEqual } from './types/set'
 import { WtwReceiver } from './wtw-parse'
+import { GlobalContext } from './main'
 
 declare global {
   interface Window {
@@ -37,6 +38,17 @@ export class FuchsTestInterface {
   readonly WtwReceiver = WtwReceiver
   readonly dataSetsEqual = dataSetsEqual
   readonly distanceBearing = distanceBearing
+
+  private _ctx :null|GlobalContext = null
+  /** Is set from inside FUCHS, not to be set by the user! */
+  set ctx(ctx :GlobalContext) {
+    /* istanbul ignore if */ if (this._ctx) throw new Error('context set twice')
+    this._ctx = ctx
+  }
+  get ctx() :GlobalContext {
+    /* istanbul ignore if */ if (!this._ctx) throw new Error('context wasn\'t set ')
+    return this._ctx
+  }
 
   private _fakeSerialRx :null|((v :string)=>void) = null
   /** Is set from inside FUCHS, not to be set by the user! */

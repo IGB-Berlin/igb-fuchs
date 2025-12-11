@@ -18,7 +18,6 @@
 import { SamplingLog, SamplingProcedure } from './types/sampling'
 import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { samplingLogToCsv } from './types/log2csv'
-import { CustomStoreEvent } from './events'
 import { makeFilename } from './idb-store'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
@@ -77,8 +76,7 @@ export class ImportExportTool {
         <><p><strong class="text-success">{tr('import-success')}</strong></p>
           {infos}</>)
       inpImportFile.value = ''
-      // use a store event on our element to inform about changes to the storage
-      this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+      ctx.stack.signalImport()
     })
 
   }  // ImportExportTool constructor
