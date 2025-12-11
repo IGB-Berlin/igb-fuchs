@@ -34,8 +34,11 @@ test('wtw-ctrl', async ({ page }) => {
     window.FuchsTest.ctx.stack.signalImport()
   })
   await expect(page.getByTestId('accSampLog')).toBeVisible()
-  await expect(page.getByRole('listitem')).toHaveText([/^TestLog/])
-  //TODO NEXT
+  await page.getByText('TestLog').dblclick()
+  await page.getByText('TestLoc').dblclick()
+  await page.getByText('Read out probe data').dblclick()
+  await expect(page.getByRole('button', { name: /Connect|Not available/ })).toBeVisible()
+  //TODO: Extend this test a bit more
 })
 
 test('WtwReceiver', async ({ page }) => {
