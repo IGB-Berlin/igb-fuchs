@@ -19,10 +19,16 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { WtwReceiver } from '../wtw-parse'
 
-test('WtwReceiver', () => {
-  const rx = new WtwReceiver()
+test('WtwReceiver', async ({ page }) => {
+  await page.goto('/')
+  /* If we were to use `new WtwReceiver()` here, that would create the object in the test runner's context
+   * instead of the browser's execution context - and it's only instrumented for coverage in the latter.
+   * We can only pass serializable objects or handles between the two, plus, in the browser's context,
+   * things have been compiled and namespaced, which is why we need `window.Fuchs` to access the class.
+   * See also https://playwright.dev/docs/evaluating */
+  const hnd = await page.evaluateHandle(() => new window.Fuchs.WtwReceiver(123))
+  const rxa = (val :string) => hnd.evaluate((rx,v) => rx.add(v), val)
   const rec =
     '17.08.2024 16:00:30\nMulti 3630 IDS\nSer. no. 12345678\nTetraCon 925\nSer. no. 23456789\nCond 0.0 µS/cm 22.6 °C, AR, S: +++\n'
     +'C = 0.458 1/cm, Tref25, nLF\nSenTix 940\nSer. no. B012345678\npH 7.040 22.5 °C, AR, S: ++\nFDO 925\nSer. no. 34567890\n'
@@ -37,24 +43,26 @@ test('WtwReceiver', () => {
       { time: 123, type: { name: 'Temp(Ox)', unit: '°C' }, value: '22.9' },
     ]}
   // a real record, split up
-  expect( rx.add('') ).toStrictEqual([])
-  expect( rx.add('17.08.202') ).toStrictEqual([])
-  expect( rx.add('4 16:00:30\r\nMulti 3630 IDS\r\nSer. no.  12345678\r\n\r\n') ).toStrictEqual([])
-  expect( rx.add('\r\nTetraCon 925\r\nSer. no.  23456789\r\nCond 0.0 µS/cm 22.6 °C, AR, S:  +++\r') ).toStrictEqual([])
-  expect( rx.add('\nC = 0.458 1/cm, Tref25, nLF\r\n\r\nSenTix 940\r\nSer. no.  B012345678\r\npH 7.0') ).toStrictEqual([])
-  expect( rx.add('40  22.5 °C, AR, S: ++\r\n\r\nFDO 925\r\nSer. no.  34567890\r\nSC-FDO  45678901\r\nOx   8.51 mg/l   22.9 °') ).toStrictEqual([])
-  expect( rx.add('C AR, S:  +++\r\n\r\n_____________________________\r\n\r\n17.08.2024 16:01:26\r\nMulti 3630 IDS\r\n', 123) ).toStrictEqual([exp])
+  expect( await rxa('') ).toStrictEqual([])
+  expect( await rxa('17.08.202') ).toStrictEqual([])
+  expect( await rxa('4 16:00:30\r\nMulti 3630 IDS\r\nSer. no.  12345678\r\n\r\n') ).toStrictEqual([])
+  expect( await rxa('\r\nTetraCon 925\r\nSer. no.  23456789\r\nCond 0.0 µS/cm 22.6 °C, AR, S:  +++\r') ).toStrictEqual([])
+  expect( await rxa('\nC = 0.458 1/cm, Tref25, nLF\r\n\r\nSenTix 940\r\nSer. no.  B012345678\r\npH 7.0') ).toStrictEqual([])
+  expect( await rxa('40  22.5 °C, AR, S: ++\r\n\r\nFDO 925\r\nSer. no.  34567890\r\nSC-FDO  45678901\r\nOx   8.51 mg/l   22.9 °') ).toStrictEqual([])
+  expect( await rxa('C AR, S:  +++\r\n\r\n_____________________________\r\n\r\n17.08.2024 16:01:26\r\nMulti 3630 IDS\r\n') ).toStrictEqual([exp])
   // a record with no measurements (see prev line)
-  expect( rx.add('\r\n_____________________________\r\n') ).toStrictEqual([{ raw: '17.08.2024 16:01:26\nMulti 3630 IDS', meas: [] }])
+  expect( await rxa('\r\n_____________________________\r\n') ).toStrictEqual([{ raw: '17.08.2024 16:01:26\nMulti 3630 IDS', meas: [] }])
   // exactly one record
-  expect( rx.add(rec+'\n_____________________________\n', 123) ).toStrictEqual([exp])
+  expect( await rxa(rec+'\n_____________________________\n') ).toStrictEqual([exp])
   // exactly two records
-  expect( rx.add(rec+'\n-----\n'+rec+'\n_____\n', 123) ).toStrictEqual([exp, exp])
+  expect( await rxa(rec+'\n-----\n'+rec+'\n_____\n') ).toStrictEqual([exp, exp])
   // CRLF line ending split over two rx's
-  expect( rx.add(rec.replaceAll('\n','\r\n')+'\r\n-----') ).toStrictEqual([])
-  expect( rx.add('\r', 123) ).toStrictEqual([exp])
-  expect( rx.add('\n'+rec.replaceAll('\n','\r\n')+'\r\n-----\r\n', 123) ).toStrictEqual([exp])
+  expect( await rxa(rec.replaceAll('\n','\r\n')+'\r\n-----') ).toStrictEqual([])
+  expect( await rxa('\r') ).toStrictEqual([exp])
+  expect( await rxa('\n'+rec.replaceAll('\n','\r\n')+'\r\n-----\r\n') ).toStrictEqual([exp])
   // send the minimum required for parsing
   const min = 'Cond 0.0 µS/cm 22.6 °C\npH 7.040 22.5 °C\nOx 8.51 mg/l 22.9 °C'
-  expect( rx.add(min+'\n-----\n', 123 )).toStrictEqual([{ raw: min, meas: exp.meas }])
+  expect( await rxa(min+'\n-----\n' )).toStrictEqual([{ raw: min, meas: exp.meas }])
+  await hnd.evaluate(rx => rx.clear())
+  await hnd.dispose()
 })

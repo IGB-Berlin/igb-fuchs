@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { WtwReceiver } from './wtw-parse'
 
 declare global {
   interface Window {
@@ -22,7 +23,7 @@ declare global {
   }
 }
 
-/** A global singleton object that is also made available as `window.Fuchs` so it can be used from the debugging console. */
+/** A global singleton object that is also made available as `window.Fuchs` so it can be used from tests and the debugging console. */
 export class FuchsInterface {
 
   // singleton
@@ -30,15 +31,18 @@ export class FuchsInterface {
   static readonly instance = new FuchsInterface()
   static { window.Fuchs = FuchsInterface.instance }
 
+  // Expose classes/functions for testing
+  readonly WtwReceiver = WtwReceiver
+
   private _fakeSerialRx :null|((v :string)=>void) = null
-  /** Is set from inside FUCHS, not to be set by the user */
+  /** Is set from inside FUCHS, not to be set by the user! */
   set fakeSerialRx(rx :(v :string)=>void) {
-    if (this._fakeSerialRx) throw new Error('fakeSerialRx set twice')
+    /* istanbul ignore if */ if (this._fakeSerialRx) throw new Error('fakeSerialRx set twice')
     this._fakeSerialRx = rx
   }
-  /** For debugging, injects fake data supposedly received via serial port */
+  /** For debugging: Injects fake data supposedly received via serial port. */
   get fakeSerialRx() :(v :string)=>void {
-    if (!this._fakeSerialRx) throw new Error('fakeSerialRx wasn\'t set')
+    /* istanbul ignore if */ if (!this._fakeSerialRx) throw new Error('fakeSerialRx wasn\'t set')
     return this._fakeSerialRx
   }
 
