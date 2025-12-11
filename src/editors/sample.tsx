@@ -175,6 +175,7 @@ export class SampleEditor extends Editor<Sample> {
   private async importMeasurements(meas :IMeasurement[]) {
     const overwrites :Measurement[][] = []
     let anyImported = false
+    //TODO: What if a single `meas` set contains measurements of the same name & unit?
     for (const nm of meas) {
       //TODO: only care about measurements of the same type *with different values*!
       const have = this.measEdit.measurements.filter(hm => nm.type.name == hm.type.name && nm.type.unit == hm.type.unit)

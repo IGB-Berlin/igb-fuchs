@@ -18,7 +18,7 @@
 import { test, expect } from 'playwright-test-coverage'
 
 test('dataSetsEqual', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/')  // see explanation in WtwReceiver test
   expect( await page.evaluate(() => {
     class X {
       readonly x :string

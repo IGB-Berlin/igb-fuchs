@@ -38,7 +38,7 @@ test('wtw-ctrl', async ({ page }) => {
   await page.getByText('TestLoc').dblclick()
   await page.getByText('Read out probe data').dblclick()
   await expect(page.getByRole('button', { name: /Connect|Not available/ })).toBeVisible()
-  //TODO: Extend this test a bit more
+  //TODO: Extend this test a bit more (e.g. when it's implemented, check that the probe tools auto-expand here)
 })
 
 test('WtwReceiver', async ({ page }) => {

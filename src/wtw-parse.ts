@@ -50,6 +50,7 @@ export interface WtwParseResults {
   meas :IMeasurement[]
 }
 
+//TODO Later: Can any of the measurements ever be reported in scientific notation?
 // $ perl -wM5.014 -MRegexp::Common=number -e 'say $RE{num}{real}'
 // (?:(?i)(?:[-+]?)(?:(?=[.]?[0123456789])(?:[0123456789]*)(?:(?:[.])(?:[0123456789]{0,}))?)(?:(?:[E])(?:(?:[-+]?)(?:[0123456789]+))|))
 // const NUM_RE = /[-+]?(?=[.]?[0-9])[0-9]*(?:[.][0-9]*)?(?:[Ee][-+]?[0-9]+)?\b/

@@ -19,7 +19,7 @@ import { test, expect } from 'playwright-test-coverage'
 import { IWgs84Coordinates } from '../types/coords'
 
 test('haversineKm', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/')  // see explanation in WtwReceiver test
   const db = (one :IWgs84Coordinates, two :IWgs84Coordinates) =>
     page.evaluate(c => window.FuchsTest.distanceBearing(c.one,c.two), {one:one,two:two})
   const x = await db(
