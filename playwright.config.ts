@@ -21,7 +21,6 @@ import { defineConfig, devices } from '@playwright/test'
 // https://playwright.dev/docs/test-configuration
 export default defineConfig({
   testDir: '.',  // recursively search this directory for tests according to the following regex
-  testMatch: /[^/]+\.(test|spec|play)\.ts$/,  // https://playwright.dev/docs/api/class-testconfig#test-config-test-match
   fullyParallel: true,  // Run tests in files in parallel
   forbidOnly: !!process.env['CI'],  // Fail the build on CI if you accidentally left test.only in the source code.
   retries: process.env['CI'] ? 2 : process.env['CODESPACES'] ? 1 : 0,  // Retry on CI and Codespaces only
