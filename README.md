@@ -40,6 +40,8 @@ Setup and notes:
 - See the following places for things that can be run:
   - `package.json` section `scripts` for things that can be run with `npm run ...`
   - Various scripts in `dev/`
+- *Note* that several `npm run` targets (`build`, `prod-test`, `full-test`, ...) can't be used while
+  the live server (`npm start`) is running due to the `clean` step, while `lint` and `coverage` can.
 
 
 <!-- spell-checker: ignore Mojolicious backronym mweltdaten -->
