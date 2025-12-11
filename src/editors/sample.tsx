@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { IMeasurement, Measurement } from '../types/measurement'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
 import { overAppendDialog } from '../dialogs'
 import { Editor, EditorParent } from './base'
@@ -34,16 +34,16 @@ class QualityEditor {
   private _quality :QualityFlag
   get quality() { return this._quality }
   constructor(initialQuality :QualityFlag) {
-    const inpQualGood = safeCastElement(HTMLInputElement,
+    const inpQualGood = safeCast(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityGood" value="good" aria-describedby="helpQualityGood" />)
-    const inpQualQuest = safeCastElement(HTMLInputElement,
+    const inpQualQuest = safeCast(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityQuest" value="questionable" aria-describedby="helpQualityQuest" />)
-    const inpQualBad = safeCastElement(HTMLInputElement,
+    const inpQualBad = safeCast(HTMLInputElement,
       <input class="form-check-input" type="radio" name="subjQuality" id="radioQualityBad" value="bad" aria-describedby="helpQualityBad" />)
     const helpGood = <div id="helpQualityGood" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-good')}</div>
     const helpQuest = <div id="helpQualityQuest" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-quest')}</div>
     const helpBad = <div id="helpQualityBad" class="form-text d-inline ms-3 manual-help">{tr('qf-desc-bad')}</div>
-    this.el = safeCastElement(HTMLDivElement,
+    this.el = safeCast(HTMLDivElement,
       <div>
         <div class="form-check" onclick={(event :Event)=>{ if(event.target!==inpQualGood) inpQualGood.click() }}> {inpQualGood}
           <label class="form-check-label text-success-emphasis" for="radioQualityGood"><i class="bi-check-lg"/> {tr('qf-good')}</label>
@@ -94,7 +94,7 @@ export class SampleEditor extends Editor<Sample> {
   constructor(parent :EditorParent, targetStore :AbstractStore<Sample>, targetObj :Sample|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpType = safeCastElement(HTMLSelectElement,
+    this.inpType = safeCast(HTMLSelectElement,
       <select class="form-select fw-semibold">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call (and others like it) removes type safety
@@ -104,7 +104,7 @@ export class SampleEditor extends Editor<Sample> {
         })}
       </select>)
 
-    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
+    this.inpDesc = safeCast(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('samp-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,

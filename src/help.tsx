@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, safeCastElement } from './jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { GlobalContext } from './main'
 import { Collapse } from 'bootstrap'
 import { assert } from './utils'
@@ -38,7 +38,7 @@ export function globalHideHelp(hide :boolean) {
 
 /** Just the button, no functionality. */
 export function makeHelpButton() :HTMLButtonElement {
-  return safeCastElement(HTMLButtonElement, <button type="button" class="btn btn-sm mini-button px-1 py-0 my-0 ms-1 me-0 help-button"
+  return safeCast(HTMLButtonElement, <button type="button" class="btn btn-sm mini-button px-1 py-0 my-0 ms-1 me-0 help-button"
     title={tr('Help')}><i class="bi-question-circle" /><span class="visually-hidden"> {tr('Help')}</span></button>)
 }
 

@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { isTimestampSet, VALID_NAME_RE } from '../types/common'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { StartEndTimeEditor } from './date-time'
@@ -43,7 +43,7 @@ class TaskList {
     const [_taskHelpId, taskHelpBtn] = makeHelp(ctx, taskHelp)
     this.taskItems = tasks.map(c => {
       const id = ctx.genId('TasklistCb')
-      const cb = safeCastElement(HTMLInputElement,
+      const cb = safeCast(HTMLInputElement,
         <input class="form-check-input me-2" type="checkbox" autocomplete="off"
           id={id} checked={!!this.taskStates[c]} onchange={()=>{
             this.taskStates[c] = cb.checked
@@ -87,8 +87,8 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLocation>, targetObj :SamplingLocation|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
+    this.inpName = safeCast(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpDesc = safeCast(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
 
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('loc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,

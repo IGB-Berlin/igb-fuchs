@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { SamplingLog, SamplingProcedure } from '../types/sampling'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingProcedureEditor } from './samp-proc'
 import { ImportExportTool } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
@@ -108,7 +108,7 @@ export class HomePage implements StackAble, ListEditorParent {
 }
 
 function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, SamplingLog>, inpExp :ImportExportTool) {
-  const btnExport = safeCastElement(HTMLButtonElement,
+  const btnExport = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-zip')}
       data-test-id="export-log-as-zip"><i class="bi-file-earmark-zip"/><i class="bi-share-fill"/> {tr('Export')}</button>)
   logEdit.registerButton(btnExport, s => inpExp.exportAsZip(s))
@@ -120,20 +120,20 @@ function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, Sam
   const btnNew = logEdit.popButton('new')
   btnNew.classList.add('dropdown-item','text-info')
 
-  const btnJson = safeCastElement(HTMLButtonElement,
+  const btnJson = safeCast(HTMLButtonElement,
     <button type="button" class="dropdown-item" disabled>
       <i class="bi-file-earmark-medical text-success"/><i class="bi-share-fill text-success"/> {tr('Export')+' '+tr('export-as-json')}</button>)
   logEdit.registerButton(btnJson, s => inpExp.exportAsJson(s))
 
-  const btnCsv = safeCastElement(HTMLButtonElement,
+  const btnCsv = safeCast(HTMLButtonElement,
     <button type="button" class="dropdown-item" disabled>
       <i class="bi-file-earmark-spreadsheet text-warning"/><i class="bi-share-fill text-warning"/> {tr('Export')+' '+tr('export-as-csv')}</button>)
   logEdit.registerButton(btnCsv, s => inpExp.exportAsCsv(s))
 
-  const btnMore = safeCastElement(HTMLButtonElement,
+  const btnMore = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
       data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
-  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
+  const divMore = safeCast(HTMLDivElement, <div class="dropdown"> {btnMore}
     <ul class="dropdown-menu">
       <li>{btnJson}</li>
       <li>{btnCsv}</li>
@@ -147,7 +147,7 @@ function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, Sam
 }
 
 function modifyProcEditButtons(procEdit :ListEditor<SamplingProcedure>, inpExp :ImportExportTool) {
-  const btnExport = safeCastElement(HTMLButtonElement,
+  const btnExport = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-json')}>
       <i class="bi-filetype-json"/><i class="bi-share-fill"/> {tr('Export')}</button>)
   procEdit.registerButton(btnExport, s => inpExp.exportAsJson(s))
@@ -156,10 +156,10 @@ function modifyProcEditButtons(procEdit :ListEditor<SamplingProcedure>, inpExp :
   const btnDel = procEdit.popButton('del')
   btnDel.classList.add('dropdown-item','text-danger')
 
-  const btnMore = safeCastElement(HTMLButtonElement,
+  const btnMore = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
       data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
-  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
+  const divMore = safeCast(HTMLDivElement, <div class="dropdown"> {btnMore}
     <ul class="dropdown-menu">
       <li>{btnDel}</li>
     </ul>

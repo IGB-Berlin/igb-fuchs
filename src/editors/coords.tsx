@@ -17,8 +17,8 @@
  */
 import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { DataObjectBase, makeValidNumberPat } from '../types/common'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent, CustomAlertEvent } from '../events'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'
 import { Alert, Collapse } from 'bootstrap'
 import { Editor } from './base'
@@ -40,26 +40,26 @@ export class CoordinatesEditor {
   constructor(initCoords :RawWgs84Coordinates, opts :CoordEditorOpts = {}) {
     this.coords = new Wgs84Coordinates(initCoords).deepClone()
 
-    this.inpLat = safeCastElement(HTMLInputElement,
+    this.inpLat = safeCast(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lat) ? this.coords.wgs84lat.toFixed(WGS84_PRECISION) : '' }
         required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
     numericTextInputStuff(this.inpLat)
 
-    this.inpLon = safeCastElement(HTMLInputElement,
+    this.inpLon = safeCast(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lon) ? this.coords.wgs84lon.toFixed(WGS84_PRECISION) : '' }
         required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
     numericTextInputStuff(this.inpLon)
 
-    const inpGrp = safeCastElement(HTMLDivElement, <div class="input-group">
+    const inpGrp = safeCast(HTMLDivElement, <div class="input-group">
       <span class="input-group-text d-none d-sm-flex" title={tr('Latitude')}>{tr('Lat')}</span> {this.inpLat}
       <span class="input-group-text d-none d-sm-flex" title={tr('Longitude')}>{tr('Lon')}</span> {this.inpLon}
       {this.makeMapButton(false)}
     </div>)
-    this.el = safeCastElement(HTMLDivElement, <div>{inpGrp}</div>)
+    this.el = safeCast(HTMLDivElement, <div>{inpGrp}</div>)
 
     this.inpLat.addEventListener('change', () => {
       this.coords.wgs84lat = Number.parseFloat(this.inpLat.value)
@@ -153,7 +153,7 @@ export class CoordinatesEditor {
   }
 
   makeMapButton(withText :boolean) {
-    const btnMap = safeCastElement(HTMLButtonElement,
+    const btnMap = safeCast(HTMLButtonElement,
       <button class="btn btn-outline-primary" title={tr('Show on map')}><i class="bi-pin-map"/></button>)
     btnMap.appendChild( withText
       ? <span class="ms-1">{tr('Map')}</span> : <span class="visually-hidden"> {tr('Show on map')}</span> )

@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { SamplingLog, SamplingProcedure } from './types/sampling'
-import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { samplingLogToCsv } from './types/log2csv'
 import { makeFilename } from './idb-store'
 import { GlobalContext } from './main'
@@ -43,7 +43,7 @@ export class ImportExportTool {
     const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
     btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
-    const inpImportFile = safeCastElement(HTMLInputElement,
+    const inpImportFile = safeCast(HTMLInputElement,
       <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
 
     this.el = <div class="p-3 d-flex flex-column">

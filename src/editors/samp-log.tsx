@@ -17,7 +17,7 @@
  */
 import { isTimestampSet, timestampNow, VALID_NAME_RE } from '../types/common'
 import { ListEditorWithTemp, SelectedItemContainer } from './list-edit'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingLocation } from '../types/location'
 import { SamplingLocationEditor } from './location'
@@ -40,7 +40,7 @@ class CheckList {
     this.checkItems = checks.map(c => {
       if (!this.checkStates[c]) allChecked = false
       const id = ctx.genId('ChecklistCb')
-      const cb = safeCastElement(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
+      const cb = safeCast(HTMLInputElement, <input class="form-check-input me-2" type="checkbox" id={id}
         checked={!!this.checkStates[c]} onchange={()=>{
           this.checkStates[c] = cb.checked
           this.el.dispatchEvent(new CustomChangeEvent())
@@ -61,7 +61,7 @@ class CheckList {
     })
     if ( allChecked && this.checkItems.length>1 ) theList.classList.add('d-none')
     else showList.classList.add('d-none')
-    this.el = safeCastElement(HTMLDivElement, <div>{showList}{theList}</div> )
+    this.el = safeCast(HTMLDivElement, <div>{showList}{theList}</div> )
   }
   checkedTasks() :string[] {
     return Object.entries(this.checkStates).flatMap(([k,v]) => v ? [k] : [])
@@ -84,7 +84,7 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingLog>, targetObj :SamplingLog|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpName = safeCast(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     const rowInst = this.makeTextAreaRow(this.initObj.template?.instructions, {
       label: tr('Instructions'), helpText: <>{tr('proc-inst-help')} {tr('temp-copied-readonly')} {tr('inst-see-notes')}</>,
       readonly: true, startExpanded: this.isNew, hideWhenEmpty: true })[0]
@@ -92,8 +92,8 @@ export class SamplingLogEditor extends Editor<SamplingLog> {
     this.edTimes = new StartEndTimeEditor(this, this.initObj.startTime, this.initObj.endTime,
       !this.isUnsaved && !isTimestampSet(this.initObj.endTime), 'log')
 
-    this.inpPersons = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
-    this.inpWeather = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
+    this.inpPersons = safeCast(HTMLInputElement, <input type="text" value={this.initObj.persons.trim()} />)
+    this.inpWeather = safeCast(HTMLInputElement, <input type="text" value={this.initObj.weather.trim()} />)
     const [rowNotes, inpNotes] = this.makeTextAreaRow(this.initObj.notes, {
       label: tr('Notes'), helpText: <>{tr('log-notes-help')} {tr('notes-help')}</>, startExpanded: true })
     this.inpNotes = inpNotes

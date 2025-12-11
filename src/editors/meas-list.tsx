@@ -16,9 +16,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { MeasurementType, Measurement } from '../types/measurement'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { makeValidNumberPat, timestampNow } from '../types/common'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'
 import { ListEditorTemp } from './list-edit'
 import { MeasurementEditor } from './meas'
@@ -41,7 +41,7 @@ class MiniMeasEditor {
     this.parent = parent
     this.sample = sample
     this.meas = meas
-    this.inp = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
+    this.inp = safeCast(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control font-monospace z-2 mini-meas-edit text-end" size="5"
       pattern={makeValidNumberPat(meas.type.precision)} value={meas.value}/>)
     numericTextInputStuff(this.inp)
@@ -55,7 +55,7 @@ class MiniMeasEditor {
       this.tipInfo = new MyTooltip(info)
       info.addEventListener('click', event => event.stopPropagation())
     } else this.tipInfo = null
-    this.el = safeCastElement(HTMLDivElement,
+    this.el = safeCast(HTMLDivElement,
       <div class="input-group">
         <span class="input-group-text">{meas.type.name}</span>
         {info} {this.inp}

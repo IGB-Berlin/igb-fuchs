@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment } from '@haukex/simple-jsx-dom'
 import { HasHtmlSummary } from './types/common'
-import { jsx, jsxFragment } from './jsx-dom'
 import { GlobalContext } from './main'
 import * as bootstrap from 'bootstrap'
 import { tr } from './i18n'

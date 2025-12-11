@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": ">=9.38.0 <9.39.0 || >9.39.0",
+    "@haukex/simple-jsx-dom": "^0.9.0",
     "@parcel/packager-raw-url": "^2.16.1",
     "@parcel/transformer-inline-string": "^2.16.1",
     "@parcel/transformer-sass": "^2.16.1",

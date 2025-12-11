@@ -16,11 +16,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CustomChangeEvent, CustomStackEvent } from '../events'
+import { jsx } from '@haukex/simple-jsx-dom'
 import { StyleValue } from '../types/common'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
 import { HomePage } from './home'
-import { jsx } from '../jsx-dom'
 
 export interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement

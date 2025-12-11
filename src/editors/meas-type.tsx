@@ -17,7 +17,7 @@
  */
 import { MeasurementType, VALID_UNIT_RE } from '../types/measurement'
 import { makeValidNumberPat, VALID_NAME_RE } from '../types/common'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { numericTextInputStuff } from '../utils'
 import { Editor, EditorParent } from './base'
 import { AbstractStore } from '../storage'
@@ -33,13 +33,13 @@ export class MeasTypeEditor extends Editor<MeasurementType> {
   constructor(parent :EditorParent, targetStore :AbstractStore<MeasurementType>, targetObj :MeasurementType|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpName = safeCastElement(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
-    this.inpUnit = safeCastElement(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
-    this.inpPrc = safeCastElement(HTMLInputElement, <input type="number" value={Math.floor(this.initObj.precision)} min="0" step="1" />)
+    this.inpName = safeCast(HTMLInputElement, <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
+    this.inpUnit = safeCast(HTMLInputElement, <input type="text" required pattern={VALID_UNIT_RE.source} value={this.initObj.unit} />)
+    this.inpPrc = safeCast(HTMLInputElement, <input type="number" value={Math.floor(this.initObj.precision)} min="0" step="1" />)
     // inpPrc can use type="number" b/c we don't need negative numbers there
-    this.inpMin = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.min)?this.initObj.min:''} />)
+    this.inpMin = safeCast(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.min)?this.initObj.min:''} />)
     numericTextInputStuff(this.inpMin)
-    this.inpMax = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.max)?this.initObj.max:''} />)
+    this.inpMax = safeCast(HTMLInputElement, <input type="text" inputmode="decimal" value={Number.isFinite(this.initObj.max)?this.initObj.max:''} />)
     numericTextInputStuff(this.inpMax)
     const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
       label: tr('Instructions'), helpText: <>{tr('meas-type-inst-help')} {tr('inst-help')}</>, startExpanded: this.isNew })

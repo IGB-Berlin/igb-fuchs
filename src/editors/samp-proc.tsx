@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { SamplingLocationTemplate } from '../types/location'
 import { AbstractStore, ArrayStore } from '../storage'
 import { SamplingProcedure } from '../types/sampling'
@@ -38,7 +38,7 @@ export class SamplingProcedureEditor extends Editor<SamplingProcedure> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SamplingProcedure>, targetObj :SamplingProcedure|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpName = safeCastElement(HTMLInputElement,
+    this.inpName = safeCast(HTMLInputElement,
       <input type="text" class="fw-semibold" required pattern={VALID_NAME_RE.source} value={this.initObj.name} />)
     const [rowCheck, inpCheck] = this.makeTextAreaRow(this.initObj.checklist.join('\n'), {
       label: tr('Checklist'), helpText: <>{tr('checklist-temp-help')}</>, startExpanded: this.isNew })

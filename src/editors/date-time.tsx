@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMESTAMP, Timestamp, timestampNow } from '../types/common'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent } from '../events'
 import { GlobalContext } from '../main'
 import { Collapse } from 'bootstrap'
@@ -106,7 +106,7 @@ export class DateTimeInput {
   readonly input
   constructor(initialTs :Timestamp|null, required :boolean) {
     this._ts = isTimestamp(initialTs) && isValidAndSetTs(initialTs) ? initialTs : NO_TIMESTAMP
-    this.input = safeCastElement(HTMLInputElement, <input class="form-control" type="datetime-local" />)
+    this.input = safeCast(HTMLInputElement, <input class="form-control" type="datetime-local" />)
     if (required) this.input.setAttribute('required','required')
     this.input.addEventListener('change', () => {
       const dt = dateTimeLocalInputToDate(this.input)
@@ -122,7 +122,7 @@ export class DateTimeInput {
       this.timestamp = Date.now()
       this._el.dispatchEvent(new CustomChangeEvent())
     })
-    this._el = safeCastElement(HTMLDivElement,
+    this._el = safeCast(HTMLDivElement,
       <div class="input-group"> {btnClock}<ul class="dropdown-menu">{btnNow}</ul> {this.input} </div>)
   }
   set timestamp(value :Timestamp) {
@@ -144,11 +144,11 @@ export class DateTimeInputAutoSet extends DateTimeInput {
   constructor(ctx :GlobalContext, initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
     super(initialTs, required)
     const id = ctx.genId('cbAutoSet')
-    this.checkBox = safeCastElement(HTMLInputElement, <input class="form-check-input" type="checkbox" id={id} />)
+    this.checkBox = safeCast(HTMLInputElement, <input class="form-check-input" type="checkbox" id={id} />)
     this.checkBox.checked = autoSet
     this.checkBox.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()) )
     this._el.addEventListener(CustomChangeEvent.NAME, () => this._el2.dispatchEvent(new CustomChangeEvent()))  // bubble event
-    this._el2 = safeCastElement(HTMLDivElement,
+    this._el2 = safeCast(HTMLDivElement,
       <div> {this._el}
         <div class="form-check mt-1"> {this.checkBox}
           <label class="form-check-label" for={id}>{tr('auto-set-end-time')}</label>
@@ -179,7 +179,7 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
       helpText: <><em>{tr('Recommended')}.</em> {tr(prefix==='log'?'log-end-time-help':'loc-end-time-help')}</> })
 
     const rowTz = parent.makeRow(
-      safeCastElement(HTMLInputElement, <input type="text" readonly value={getTzOffsetStr()} data-test-id={prefix+'-tz'}/>),
+      safeCast(HTMLInputElement, <input type="text" readonly value={getTzOffsetStr()} data-test-id={prefix+'-tz'}/>),
       { label: tr('Timezone'), helpText: tr('timezone-help') })
     rowTz.classList.remove('mb-2','mb-sm-3')
 

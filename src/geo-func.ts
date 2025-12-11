@@ -1,6 +1,6 @@
 /** Based on: https://www.movable-type.co.uk/scripts/latlong.html
  * © 2002-2022 Chris Veness
- * MIT Licence
+ * MIT License
  */
 import { IWgs84Coordinates } from './types/coords'
 

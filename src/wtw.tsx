@@ -19,7 +19,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
-import { jsx, safeCastElement } from './jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { FuchsTestInterface } from './for-tests'
 import { assert } from './utils'
 import { tr } from './i18n'
@@ -149,7 +149,7 @@ export class WtwConnControl extends HTMLElement {
   private readonly elStatus :HTMLElement
   constructor() {
     super()
-    this.btnConnect = safeCastElement(HTMLButtonElement, <button class="btn" disabled></button>)
+    this.btnConnect = safeCast(HTMLButtonElement, <button class="btn" disabled></button>)
     this.btnConnect.addEventListener('click', async event => {
       event.preventDefault()
       if (WtwConnector.instance.state==='disconnected') await WtwConnector.instance.connect()

@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
 import { infoDialog, unsavedChangesQuestion } from '../dialogs'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DataObjectBase } from '../types/common'
 import { ListEditorParent } from './list-edit'
 import { assert, paranoia } from '../utils'
@@ -139,7 +139,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
       <p class="mb-0">{tr('editor-err-info')}</p>
     </div>
     this.elEndHr = <hr class="mt-4 mb-2" />
-    this.form = safeCastElement(HTMLFormElement,
+    this.form = safeCast(HTMLFormElement,
       /* NOTE that title and contents are .insertBefore()d this.elEndHr! */
       <form novalidate class="editor-form p-3">
         {this.elEndHr} {this.elWarnAlert} {this.elErrAlert}
@@ -389,7 +389,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     let divHelp :HTMLDivElement|string = ''
     let btnHelp :HTMLButtonElement|string = ''
     if (opts.helpText) {
-      divHelp = safeCastElement(HTMLDivElement, <div class="form-text">{opts.helpText}</div>)
+      divHelp = safeCast(HTMLDivElement, <div class="form-text">{opts.helpText}</div>)
       let helpId :string
       [helpId, btnHelp] = makeHelp(this.ctx, divHelp)
       input.setAttribute('aria-describedby', helpId)
@@ -420,12 +420,12 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
 
   /** Helper function for subclasses to make a textarea row. */
   protected makeTextAreaRow(initValue :string|undefined, opts :MakeTextAreaRowOpts) :[HTMLElement, HTMLTextAreaElement] {
-    const input = safeCastElement(HTMLTextAreaElement, <textarea class="max-vh-75" rows="2">{initValue?.trim()??''}</textarea>)
+    const input = safeCast(HTMLTextAreaElement, <textarea class="max-vh-75" rows="2">{initValue?.trim()??''}</textarea>)
     if (opts.readonly) input.setAttribute('readonly', 'readonly')
 
     // Begin Auto-Expand stuff
     // someday: https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing
-    const btnExpand = safeCastElement(HTMLButtonElement,
+    const btnExpand = safeCast(HTMLButtonElement,
       <button type="button" class="btn btn-sm mini-button px-1 py-0 my-0 ms-1 me-0"></button>)
     let currentlyExpanded = opts.startExpanded || !initValue?.trim().length
     const updateButton = () => {

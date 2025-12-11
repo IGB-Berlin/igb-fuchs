@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx } from '@haukex/simple-jsx-dom'
 import { MyTooltip } from './tooltip'
 import { assert } from './utils'
-import { jsx } from './jsx-dom'
 
 const bsColors = ['primary','secondary','info','success','warning','danger'] as const
 type BSColor = typeof bsColors[number]
