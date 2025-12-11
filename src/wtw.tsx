@@ -20,7 +20,7 @@
  */
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
 import { jsx, safeCastElement } from './jsx-dom'
-import { FuchsTestInterface } from './global'
+import { FuchsTestInterface } from './for-tests'
 import { assert } from './utils'
 import { tr } from './i18n'
 
