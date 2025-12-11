@@ -21,17 +21,17 @@ import { WtwReceiver } from './wtw-parse'
 
 declare global {
   interface Window {
-    Fuchs :FuchsInterface
+    FuchsTest :FuchsTestInterface
   }
 }
 
-/** A global singleton object that is also made available as `window.Fuchs` so it can be used from tests and the debugging console. */
-export class FuchsInterface {
+/** A global singleton object that is also made available as `window.FuchsTest` so it can be used from tests and the debugging console. */
+export class FuchsTestInterface {
 
   // singleton
   private constructor() {}
-  static readonly instance = new FuchsInterface()
-  static { window.Fuchs = FuchsInterface.instance }
+  static readonly instance = new FuchsTestInterface()
+  static { window.FuchsTest = FuchsTestInterface.instance }
 
   // Expose classes/functions for testing
   readonly WtwReceiver = WtwReceiver

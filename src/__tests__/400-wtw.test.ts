@@ -25,9 +25,9 @@ test('WtwReceiver', async ({ page }) => {
   /* If we were to use `new WtwReceiver()` here, that would create the object in the test runner's context
    * instead of the browser's execution context - and it's only instrumented for coverage in the latter.
    * We can only pass serializable objects or handles between the two, plus, in the browser's context,
-   * things have been compiled and namespaced, which is why we need `window.Fuchs` to access the class.
+   * things have been compiled and namespaced, which is why we need `window.FuchsTest` to access the class.
    * See also https://playwright.dev/docs/evaluating */
-  const hnd = await page.evaluateHandle(() => new window.Fuchs.WtwReceiver(123))
+  const hnd = await page.evaluateHandle(() => new window.FuchsTest.WtwReceiver(123))
   const rxa = (val :string) => hnd.evaluate((rx,v) => rx.add(v), val)
   const rec =
     '17.08.2024 16:00:30\nMulti 3630 IDS\nSer. no. 12345678\nTetraCon 925\nSer. no. 23456789\nCond 0.0 µS/cm 22.6 °C, AR, S: +++\n'

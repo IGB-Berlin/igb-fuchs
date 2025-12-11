@@ -20,7 +20,7 @@
  */
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
 import { jsx, safeCastElement } from './jsx-dom'
-import { FuchsInterface } from './global'
+import { FuchsTestInterface } from './global'
 import { assert } from './utils'
 import { tr } from './i18n'
 
@@ -48,7 +48,7 @@ export class WtwConnector extends EventTarget {
 
   private readonly rx = new WtwReceiver()
   static {
-    FuchsInterface.instance.fakeSerialRx = (val :string) => WtwConnector.instance.receive(val)
+    FuchsTestInterface.instance.fakeSerialRx = (val :string) => WtwConnector.instance.receive(val)
   }
 
   private _state :State = 'serial' in navigator ? 'disconnected' : 'not-available'

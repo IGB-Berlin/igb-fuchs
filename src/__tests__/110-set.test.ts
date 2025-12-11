@@ -25,7 +25,7 @@ test('dataSetsEqual', async ({ page }) => {
       constructor(x :string) { this.x = x }
       equals(o: unknown) { return !!( o && typeof o==='object' && Object.keys(o).length===1 && 'x' in o && this.x===o.x ) }
     }
-    const dataSetsEqual = window.Fuchs.dataSetsEqual
+    const dataSetsEqual = window.FuchsTest.dataSetsEqual
     return dataSetsEqual([],[])
       && !dataSetsEqual([new X('x')],[])
       && !dataSetsEqual([new X('x')],[new X('y')])
