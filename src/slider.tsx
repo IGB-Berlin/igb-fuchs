@@ -82,7 +82,6 @@ export class Slider {
       document.addEventListener('mousemove', mouseMove)
       document.addEventListener('mouseup', mouseUp)
     })
-    //TODO: add { passive: true } (https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#using_passive_listeners)
     this.btn.addEventListener('touchstart', event => {
       if (isDragging||isSwiping) return
       if (event.touches.length!==1) return
@@ -90,10 +89,10 @@ export class Slider {
       const touch = event.touches[0]
       assert(touch)
       startX = touch.clientX
-      document.addEventListener('touchmove', touchMove)
+      document.addEventListener('touchmove', touchMove, { passive: true })
       document.addEventListener('touchend', touchEnd)
       document.addEventListener('touchcancel', touchCancel)
-    })
+    }, { passive: true })  // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#using_passive_listeners
     this.tip = new MyTooltip(this.el)
   }
   setColor(color :BSColor) {
