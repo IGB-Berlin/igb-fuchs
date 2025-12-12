@@ -92,7 +92,7 @@ function dateTimeLocalInputToDate(el :HTMLInputElement) :Date|null {
  *
  * In Chrome, .valueAsDate just returns null, so we use .valueAsNumber, which has the same offset as above.
  *
- * Note that because we have to do .getTimezoneOffset() on a live object, there *may* be problems if
+ * Note that because we have to call .getTimezoneOffset() on a live object, there *may* be problems if
  * the date happens to fall exactly on a summer/winter time change, which is unlikely enough in this
  * application that we can safely ignore the chance.
  *

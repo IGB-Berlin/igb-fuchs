@@ -74,7 +74,7 @@ export function takePicture() :Promise<Blob|null> {
   }
   const playVideo = async () => {
     try {
-      // need to do navigator.mediaDevices.getSupportedConstraints() ?
+      // need to use navigator.mediaDevices.getSupportedConstraints() ?
       video.srcObject = await navigator.mediaDevices.getUserMedia(
         { video: { facingMode: 'environment' }, audio: false })
       await video.play()
