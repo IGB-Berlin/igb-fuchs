@@ -480,6 +480,8 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   makeAccordion(opts :MakeAccordOpts) :[HTMLElement, ()=>Collapse] {
     const accId = this.ctx.genId()
     const accParentId = accId+'-parent'
+    const rowLast = safeCast(HTMLElement, opts.rows.at(-1))
+    rowLast.classList.remove('mb-2','mb-sm-3')
     const accordCollapse =
       <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
         <div class="accordion-body p-3"> {opts.rows} </div>

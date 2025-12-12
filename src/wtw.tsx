@@ -147,40 +147,42 @@ export class WtwConnector extends EventTarget {
 export class WtwConnControl extends HTMLElement {
 
   private readonly btnConnect :HTMLButtonElement
-  private readonly elStatus :HTMLElement
+  readonly elStatus :HTMLElement
   constructor() {
     super()
-    this.btnConnect = safeCast(HTMLButtonElement, <button class="btn" disabled></button>)
+    this.btnConnect = safeCast(HTMLButtonElement, <button class="btn me-3" disabled></button>)
     this.btnConnect.addEventListener('click', async event => {
       event.preventDefault()
       if (WtwConnector.instance.state==='disconnected') await WtwConnector.instance.connect()
       else if (WtwConnector.instance.state==='connected') await WtwConnector.instance.disconnect()
     })
     this.appendChild(this.btnConnect)
-    this.elStatus = <span class="ms-3"></span>
+    this.elStatus = <span></span>
+    // we'll put it after the button, but users are also allowed to re-add the element elsewhere
     this.appendChild(this.elStatus)
   }
 
   private updateState(state :State) {
     this.btnConnect.classList.remove('btn-success','btn-danger','btn-outline-danger','btn-outline-success')
-    this.elStatus.replaceChildren()
     switch (state) {
       case 'not-available':
         this.btnConnect.classList.add('btn-outline-secondary')
         this.btnConnect.replaceChildren(<span><i class="bi-exclamation-octagon me-1"/> {tr('Not available')}</span>)
         this.btnConnect.disabled = true
+        this.elStatus.replaceChildren(<span class="text-secondary">{tr('Not available')}</span>)
         break
       case 'disconnected':
         this.btnConnect.disabled = false
         this.btnConnect.classList.add('btn-success')
         this.btnConnect.replaceChildren(<span><i class="bi-plug me-1"/> {tr('Connect')}</span>)
-        this.elStatus.replaceChildren(<span class="text-danger"><i class="bi-x-lg"/> {tr('Disconnected')}</span>)
+        this.elStatus.replaceChildren(<span class="text-warning"><i class="bi-x-lg"/> {tr('Disconnected')}</span>)
         break
       case 'connecting':
         this.btnConnect.classList.add('btn-outline-success')
         this.btnConnect.replaceChildren(
           <span><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {tr('Connecting')}...</span>)
         this.btnConnect.disabled = true
+        this.elStatus.replaceChildren(<span class="text-secondary"><i class="bi-hourglass-split"/> {tr('Connecting')}...</span>)
         break
       case 'connected':
         this.btnConnect.disabled = false
@@ -193,6 +195,7 @@ export class WtwConnControl extends HTMLElement {
         this.btnConnect.replaceChildren(
           <span><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {tr('Disconnecting')}...</span>)
         this.btnConnect.disabled = true
+        this.elStatus.replaceChildren(<span class="text-secondary"><i class="bi-hourglass-split"/> {tr('Disconnecting')}...</span>)
         break
     }
   }

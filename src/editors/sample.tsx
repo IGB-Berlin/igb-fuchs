@@ -1,5 +1,8 @@
 /** This file is part of IGB-FUCHS.
  *
+ * WTW® is a registered trademark of Xylem Analytics Germany GmbH.
+ * This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.
+ *
  * Copyright © 2024-2025 Hauke Dämpfling (haukex@zero-g.net)
  * at the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB),
  * Berlin, Germany, <https://www.igb-berlin.de/>
@@ -16,9 +19,9 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
+import { WtwConnControl, WtwConnector, WtwDataReceivedEvent } from '../wtw'
 import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { IMeasurement, Measurement } from '../types/measurement'
-import { WtwConnControl, WtwDataReceivedEvent } from '../wtw'
 import { overAppendDialog } from '../dialogs'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
@@ -132,6 +135,9 @@ export class SampleEditor extends Editor<Sample> {
         }
       }
     })
+    const rowWtw = this.makeRow(wtwCtrl, { label: 'WTW®', helpText: <>{tr('wtw-help')} {tr('wtw-legal')}</> })
+    const [accProbes, collProbes] = this.makeAccordion({ label: tr('Probe Tools'),
+      title: <>WTW®: {wtwCtrl.elStatus}</>, rows: [rowWtw] })
 
     this.setFormContents([
       this.makeRow(this.inpType, { label: tr('Sample Type'), helpText: <><strong>{tr('Required')}.</strong></> }),
@@ -139,9 +145,14 @@ export class SampleEditor extends Editor<Sample> {
       rowInst,
       this.makeRow(this.qualEditor.el, { label: this.qualEditor.titleEl }),
       rowNotes,
-      this.makeRow(wtwCtrl, { label: 'WTW®', helpText: <>{tr('wtw-legal')}</> }),
+      accProbes,
       this.measEdit.elWithTitle,
     ])
+
+    setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
+      if (this.initObj.type==='probe' && WtwConnector.instance.state!='connected'
+        && WtwConnector.instance.state!='not-available' ) collProbes().show()
+    })
   }
   override async initialize() {
     await this.measEdit.initialize()

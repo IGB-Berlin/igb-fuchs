@@ -180,7 +180,6 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
     const rowTz = parent.makeRow(
       safeCast(HTMLInputElement, <input type="text" readonly value={getTzOffsetStr()} data-test-id={prefix+'-tz'}/>),
       { label: tr('Timezone'), helpText: tr('timezone-help') })
-    rowTz.classList.remove('mb-2','mb-sm-3')
 
     const lblCommon = <span></span>
     const lblStart = <span>?</span>

@@ -209,7 +209,6 @@ export class SuperCoordEditor<B extends DataObjectBase<B>> {
       label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
     const rowAct = parent.makeRow(this.edActCoords.el, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
       helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> })
-    rowAct.classList.remove('mb-2','mb-sm-3')
     if (!areWgs84CoordsValid(nomCoords))
       rowNom.classList.add('d-none')
 

@@ -36,9 +36,19 @@ test('wtw-ctrl', async ({ page }) => {
   await expect(page.getByTestId('accSampLog')).toBeVisible()
   await page.getByText('TestLog').dblclick()
   await page.getByText('TestLoc').dblclick()
-  await page.getByText('Read out probe data').dblclick()
-  await expect(page.getByRole('button', { name: /Connect|Not available/ })).toBeVisible()
-  //TODO: Extend this test a bit more (e.g. when it's implemented, check that the probe tools auto-expand here)
+  await page.getByRole('listitem').filter({ hasText: /\bSurface water\b/ }).dblclick()
+  await expect(page.getByRole('button', { name: /\bConnect\b/ })).not.toBeVisible()
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  await page.getByRole('listitem').filter({ hasText: /\bRead out probe data\b/ }).dblclick()
+  if (await page.evaluate(() => 'serial' in navigator)) {
+    await expect(page.getByRole('button', { name: /\bConnect\b/ })).toBeVisible()
+    await expect(page.getByText(/\bWTW®:.+Disconnected\b/)).toBeVisible()
+  }
+  else {  // Web Serial API not supported
+    await expect(page.getByRole('button', { name: /\bNot available\b/ })).toBeVisible()
+    await expect(page.getByText(/\bWTW®:.+Not available\b/)).toBeVisible()
+  }
 })
 
 test('WtwReceiver', async ({ page }) => {

@@ -592,12 +592,17 @@ const translations = {
   'qf-bad': ['Schlecht', 'Bad'],
 
   // WTW module
+  'Probe Tools': ['Sonden-Werkzeuge'],
   'wtw-legal': [
     'WTW® ist eine eingetragene Marke der Xylem Analytics Germany GmbH.'
     +' Dieses Projekt steht in keiner Verbindung zu Xylem oder deren Tochtergesellschaften und wird von diesen weder autorisiert noch unterstützt.',
     'WTW® is a registered trademark of Xylem Analytics Germany GmbH.'
-    +' This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.',
-  ],
+    +' This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.' ],
+  'wtw-help': [
+    'Mit dieser Funktion kann eine Verbindung mit einem WTW® Gerät (z.B. 3430 oder 3630) hergestellt werden.'
+    +' Diese Funktion steht nur in Browsern zur Verfügung, welche die "Web Serial API" unterstützen (zzt. nur Chromium).',
+    'This function can be used to connect to a WTW® device (e.g. 3430 or 3630).'
+    +' This function is only available in browsers that support the "Web Serial API" (currently only Chromium).' ],
   'Not available': ['Nicht verfügbar'],
   'Connect': ['Verbinden'],
   'Connecting': ['Wird verbunden'],
