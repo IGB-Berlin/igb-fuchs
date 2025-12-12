@@ -24,6 +24,7 @@ import { assert, paranoia } from '../utils'
 import { AbstractStore } from '../storage'
 import { GlobalContext } from '../main'
 import { MyTooltip } from '../tooltip'
+import { Collapse } from 'bootstrap'
 import { StackAble } from './stack'
 import { makeHelp } from '../help'
 import { tr } from '../i18n'
@@ -46,6 +47,13 @@ interface MakeTextAreaRowOpts extends MakeRowOpts {
   readonly ?:boolean
   startExpanded :boolean
   hideWhenEmpty ?:boolean
+}
+
+interface MakeAccordOpts {
+  label :HTMLElement|string
+  title :HTMLElement
+  testId ?:string
+  rows :HTMLElement[]
 }
 
 // https://stackoverflow.com/a/53056911
@@ -460,5 +468,39 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     if (opts.hideWhenEmpty && !initValue?.trim().length)
       row.classList.add('d-none')
     return [row, input]
+  }
+
+  /** Helper function for subclasses to make an accordion that contains other rows.
+   *
+   * NOTE: If there are buttons in the title, then they need to be surrounded by an element
+   * that has the attributes `<... data-bs-toggle="collapse" data-bs-target>`, so that
+   * the buttons don't trigger the expand/collapse - and the attributes need to be on
+   * a surrounding element, not the buttons, because otherwise the buttons don't work.
+   */
+  makeAccordion(opts :MakeAccordOpts) :[HTMLElement, ()=>Collapse] {
+    const accId = this.ctx.genId()
+    const accParentId = accId+'-parent'
+    const accordCollapse =
+      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
+        <div class="accordion-body p-3"> {opts.rows} </div>
+      </div>
+    const btnAccTitle = <button
+      class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
+      data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId}>
+      <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
+        <div class="w-25 text-end-sm pe-4 w-min-fit">{opts.label}</div>
+        <div class="pe-2 text-body-secondary">{opts.title}</div>
+      </div>
+    </button>
+    if (opts.testId) btnAccTitle.setAttribute('data-test-id', opts.testId)
+    const acc = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
+      <div class="accordion" id={accParentId}>
+        <div class="accordion-item">
+          <h2 class="accordion-header">{btnAccTitle}</h2>
+          {accordCollapse}
+        </div>
+      </div>
+    </div></div>
+    return [acc, ()=>Collapse.getOrCreateInstance(accordCollapse, { toggle: false })]
   }
 }

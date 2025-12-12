@@ -19,7 +19,6 @@ import { DataObjectBase, isTimestamp, isTimestampSet, isValidAndSetTs, NO_TIMEST
 import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent } from '../events'
 import { GlobalContext } from '../main'
-import { Collapse } from 'bootstrap'
 import { assert } from '../utils'
 import { Editor } from './base'
 import { tr } from '../i18n'
@@ -183,31 +182,12 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
       { label: tr('Timezone'), helpText: tr('timezone-help') })
     rowTz.classList.remove('mb-2','mb-sm-3')
 
-    const accId = parent.ctx.genId('StartEndEd')
-    const accParentId = accId+'-parent'
-    const accordCollapse =
-      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
-        <div class="accordion-body p-3"> {rowStart} {rowEnd} {rowTz} </div>
-      </div>
     const lblCommon = <span></span>
     const lblStart = <span>?</span>
     const lblEnd = <span>?</span>
-    this.el = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
-      <div class="accordion" id={accParentId}>
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
-              data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId} data-test-id={prefix+'-times-accord'}>
-              <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
-                <div class="w-25 text-end-sm pe-4 w-min-fit">{tr('Times')}</div>
-                <div class="pe-2 text-body-secondary">{lblCommon} {lblStart} – {lblEnd}</div>
-              </div>
-            </button>
-          </h2>
-          {accordCollapse}
-        </div>
-      </div>
-    </div></div>
+    const [acc, coll] = parent.makeAccordion({ label: tr('Times'),
+      title: <>{lblCommon} {lblStart} – {lblEnd}</>, rows: [rowStart, rowEnd, rowTz], testId: prefix+'-times-accord' })
+    this.el = acc
 
     const updateLabels = (inp :DateTimeInput, lbl :HTMLElement) => {
       assert( Object.is(inp, this.inpStart) && Object.is(lbl, lblStart) || Object.is(inp, this.inpEnd) && Object.is(lbl, lblEnd) )
@@ -250,11 +230,9 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
     setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
       if ( !isTimestamp(initialStart) || !isValidAndSetTs(initialStart) ||
         !autoSetEnd && (!isTimestamp(initialEnd) || !isValidAndSetTs(initialEnd)) )
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show()
-      this.inpStart.input.addEventListener('invalid', () =>
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
-      this.inpEnd.input.addEventListener('invalid', () =>
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
+        coll().show()
+      this.inpStart.input.addEventListener('invalid', () => coll().show())
+      this.inpEnd.input.addEventListener('invalid', () => coll().show())
     })
 
   }

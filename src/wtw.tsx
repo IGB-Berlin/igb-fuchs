@@ -143,6 +143,7 @@ export class WtwConnector extends EventTarget {
   }
 }
 
+// Note WtwConnControl is defined as a custom HTMLElement for the event handler stuff at the end of the class
 export class WtwConnControl extends HTMLElement {
 
   private readonly btnConnect :HTMLButtonElement

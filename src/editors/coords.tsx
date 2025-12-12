@@ -20,7 +20,7 @@ import { DataObjectBase, makeValidNumberPat } from '../types/common'
 import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent, CustomAlertEvent } from '../events'
 import { numericTextInputStuff } from '../utils'
-import { Alert, Collapse } from 'bootstrap'
+import { Alert } from 'bootstrap'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
@@ -213,38 +213,15 @@ export class SuperCoordEditor<B extends DataObjectBase<B>> {
     if (!areWgs84CoordsValid(nomCoords))
       rowNom.classList.add('d-none')
 
-    const accId = parent.ctx.genId('SuperCoord')
-    const accParentId = accId+'-parent'
-    const accordCollapse =
-      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
-        <div class="accordion-body p-3">
-          {rowNom} {rowAct}
-        </div>
-      </div>
-    /* NOTE the `data-bs-toggle="collapse" data-bs-target` on the input-group is important to prevent the buttons inside from
-     * opening/closing the accordion. And if those attributes are on the buttons, the click events apparently don't work! */
-    this.el = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
-      <div class="accordion" id={accParentId}>
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
-              data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId} data-test-id="coord-accord">
-              <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
-                <div class="w-25 text-end-sm pe-4 w-min-fit">{tr('Coordinates')}</div>
-                <div class="pe-2"><div class="input-group" data-bs-toggle="collapse" data-bs-target>{btnUseCurrent}{btnShowMap}</div></div>
-              </div>
-            </button>
-          </h2>
-          {accordCollapse}
-        </div>
-      </div>
-    </div></div>
+    const accTitle = <div class="input-group" data-bs-toggle="collapse" data-bs-target>{btnUseCurrent}{btnShowMap}</div>
+    const [acc, coll] = parent.makeAccordion({ label: tr('Coordinates'),
+      title: accTitle, rows: [rowNom, rowAct], testId: 'coord-accord' })
+    this.el = acc
 
     setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
       if (!areWgs84CoordsValid(actCoords))
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show()
-      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () =>
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
+        coll().show()
+      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () => coll().show())
     })
 
   }
