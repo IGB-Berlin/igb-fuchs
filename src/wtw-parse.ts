@@ -62,14 +62,10 @@ const MEAS_RE = new RegExp(
   `)\\s+(?<t>${NUM_PAT})\\s*°C\\b`, 'mug')
 
 export class WtwReceiver {
-  private override_time_for_test :Timestamp|undefined
-  constructor( override_time_for_test ?:Timestamp ) {
-    this.override_time_for_test = override_time_for_test
-  }
   private buf :string = ''
   clear() { this.buf='' }
-  add(data :string) :WtwParseResults[] {
-    const time = this.override_time_for_test ?? timestampNow()  // override is just for testing
+  add(data :string, override_time_for_test ?:Timestamp) :WtwParseResults[] {
+    const time = override_time_for_test ?? timestampNow()  // override is just for testing
     this.buf += data
     const blocks = this.buf.split(/^(?:-{5,}|_{5,})(?:\r?\n|\r)/m)
     this.buf = blocks.pop() ?? ''

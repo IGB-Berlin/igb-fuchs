@@ -22,7 +22,7 @@ import { isSampleType, QualityFlag, Sample, sampleTypes } from '../types/sample'
 import { WtwConnControl, WtwConnector, WtwDataReceivedEvent } from '../wtw'
 import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { IMeasurement, Measurement } from '../types/measurement'
-import { overAppendDialog } from '../dialogs'
+import { infoDialog, overAppendDialog } from '../dialogs'
 import { Editor, EditorParent } from './base'
 import { CustomChangeEvent } from '../events'
 import { MeasListEditor } from './meas-list'
@@ -124,6 +124,7 @@ export class SampleEditor extends Editor<Sample> {
 
     const wtwCtrl = new WtwConnControl()
     wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, async event => {
+      //TODO: What if we're not visible, i.e. a MeasurementEditor is on top of us?
       assert(event instanceof WtwDataReceivedEvent)
       if (!event.detail.results.length) return
       // Note we'll assume that typically, we're only getting one result at a time, so all of the processing is *inside* this loop:
@@ -183,61 +184,74 @@ export class SampleEditor extends Editor<Sample> {
   protected override customValidation() :string[] { return this.measEdit.customValidation() }
   protected override async onClose() { await this.measEdit.close() }
 
-  private async importMeasurements(meas :IMeasurement[]) {
-    const overwrites :Measurement[][] = []
-    let anyImported = false
-    //TODO: What if a single `meas` set contains measurements of the same name & unit?
-    for (const nm of meas) {
-      //TODO: only care about measurements of the same type *with different values*!
-      const have = this.measEdit.measurements.filter(hm => nm.type.name == hm.type.name && nm.type.unit == hm.type.unit)
-      // we only want to ask the user once about overwrites, not per measurement, so gather for now and ask below
-      if (have.length) overwrites.push([new Measurement(nm)].concat(have))
-      else {
-        console.debug('Adding new and not existing measurement',nm)
-        await this.measEdit.addItem(new Measurement(nm))
-        anyImported = true
-      }
+  private async importMeasurements(meas :IMeasurement[]) :Promise<boolean> {
+    // first, group the measurements by type
+    const byTypeName = new Map<string, Measurement[]>()
+    for (const im of meas) {
+      const m = new Measurement(im)
+      const v = byTypeName.get(m.type.typeId)
+      if (v) v.push(m)
+      else byTypeName.set(m.type.typeId, [m])
     }
-    if (overwrites.length) {
-      console.debug('Asking user about append/overwrite',overwrites)
-      const act = await overAppendDialog(<>
-        <p>{tr('ask-over-append')}</p>
-        <ol>{
-          overwrites.map(([nm, ...os]) => {
-            assert(nm && os.length)
-            const nmh = nm.summaryAsHtml(false)
-            nmh.classList.replace('d-flex','d-inline-flex')
-            return <ul>
-              <li class="text-info"><i class="bi-plus-circle me-1"/> <span class="me-1">{tr('New')}:</span> {nmh}</li>
-              {os.map(o => {
-                const oh = o.summaryAsHtml(false)
-                oh.classList.replace('d-flex','d-inline-flex')
-                return <li class="text-warning"><span class="me-1">{tr('Existing')}:</span> {oh}</li>
-              })}
-            </ul>
-          })
-        }</ol>
-      </>, tr('Importing Measurements'))
-      if (act==='append') {
-        for(const [nm, ..._os] of overwrites) {
-          assert(nm)
-          console.debug('Appending measurement',nm)
-          await this.measEdit.addItem(nm)
-          anyImported = true
+    // now analyze
+    let infos :number = 0
+    let asks :number = 0
+    const oli :HTMLElement[] = []
+    const actions :Measurement[][] = []
+    for (const nms of byTypeName.values()) {
+      // if there's more than one measurement of this type in the import (very unlikely), we're only importing the last...
+      const nm = nms.at(-1)
+      assert(nm)
+      const nmh = nm.summaryAsHtml(false)
+      nmh.classList.replace('d-flex','d-inline-flex')
+      const uli :HTMLElement[] = [
+        <li class="text-info"><i class="bi-plus-circle me-1"/> <span class="me-1">{tr('Importing')}:</span> {nmh}</li> ]
+      // ... and informing the user about the other measurements if they differ from the one we're importing
+      for (const onm of nms.slice(0,-1))
+        if (onm.value!==nm.value || !onm.type.equals(nm.type)) {  // not comparing timestamp
+          const omh = onm.summaryAsHtml(false)
+          omh.classList.replace('d-flex','d-inline-flex')
+          uli.push(<li class="text-danger"><i class="bi-trash3 me-1"/> <span class="me-1">{tr('Duplicate, ignoring')}:</span> {omh}</li>)
+          infos++
         }
-      }
-      else if (act==='overwrite') {
-        for(const [nm, ...os] of overwrites) {
-          assert(nm && os.length)
-          console.debug('New measurement',nm,'overwrites',os)
+      // check what measurements of this same type we already have
+      const have = this.measEdit.measurements.filter(hm => nm.type.typeId === hm.type.typeId)
+      for (const hm of have)
+        if (hm.value!==nm.value || !hm.type.equals(nm.type)) {  // not comparing timestamp
+          // the measurement we already have differs from the new one
+          const hmh = hm.summaryAsHtml(false)
+          hmh.classList.replace('d-flex','d-inline-flex')
+          uli.push(<li class="text-warning"><i class="bi-question-diamond me-1"/> <span class="me-1">{tr('Existing')}:</span> {hmh}</li>)
+          asks++
+        } /* else, this measurement we already have is identical to the one being imported, and if the user selects "overwrite",
+           * or if all measurements being imported are identical to the ones we already have (in which case there'll be no `asks`),
+           * the existing measurement(s) can be deleted without asking the user - which is basically just a timestamp update. */
+      actions.push([nm].concat(have))
+      oli.push(<li>{nm.type.summaryAsHtml(false)}<ul>{uli}</ul></li>)
+    }
+    // now ask or inform the user
+    let overwrite_not_append = true  // see explanation above for why we default to overwrite
+    if (asks) {  // we need to ask about overwrite/append
+      const act = await overAppendDialog(tr('Importing Measurements'), <><p>{tr('ask-over-append')}</p><ol>{oli}</ol></>)
+      if (act=='cancel') return false
+      if (act=='append') overwrite_not_append = false
+    }
+    else if (infos)  // no questions, just information for the user
+      await infoDialog('warning', tr('Importing Measurements'), <><p>{tr('import-info')}:</p><ol>{oli}</ol></>)
+    // now actually perform actions
+    for(const [nm, ...os] of actions) {
+      assert(nm)
+      if (os.length) {
+        if (overwrite_not_append) {
+          console.debug('Imported measurement',nm,'overwrites',os)
           for (const o of os)
             await this.measEdit.deleteItem(o)
-          await this.measEdit.addItem(nm)
-          anyImported = true
-        }
-      } // else, canceled
+        } else console.debug('Appending imported measurement',nm)
+      }
+      else console.debug('Adding imported measurement',nm)
+      await this.measEdit.addItem(new Measurement(nm))
     }
-    return anyImported
+    return !!actions.length
   }
 
 }

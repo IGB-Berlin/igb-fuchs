@@ -620,7 +620,10 @@ const translations = {
   'ask-over-append': [
     'Sollen die folgende(n) neue(n) Messung(en) an die existierende(n) Messung(en) angehängt werden, oder die existierende(n) Messung(en) ersetzen?',
     'Should the following new measurement(s) be appended to the existing measurement(s), or overwrite the existing measurement(s)?' ],
+  'import-info': ['Beim Import sind folgende Meldungen entstanden', 'The import resulted in the following notices'],
+  'Importing': ['Importiere'],
   'Existing': ['Bereits vorhanden'],
+  'Duplicate, ignoring': ['Duplikat, wird ignoriert'],
 
   // '': [''],
 } as const

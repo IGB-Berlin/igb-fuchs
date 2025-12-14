@@ -132,7 +132,7 @@ export function importOverwriteQuestion(have :HasHtmlSummary, imp :HasHtmlSummar
 }
 
 type OverAppendResult = 'overwrite'|'append'|'cancel'
-export function overAppendDialog(body :string|HTMLElement, title :string) :Promise<OverAppendResult> {
+export function overAppendDialog(title :string, body :string|HTMLElement) :Promise<OverAppendResult> {
   let result :OverAppendResult = 'cancel'
   const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
     class="modal fade" tabindex="-1" aria-labelledby="overAppendDialogLabel" aria-hidden="true">

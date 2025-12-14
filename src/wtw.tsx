@@ -21,6 +21,7 @@
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
 import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { FuchsTestInterface } from './for-tests'
+import { Timestamp } from './types/common'
 import { assert } from './utils'
 import { tr } from './i18n'
 
@@ -48,7 +49,7 @@ export class WtwConnector extends EventTarget {
 
   private readonly rx = new WtwReceiver()
   static {
-    FuchsTestInterface.instance.fakeSerialRx = (val :string) => WtwConnector.instance.receive(val)
+    FuchsTestInterface.instance.fakeSerialRx = (val :string) => WtwConnector.instance.receive(val, 1234567890)
   }
 
   private _state :State = 'serial' in navigator ? 'disconnected' : 'not-available'
@@ -68,8 +69,8 @@ export class WtwConnector extends EventTarget {
     await this.closeHandler()
   }
 
-  private receive(val :string) {
-    const res = this.rx.add(val)
+  private receive(val :string, override_time_for_test ?:Timestamp) {
+    const res = this.rx.add(val, override_time_for_test)
     if (res.length) this.dispatchEvent(new WtwDataReceivedEvent(res))
   }
 
