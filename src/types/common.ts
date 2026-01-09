@@ -72,7 +72,6 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
   abstract summaryDisplay() :[string,string|null]
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
   summaryAsHtml(withTypeName :boolean, inline :boolean = false) :HTMLElement {
-    //TODO Later: can probably use this new `inline` parameter in a few more calling places
     const [pri,sub] = this.summaryDisplay()
     const div = document.createElement('div')
     div.classList.add((inline?'d-inline-flex':'d-flex'),'flex-row','justify-content-start','flex-wrap','column-gap-3')

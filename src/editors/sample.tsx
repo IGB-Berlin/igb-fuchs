@@ -124,7 +124,6 @@ export class SampleEditor extends Editor<Sample> {
 
     const wtwCtrl = new WtwConnControl()
     wtwCtrl.addEventListener(WtwDataReceivedEvent.NAME, async event => {
-      //TODO: What if we're not visible, i.e. a MeasurementEditor is on top of us?
       assert(event instanceof WtwDataReceivedEvent)
       if (!event.detail.results.length) return
       // Note we'll assume that typically, we're only getting one result at a time, so all of the processing is *inside* this loop:
