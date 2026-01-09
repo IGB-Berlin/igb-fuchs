@@ -7,7 +7,10 @@ IGB-FUCHS is an Electronic Lab Notebook with a focus on fieldwork, developed at
 the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB) in Berlin.
 
 The name means "fox" in German (a smart animal that knows its way around fields)
-and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem".
+and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem"
+(Field and Environmental Data Check System) or "**F**eld-, **U**mwelt- und
+**CH**emiedaten **S**peichersystem" (Field, Environmental, and Chemistry
+Data Storage System).
 
 Installation on Mobile
 ----------------------
@@ -52,7 +55,7 @@ Normal development for me:
 - Before commit / push, kill the `npm start` and run `npm full-test` (takes a while)
 
 
-<!-- spell-checker: ignore Mojolicious backronym mweltdaten ystem -->
+<!-- spell-checker: ignore Mojolicious backronym mweltdaten ystem emiedaten mwelt peichersystem -->
 
 Author, Copyright, and License
 ------------------------------
