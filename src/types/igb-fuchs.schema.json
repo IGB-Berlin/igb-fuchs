@@ -3,6 +3,7 @@
   "$comment": "https://json-schema.org/draft-07/draft-handrews-json-schema-validation-01",
   "$id": "https://fuchs.igb-berlin.de/igb-fuchs.schema.json",
   "title": "IGB-FUCHS Data Schema",
+  "description": "Schema for data files produced and imported by IGB-FUCHS (https://fuchs.igb-berlin.de/).",
   "type": "object",
   "properties": {
     "_comment": { "type": "string" }, "$comment": { "type": "string" },
