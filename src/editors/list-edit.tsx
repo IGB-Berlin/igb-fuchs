@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { DataObjectBase, DataObjectTemplate, DataObjectWithTemplate, HasHtmlSummary, StyleValue } from '../types/common'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomSelectEvent, CustomStoreEvent } from '../events'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { AbstractStore, OrderedStore } from '../storage'
 import { EditorClass, EditorParent } from './base'
 import { listSelectDialog } from './list-dialog'
@@ -94,17 +94,17 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     this.editorClass = args.editorClass
     this.selItem = args.selItem
 
-    this.btnDel = safeCastElement(HTMLButtonElement,
+    this.btnDel = safeCast(HTMLButtonElement,
       <button type="button" class="btn btn-outline-danger text-nowrap" disabled><i class="bi-trash3"/> {tr('Delete')}</button>)
-    this.btnNew = safeCastElement(HTMLButtonElement,
+    this.btnNew = safeCast(HTMLButtonElement,
       <button type="button" class="btn btn-outline-info text-nowrap" disabled><i class="bi-plus-circle"/> {tr('New')}</button>)
-    this.btnEdit = safeCastElement(HTMLButtonElement,
+    this.btnEdit = safeCast(HTMLButtonElement,
       <button type="button" class="btn btn-outline-primary text-nowrap" disabled><i class="bi-pencil-fill"/> {tr('Edit')}</button>)
     this.selReqButtons = [ this.btnDel, this.btnEdit ]
     this.otherButtons = [ this.btnNew ]
 
-    this.theUl = safeCastElement(HTMLUListElement, <ul class="list-group my-2"></ul>)
-    this.divButtons = safeCastElement(HTMLDivElement,
+    this.theUl = safeCast(HTMLUListElement, <ul class="list-group my-2"></ul>)
+    this.divButtons = safeCast(HTMLDivElement,
       <div class="d-flex flex-row justify-content-end flex-wrap row-gap-1 column-gap-2">{this.btnDel}{this.btnNew}{this.btnEdit}</div> )
     this.disableNotice = <div class="d-none d-flex flex-row justify-content-end"><em>{tr('list-editor-disabled-new')}</em></div>
     this.el = <div>{this.theUl}{this.divButtons}{this.disableNotice}</div>
@@ -113,17 +113,9 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       const delId = this.selId  // b/c the event handlers may change this
       if (delId===null) return  // shouldn't happen
       const selItem = await this.theStore.get(delId)
-      switch ( await deleteConfirmation(selItem.summaryAsHtml(true)) ) {
-        case 'cancel': break
-        case 'delete': {
-          console.debug('Deleting',selItem,'...')
-          /* REMEMBER deletion may change some object's ids!
-          * Redrawing the list is handled via the event listener below. */
-          const oldId = await this.theStore.del(selItem)
-          paranoia(delId === oldId, `${delId}!==${oldId}`)
-          this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
-          console.debug('... deleted id',oldId)
-          break }
+      if ( await deleteConfirmation(selItem.summaryAsHtml(true)) === 'delete' ) {
+        const oldId = await this.deleteItem(selItem)
+        paranoia(delId === oldId, `${delId}!==${oldId}`)
       }
     })
 
@@ -179,11 +171,11 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       Array.from(theList).forEach(([id,item],i) => {
         let content :HTMLElement = this.contentFor(item)
         if (this.theStore instanceof OrderedStore) {
-          const btnUp = safeCastElement(HTMLButtonElement,
+          const btnUp = safeCast(HTMLButtonElement,
             <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move up')}>
               <i class="bi-caret-up-fill"/><span class="visually-hidden"> {tr('Move up')}</span></button>)
           if (!i) btnUp.disabled = true
-          const btnDown = safeCastElement(HTMLButtonElement,
+          const btnDown = safeCast(HTMLButtonElement,
             <button type="button" class="btn btn-sm btn-secondary py-0 lh-1" title={tr('Move down')}>
               <i class="bi-caret-down-fill"/><span class="visually-hidden"> {tr('Move down')}</span></button>)
           if (i===theList.length-1) btnDown.disabled = true
@@ -201,11 +193,11 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
             this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: newId }))
           })
         }
-        this.listEls[i] = safeCastElement(HTMLLIElement,
+        this.listEls[i] = safeCast(HTMLLIElement,
           <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer gap-2"
             data-id={id} onclick={()=>this.selectItem(id)} ondblclick={()=>this.newEditor(item, false)}>{content}</li>)
       } )
-    } else this.listEls.push( safeCastElement(HTMLLIElement, <li class="list-group-item"><em>{tr('No items')}</em></li> ) )
+    } else this.listEls.push( safeCast(HTMLLIElement, <li class="list-group-item"><em>{tr('No items')}</em></li> ) )
     this.theUl.replaceChildren(...this.listEls)
     this.selectItem(selAfter)
     this.checkGlobalEnable()
@@ -267,6 +259,28 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
     })
   }
 
+  /** Takes a **new** object and saves it to this store. Currently intended for external use when importing measurements. */
+  async addItem(newObj :B) {
+    console.debug('Adding',newObj,'...')
+    const newId = await this.theStore.add(newObj)
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
+    console.debug('... added with id',newId)
+    return newId
+  }
+
+  /** Deletes an item from this store **without confirmation**. Currently intended for external use when importing measurements.
+   *
+   * REMEMBER deletion may change some object's ids!
+   * Redrawing this list is handled via the corresponding event listener in this class.
+   */
+  async deleteItem(delItem :B) {
+    console.debug('Deleting',delItem,'...')
+    const oldId = await this.theStore.del(delItem)
+    this.el.dispatchEvent(new CustomStoreEvent({ action: 'del', id: oldId }))
+    console.debug('... deleted id',oldId)
+    return oldId
+  }
+
   /** So subclasses can override. */
   protected contentFor(item :B) :HTMLElement { return item.summaryAsHtml(false) }
 
@@ -291,7 +305,7 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
   constructor(args :ListEditorTempArguments<T,B>) {
     super(args)
 
-    this.btnTemp = safeCastElement(HTMLButtonElement,
+    this.btnTemp = safeCast(HTMLButtonElement,
       <button type="button" class="btn btn-outline-info text-nowrap" disabled><i class="bi-copy"/> {tr('From Template')}</button>)
     this.btnTemp.addEventListener('click', async () => {
       const template = await listSelectDialog<T>(args.dialogTitle, await args.templateSource())
@@ -319,10 +333,8 @@ export abstract class ListEditorTemp<T extends HasHtmlSummary, B extends DataObj
   /** Creates a new object from a template, saves it to this store being edited, and opens a new {@link Editor} for the object. */
   protected async addNew(template :T) {
     const newObj = this.makeNew(template)
-    console.debug('Adding',newObj,'...')
-    const newId = await this.theStore.add(newObj)
-    this.el.dispatchEvent(new CustomStoreEvent({ action: 'add', id: newId }))
-    console.debug('... added with id',newId,'now editing')
+    const newId = await this.addItem(newObj)
+    console.debug('Now editing the new object that has id',newId)
     return this.newEditor(newObj, true)
   }
 
@@ -375,7 +387,7 @@ export class ListEditorWithTemp<T extends DataObjectTemplate<T, D>, D extends Da
     // If there aren't any planned items left, hide the whole list:
     this.pEl.classList.toggle('d-none', !this.plannedLeft.length)
     this.pUl.replaceChildren(...this.plannedLeft.map((t,ti) => {
-      const btnStart = safeCastElement(HTMLButtonElement,
+      const btnStart = safeCast(HTMLButtonElement,
         <button type="button" class="btn btn-info text-nowrap ms-3 fw-semibold"><i class="bi-copy"/> {tr('Start')}</button>)
       btnStart.addEventListener('click', async () => {
         // NOTE the similarity to this.startFirstPlannedItem()

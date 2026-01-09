@@ -17,7 +17,7 @@
  */
 import { isSampleType, SampleTemplate, sampleTypes } from '../types/sample'
 import { ListEditorForTemp, SelectedItemContainer } from './list-edit'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { AbstractStore, ArrayStore } from '../storage'
 import { MeasurementType } from '../types/measurement'
 import { Editor, EditorParent } from './base'
@@ -34,7 +34,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
   constructor(parent :EditorParent, targetStore :AbstractStore<SampleTemplate>, targetObj :SampleTemplate|null, isNew :boolean) {
     super(parent, targetStore, targetObj, isNew)
 
-    this.inpType = safeCastElement(HTMLSelectElement,
+    this.inpType = safeCast(HTMLSelectElement,
       <select class="form-select fw-semibold">
         {sampleTypes.map(t => {
           // NOTE the following i18n.t call removes type safety
@@ -44,7 +44,7 @@ export class SampleTemplateEditor extends Editor<SampleTemplate> {
         })}
       </select>)
 
-    this.inpDesc = safeCastElement(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
+    this.inpDesc = safeCast(HTMLInputElement, <input type="text" value={this.initObj.shortDesc.trim()}></input>)
     const [rowInst, inpInst] = this.makeTextAreaRow(this.initObj.instructions, {
       label: tr('Instructions'), helpText: <>{tr('samp-inst-temp-help')} {tr('inst-help')}</>, startExpanded: this.isNew })
     this.inpInst = inpInst

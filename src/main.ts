@@ -17,11 +17,12 @@
  */
 import { betaWarning, internalErrorDialog, makeBetaVersionNoticeLink, noStorageAlert } from './dialogs'
 import licenses_txt from 'bundle-text:../licenses.txt'
+import { safeCast } from '@haukex/simple-jsx-dom'
+import { FuchsTestInterface } from './for-tests'
 import { EditorStack } from './editors/stack'
 import { HomePage } from './editors/home'
 import { IdbStorage } from './idb-store'
 import { initI18n } from './i18n'
-import { assert } from './utils'
 
 window.addEventListener('error', internalErrorDialog)
 window.addEventListener('unhandledrejection', internalErrorDialog)
@@ -40,7 +41,9 @@ if (module.hot) module.hot.accept()  // for the parcel development environment
 
 // register the Service Worker (if possible)
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(new URL('../worker/service-worker.ts', import.meta.url), {type: 'module', scope: '/'}).then(
+  /* MDN: "The default scope for a service worker registration is the directory where the service worker script
+   * is located (resolving ./ against scriptURL)." and our Parcel bundler puts everything in one directory. */
+  navigator.serviceWorker.register(new URL('../worker/service-worker.ts', import.meta.url), {type: 'module'}).then(
     registration => console.debug('SW register ok', registration),
     (error :unknown) => console.error('Service Worker registration failed', error),
   )
@@ -85,29 +88,26 @@ window.addEventListener('DOMContentLoaded', async () => {
     return
   }
 
-  const igbLogo = document.getElementById('igbLogo')
-  assert(igbLogo instanceof HTMLElement)
+  const igbLogo = safeCast(HTMLElement, document.getElementById('igbLogo'))
   igbLogo.addEventListener('click', event => event.preventDefault())  // about dialog is triggered from HTML via Bootstrap
 
   initI18n()
 
-  const htmlHeader = document.querySelector('header')
-  const htmlFooter = document.querySelector('footer')
-  const htmlMain = document.querySelector('main')
-  const navbarMain = document.getElementById('navbarMain')
-  assert(htmlHeader instanceof HTMLElement && htmlFooter instanceof HTMLElement && htmlMain instanceof HTMLElement && navbarMain instanceof HTMLDivElement)
+  const htmlHeader = safeCast(HTMLElement, document.querySelector('header'))
+  const htmlFooter = safeCast(HTMLElement, document.querySelector('footer'))
+  const htmlMain = safeCast(HTMLElement, document.querySelector('main'))
+  const navbarMain = safeCast(HTMLDivElement, document.getElementById('navbarMain'))
 
   const ctx = new GlobalContext(storage, htmlHeader, htmlFooter, new EditorStack(htmlFooter))
   ctx.stack.initialize(navbarMain, await HomePage.new(ctx))
   htmlMain.appendChild(ctx.stack.el)
+  FuchsTestInterface.instance.ctx = ctx
 
-  const licensesText = document.getElementById('licensesText')
-  assert(licensesText instanceof HTMLElement)
+  const licensesText = safeCast(HTMLElement, document.getElementById('licensesText'))
   licensesText.innerText = licenses_txt.trim()
 
-  const appVersion = document.getElementById('appVersion')
-  const versionBadge = document.getElementById('versionBadge')
-  assert(appVersion instanceof HTMLElement && versionBadge instanceof HTMLElement)
+  const appVersion = safeCast(HTMLElement, document.getElementById('appVersion'))
+  const versionBadge = safeCast(HTMLElement, document.getElementById('versionBadge'))
   const version = ( process.env['CUSTOM_DEV_VERSION'] ?? process.env['npm_package_version'] ?? '(unknown)' ) + ` (${GIT_COMMIT})`
   appVersion.innerText = version
   appVersion.insertAdjacentElement('afterend', makeBetaVersionNoticeLink(ctx))

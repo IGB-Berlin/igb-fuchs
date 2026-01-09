@@ -481,38 +481,38 @@ export class IdbStorage {
 
   private async selfTest() :Promise<boolean> {
     console.log('Running storage test...')
-    if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
+    /* istanbul ignore if */ if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
     const d1 = new DummyObj({ id: 'one', foo: 'bar' })
     try { await this.selfTestStore.upd(d1, d1); return false } catch (_) { /*expected*/ }
-    if ( await this.selfTestStore.add(d1) !== 'one') return false
+    /* istanbul ignore if */ if ( await this.selfTestStore.add(d1) !== 'one') return false
     try { await this.selfTestStore.add(d1); return false } catch (_) { /*expected*/ }
     const all = await this.selfTestStore.getAll(null)
-    if ( all.length!==1 || all[0]?.[0]!=='one' || all[0][1].id!=='one' || all[0][1].foo!=='bar' ) return false
-    if ( (await this.selfTestStore.get('one')).foo !== 'bar' ) return false
+    /* istanbul ignore if */ if ( all.length!==1 || all[0]?.[0]!=='one' || all[0][1].id!=='one' || all[0][1].foo!=='bar' ) return false
+    /* istanbul ignore if */ if ( (await this.selfTestStore.get('one')).foo !== 'bar' ) return false
     const d1x = new DummyObj({ id: 'one', foo: 'x' })
     const d1b = new DummyObj({ id: 'one', foo: 'quz' })
-    if ( await this.selfTestStore.upd(d1x, d1b) !== 'one' ) return false
-    if ( (await this.selfTestStore.get('one')).foo !== 'quz' ) return false
-    if ( (await this.selfTestStore.getAll(null)).length !== 1 ) return false
+    /* istanbul ignore if */ if ( await this.selfTestStore.upd(d1x, d1b) !== 'one' ) return false
+    /* istanbul ignore if */ if ( (await this.selfTestStore.get('one')).foo !== 'quz' ) return false
+    /* istanbul ignore if */ if ( (await this.selfTestStore.getAll(null)).length !== 1 ) return false
     try { await this.selfTestStore.get('two'); return false } catch (_) { /*expected*/ }
     const d2 = new DummyObj({ id: 'two', foo: 'y' })
     try { await this.selfTestStore.upd(d2, d1); return false } catch (_) { /*expected*/ }
     try { await this.selfTestStore.del(d2); return false } catch (_) { /*expected*/ }
-    if ( await this.selfTestStore.del(d1x) !== 'one' ) return false
-    if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
+    /* istanbul ignore if */ if ( await this.selfTestStore.del(d1x) !== 'one' ) return false
+    /* istanbul ignore if */ if ( (await this.selfTestStore.getAll(null)).length!==0 ) return false
     // file storage
-    if ( (await this.fileTestStore.list()).length !== 0 ) return false
+    /* istanbul ignore if */ if ( (await this.fileTestStore.list()).length !== 0 ) return false
     const f1 = new File(['Hello, World!'], 'test.txt', { type: 'text/plain' })
     await this.fileTestStore.add('foo', f1)
     try { await this.fileTestStore.add('foo', f1); return false } catch (_) { /*expected*/ }
     const fl1 = await this.fileTestStore.list()
-    if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0][1]!=='test.txt' ) return false
+    /* istanbul ignore if */ if ( fl1.length!==1 || fl1[0]?.[0]!=='foo' || fl1[0][1]!=='test.txt' ) return false
     const f1b = await this.fileTestStore.get('foo')
-    if ( f1b.name!=='test.txt' || await f1b.text() !== 'Hello, World!' ) return false
+    /* istanbul ignore if */ if ( f1b.name!=='test.txt' || await f1b.text() !== 'Hello, World!' ) return false
     await this.fileTestStore.del('foo')
     try { await this.fileTestStore.get('foo'); return false } catch (_) { /*expected*/ }
     try { await this.fileTestStore.del('foo'); return false } catch (_) { /*expected*/ }
-    if ( (await this.fileTestStore.list()).length !== 0 ) return false
+    /* istanbul ignore if */ if ( (await this.fileTestStore.list()).length !== 0 ) return false
     console.log('... storage test passed!')
     return true
   }

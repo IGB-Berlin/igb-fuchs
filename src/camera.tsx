@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, safeCastElement } from './jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import * as bootstrap from 'bootstrap'
 import { assert } from './utils'
 
@@ -25,10 +25,10 @@ export function takePicture() :Promise<Blob|null> {
     <h4 className="alert-heading">Failed to start camera</h4>
     <hr/> {errMsg}
   </div>
-  const video = safeCastElement(HTMLVideoElement, <video className="w-100 object-fit-scale"></video>)
-  const photo = safeCastElement(HTMLImageElement, <img className="w-100 object-fit-scale d-none"></img>)
-  const canvas = safeCastElement(HTMLCanvasElement, <canvas className="d-none"></canvas>)
-  const fileInp = safeCastElement(HTMLInputElement,
+  const video = safeCast(HTMLVideoElement, <video className="w-100 object-fit-scale"></video>)
+  const photo = safeCast(HTMLImageElement, <img className="w-100 object-fit-scale d-none"></img>)
+  const canvas = safeCast(HTMLCanvasElement, <canvas className="d-none"></canvas>)
+  const fileInp = safeCast(HTMLInputElement,
     <input className="form-control mt-1" type="file" accept="image/*" capture="environment" />)
   const btnCancel = <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi-x-lg"/> Cancel</button>
   const btnRetry = <button className="btn btn-primary" disabled><i className="bi-arrow-counterclockwise"/> Retry</button>
@@ -74,7 +74,7 @@ export function takePicture() :Promise<Blob|null> {
   }
   const playVideo = async () => {
     try {
-      // need to do navigator.mediaDevices.getSupportedConstraints() ?
+      // need to use navigator.mediaDevices.getSupportedConstraints() ?
       video.srcObject = await navigator.mediaDevices.getUserMedia(
         { video: { facingMode: 'environment' }, audio: false })
       await video.play()

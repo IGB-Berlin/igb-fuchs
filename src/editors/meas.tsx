@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { MeasurementType, Measurement } from '../types/measurement'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent, CustomStoreEvent } from '../events'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { DateTimeInput, getTzOffsetStr } from './date-time'
 import { AbstractStore, ArrayStore } from '../storage'
 import { makeValidNumberPat } from '../types/common'
@@ -37,7 +37,7 @@ export class MeasurementEditor extends Editor<Measurement> {
 
     this.measType = [this.initObj.type]
     const mtStore = new ArrayStore(this.measType)
-    const inpType = safeCastElement(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
+    const inpType = safeCast(HTMLInputElement, <input type="text" class="form-control fw-semibold" value="" readonly required /> )
     const btnTypeEdit = <button type="button" class="btn btn-outline-primary"><i class="bi-pencil"/> {tr('Edit')}</button>
     btnTypeEdit.addEventListener('click', async () => {
       const ed = await new MeasTypeEditor(this, mtStore, this.measType[0], this.isUnsaved).initialize()
@@ -51,18 +51,18 @@ export class MeasurementEditor extends Editor<Measurement> {
         typeChange()
       }
     })
-    this.grpType = safeCastElement(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
+    this.grpType = safeCast(HTMLDivElement, <div class="input-group"> {inpType} {btnTypeEdit} {btnTypeSel} </div>)
 
     const [rowInst, typeInst] = this.makeTextAreaRow(this.measType[0].instructions, {
       label: tr('Instructions'), helpText: <>{tr('meas-inst-help')}</>,
       readonly: true, startExpanded: this.isNew })
 
-    this.inpValue = safeCastElement(HTMLInputElement, <input type="text" inputmode="decimal"
+    this.inpValue = safeCast(HTMLInputElement, <input type="text" inputmode="decimal"
       class="form-control fw-semibold font-monospace" value={this.initObj.value} required />)
     numericTextInputStuff(this.inpValue)
     this.inpValue.addEventListener('change', () => grpValue.dispatchEvent(new CustomChangeEvent()))
     const lblUnit = <span class="input-group-text"></span>
-    const grpValue = safeCastElement(HTMLDivElement, <div class="input-group"> {this.inpValue} {lblUnit} </div>)
+    const grpValue = safeCast(HTMLDivElement, <div class="input-group"> {this.inpValue} {lblUnit} </div>)
     const lblRange = <span></span>
     const lblPrc = <span></span>
 

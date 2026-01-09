@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, safeCastElement } from '../jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { HasHtmlSummary } from '../types/common'
 import * as bootstrap from 'bootstrap'
 import { assert } from '../utils'
@@ -23,7 +23,7 @@ import { tr } from '../i18n'
 
 export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
-  const btnOk = safeCastElement(HTMLButtonElement, <button type="button" class="btn btn-success" data-bs-dismiss="modal"
+  const btnOk = safeCast(HTMLButtonElement, <button type="button" class="btn btn-success" data-bs-dismiss="modal"
     onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>)
   let selIdx = -1
   const selectItem = (idx :number) => {

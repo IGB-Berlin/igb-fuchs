@@ -14,19 +14,22 @@
   "scripts": {
     "clean": "git clean -dxf -e node_modules -e dev/py/.venv -e dev/issue-bak/.venv",
     "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint --strict src/types/igb-fuchs.schema.json && bash dev/shellcheck.sh",
-    "start": "npm run clean && parcel --target prod --port 1234",
+    "start": "npm run clean && parcel --target prod --dist-dir dist-live --port 1234",
     "build": "npm run clean && parcel build --target prod && cp -v src/types/igb-fuchs.schema.json dist-prod/",
-    "dist-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist-prod playwright test",
+    "prod-test": "npm run lint && npm run build && cross-env WEB_SERVER_PATH=dist-prod playwright test",
     "coverage": "bash dev/coverage.sh",
-    "full-test": "npm run dist-test && bash dev/coverage.sh"
+    "full-test": "npm run prod-test && bash dev/coverage.sh",
+    "tasklist": "grep --color=auto --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir='.venv*' --exclude-dir='.*cache' --exclude-dir=node_modules --exclude='LICENSE*' --exclude=licenses.txt --exclude='.*.swp'  --exclude=package-lock.json --exclude-dir='dist-*' --exclude-dir=coverage --exclude-dir=.nyc_output --exclude-dir=issue-bak --exclude-dir=web -Eri '\\bto.?do\\b'"
   },
   "targets": {
     "prod": {
       "source": "src/index.html",
-      "distDir": "dist-prod"
+      "distDir": "dist-prod",
+      "publicUrl": "./"
     },
-    "test": {
-      "distDir": "dist-test",
+    "cover": {
+      "distDir": "dist-cover",
+      "publicUrl": "./",
       "optimize": false,
       "sourceMap": {
         "inline": true,
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": ">=9.38.0 <9.39.0 || >9.39.0",
+    "@haukex/simple-jsx-dom": "^0.9.0",
     "@parcel/packager-raw-url": "^2.16.1",
     "@parcel/transformer-inline-string": "^2.16.1",
     "@parcel/transformer-sass": "^2.16.1",
@@ -51,18 +55,19 @@
     "@sourcemeta/jsonschema": "^12.8.0",
     "@stylistic/eslint-plugin": "^5.6.1",
     "@types/bootstrap": "^5.2.10",
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.0.1",
     "@types/papaparse": "^5.5.1",
+    "@types/w3c-web-serial": "^1.0.8",
     "@types/webpack-env": "^1.18.8",
     "@zip.js/zip.js": "^2.8.11",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "nyc": "^17.1.0",
-    "parcel": "^2.16.1",
+    "parcel": "^2.16.3",
     "playwright-test-coverage": "^1.2.12",
     "serve": "^14.2.5",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.49.0"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

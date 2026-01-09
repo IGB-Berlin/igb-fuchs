@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment } from '@haukex/simple-jsx-dom'
 import { HasHtmlSummary } from './types/common'
-import { jsx, jsxFragment } from './jsx-dom'
 import { GlobalContext } from './main'
 import * as bootstrap from 'bootstrap'
 import { tr } from './i18n'
@@ -54,7 +54,7 @@ export function unsavedChangesQuestion(saveBtnLabel :string, details :HTMLElemen
         </div>
         <div class="modal-body">
           <p><strong>{tr('unsaved-changes')}</strong></p>
-          { details instanceof HTMLElement ? details : <p>{details}</p> }
+          { details instanceof Node ? details : <p>{details}</p> }
           <p class="mt-3 mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
         </div>
         <div class="modal-footer">
@@ -131,6 +131,44 @@ export function importOverwriteQuestion(have :HasHtmlSummary, imp :HasHtmlSummar
     {h} {i} </div>
 }
 
+type OverAppendResult = 'overwrite'|'append'|'cancel'
+export function overAppendDialog(title :string, body :string|HTMLElement) :Promise<OverAppendResult> {
+  let result :OverAppendResult = 'cancel'
+  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
+    class="modal fade" tabindex="-1" aria-labelledby="overAppendDialogLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header text-info">
+          <h1 class="modal-title fs-5" id="overAppendDialogLabel">
+            <i class="bi-question-circle-fill"/> {title}</h1>
+        </div>
+        <div class="modal-body">
+          { body instanceof Node ? body : <p><strong>{body}</strong></p> }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
+            <i class="bi-trash3-fill"/> {tr('Cancel')}</button>
+          <button type="button" class='btn btn-info' data-bs-dismiss="modal" onclick={()=>result='append'}>
+            <i class="bi-file-earmark-plus"/> {tr('Append')}</button>
+          <button type="button" class='btn btn-danger' data-bs-dismiss="modal" onclick={()=>result='overwrite'}>
+            <i class="bi-file-earmark-arrow-down"/> {tr('Overwrite')}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  document.body.appendChild(dialog)
+  return new Promise<OverAppendResult>(resolve => {
+    const modal = new bootstrap.Modal(dialog)
+    dialog.addEventListener('hidden.bs.modal', () => {
+      modal.dispose()
+      document.body.removeChild(dialog)
+      resolve(result)
+    })
+    modal.show()
+  })
+
+}
+
 type YesNoResult = 'yes'|'no'|'cancel'
 export function yesNoDialog(question :string|HTMLElement, title :string, cancel :false, yesIsGood :boolean) :Promise<'yes'|'no'>
 export function yesNoDialog(question :string|HTMLElement, title :string, cancel :true, yesIsGood :boolean) :Promise<YesNoResult>
@@ -147,7 +185,7 @@ export function yesNoDialog(question :string|HTMLElement, title :string, cancel 
             <i class="bi-question-circle-fill"/> {title}</h1>
         </div>
         <div class="modal-body">
-          { question instanceof HTMLElement ? question : <p><strong>{question}</strong></p> }
+          { question instanceof Node ? question : <p><strong>{question}</strong></p> }
         </div>
         <div class="modal-footer">
           <button type="button" class={yesIsGood?'btn btn-success':'btn btn-warning'} data-bs-dismiss="modal" onclick={()=>result='yes'}>

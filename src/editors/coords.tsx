@@ -17,10 +17,10 @@
  */
 import { areWgs84CoordsValid, RawWgs84Coordinates, WGS84_PRECISION, Wgs84Coordinates } from '../types/coords'
 import { DataObjectBase, makeValidNumberPat } from '../types/common'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { CustomChangeEvent, CustomAlertEvent } from '../events'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { numericTextInputStuff } from '../utils'
-import { Alert, Collapse } from 'bootstrap'
+import { Alert } from 'bootstrap'
 import { Editor } from './base'
 import { tr } from '../i18n'
 
@@ -40,26 +40,26 @@ export class CoordinatesEditor {
   constructor(initCoords :RawWgs84Coordinates, opts :CoordEditorOpts = {}) {
     this.coords = new Wgs84Coordinates(initCoords).deepClone()
 
-    this.inpLat = safeCastElement(HTMLInputElement,
+    this.inpLat = safeCast(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lat) ? this.coords.wgs84lat.toFixed(WGS84_PRECISION) : '' }
         required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Latitude')} aria-label={tr('Latitude')} title={tr('Latitude')} />)
     numericTextInputStuff(this.inpLat)
 
-    this.inpLon = safeCastElement(HTMLInputElement,
+    this.inpLon = safeCast(HTMLInputElement,
       <input type="text" inputmode="decimal" pattern={makeValidNumberPat(WGS84_PRECISION)}
         value={ Number.isFinite(this.coords.wgs84lon) ? this.coords.wgs84lon.toFixed(WGS84_PRECISION) : '' }
         required={!opts.readonly} readonly={!!opts.readonly}
         class="form-control" placeholder={tr('Longitude')} aria-label={tr('Longitude')} title={tr('Longitude')} />)
     numericTextInputStuff(this.inpLon)
 
-    const inpGrp = safeCastElement(HTMLDivElement, <div class="input-group">
+    const inpGrp = safeCast(HTMLDivElement, <div class="input-group">
       <span class="input-group-text d-none d-sm-flex" title={tr('Latitude')}>{tr('Lat')}</span> {this.inpLat}
       <span class="input-group-text d-none d-sm-flex" title={tr('Longitude')}>{tr('Lon')}</span> {this.inpLon}
       {this.makeMapButton(false)}
     </div>)
-    this.el = safeCastElement(HTMLDivElement, <div>{inpGrp}</div>)
+    this.el = safeCast(HTMLDivElement, <div>{inpGrp}</div>)
 
     this.inpLat.addEventListener('change', () => {
       this.coords.wgs84lat = Number.parseFloat(this.inpLat.value)
@@ -153,7 +153,7 @@ export class CoordinatesEditor {
   }
 
   makeMapButton(withText :boolean) {
-    const btnMap = safeCastElement(HTMLButtonElement,
+    const btnMap = safeCast(HTMLButtonElement,
       <button class="btn btn-outline-primary" title={tr('Show on map')}><i class="bi-pin-map"/></button>)
     btnMap.appendChild( withText
       ? <span class="ms-1">{tr('Map')}</span> : <span class="visually-hidden"> {tr('Show on map')}</span> )
@@ -209,42 +209,18 @@ export class SuperCoordEditor<B extends DataObjectBase<B>> {
       label: tr('nom-coord'), helpText: <>{tr('nom-coord-help')} {tr('temp-copied-readonly')} {tr('coord-ref')}</> })
     const rowAct = parent.makeRow(this.edActCoords.el, { label: tr('act-coord'), invalidText: tr('invalid-coords'),
       helpText: <><strong>{tr('Required')}.</strong> {tr('act-coord-help')} {tr('coord-help')} {tr('dot-minus-hack')} {tr('coord-ref')}</> })
-    rowAct.classList.remove('mb-2','mb-sm-3')
     if (!areWgs84CoordsValid(nomCoords))
       rowNom.classList.add('d-none')
 
-    const accId = parent.ctx.genId('SuperCoord')
-    const accParentId = accId+'-parent'
-    const accordCollapse =
-      <div id={accId} class="accordion-collapse collapse" data-bs-parent={'#'+accParentId}>
-        <div class="accordion-body p-3">
-          {rowNom} {rowAct}
-        </div>
-      </div>
-    /* NOTE the `data-bs-toggle="collapse" data-bs-target` on the input-group is important to prevent the buttons inside from
-     * opening/closing the accordion. And if those attributes are on the buttons, the click events apparently don't work! */
-    this.el = <div class="row mt-3 mb-2 mb-sm-3"><div class="col-sm-12">
-      <div class="accordion" id={accParentId}>
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse"
-              data-bs-target={'#'+accId} aria-expanded="false" aria-controls={accId} data-test-id="coord-accord">
-              <div class="flex-grow-1 d-flex flex-wrap row-gap-2 align-items-center">
-                <div class="w-25 text-end-sm pe-4 w-min-fit">{tr('Coordinates')}</div>
-                <div class="pe-2"><div class="input-group" data-bs-toggle="collapse" data-bs-target>{btnUseCurrent}{btnShowMap}</div></div>
-              </div>
-            </button>
-          </h2>
-          {accordCollapse}
-        </div>
-      </div>
-    </div></div>
+    const accTitle = <div class="input-group" data-bs-toggle="collapse" data-bs-target>{btnUseCurrent}{btnShowMap}</div>
+    const [acc, coll] = parent.makeAccordion({ label: tr('Coordinates'),
+      title: accTitle, rows: [rowNom, rowAct], testId: 'coord-accord' })
+    this.el = acc
 
     setTimeout(() => {  // needs to be deferred because the Elements need to be in the DOM
       if (!areWgs84CoordsValid(actCoords))
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show()
-      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () =>
-        Collapse.getOrCreateInstance(accordCollapse, { toggle: false }).show())
+        coll().show()
+      this.edActCoords.el.addEventListener(CustomAlertEvent.NAME, () => coll().show())
     })
 
   }

@@ -17,7 +17,7 @@
  */
 import { ISamplingLog, ISamplingProcedure } from '../types/sampling'
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest, dl2file } from './play-utils'
+import { initPageTest, dl2file } from './test-utils'
 import * as zip from '@zip.js/zip.js'
 import { assert } from '../utils'
 import Papa from 'papaparse'
@@ -362,8 +362,7 @@ const csvData :string[][] = [
 
 test.setTimeout(60000)  // long test, timeout 60s instead of default 30s
 test('full integration test', async ({ page, context }) => {
-  await initPageTest(page)
-  await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
+  await initPageTest(page, { reduceMotion: true })
   await page.clock.setFixedTime('2025-01-02T01:01Z')
 
   await page.getByRole('button', { name: 'Templates (Procedures)' }).click()

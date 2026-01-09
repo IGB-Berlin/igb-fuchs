@@ -16,11 +16,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { CustomChangeEvent, CustomStackEvent } from '../events'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { StyleValue } from '../types/common'
 import { assert, paranoia } from '../utils'
 import { Slider } from '../slider'
 import { HomePage } from './home'
-import { jsx } from '../jsx-dom'
 
 export interface StackAble {  // the only bits of the Editor class we care about
   readonly el :HTMLElement
@@ -50,9 +50,7 @@ export class EditorStack {
   private readonly footer
   constructor(footer :HTMLElement) {
     this.footer = footer
-    const navPageTitle = document.getElementById('navPageTitle')
-    assert(navPageTitle instanceof HTMLElement)
-    this.navPageTitle = navPageTitle
+    this.navPageTitle = safeCast(HTMLElement, document.getElementById('navPageTitle'))
   }
   private redrawNavbar() {
     this.navList.replaceChildren(
@@ -79,7 +77,7 @@ export class EditorStack {
     this.restyleNavbar()
   }
   private restyleNavbar() {
-    let anyUnsaved = false
+    let anyUnsaved = false as boolean
     Array.from(this.navList.children).forEach((l,i) => {
       assert(l instanceof HTMLAnchorElement)
       const s = this.stack[i]
@@ -92,10 +90,15 @@ export class EditorStack {
     const top = this.top
     this.navPageTitle.title = this.stack.length>1 ? `${top.style.fullTitle} "${top.currentName()}"` : top.currentName()
     this.navPageTitle.replaceChildren(<span class={`editor-${top.style.cssId}-text`}><i class={`bi-${top.style.icon}`}/> {top.currentName(true)}</span>)
-    // I think the following is a mis-detection by eslint?
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     document.title = this.origTitle + (anyUnsaved?'*':'')
   }
+  private get homePage() :HomePage {
+    const hp = this.stack[0]
+    assert(hp instanceof HomePage)
+    return hp
+  }
+  /** Signal the HomePage that an import has occurred. */
+  signalImport() { this.homePage.signalImport() }
   initialize(navbarMain :HTMLElement, homePage :HomePage) {
     assert(this.stack.length===0)
     // note the home page *always* stays on the stack

@@ -17,6 +17,8 @@
  */
 import { I18n } from 'i18n-js'
 
+// spell-checker: ignore Datenlogger EPSG Koord. Nieders. Oberfl. Precip. Proz. Templ. Unbek. Werbungs autom. fließ. wasser
+
 const translations = {
   //     'English (en-US)': ['Deutsch (de-DE)'],   (but key can't contain dots!)
   // For long texts: 'key': ['Deutsch (de-DE)', 'English (en-US)'],
@@ -588,6 +590,40 @@ const translations = {
   'qf-good': ['Gut', 'Good'],
   'qf-questionable': ['Fraglich', 'Questionable'],
   'qf-bad': ['Schlecht', 'Bad'],
+
+  // WTW module
+  'Probe Tools': ['Sonden-Werkzeuge'],
+  'wtw-legal': [
+    'WTW® ist eine eingetragene Marke der Xylem Analytics Germany GmbH.'
+    +' Dieses Projekt steht in keiner Verbindung zu Xylem oder deren Tochtergesellschaften und wird von diesen weder autorisiert noch unterstützt.',
+    'WTW® is a registered trademark of Xylem Analytics Germany GmbH.'
+    +' This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.' ],
+  'wtw-help': [
+    'Mit dieser Funktion kann eine Verbindung mit einem WTW® Gerät (z.B. 3430 oder 3630) hergestellt werden.'
+    +' Diese Funktion steht nur in Browsern zur Verfügung, welche die "Web Serial API" unterstützen (zzt. nur Chromium).',
+    'This function can be used to connect to a WTW® device (e.g. 3430 or 3630).'
+    +' This function is only available in browsers that support the "Web Serial API" (currently only Chromium).' ],
+  'Not available': ['Nicht verfügbar'],
+  'Connect': ['Verbinden'],
+  'Connecting': ['Wird verbunden'],
+  'Connected': ['Verbunden'],
+  'Disconnect': ['Verbindung trennen'],
+  'Disconnecting': ['Wird getrennt'],
+  'Disconnected': ['Getrennt'],
+  'wtw-access-denied': ['Zugriff wurde vom Benutzer oder Browser verweigert.',
+    'Access was denied by the user or the browser.' ],
+  'wtw-failed-open': ['Die Schnittstelle konnte aufgrund eines Fehlers nicht geöffnet werden.',
+    'There was an error when trying to open the connection.' ],
+  'Overwrite': ['Überschreiben'],
+  'Append': ['Anhängen'],
+  'Importing Measurements': ['Importieren von Messungen'],
+  'ask-over-append': [
+    'Sollen die folgende(n) neue(n) Messung(en) an die existierende(n) Messung(en) angehängt werden, oder die existierende(n) Messung(en) ersetzen?',
+    'Should the following new measurement(s) be appended to the existing measurement(s), or overwrite the existing measurement(s)?' ],
+  'import-info': ['Beim Import sind folgende Meldungen entstanden', 'The import resulted in the following notices'],
+  'Importing': ['Importiere'],
+  'Existing': ['Bereits vorhanden'],
+  'Duplicate, ignoring': ['Duplikat, wird ignoriert'],
 
   // '': [''],
 } as const

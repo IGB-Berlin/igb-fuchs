@@ -15,10 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { SamplingLog, SamplingProcedure } from './types/sampling'
-import { jsx, jsxFragment, safeCastElement } from './jsx-dom'
 import { samplingLogToCsv } from './types/log2csv'
-import { CustomStoreEvent } from './events'
 import { makeFilename } from './idb-store'
 import { GlobalContext } from './main'
 import { infoDialog } from './dialogs'
@@ -44,7 +43,7 @@ export class ImportExportTool {
     const btnExportAll = <button type="button" class="btn btn-outline-primary"><i class="bi-box-arrow-up-right"/> {tr('Export All Data')}</button>
     btnExportAll.addEventListener('click', async () => shareFile( await ctx.storage.export() ) )
 
-    const inpImportFile = safeCastElement(HTMLInputElement,
+    const inpImportFile = safeCast(HTMLInputElement,
       <input type="file" class="form-control" aria-label={tr('Import Data')} id="importDataInput" accept=".json,application/json" />)
 
     this.el = <div class="p-3 d-flex flex-column">
@@ -77,8 +76,7 @@ export class ImportExportTool {
         <><p><strong class="text-success">{tr('import-success')}</strong></p>
           {infos}</>)
       inpImportFile.value = ''
-      // use a store event on our element to inform about changes to the storage
-      this.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+      ctx.stack.signalImport()
     })
 
   }  // ImportExportTool constructor

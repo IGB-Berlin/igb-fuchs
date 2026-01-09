@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx } from '@haukex/simple-jsx-dom'
 import { MyTooltip } from './tooltip'
 import { assert } from './utils'
-import { jsx } from './jsx-dom'
 
 const bsColors = ['primary','secondary','info','success','warning','danger'] as const
 type BSColor = typeof bsColors[number]
@@ -89,10 +89,10 @@ export class Slider {
       const touch = event.touches[0]
       assert(touch)
       startX = touch.clientX
-      document.addEventListener('touchmove', touchMove)
+      document.addEventListener('touchmove', touchMove, { passive: true })
       document.addEventListener('touchend', touchEnd)
       document.addEventListener('touchcancel', touchCancel)
-    })
+    }, { passive: true })  // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#using_passive_listeners
     this.tip = new MyTooltip(this.el)
   }
   setColor(color :BSColor) {
@@ -102,8 +102,7 @@ export class Slider {
     }
   }
   setText(text :string|HTMLElement) {
-    if (text instanceof HTMLElement) this.textSpan.replaceChildren(text)
-    else this.textSpan.innerText = text
+    this.textSpan.replaceChildren( text instanceof Node ? text : document.createTextNode(text) )
   }
   setToolTip(text :string|null) { this.tip.update(text) }
   async close() {

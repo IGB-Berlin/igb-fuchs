@@ -35,7 +35,7 @@ export function hasId(o :unknown) :o is HasId {
 
 export type HasEquals = { equals(other :unknown) :boolean }
 
-export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean) :HTMLElement }
+export type HasHtmlSummary = { summaryAsHtml(withTypeName :boolean, inline ?:boolean) :HTMLElement }
 
 export interface StyleValue {
   readonly fullTitle :string
@@ -48,7 +48,7 @@ export interface StyleValue {
   opposite :StyleValue|null
 }
 
-export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary {
+export abstract class DataObjectBase<B extends DataObjectBase<B>> implements HasHtmlSummary, HasEquals {
   /** Validate the properties of this object (e.g. after setting them), and throw an error if something is wrong. */
   abstract validate(others :B[]) :void
   /** Returns a list of warnings on the object.
@@ -71,10 +71,11 @@ export abstract class DataObjectBase<B extends DataObjectBase<B>> implements Has
   /** Returns a summary of this object, e.g. for display in a list. */
   abstract summaryDisplay() :[string,string|null]
   /** Helper to turn the `summaryDisplay` into one or two <div>s. */
-  summaryAsHtml(withTypeName :boolean) :HTMLElement {
+  summaryAsHtml(withTypeName :boolean, inline :boolean = false) :HTMLElement {
+    //TODO Later: can probably use this new `inline` parameter in a few more calling places
     const [pri,sub] = this.summaryDisplay()
     const div = document.createElement('div')
-    div.classList.add('d-flex','flex-row','justify-content-start','flex-wrap','column-gap-3')
+    div.classList.add((inline?'d-inline-flex':'d-flex'),'flex-row','justify-content-start','flex-wrap','column-gap-3')
     if (withTypeName) {
       const n = document.createElement('div')
       n.innerText = this.style.fullTitle+':'

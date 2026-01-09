@@ -16,23 +16,15 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest } from './play-utils'
+import { IWgs84Coordinates } from '../types/coords'
 
-test('smoke test', async ({ page }) => {
-  await initPageTest(page)
-  await expect( page.getByRole('button', { name: 'Sampling Logs' }) ).toBeVisible()  // JS-generated content
-})
-
-test.describe('German', () => {
-  test.use({ locale: 'de-DE' })
-  test('smoke test DE', async ({ page }) => {
-    // do the same as initPageTest
-    await page.goto('/')
-    await expect(page).toHaveTitle(/IGB-FUCHS/)  // basic HTML
-    const betaWarningBtn = page.getByRole('button', { name: 'Ich verstehe' })  // beta version warning
-    await expect( betaWarningBtn ).toBeVisible()
-    await betaWarningBtn.click()
-    await expect( betaWarningBtn ).toBeHidden()
-    await expect( page.getByRole('button', { name: 'Messprotokolle' }) ).toBeVisible()  // JS-generated content
-  })
+test('haversineKm', async ({ page }) => {
+  await page.goto('/')  // see explanation in WtwReceiver test
+  const db = (one :IWgs84Coordinates, two :IWgs84Coordinates) =>
+    page.evaluate(c => window.FuchsTest.distanceBearing(c.one,c.two), {one:one,two:two})
+  const x = await db(
+    { wgs84lat: 52.516312, wgs84lon: 13.377657 },
+    { wgs84lat: 52.514556, wgs84lon: 13.350120 } )
+  expect( x.distKm ).toBeCloseTo( 1.874, 2 )
+  expect( x.bearingDeg ).toBeCloseTo( 264, 1 )
 })

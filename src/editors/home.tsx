@@ -16,8 +16,8 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { ListEditor, ListEditorParent, ListEditorWithTemp } from './list-edit'
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { SamplingLog, SamplingProcedure } from '../types/sampling'
-import { jsx, jsxFragment, safeCastElement } from '../jsx-dom'
 import { SamplingProcedureEditor } from './samp-proc'
 import { ImportExportTool } from '../import-export'
 import { SamplingLogEditor } from './samp-log'
@@ -63,44 +63,52 @@ export class HomePage implements StackAble, ListEditorParent {
   shown() {}
   readonly ctx
   readonly el
-  private constructor(ctx :GlobalContext, el :HTMLElement) { this.ctx = ctx; this.el = el }
-  static async new(ctx :GlobalContext) {
-    const homePage = new HomePage(ctx, <div class="p-2 p-sm-3"></div>)
-
-    const logEdit = await new ListEditorWithTemp({
-      parent: homePage, theStore: ctx.storage.samplingLogs, editorClass: SamplingLogEditor, editorStyle: SamplingLog.sStyle,
+  private readonly logEdit
+  private readonly procEdit
+  private constructor(ctx :GlobalContext, el :HTMLElement) {
+    this.ctx = ctx
+    this.el = el
+    this.logEdit = new ListEditorWithTemp({
+      parent: this, theStore: ctx.storage.samplingLogs, editorClass: SamplingLogEditor, editorStyle: SamplingLog.sStyle,
       title: tr('saved-pl')+' '+tr('Sampling Logs'), txtPlanned: tr('planned-pl')+' '+tr('Sampling Logs'),
       dialogTitle: tr('new-log-from-proc'), templateSource: async () => (await ctx.storage.samplingProcedures.getAll(null)).map(([_,t])=>t),
-      planned: null }).initialize()
-    logEdit.highlightButton('temp')
+      planned: null })
+    this.procEdit = new ListEditor({
+      parent: this, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
+      title: tr('Sampling Procedures') })
+  }
+  static async new(ctx :GlobalContext) {
+    const hp = new HomePage(ctx, <div class="p-2 p-sm-3"></div>)
 
-    const procEdit = await new ListEditor({
-      parent: homePage, theStore: ctx.storage.samplingProcedures, editorClass: SamplingProcedureEditor, editorStyle: SamplingProcedure.sStyle,
-      title: tr('Sampling Procedures') }).initialize()
+    await hp.logEdit.initialize()
+    hp.logEdit.highlightButton('temp')
+
+    await hp.procEdit.initialize()
 
     const inpExp = new ImportExportTool(ctx)
-    inpExp.el.addEventListener(CustomStoreEvent.NAME, () => {
-      // inform the list editors of the import so they update themselves
-      logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-      procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
-    })
-    modifyLogEditButtons(logEdit, inpExp)
-    modifyProcEditButtons(procEdit, inpExp)
+    modifyLogEditButtons(hp.logEdit, inpExp)
+    modifyProcEditButtons(hp.procEdit, inpExp)
 
     const settings = await makeSettings(ctx)
 
-    homePage.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, logEdit.el, true)}
-      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, procEdit.el)}
+    hp.el.appendChild(<div class="accordion" id="homeAccordion">
+      {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, hp.logEdit.el, true)}
+      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, hp.procEdit.el)}
       {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp.el)}
       {makeAcc(ctx, 'accSett', tr('Settings'), settings)}
     </div>)
-    return homePage
+    return hp
+  }
+  /** Used to signal that an import has occurred. */
+  signalImport() {
+    // inform the list editors of the import so they update themselves
+    this.logEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
+    this.procEdit.el.dispatchEvent(new CustomStoreEvent({ action: 'upd', id: null }))
   }
 }
 
 function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, SamplingLog>, inpExp :ImportExportTool) {
-  const btnExport = safeCastElement(HTMLButtonElement,
+  const btnExport = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-zip')}
       data-test-id="export-log-as-zip"><i class="bi-file-earmark-zip"/><i class="bi-share-fill"/> {tr('Export')}</button>)
   logEdit.registerButton(btnExport, s => inpExp.exportAsZip(s))
@@ -112,20 +120,20 @@ function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, Sam
   const btnNew = logEdit.popButton('new')
   btnNew.classList.add('dropdown-item','text-info')
 
-  const btnJson = safeCastElement(HTMLButtonElement,
+  const btnJson = safeCast(HTMLButtonElement,
     <button type="button" class="dropdown-item" disabled>
       <i class="bi-file-earmark-medical text-success"/><i class="bi-share-fill text-success"/> {tr('Export')+' '+tr('export-as-json')}</button>)
   logEdit.registerButton(btnJson, s => inpExp.exportAsJson(s))
 
-  const btnCsv = safeCastElement(HTMLButtonElement,
+  const btnCsv = safeCast(HTMLButtonElement,
     <button type="button" class="dropdown-item" disabled>
       <i class="bi-file-earmark-spreadsheet text-warning"/><i class="bi-share-fill text-warning"/> {tr('Export')+' '+tr('export-as-csv')}</button>)
   logEdit.registerButton(btnCsv, s => inpExp.exportAsCsv(s))
 
-  const btnMore = safeCastElement(HTMLButtonElement,
+  const btnMore = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
       data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
-  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
+  const divMore = safeCast(HTMLDivElement, <div class="dropdown"> {btnMore}
     <ul class="dropdown-menu">
       <li>{btnJson}</li>
       <li>{btnCsv}</li>
@@ -139,7 +147,7 @@ function modifyLogEditButtons(logEdit :ListEditorWithTemp<SamplingProcedure, Sam
 }
 
 function modifyProcEditButtons(procEdit :ListEditor<SamplingProcedure>, inpExp :ImportExportTool) {
-  const btnExport = safeCastElement(HTMLButtonElement,
+  const btnExport = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-success text-nowrap" title={tr('Export')+' '+tr('export-as-json')}>
       <i class="bi-filetype-json"/><i class="bi-share-fill"/> {tr('Export')}</button>)
   procEdit.registerButton(btnExport, s => inpExp.exportAsJson(s))
@@ -148,10 +156,10 @@ function modifyProcEditButtons(procEdit :ListEditor<SamplingProcedure>, inpExp :
   const btnDel = procEdit.popButton('del')
   btnDel.classList.add('dropdown-item','text-danger')
 
-  const btnMore = safeCastElement(HTMLButtonElement,
+  const btnMore = safeCast(HTMLButtonElement,
     <button type="button" class="btn btn-outline-primary dropdown-toggle text-nowrap"
       data-bs-toggle="dropdown" aria-expanded="false">{tr('More')}</button>)
-  const divMore = safeCastElement(HTMLDivElement, <div class="dropdown"> {btnMore}
+  const divMore = safeCast(HTMLDivElement, <div class="dropdown"> {btnMore}
     <ul class="dropdown-menu">
       <li>{btnDel}</li>
     </ul>

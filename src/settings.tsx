@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, safeCastElement } from './jsx-dom'
+import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { globalHideHelp } from './help'
 import { GlobalContext } from './main'
 import { tr } from './i18n'
 
 export async function makeSettings(ctx :GlobalContext) :Promise<HTMLElement> {
-  const inpHideHelp = safeCastElement(HTMLInputElement,
+  const inpHideHelp = safeCast(HTMLInputElement,
     <input class="form-check-input" type="checkbox" role="switch" id="cbHideHelp"/>)
   inpHideHelp.addEventListener('change', async () => {
     await ctx.storage.settings.set('hideHelpTexts', inpHideHelp.checked)

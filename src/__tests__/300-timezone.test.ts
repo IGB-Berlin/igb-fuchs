@@ -16,7 +16,7 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest, dl2file } from './play-utils'
+import { initPageTest, dl2file } from './test-utils'
 
 const tz_tests = {
   'UTC': {
@@ -61,8 +61,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
     test.use({ timezoneId: tz })
     test(`Timezone: ${tz}`, async ({ page }) => {
       await page.clock.setFixedTime(v['baseDate']+'T01:01Z')
-      await initPageTest(page)
-      await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
+      await initPageTest(page, { reduceMotion: true })
 
       // Create a new Sampling Log
       await expect(page.getByTestId('accSampLog')).toBeVisible()

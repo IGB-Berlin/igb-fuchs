@@ -18,10 +18,11 @@
  */
 import { defineConfig, devices } from '@playwright/test'
 
+const PORT = process.env['WEB_SERVER_PATH'] === 'dist-cover' ? 1235 : 1234
+
 // https://playwright.dev/docs/test-configuration
 export default defineConfig({
-  testDir: '.',  // recursively search this directory for tests according to the following regex
-  testMatch: /[^/]+\.(test|spec|play)\.ts$/,  // https://playwright.dev/docs/api/class-testconfig#test-config-test-match
+  testDir: 'src',  // recursively search this directory for tests
   fullyParallel: true,  // Run tests in files in parallel
   forbidOnly: !!process.env['CI'],  // Fail the build on CI if you accidentally left test.only in the source code.
   retries: process.env['CI'] ? 2 : process.env['CODESPACES'] ? 1 : 0,  // Retry on CI and Codespaces only
@@ -29,7 +30,7 @@ export default defineConfig({
   reporter: 'list',  // https://playwright.dev/docs/test-reporters
   maxFailures: 1,
   use: {  // Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions
-    baseURL: 'http://localhost:1234',  // Base URL to use in actions like `await page.goto('/')`.
+    baseURL: `http://localhost:${PORT}`,  // Base URL to use in actions like `await page.goto('/')`.
     trace: 'on-first-retry',  // Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer
     testIdAttribute: 'data-test-id',
     // https://playwright.dev/docs/emulation
@@ -47,8 +48,8 @@ export default defineConfig({
   ],
   webServer: {
     // NOTE this command only runs the server - need to run `npm run build` or `npm start` first!
-    command: `npx serve --no-port-switching --no-clipboard --listen tcp://localhost:1234 ${process.env['WEB_SERVER_PATH'] ?? 'dist'}`,
-    url: 'http://localhost:1234',
+    command: `npx serve --no-port-switching --no-clipboard --listen tcp://localhost:${PORT} ${process.env['WEB_SERVER_PATH'] ?? 'dist'}`,
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env['CI'],
     gracefulShutdown: { signal: 'SIGINT', timeout: 500 },
   },
