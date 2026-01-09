@@ -19,11 +19,11 @@
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
 import { test, expect } from 'playwright-test-coverage'
-import { initPageTest } from './test-utils'
 import { ISamplingLog } from '../types/sampling'
+import { initPageTest } from './test-utils'
 
 test('WTW import', async ({ page }) => {
-  await initPageTest(page)
+  await initPageTest(page, { reduceMotion: true })
   const sampLog :ISamplingLog = {
     id: 'test', name: 'TestLog', startTime: 1234567890, locations: [{
       name: 'TestLoc', actualCoords: { wgs84lat: 52.5, wgs84lon: 13.4 }, startTime: 1234567890,
@@ -38,14 +38,17 @@ test('WTW import', async ({ page }) => {
   }, sampLog)
   await expect(page.getByTestId('accSampLog')).toBeVisible()
   await page.getByText('TestLog').dblclick()
+  await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
   await page.getByText('TestLoc').dblclick()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('listitem').filter({ hasText: /\bSurface water\b/ }).dblclick()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  await expect(page.getByLabel('Sample Type')).toHaveValue('surface-water')
   await expect(page.getByRole('button', { name: /\bConnect\b/ })).not.toBeVisible()
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('listitem').filter({ hasText: /\bRead out probe data\b/ }).dblclick()
+  await expect(page.getByLabel('Sample Type')).toHaveValue('probe')
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
   if (await page.evaluate(() => 'serial' in navigator)) {
     await expect(page.getByRole('button', { name: /\bConnect\b/ })).toBeVisible()
@@ -58,44 +61,71 @@ test('WTW import', async ({ page }) => {
 
   /* *** Now let's fake some serial imports *** */
   const fake = (val :string) => page.evaluate(v => window.FuchsTest.fakeSerialRx(v), val)
-  const get = () => page.evaluate(async i => await window.FuchsTest.ctx.storage.samplingLogs.get(i), sid)
-  { /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    { // double-check that no measurements are recorded
-      const g = await get()
-      expect( g.name ).toStrictEqual('TestLog')
-      expect( g.locations.length ).toStrictEqual(1)
-      expect( g.locations[0]!.name ).toStrictEqual('TestLoc')
-      expect( g.locations[0]!.samples.length ).toStrictEqual(2)
-      expect( g.locations[0]!.samples[0]!.type ).toStrictEqual('surface-water')
-      expect( g.locations[0]!.samples[0]!.measurements.length ).toStrictEqual(0)
-      expect( g.locations[0]!.samples[1]!.type ).toStrictEqual('probe')
-      expect( g.locations[0]!.samples[1]!.measurements.length ).toStrictEqual(0)
-    }
-    { // Import a measurement, should import without confirmation
-      await fake('\nCond 0.0 µS/cm 22.6 °C\n_____\n')
-      const g = await get()
-      expect( g.locations[0]!.samples[0]!.measurements.length ).toStrictEqual(0)
-      expect( g.locations[0]!.samples[1]!.measurements.length ).toStrictEqual(2)
-      expect( g.locations[0]!.samples[1]!.measurements[0]!.value ).toStrictEqual('0.0')
-      expect( g.locations[0]!.samples[1]!.measurements[0]!.type.name ).toStrictEqual('Cond')
-      expect( g.locations[0]!.samples[1]!.measurements[0]!.type.unit ).toStrictEqual('µS/cm')
-      expect( g.locations[0]!.samples[1]!.measurements[1]!.value ).toStrictEqual('22.6')
-      expect( g.locations[0]!.samples[1]!.measurements[1]!.type.name ).toStrictEqual('Temp(Cond)')
-      expect( g.locations[0]!.samples[1]!.measurements[1]!.type.unit ).toStrictEqual('°C')
-    }
-    { // Import the same measurement plus a new one, and since the previous meas hasn't changed, no prompt
-      //TODO await fake('\nCond 0.0 µS/cm 22.6 °C\npH 7.040 22.5 °C\n_____\n')
-    }
-    { // Import the same measurement twice, replacing a previous one, user says overwrite
-      //TODO await fake('\npH 7.150 22.5 °C\npH 7.150 22.5 °C\n_____\n')
-    }
-    { // Import a measurement and user says append
-      //TODO await fake('\nCond 0.0 µS/cm 22.6 °C\n_____\n')
-    }
-    { //TODO: import same measurement that is only different in the min/max fields, should cause overwrite dialog
-      // ...
-    }
-  } /* eslint-enable @typescript-eslint/no-non-null-assertion */
+  const checkMeas = async (ms :[meas_value :string, type_name :string, type_value :string][]) => {
+    await expect(async () => {  // retry a couple of times in case the async data update isn't done yet
+      const sl = await page.evaluate(async i => await window.FuchsTest.ctx.storage.samplingLogs.get(i), sid)
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+      expect( sl.name ).toStrictEqual('TestLog')
+      expect( sl.locations.length ).toStrictEqual(1)
+      expect( sl.locations[0]!.name ).toStrictEqual('TestLoc')
+      expect( sl.locations[0]!.samples.length ).toStrictEqual(2)
+      expect( sl.locations[0]!.samples[0]!.type ).toStrictEqual('surface-water')
+      expect( sl.locations[0]!.samples[1]!.type ).toStrictEqual('probe')
+      expect( sl.locations[0]!.samples[0]!.measurements.length ).toStrictEqual(0)
+      expect( sl.locations[0]!.samples[1]!.measurements.length ).toStrictEqual( ms.length )
+      ms.forEach((m,i) => {
+        expect( sl.locations[0]!.samples[1]!.measurements[i]!.value ).toStrictEqual(m[0])
+        expect( sl.locations[0]!.samples[1]!.measurements[i]!.type.name ).toStrictEqual(m[1])
+        expect( sl.locations[0]!.samples[1]!.measurements[i]!.type.unit ).toStrictEqual(m[2])
+      })
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    }).toPass({ timeout: 5000 })
+  }
+  const handleDialog = async (txt :string, btn :'Overwrite'|'Append'|'Cancel'|'Understood') => {
+    await expect( page.getByRole('heading', { name: 'Importing Measurements' }) ).toBeVisible()
+    await expect(page.getByLabel('Importing Measurements').locator('ol')).toHaveText(txt)
+    await page.getByRole('button', { name: btn }).click()
+    await expect(page.getByLabel('Importing Measurements')).toBeHidden()  // data won't be updated until dialog is closed
+  }
+
+  await checkMeas([])  // double-check that no measurements are recorded
+
+  // Import a measurement, should import without confirmation
+  await fake('\nCond 0.0 µS/cm 22.6 °C\n_____\n')
+  await checkMeas([ ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'] ])
+
+  // Import the same measurement plus a new one, and since the previous meas hasn't changed, no prompt
+  await fake('\nCond 0.0 µS/cm 22.6 °C\npH 7.040 22.5 °C\n_____\n')
+  await checkMeas([ ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'], ['7.040','pH','pH'], ['22.5','Temp(pH)','°C'] ])
+
+  // Just an information dialog for this import about the duplicate measurement
+  await fake('\nCond 11.1 µS/cm 11.1 °C\nCond 0.0 µS/cm 22.6 °C\n_____\n')
+  await handleDialog('Cond µS/cm'+'Importing: Cond = 0.0 µS/cm'+'Duplicate, ignoring: Cond = 11.1 µS/cm'
+    +'Temp(Cond) °C'+'Importing: Temp(Cond) = 22.6 °C'+'Duplicate, ignoring: Temp(Cond) = 11.1 °C', 'Understood')
+  await checkMeas([ ['7.040','pH','pH'], ['22.5','Temp(pH)','°C'], ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'] ])
+
+  // Import the same measurement twice, replacing a previous one, user says overwrite
+  await fake('\npH 7.150 22.5 °C\npH 3.100 13.1 °C\npH 7.150 22.5 °C\n_____\n')
+  await handleDialog('pH pH'+'Importing: pH = 7.150 pH'+'Duplicate, ignoring: pH = 3.100 pH'+'Existing: pH = 7.040 pH'
+    +'Temp(pH) °C'+'Importing: Temp(pH) = 22.5 °C'+'Duplicate, ignoring: Temp(pH) = 13.1 °C', 'Overwrite')
+  await checkMeas([ ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'], ['7.150','pH','pH'], ['22.5','Temp(pH)','°C'] ])
+
+  // Import a measurement and user says append (but first a cancel)
+  await fake('\nCond 123.4 µS/cm 12.3 °C\n_____\n')
+  await handleDialog('Cond µS/cm'+'Importing: Cond = 123.4 µS/cm'+'Existing: Cond = 0.0 µS/cm'
+    +'Temp(Cond) °C'+'Importing: Temp(Cond) = 12.3 °C'+'Existing: Temp(Cond) = 22.6 °C', 'Cancel')
+  await checkMeas([ ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'], ['7.150','pH','pH'], ['22.5','Temp(pH)','°C'] ])
+  await fake('\nCond 123.4 µS/cm 12.3 °C\n_____\n')
+  await handleDialog('Cond µS/cm'+'Importing: Cond = 123.4 µS/cm'+'Existing: Cond = 0.0 µS/cm'
+    +'Temp(Cond) °C'+'Importing: Temp(Cond) = 12.3 °C'+'Existing: Temp(Cond) = 22.6 °C', 'Append')
+  await checkMeas([ ['0.0','Cond','µS/cm'], ['22.6','Temp(Cond)','°C'], ['7.150','pH','pH'], ['22.5','Temp(pH)','°C'],
+    ['123.4','Cond','µS/cm'], ['12.3','Temp(Cond)','°C'] ])
+  // Now clobber the duplicates with an overwrite
+  await fake('\nCond 234.5 µS/cm 23.4 °C\n_____\n')
+  await handleDialog('Cond µS/cm'+'Importing: Cond = 234.5 µS/cm'+'Existing: Cond = 0.0 µS/cm'+'Existing: Cond = 123.4 µS/cm'
+    +'Temp(Cond) °C'+'Importing: Temp(Cond) = 23.4 °C'+'Existing: Temp(Cond) = 22.6 °C'+'Existing: Temp(Cond) = 12.3 °C', 'Overwrite')
+  await checkMeas([ ['7.150','pH','pH'], ['22.5','Temp(pH)','°C'], ['234.5','Cond','µS/cm'], ['23.4','Temp(Cond)','°C'] ])
+
 })
 
 test('WtwReceiver', async ({ page }) => {

@@ -71,6 +71,11 @@ export class Measurement extends DataObjectWithTemplate<Measurement, Measurement
   override equals(o: unknown) {
     return isIMeasurement(o) && this.type.equals(o.type) && timestampsEqual(this.time, o.time) && this.value === o.value
   }
+  /** Compare this measurement to the other, ignoring timestamps, and optionally ignoring the type's min/max/precision/instructions. */
+  sameAs(o :IMeasurement, ignoreTypeDetails :boolean = false) {
+    return o.value === this.value && ( ignoreTypeDetails ? o.type.name === this.type.name && o.type.unit === this.type.unit
+      : this.type.equals(o.type) )
+  }
   override toJSON(_key: string): IMeasurement {
     return { type: this.type.toJSON('type'), time: this.time, value: this.value }
   }

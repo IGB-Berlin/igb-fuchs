@@ -32,19 +32,27 @@ Development Environment
 Requirements:
 - Latest Node.js LTS, currently v24 (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/TypeScript.md))
 - Strongly recommended: VSCode and Git Bash (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/DevEnv.md))
+  - Install the various recommended VSCode extensions too
 
 Setup and notes:
+- On older Git versions, use `git lfs clone` to get LFS files
 - `dev/setup_git_filter.sh` to set up git filter config
-- `npm ci` to install all dependencies
+- `npm ci` to install dependencies
 - `npx playwright install` to install Playwright browsers for tests (on Linux: `--with-deps`)
 - See the following places for things that can be run:
   - `package.json` section `scripts` for things that can be run with `npm run ...`
+    - *Note* that several `npm run` targets (`build`, `prod-test`, `full-test`, ...) can't be used while
+      the live server (`npm start`) is running due to the `clean` step, while `lint` and `coverage` can.
   - Various scripts in `dev/`
-- *Note* that several `npm run` targets (`build`, `prod-test`, `full-test`, ...) can't be used while
-  the live server (`npm start`) is running due to the `clean` step, while `lint` and `coverage` can.
+
+Normal development for me:
+- One terminal in which I run `npm start`, and a second terminal to run `dev/coverage.sh -s`
+  (faster version of `npm run coverage` b/c it only uses Chrome) and `npm run lint`
+  (though VSCode should be linting too); can run Playwright tests from VSCode plugin
+- Before commit / push, kill the `npm start` and run `npm full-test` (takes a while)
 
 
-<!-- spell-checker: ignore Mojolicious backronym mweltdaten -->
+<!-- spell-checker: ignore Mojolicious backronym mweltdaten ystem -->
 
 Author, Copyright, and License
 ------------------------------

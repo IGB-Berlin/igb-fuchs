@@ -61,8 +61,7 @@ Object.entries(tz_tests).forEach(([tz,v]) => {
     test.use({ timezoneId: tz })
     test(`Timezone: ${tz}`, async ({ page }) => {
       await page.clock.setFixedTime(v['baseDate']+'T01:01Z')
-      await initPageTest(page)
-      await page.emulateMedia({ reducedMotion: 'reduce' })  // this seems to help in WebKit
+      await initPageTest(page, { reduceMotion: true })
 
       // Create a new Sampling Log
       await expect(page.getByTestId('accSampLog')).toBeVisible()

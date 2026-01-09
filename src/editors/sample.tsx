@@ -186,45 +186,42 @@ export class SampleEditor extends Editor<Sample> {
 
   private async importMeasurements(meas :IMeasurement[]) :Promise<boolean> {
     // first, group the measurements by type
-    const byTypeName = new Map<string, Measurement[]>()
+    const byTypeId = new Map<string, Measurement[]>()
     for (const im of meas) {
       const m = new Measurement(im)
-      const v = byTypeName.get(m.type.typeId)
+      const v = byTypeId.get(m.type.typeId)
       if (v) v.push(m)
-      else byTypeName.set(m.type.typeId, [m])
+      else byTypeId.set(m.type.typeId, [m])
     }
     // now analyze
     let infos :number = 0
     let asks :number = 0
     const oli :HTMLElement[] = []
     const actions :Measurement[][] = []
-    for (const nms of byTypeName.values()) {
+    for (const nms of byTypeId.values()) {
       // if there's more than one measurement of this type in the import (very unlikely), we're only importing the last...
       const nm = nms.at(-1)
       assert(nm)
-      const nmh = nm.summaryAsHtml(false)
-      nmh.classList.replace('d-flex','d-inline-flex')
       const uli :HTMLElement[] = [
-        <li class="text-info"><i class="bi-plus-circle me-1"/> <span class="me-1">{tr('Importing')}:</span> {nmh}</li> ]
+        <li class="text-info"><i class="bi-plus-circle me-1"/>
+          <span class="me-1">{tr('Importing')}:</span> {nm.summaryAsHtml(false, true)}</li> ]
       // ... and informing the user about the other measurements if they differ from the one we're importing
       for (const onm of nms.slice(0,-1))
-        if (onm.value!==nm.value || !onm.type.equals(nm.type)) {  // not comparing timestamp
-          const omh = onm.summaryAsHtml(false)
-          omh.classList.replace('d-flex','d-inline-flex')
-          uli.push(<li class="text-danger"><i class="bi-trash3 me-1"/> <span class="me-1">{tr('Duplicate, ignoring')}:</span> {omh}</li>)
+        if ( !nm.sameAs(onm, true) ) {
+          uli.push(<li class="text-danger"><i class="bi-trash3 me-1"/>
+            <span class="me-1">{tr('Duplicate, ignoring')}:</span> {onm.summaryAsHtml(false, true)}</li>)
           infos++
         }
       // check what measurements of this same type we already have
       const have = this.measEdit.measurements.filter(hm => nm.type.typeId === hm.type.typeId)
       for (const hm of have)
-        if (hm.value!==nm.value || !hm.type.equals(nm.type)) {  // not comparing timestamp
+        if ( !nm.sameAs(hm) ) {
           // the measurement we already have differs from the new one
-          const hmh = hm.summaryAsHtml(false)
-          hmh.classList.replace('d-flex','d-inline-flex')
-          uli.push(<li class="text-warning"><i class="bi-question-diamond me-1"/> <span class="me-1">{tr('Existing')}:</span> {hmh}</li>)
+          uli.push(<li class="text-warning"><i class="bi-question-diamond me-1"/>
+            <span class="me-1">{tr('Existing')}:</span> {hm.summaryAsHtml(false, true)}</li>)
           asks++
-        } /* else, this measurement we already have is identical to the one being imported, and if the user selects "overwrite",
-           * or if all measurements being imported are identical to the ones we already have (in which case there'll be no `asks`),
+        } /* else, this measurement we already have is the same as the one being imported, and if the user selects "overwrite",
+           * or if all measurements being imported are the same as to the ones we already have (in which case there'll be no `asks`),
            * the existing measurement(s) can be deleted without asking the user - which is basically just a timestamp update. */
       actions.push([nm].concat(have))
       oli.push(<li>{nm.type.summaryAsHtml(false)}<ul>{uli}</ul></li>)
@@ -232,7 +229,8 @@ export class SampleEditor extends Editor<Sample> {
     // now ask or inform the user
     let overwrite_not_append = true  // see explanation above for why we default to overwrite
     if (asks) {  // we need to ask about overwrite/append
-      const act = await overAppendDialog(tr('Importing Measurements'), <><p>{tr('ask-over-append')}</p><ol>{oli}</ol></>)
+      const act = await overAppendDialog(tr('Importing Measurements'),
+        <><p>{tr('ask-over-append')}</p><ol>{oli}</ol></>)
       if (act=='cancel') return false
       if (act=='append') overwrite_not_append = false
     }

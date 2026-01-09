@@ -18,8 +18,9 @@
 import { Page, Download } from '@playwright/test'
 import { expect } from 'playwright-test-coverage'
 
-export async function initPageTest(page :Page) {
+export async function initPageTest(page :Page, options :{ reduceMotion :boolean }) {
   // note this also serves as a significant part of the smoke test
+  if (options.reduceMotion) await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
   await expect(page).toHaveTitle(/IGB-FUCHS/)
   await expect(page.getByTestId('betaWarningDialog')).toBeVisible()

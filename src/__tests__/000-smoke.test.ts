@@ -19,7 +19,7 @@ import { test, expect } from 'playwright-test-coverage'
 import { initPageTest } from './test-utils'
 
 test('smoke test', async ({ page }) => {
-  await initPageTest(page)
+  await initPageTest(page, { reduceMotion: false })
   await expect( page.getByRole('button', { name: 'Sampling Logs' }) ).toBeVisible()  // JS-generated content
 })
 
