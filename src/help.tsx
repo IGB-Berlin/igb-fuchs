@@ -42,9 +42,9 @@ export function makeHelpButton() :HTMLButtonElement {
     title={tr('Help')}><i class="bi-question-circle" /><span class="visually-hidden"> {tr('Help')}</span></button>)
 }
 
-export function makeHelp(ctx :GlobalContext, target :HTMLElement) :[helpId :string, helpButton :HTMLButtonElement] {
+export function makeHelp(target :HTMLElement) :[helpId :string, helpButton :HTMLButtonElement] {
   assert(!target.hasAttribute('id') && !target.classList.contains('hideable-help'))
-  const helpId = ctx.genId('Help')
+  const helpId = GlobalContext.genId('Help')
   target.setAttribute('id', helpId)
   target.classList.add('hideable-help')
   initOrRemoveCollapse(target)

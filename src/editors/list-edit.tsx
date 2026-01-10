@@ -128,7 +128,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
       this.parent.el.addEventListener(CustomStoreEvent.NAME, () => this.checkGlobalEnable())
 
     const divHelp = <div class="form-text my-0">{args.help??''}</div>
-    const [_helpId, helpBtn] = makeHelp(this.ctx, divHelp)
+    const [_helpId, helpBtn] = makeHelp(divHelp)
     this.titleEl = <h5 class={`mb-0 editor-${args.editorStyle.cssId}-text`}><i class={`bi-${args.editorStyle.icon} me-1`}/>
       {args.title} {args.help?helpBtn:''}</h5>
     this.elWithTitle = <div class="my-3">
@@ -294,7 +294,7 @@ export class ListEditor<B extends DataObjectBase<B>> implements EditorParent {
 
 /** {@link ListEditorTemp} constructor arguments. */
 interface ListEditorTempArguments<T extends HasHtmlSummary, B extends DataObjectBase<B>> extends ListEditorArguments<B> {
-  dialogTitle :string|HTMLElement
+  dialogTitle :string
   templateSource :()=>Promise<T[]>
 }
 /** An abstract class of a ListEditor for objects that have templates. */

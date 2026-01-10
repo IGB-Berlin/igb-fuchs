@@ -18,102 +18,59 @@
 import { jsx, jsxFragment } from '@haukex/simple-jsx-dom'
 import { HasHtmlSummary } from './types/common'
 import { GlobalContext } from './main'
-import * as bootstrap from 'bootstrap'
+import { modalDialog } from './dialog'
 import { tr } from './i18n'
 
-export function noStorageAlert() {
-  const dialog = <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static"
-    data-bs-keyboard="false" tabindex="-1" aria-labelledby="noStorageAlert" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header text-bg-danger">
-          <h1 class="modal-title fs-5" id="noStorageAlert">
-            <i class="bi-exclamation-triangle-fill me-2"/>
-            {tr('Error: No Storage Available')}</h1>
-        </div>
-        <div class="modal-body">
-          <p>{tr('alert-no-storage-text')}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  const modal = new bootstrap.Modal(dialog)
-  modal.show()
+export async function noStorageAlert() :Promise<never> {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  while(true) await modalDialog<void>({
+    headerColor: 'bg-danger',
+    titleIcon: 'exclamation-triangle-fill',
+    title: tr('Error: No Storage Available'),
+    body: tr('alert-no-storage-text'),
+    buttons: [],
+    hiddenCallback: resolve => resolve(),
+  })
 }
 
 type UnsavedChangesResponse = 'save'|'discard'|'cancel'
 export function unsavedChangesQuestion(saveBtnLabel :string, details :HTMLElement|string) :Promise<UnsavedChangesResponse> {
   let result :UnsavedChangesResponse = 'cancel'
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="unsavedChangesAlertLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header text-bg-warning">
-          <h1 class="modal-title fs-5" id="unsavedChangesAlertLabel">
-            <i class="bi-exclamation-triangle-fill"/> {tr('Unsaved Changes')}</h1>
-        </div>
-        <div class="modal-body">
-          <p><strong>{tr('unsaved-changes')}</strong></p>
-          { details instanceof Node ? details : <p>{details}</p> }
-          <p class="mt-3 mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='discard'}>
-            <i class="bi-trash3-fill"/> {tr('Discard')}</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi-x-lg"/> {tr('Cancel')}</button>
-          <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick={()=>result='save'}>
-            <i class="bi-floppy-fill"/> {saveBtnLabel}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<UnsavedChangesResponse>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve(result)
-    })
-    modal.show()
+  return modalDialog({
+    headerColor: 'bg-warning',
+    titleIcon: 'exclamation-triangle-fill',
+    title: tr('Unsaved Changes'),
+    body: <>
+      <p><strong>{tr('unsaved-changes')}</strong></p>
+      { details instanceof Node ? details : <p>{details}</p> }
+      <p class="mt-3 mb-0 fw-bold text-warning">{tr('cannot-undo-discard')}</p>
+    </>,
+    buttons: [
+      <button class="btn-danger" onclick={()=>result='discard'}><i class="bi-trash3-fill"/> {tr('Discard')}</button>,
+      <button class="btn-secondary"><i class="bi-x-lg"/> {tr('Cancel')}</button>,
+      <button class="btn-success" onclick={()=>result='save'}><i class="bi-floppy-fill"/> {saveBtnLabel}</button>,
+    ],
+    hiddenCallback: resolve => resolve(result)
   })
 }
 
 type DeletionConfirmation = 'delete'|'cancel'
 export function deleteConfirmation(desc :string|HTMLElement) :Promise<DeletionConfirmation> {
   let result :DeletionConfirmation = 'cancel'
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header text-bg-warning">
-          <h1 class="modal-title fs-5" id="deleteConfirmationLabel">
-            <i class="bi-exclamation-triangle-fill"/> {tr('Confirm Deletion')}</h1>
-        </div>
-        <div class="modal-body">
-          <p><strong>{tr('confirm-delete')}</strong></p>
-          { desc ? <p>{desc}</p> : '' }
-          <p class="mb-0 fw-bold text-warning">{tr('cannot-undo-delete')}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={()=>result='delete'}>
-            <i class="bi-trash3-fill"/> {tr('Delete')}</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi-x-lg"/> {tr('Cancel')}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<DeletionConfirmation>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve(result)
-    })
-    modal.show()
+  return modalDialog({
+    headerColor: 'bg-warning',
+    titleIcon: 'exclamation-triangle-fill',
+    title: tr('Confirm Deletion'),
+    body: <>
+      <p><strong>{tr('confirm-delete')}</strong></p>
+      { desc ? <p>{desc}</p> : '' }
+      <p class="mb-0 fw-bold text-warning">{tr('cannot-undo-delete')}</p>
+    </>,
+    buttons: [
+      <button class="btn-danger" onclick={()=>result='delete'}><i class="bi-trash3-fill"/> {tr('Delete')}</button>,
+      <button class="btn-secondary"><i class="bi-x-lg"/> {tr('Cancel')}</button>,
+    ],
+    hiddenCallback: resolve => resolve(result)
   })
 }
 
@@ -134,39 +91,19 @@ export function importOverwriteQuestion(have :HasHtmlSummary, imp :HasHtmlSummar
 type OverAppendResult = 'overwrite'|'append'|'cancel'
 export function overAppendDialog(title :string, body :string|HTMLElement) :Promise<OverAppendResult> {
   let result :OverAppendResult = 'cancel'
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="overAppendDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header text-info">
-          <h1 class="modal-title fs-5" id="overAppendDialogLabel">
-            <i class="bi-question-circle-fill"/> {title}</h1>
-        </div>
-        <div class="modal-body">
-          { body instanceof Node ? body : <p><strong>{body}</strong></p> }
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
-            <i class="bi-trash3-fill"/> {tr('Cancel')}</button>
-          <button type="button" class='btn btn-info' data-bs-dismiss="modal" onclick={()=>result='append'}>
-            <i class="bi-file-earmark-plus"/> {tr('Append')}</button>
-          <button type="button" class='btn btn-danger' data-bs-dismiss="modal" onclick={()=>result='overwrite'}>
-            <i class="bi-file-earmark-arrow-down"/> {tr('Overwrite')}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<OverAppendResult>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve(result)
-    })
-    modal.show()
+  return modalDialog({
+    size: 'lg',
+    headerColor: 'info',
+    titleIcon: 'question-circle-fill',
+    title: title,
+    body: body instanceof Node ? body : <p><strong>{body}</strong></p>,
+    buttons: [
+      <button class="btn-secondary" onclick={()=>result='cancel'}><i class="bi-trash3-fill"/> {tr('Cancel')}</button>,
+      <button class="btn-info" onclick={()=>result='append'}><i class="bi-file-earmark-plus"/> {tr('Append')}</button>,
+      <button class="btn-danger" onclick={()=>result='overwrite'}><i class="bi-file-earmark-arrow-down"/> {tr('Overwrite')}</button>,
+    ],
+    hiddenCallback: resolve => resolve(result)
   })
-
 }
 
 type YesNoResult = 'yes'|'no'|'cancel'
@@ -174,38 +111,19 @@ export function yesNoDialog(question :string|HTMLElement, title :string, cancel 
 export function yesNoDialog(question :string|HTMLElement, title :string, cancel :true, yesIsGood :boolean) :Promise<YesNoResult>
 export function yesNoDialog(question :string|HTMLElement, title :string, cancel :boolean, yesIsGood :boolean = false) :Promise<YesNoResult> {
   let result :YesNoResult = cancel ? 'cancel' : 'no'
-  const btnCancel = <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick={()=>result='cancel'}>
-    <i class="bi-x-lg"/> {tr('Cancel')}</button>
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="yesNoDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header text-info">
-          <h1 class="modal-title fs-5" id="yesNoDialogLabel">
-            <i class="bi-question-circle-fill"/> {title}</h1>
-        </div>
-        <div class="modal-body">
-          { question instanceof Node ? question : <p><strong>{question}</strong></p> }
-        </div>
-        <div class="modal-footer">
-          <button type="button" class={yesIsGood?'btn btn-success':'btn btn-warning'} data-bs-dismiss="modal" onclick={()=>result='yes'}>
-            <i class="bi-check-circle"/> {tr('Yes')}</button>
-          <button type="button" class={yesIsGood?'btn btn-warning':'btn btn-success'} data-bs-dismiss="modal" onclick={()=>result='no'}>
-            <i class="bi-x-square"/> {tr('No')}</button>
-          {cancel ? btnCancel : ''}
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<YesNoResult>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve(result)
-    })
-    modal.show()
+  const buttons = [
+    <button class={yesIsGood?'btn-success':'btn-warning'} onclick={()=>result='yes'}><i class="bi-check-circle"/> {tr('Yes')}</button>,
+    <button class={yesIsGood?'btn-warning':'btn-success'} onclick={()=>result='no'}><i class="bi-x-square"/> {tr('No')}</button> ]
+  if (cancel) buttons.push(
+    <button class="btn-secondary" onclick={()=>result='cancel'}><i class="bi-x-lg"/> {tr('Cancel')}</button>)
+  return modalDialog({
+    size: 'lg',
+    headerColor: 'info',
+    titleIcon: 'question-circle-fill',
+    title: title,
+    body: question instanceof Node ? question : <p><strong>{question}</strong></p>,
+    buttons: buttons,
+    hiddenCallback: resolve => resolve(result)
   })
 }
 
@@ -215,34 +133,15 @@ export function internalErrorDialog(event :ErrorEvent|PromiseRejectionEvent) :Pr
 }
 
 type InfoDialogType = 'info'|'warning'|'error'
-export function infoDialog(type :InfoDialogType, title :string, content :string|HTMLElement) :Promise<void> {
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="infoDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class={'modal-header '+( type==='info' ? 'text-info' : type==='warning' ? 'text-bg-warning' : 'text-bg-danger' )}>
-          <h1 class="modal-title fs-5" id="infoDialogLabel">
-            <i class={ type==='info' ? 'bi-info-circle' : type==='warning' ? 'bi-exclamation-triangle-fill' : 'bi-x-octagon-fill' } /> {title}</h1>
-        </div>
-        <div class="modal-body">
-          {typeof content === 'string' ? <p>{content}</p> : content}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-            <i class="bi-check-lg"/> {tr('Understood')}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<void>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve()
-    })
-    modal.show()
+export function infoDialog(type :InfoDialogType, title :string, body :string|HTMLElement) :Promise<void> {
+  return modalDialog({
+    size: 'lg',
+    headerColor: type==='info' ? 'info' : type==='warning' ? 'bg-warning' : 'bg-danger',
+    titleIcon: type==='info' ? 'info-circle' : type==='warning' ? 'exclamation-triangle-fill' : 'x-octagon-fill',
+    title: title,
+    body: body,
+    buttons: [ <button class="btn-primary"><i class="bi-check-lg"/> {tr('Understood')}</button> ],
+    hiddenCallback: resolve => resolve(),
   })
 }
 
@@ -250,33 +149,15 @@ export async function betaWarning(ctx :GlobalContext, force :boolean = false) :P
   const hideUntilMs = await ctx.storage.settings.get('hideBetaWarningUntilTimeMs')
   if (!force && Number.isFinite(hideUntilMs) && Date.now()<hideUntilMs)
     return
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false" data-test-id="betaWarningDialog"
-    class="modal fade" tabindex="-1" aria-labelledby="betaWarningLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header text-bg-warning">
-          <h1 class="modal-title fs-5" id="betaWarningLabel">
-            <i class="bi-exclamation-triangle-fill" /> {tr('beta-warning-title')}</h1>
-        </div>
-        <div class="modal-body">
-          <p class="fw-bold text-warning-emphasis">{tr('beta-warning-text')}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">
-            <i class="bi-exclamation-triangle"/> {tr('beta-warning-dismiss')}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  await new Promise<void>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
-      resolve()
-    })
-    modal.show()
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+  await modalDialog<void>({
+    testId: 'betaWarningDialog',
+    headerColor: 'bg-warning',
+    titleIcon: 'exclamation-triangle-fill',
+    title: tr('beta-warning-title'),
+    body: <p class="fw-bold text-warning-emphasis">{tr('beta-warning-text')}</p>,
+    buttons: [ <button class="btn-outline-warning"><i class="bi-exclamation-triangle"/> {tr('beta-warning-dismiss')}</button> ],
+    hiddenCallback: resolve => resolve(),
   })
   await ctx.storage.settings.set('hideBetaWarningUntilTimeMs', Date.now() + 1000*60*60*24*30)
 }

@@ -140,9 +140,9 @@ export class DateTimeInputAutoSet extends DateTimeInput {
   private readonly checkBox
   override get el() { return this._el2 }
   get isAutoSetOn() { return this.checkBox.checked }
-  constructor(ctx :GlobalContext, initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
+  constructor(initialTs :Timestamp|null, required :boolean, autoSet :boolean) {
     super(initialTs, required)
-    const id = ctx.genId('cbAutoSet')
+    const id = GlobalContext.genId('cbAutoSet')
     this.checkBox = safeCast(HTMLInputElement, <input class="form-check-input" type="checkbox" id={id} />)
     this.checkBox.checked = autoSet
     this.checkBox.addEventListener('change', () => this.el.dispatchEvent(new CustomChangeEvent()) )
@@ -169,7 +169,7 @@ export class StartEndTimeEditor<B extends DataObjectBase<B>> {
   constructor(parent :Editor<B>, initialStart :Timestamp, initialEnd :Timestamp, autoSetEnd :boolean, prefix :'log'|'loc') {
     this.inpStart = new DateTimeInput(initialStart, true)
     this.inpStart.el.setAttribute('data-test-id', prefix+'StartTime')
-    this.inpEnd = new DateTimeInputAutoSet(parent.ctx, initialEnd, false, autoSetEnd)
+    this.inpEnd = new DateTimeInputAutoSet(initialEnd, false, autoSetEnd)
     this.inpEnd.el.setAttribute('data-test-id', prefix+'EndTime')
 
     const rowStart = parent.makeRow(this.inpStart.el, { label: tr('Start time'), invalidText: tr('Invalid timestamp'),

@@ -36,13 +36,13 @@ class TaskList {
   readonly el
   private readonly taskStates
   private readonly taskItems :[HTMLElement, HTMLInputElement][]
-  constructor(ctx :GlobalContext, initialTaskStates :{ [key :string]: boolean }) {
+  constructor(initialTaskStates :{ [key :string]: boolean }) {
     this.taskStates = initialTaskStates
     const tasks = Object.keys(initialTaskStates)
     const taskHelp = <div class="form-text my-0">{tr('tasklist-help')}</div>
-    const [_taskHelpId, taskHelpBtn] = makeHelp(ctx, taskHelp)
+    const [_taskHelpId, taskHelpBtn] = makeHelp(taskHelp)
     this.taskItems = tasks.map(c => {
-      const id = ctx.genId('TasklistCb')
+      const id = GlobalContext.genId('TasklistCb')
       const cb = safeCast(HTMLInputElement,
         <input class="form-check-input me-2" type="checkbox" autocomplete="off"
           id={id} checked={!!this.taskStates[c]} onchange={()=>{
@@ -110,7 +110,7 @@ export class SamplingLocationEditor extends Editor<SamplingLocation> {
       planned: this.initObj.template?.samples })
 
     const tasks = this.initObj.template?.tasklist ?? []
-    this.taskEditor = new TaskList(this.ctx, Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
+    this.taskEditor = new TaskList(Object.fromEntries(tasks.map(c => [c, this.initObj.completedTasks.includes(c) ])) )
     this.taskEditor.el.addEventListener(CustomChangeEvent.NAME, () => this.el.dispatchEvent(new CustomChangeEvent()))
     if (!tasks.length) this.taskEditor.el.classList.add('d-none')
 

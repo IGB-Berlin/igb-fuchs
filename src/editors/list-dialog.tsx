@@ -15,19 +15,18 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
-import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { HasHtmlSummary } from '../types/common'
-import * as bootstrap from 'bootstrap'
+import { jsx } from '@haukex/simple-jsx-dom'
+import { modalDialog } from '../dialog'
 import { assert } from '../utils'
 import { tr } from '../i18n'
 
-export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLElement, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
+export function listSelectDialog<T extends HasHtmlSummary>(title :string, list :Readonly<Readonly<T>[]>) :Promise<T|null> {
   let okClicked = false
-  const btnOk = safeCast(HTMLButtonElement, <button type="button" class="btn btn-success" data-bs-dismiss="modal"
-    onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>)
+  const btnOk = <button class="btn-success" onclick={()=>okClicked=true} disabled><i class="bi-check-lg"/> {tr('Select')}</button>
   let selIdx = -1
   const selectItem = (idx :number) => {
-    assert(els.length==list.length && idx>=0 && idx<list.length)
+    assert(els.length===list.length && idx>=0 && idx<list.length)
     els.forEach((e,i) => {
       if (i===idx) {
         e.classList.add('active')
@@ -47,30 +46,14 @@ export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLEle
       ondblclick={(e :MouseEvent)=>{ e.preventDefault(); e.stopPropagation(); btnOk.click() }}>
       {e.summaryAsHtml(false)}</li>)
     : [<li class="list-group-item"><em>{tr('No items')}</em></li>]
-  const dialog = <div data-bs-backdrop="static" data-bs-keyboard="false"
-    class="modal fade" tabindex="-1" aria-labelledby="listSelectDialogLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="listSelectDialogLabel">
-            <i class="bi-card-list me-2" /> {title}</h1>
-        </div>
-        <div class="modal-body">
-          <ul class="list-group">{els}</ul>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi-x-lg"/> {tr('Cancel')}</button>
-          {btnOk}
-        </div>
-      </div>
-    </div>
-  </div>
-  document.body.appendChild(dialog)
-  return new Promise<T|null>(resolve => {
-    const modal = new bootstrap.Modal(dialog)
-    dialog.addEventListener('hidden.bs.modal', () => {
-      modal.dispose()
-      document.body.removeChild(dialog)
+  return modalDialog<T|null>({
+    size: 'fullscreen-sm-down',
+    scrollable: true,
+    titleIcon: 'card-list',
+    title: title,
+    body: <ul class="list-group">{els}</ul>,
+    buttons: [ <button class="btn-secondary"><i class="bi-x-lg"/> {tr('Cancel')}</button>, btnOk ],
+    hiddenCallback: resolve => {
       assert((list.length===0 && els.length===1 || els.length===list.length) && selIdx<list.length)
       if (okClicked && selIdx>=0) {
         const item = list[selIdx]
@@ -78,7 +61,6 @@ export function listSelectDialog<T extends HasHtmlSummary>(title :string|HTMLEle
         resolve(item)
       }
       else resolve(null)
-    })
-    modal.show()
+    }
   })
 }

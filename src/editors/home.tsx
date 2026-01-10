@@ -28,8 +28,8 @@ import { GlobalContext } from '../main'
 import { StackAble } from './stack'
 import { tr } from '../i18n'
 
-function makeAcc(ctx :GlobalContext, bodyTestId :string, title :HTMLElement|string, body :HTMLElement|string, expanded :boolean = false) {
-  const accId = ctx.genId('HomeAccordion')
+function makeAcc(bodyTestId :string, title :HTMLElement|string, body :HTMLElement|string, expanded :boolean = false) {
+  const accId = GlobalContext.genId('HomeAccordion')
   return <div class="accordion-item">
     <h2 class="accordion-header">
       <button class={'accordion-button' + (expanded?'':' collapsed')} type="button" data-bs-toggle="collapse"
@@ -92,10 +92,10 @@ export class HomePage implements StackAble, ListEditorParent {
     const settings = await makeSettings(ctx)
 
     hp.el.appendChild(<div class="accordion" id="homeAccordion">
-      {makeAcc(ctx, 'accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, hp.logEdit.el, true)}
-      {makeAcc(ctx, 'accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, hp.procEdit.el)}
-      {makeAcc(ctx, 'accImpExp', tr('import-export'), inpExp.el)}
-      {makeAcc(ctx, 'accSett', tr('Settings'), settings)}
+      {makeAcc('accSampLog', <strong><i class={`bi-${SamplingLog.sStyle.icon} me-1`}/>{tr('Sampling Logs')}</strong>, hp.logEdit.el, true)}
+      {makeAcc('accLogTemp', <><i class={`bi-${SamplingProcedure.sStyle.icon} me-1`}/>{tr('Templates')} ({tr('Procedures')})</>, hp.procEdit.el)}
+      {makeAcc('accImpExp', tr('import-export'), inpExp.el)}
+      {makeAcc('accSett', tr('Settings'), settings)}
     </div>)
     return hp
   }

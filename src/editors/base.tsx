@@ -385,7 +385,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
   /** Helper function for subclasses to make a <div class="row"> with labels etc. for a form input. */
   makeRow(input :HTMLElement, opts :MakeRowOpts, btnExtra ?:HTMLButtonElement) :HTMLElement {
     assert(!input.hasAttribute('id') && !input.hasAttribute('aria-describedby'))
-    const inpId = this.ctx.genId('Editor_Input')
+    const inpId = GlobalContext.genId('Editor_Input')
     input.setAttribute('id', inpId)
     //input.setAttribute('placeholder', label)  // they're actually kind of distracting - and not all `input`s are <input>s anymore!
     if ( input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement || input instanceof HTMLSelectElement ) {
@@ -399,7 +399,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
     if (opts.helpText) {
       divHelp = safeCast(HTMLDivElement, <div class="form-text">{opts.helpText}</div>)
       let helpId :string
-      [helpId, btnHelp] = makeHelp(this.ctx, divHelp)
+      [helpId, btnHelp] = makeHelp(divHelp)
       input.setAttribute('aria-describedby', helpId)
     }
     return <div class="row mb-2 mb-sm-3">
@@ -478,7 +478,7 @@ export abstract class Editor<B extends DataObjectBase<B>> implements StackAble, 
    * a surrounding element, not the buttons, because otherwise the buttons don't work.
    */
   makeAccordion(opts :MakeAccordOpts) :[HTMLElement, ()=>Collapse] {
-    const accId = this.ctx.genId()
+    const accId = GlobalContext.genId()
     const accParentId = accId+'-parent'
     const rowLast = safeCast(HTMLElement, opts.rows.at(-1))
     rowLast.classList.remove('mb-2','mb-sm-3')
