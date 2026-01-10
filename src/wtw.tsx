@@ -94,11 +94,18 @@ export class WtwConnector extends EventTarget {
       this.state = 'disconnected'
       return
     }
-    try { await port.open({ baudRate: 4800, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' }) }
-    catch (ex) {
-      alert(`${tr('wtw-failed-open')} (${String(ex)})`)
-      this.state = 'disconnected'
-      return
+    const opts :SerialOptions = { baudRate: 4800, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' }
+    try { await port.open(opts) }
+    catch (ex0) {
+      // It's possible that, e.g. after a USB disconnect + reconnect, the first open fails but the second succeeds, so retry once:
+      console.warn('Failed to open port on first try, will retry in a moment', ex0)
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      try { await port.open(opts) }
+      catch (ex1) {
+        alert(`${tr('wtw-failed-open')} (${String(ex0)}, then ${String(ex1)})`)
+        this.state = 'disconnected'
+        return
+      }
     }
 
     let keepReading = true as boolean
