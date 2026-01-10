@@ -12,7 +12,7 @@
   "type": "module",
   "_comment": "NOTE naming the test script `test` apparently always causes the VSCode test runner to use that",
   "scripts": {
-    "clean": "git clean -dxf -e node_modules -e dev/py/.venv -e dev/issue-bak/.venv",
+    "clean": "git clean -dxf -e node_modules -e dev/py-exe/.venv -e dev/issue-bak/.venv",
     "lint": "cd src && tsc --noEmit && cd ../worker && tsc --noEmit && cd .. && eslint && jsonschema lint -x top_level_examples -x simple_properties_identifiers -x description_trailing_period src/types/igb-fuchs.schema.json && bash dev/shellcheck.sh",
     "start": "npm run clean && parcel --target prod --dist-dir dist-live --port 1234",
     "build": "npm run clean && parcel build --target prod && cp -v src/types/igb-fuchs.schema.json dist-prod/",
