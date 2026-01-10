@@ -197,3 +197,66 @@ test('WtwReceiver', async ({ page }) => {
     ] } ])
   await hnd.dispose()
 })
+
+test('failing imports', async ({ page }) => {
+  await initPageTest(page, { reduceMotion: true })
+  await expect(page.getByTestId('accSampLog')).toBeVisible()
+  await page.getByRole('button', { name: 'More' }).click()
+  await page.getByRole('button', { name: 'New' }).click()
+  // new sampling log
+  await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Name' }).fill('Spree')
+  await page.getByTestId('logStartTime').getByRole('button', { name: 'Time' }).click()
+  await page.getByTestId('logStartTime').getByRole('button', { name: 'Use current time' }).click()
+  await page.getByRole('checkbox', { name: 'Automatically set end time' }).check()
+  await page.getByRole('button', { name: /Save\s*$/ }).click()
+  await page.getByRole('button', { name: 'New' }).click()
+  // new sampling location
+  await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Name' }).fill('S1')
+  await page.getByRole('textbox', { name: 'Latitude' }).fill('12')
+  await page.getByRole('textbox', { name: 'Longitude' }).fill('34')
+  await page.getByTestId('locStartTime').getByRole('button', { name: 'Time' }).click()
+  await page.getByTestId('locStartTime').getByRole('button', { name: 'Use current time' }).click()
+  await page.getByRole('checkbox', { name: 'Automatically set end time' }).check()
+  await page.getByRole('button', { name: /Save\s*$/ }).click()
+  await page.getByRole('button', { name: 'New' }).click()
+  // new sample
+  await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  await page.getByLabel('Sample Type').selectOption('probe')
+  await page.getByRole('radio', { name: 'Good' }).check()
+  // import when unsaved sample is open
+  await page.evaluate(v => window.FuchsTest.fakeSerialRx(v), '\nCond 123.4 µS/cm 12.3 °C\n_____\n')
+  await expect(page.getByLabel('Error')).toHaveText(/.*Please first save this Sample\b.*/i)
+  await page.getByRole('button', { name: 'Understood' }).click()
+  // save and try again
+  await page.getByRole('button', { name: /Save\s*$/ }).click()
+  await page.evaluate(v => window.FuchsTest.fakeSerialRx(v), '\nCond 123.4 µS/cm 12.3 °C\n_____\n')
+  await expect(page.getByRole('listitem').filter({ hasText: 'Cond µS/cm' }).getByRole('textbox')).toHaveValue('123.4')
+  await expect(page.getByRole('listitem').filter({ hasText: 'Temp(Cond) °C' }).getByRole('textbox')).toHaveValue('12.3')
+  // now open a measurement
+  await page.getByText('µS/cm').dblclick()
+  await expect(page.getByRole('heading', { name: 'Measurement' })).toBeVisible()
+  await page.evaluate(v => window.FuchsTest.fakeSerialRx(v), '\nCond 123.5 µS/cm 12.4 °C\n_____\n')
+  await expect(page.getByLabel('Error')).toHaveText(/.*\bimport of measurements is only possible on the "Sample" page\b.*/i)
+  await page.getByRole('button', { name: 'Understood' }).click()
+  // go back to the sample and make sure it hasn't changed
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Cond µS/cm' }).getByRole('textbox')).toHaveValue('123.4')
+  await expect(page.getByRole('listitem').filter({ hasText: 'Temp(Cond) °C' }).getByRole('textbox')).toHaveValue('12.3')
+  // go back to the Sampling Location and try to import
+  await page.getByRole('button', { name: 'Save & Close' }).click()
+  await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  await page.evaluate(v => window.FuchsTest.fakeSerialRx(v), '\nCond 123.5 µS/cm 12.4 °C\n_____\n')
+  // to reenable this test, remove the `test.fail`, the `.soft` and the `timeout`, and reenable clicking the "Understood" button
+  test.fail(true, 'Currently, receiving data when not on a sample is ignored, I think it should cause a warning?')
+  await expect.soft(page.getByLabel('Error')).toHaveText(/.*\bimport of measurements is only possible on the "Sample" page\b.*/i,
+    { timeout: 2000 })
+  //await page.getByRole('button', { name: 'Understood' }).click()
+  // back to sampling log and main page
+  await page.getByRole('button', { name: 'Save & Close' }).click()
+  await expect(page.getByRole('heading', { name: 'Sampling Log' })).toBeVisible()
+  await page.getByRole('button', { name: 'Save & Close' }).click()
+  await expect(page.getByTestId('accSampLog')).toBeVisible()
+})

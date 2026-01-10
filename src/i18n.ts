@@ -624,6 +624,12 @@ const translations = {
   'Importing': ['Importiere'],
   'Existing': ['Bereits vorhanden'],
   'Duplicate, ignoring': ['Duplikat, wird ignoriert'],
+  'import-unsaved-error': [
+    'Bitte zuerst diese Probe speichern, um den Import von Messungen zu ermöglichen.',
+    'Please first save this Sample to allow the import of measurements.' ],
+  'import-only-sample': [
+    'Ein Import von Messungen ist nur auf der Seite "Probe" möglich.',
+    'An import of measurements is only possible on the "Sample" page.' ],
 
   // '': [''],
 } as const

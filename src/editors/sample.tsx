@@ -183,7 +183,17 @@ export class SampleEditor extends Editor<Sample> {
   protected override customValidation() :string[] { return this.measEdit.customValidation() }
   protected override async onClose() { await this.measEdit.close() }
 
+  /** Import measurements.
+   *
+   * @returns Whether any measurements were imported.
+   */
   private async importMeasurements(meas :IMeasurement[]) :Promise<boolean> {
+    if (this.isUnsaved) {
+      await infoDialog('error', tr('Error'), tr('import-unsaved-error'))
+      return false }
+    if (!Object.is( this.ctx.stack.top, this )) {
+      await infoDialog('error', tr('Error'), tr('import-only-sample'))
+      return false }
     // first, group the measurements by type
     const byTypeId = new Map<string, Measurement[]>()
     for (const im of meas) {
