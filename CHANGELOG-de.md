@@ -1,17 +1,22 @@
 IGB-FUCHS Änderungshistorie
 ===========================
 
-v0.4.0-beta - *noch nicht released*
+v0.3.5-beta - *noch nicht released*
 ------------------------
 
 - Der Import von Messdaten von WTW® Geräten (z.B. 3430 or 3630) ist jetzt möglich,
-  wenn das Gerät über eine serielle Schnittstelle verbunden ist. Für Details
-  über die Nutzung dieser Funktion, siehe die Readme Datei.
+  wenn das Gerät über eine serielle Schnittstelle verbunden ist, welche von den
+  WTW Geräten virtuell über USB zur Verfügung gestellt wird. Für Details über die
+  Nutzung dieser Funktion siehe die [Readme Datei](./README.md).
+- Der Informations-Dialog in der App wurde verbessert.
 - Internes:
-  - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben (welche
-    eigentlich ungültig sind aber toleriert werden).
-  - Die interne Validierung von Datenobjekten wurde etwas verbessert.
+  - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben
+    (welche eigentlich ungültig sind aber toleriert werden).
   - Kleinere Änderungen an der Testversion des JSON Schemas.
+  - Die interne Validierung von Datenobjekten wurde etwas verbessert.
+  - Mehrere interne Code-Verbesserungen.
+  - Die Entwicklungsumgebung sowie die automatisierten Tests wurden deutlich
+    verbessert und in der [Readme](./README.md) dokumentiert.
 
 v0.3.0-beta - 2025-11-03
 ------------------------
