@@ -18,10 +18,11 @@
  * You should have received a copy of the GNU General Public License along with
  * IGB-FUCHS. If not, see <https://www.gnu.org/licenses/>.
  */
+import { jsx, jsxFragment, safeCast } from '@haukex/simple-jsx-dom'
 import { WtwParseResults, WtwReceiver } from './wtw-parse'
-import { jsx, safeCast } from '@haukex/simple-jsx-dom'
 import { FuchsTestInterface } from './for-tests'
 import { Timestamp } from './types/common'
+import { infoDialog } from './dialogs'
 import { assert } from './utils'
 import { tr } from './i18n'
 
@@ -86,9 +87,8 @@ export class WtwConnector extends EventTarget {
     try { port = await navigator.serial.requestPort() }
     catch (ex) {
       if (ex instanceof DOMException && ex.name === 'NotFoundError') {/* user canceled, ignore */}
-      else if (ex instanceof DOMException && ex.name === 'SecurityError')
-        alert(`${tr('wtw-access-denied')} (${String(ex)})`)
-      else alert(`${tr('wtw-failed-open')} (${String(ex)})`)
+      else await infoDialog('error', tr('Error'),
+        <><p>{tr(ex instanceof DOMException && ex.name === 'SecurityError' ? 'wtw-access-denied' : 'wtw-failed-open')}</p><p>{String(ex)}</p></>)
     }
     if (!port) {
       this.state = 'disconnected'
@@ -102,7 +102,7 @@ export class WtwConnector extends EventTarget {
       await new Promise(resolve => setTimeout(resolve, 2000))
       try { await port.open(opts) }
       catch (ex1) {
-        alert(`${tr('wtw-failed-open')} (${String(ex0)}, then ${String(ex1)})`)
+        await infoDialog('error', tr('Error'), <><p>{tr('wtw-failed-open')}</p><p>{String(ex0)}</p><p>{String(ex1)}</p></>)
         this.state = 'disconnected'
         return
       }
