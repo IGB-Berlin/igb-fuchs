@@ -12,12 +12,14 @@ and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem"
 **CH**emiedaten **S**peichersystem" (Field, Environmental, and Chemistry
 Data Storage System).
 
+
 Installation on Mobile
 ----------------------
 
 Please see [the installation instructions](src/images/IGB-FUCHS_Mobile-Installation.pdf).
 The installation on mobile devices is useful to ensure the app still works even when there
 is no Internet connection.
+
 
 Beta Version
 ------------
@@ -28,6 +30,25 @@ This is a **beta version** which certainly still contains bugs.
 You should always perform regular backups via the "Export" function.
 
 This message will be updated according to the current state of development.
+
+
+WTW® Import
+-----------
+
+**This feature is in beta.** Please see [GitHub Issue #63](https://github.com/IGB-Berlin/igb-fuchs/issues/63).
+
+This feature is only available in browsers that support the "Web Serial API",
+[see this link](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility).
+At the time of writing, this is only Chromium-based browsers on desktop systems, and Chrome on Android
+for Bluetooth-based serial ports. In the Chrome browser, the website must be given permission to use
+the serial port. On Android, the Chrome app needs to be given the "Nearby devices" ("Geräte in der Nähe")
+permission. Then, when on a "Sample" ("Probe") page, the user can click the "Connect" button in the
+"WTW" section to connect to the port that the WTW device is connected to, and on the WTW device
+press the button labeled "PRT" to transmit data, which should appear in IGB-FUCHS after a short delay.
+
+*WTW® is a registered trademark of Xylem Analytics Germany GmbH.*
+*This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.*
+
 
 Development Environment
 -----------------------

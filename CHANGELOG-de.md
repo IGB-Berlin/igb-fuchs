@@ -4,6 +4,9 @@ IGB-FUCHS Änderungshistorie
 v0.4.0-beta - *noch nicht released*
 ------------------------
 
+- Der Import von Messdaten von WTW® Geräten (z.B. 3430 or 3630) ist jetzt möglich,
+  wenn das Gerät über eine serielle Schnittstelle verbunden ist. Für Details
+  über die Nutzung dieser Funktion, siehe die Readme Datei.
 - Internes:
   - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben (welche
     eigentlich ungültig sind aber toleriert werden).
