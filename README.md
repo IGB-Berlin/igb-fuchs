@@ -1,5 +1,5 @@
-IGB-FUCHS
-=========
+🦊 <span style="color: #819F00;">IGB</span>-<span style="color: #006EB7;">FUCHS</span>
+===========================================================================================
 
 **<https://fuchs.igb-berlin.de>**
 
@@ -13,16 +13,16 @@ and is a backronym for "**F**eld- und **U**mweltdaten-**Ch**eck-**S**ystem"
 Data Storage System).
 
 
-Installation on Mobile
-----------------------
+📲 Installation on Mobile
+--------------------------
 
 Please see [the installation instructions](src/images/IGB-FUCHS_Mobile-Installation.pdf).
 The installation on mobile devices is useful to ensure the app still works even when there
 is no Internet connection.
 
 
-Beta Version
-------------
+🚧 Beta Version
+----------------
 
 This is a **beta version** which certainly still contains bugs.
 
@@ -32,10 +32,10 @@ You should always perform regular backups via the "Export" function.
 This message will be updated according to the current state of development.
 
 
-WTW® Import
------------
+📥 WTW® Import
+---------------
 
-**This feature is in beta.** Please see [GitHub Issue #63](https://github.com/IGB-Berlin/igb-fuchs/issues/63).
+⚠️ **This feature is in alpha.** Please see [GitHub Issue #63](https://github.com/IGB-Berlin/igb-fuchs/issues/63).
 
 This feature is only available in browsers that support the "Web Serial API",
 [see this link](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility).
@@ -50,8 +50,8 @@ press the button labeled "PRT" to transmit data, which should appear in IGB-FUCH
 *This project is not affiliated with, endorsed by, or sponsored by Xylem or its subsidiaries.*
 
 
-Development Environment
------------------------
+🛠️ Development Environment
+---------------------------
 
 Requirements:
 - Latest Node.js LTS, currently v24 (see also [my notes on that](https://github.com/haukex/toolshed/blob/main/notes/TypeScript.md))
@@ -78,8 +78,8 @@ Normal development for me:
 
 <!-- spell-checker: ignore Mojolicious backronym mweltdaten ystem emiedaten mwelt peichersystem -->
 
-Author, Copyright, and License
-------------------------------
+⚖️ Author, Copyright, and License
+----------------------------------
 
 Copyright © 2024-2025 Hauke Dämpfling (haukex@zero-g.net)
 at the Leibniz Institute of Freshwater Ecology and Inland Fisheries (IGB),
