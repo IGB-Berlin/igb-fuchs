@@ -9,6 +9,9 @@ v0.3.5-beta - *noch nicht released*
   WTW Geräten virtuell über USB zur Verfügung gestellt wird. Für Details über die
   Nutzung dieser Funktion siehe die [Readme Datei](./README.md).
   **Diese Funktion ist aktuell noch eine Alpha-Testversion.**
+- Der "Slider", der zum Speichern des aktuellen und beginnen des nächsten Objekts
+  angezeigt wird, wurde vergrößert und hat nun einen größeren Abstand zum Rand des
+  Bildschirms, um versehentliche Smartphone-Gesten zu vermeiden.
 - Der Informations-Dialog in der App wurde verbessert.
 - Internes:
   - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben
