@@ -22,6 +22,8 @@ import * as zip from '@zip.js/zip.js'
 import { assert } from '../utils'
 import Papa from 'papaparse'
 
+// spell-checker: ignore spinbutton
+
 const theProc :ISamplingProcedure = {
   id: '',
   name: 'Spree',
@@ -523,11 +525,26 @@ test('full integration test', async ({ page, context }) => {
   }
 
   // Start new Sampling Log from Template
+  expect( await page.evaluate(async () => (await window.FuchsTest.ctx.storage.samplingLogs.getAll(null)).length ) ).toStrictEqual(0)
   await expect(page.getByRole('listitem')).toHaveText(['No items'])
   await page.getByRole('button', { name: 'From Template' }).click()
   await expect(page.getByRole('heading', { name: 'New Sampling Log from Procedure' })).toBeVisible()
   await page.clock.setFixedTime('2025-01-02T03:03Z')  // log start time
   await page.getByLabel('New Sampling Log from Procedure').getByText('Spree').dblclick()
+  // new log created
+  const sl_id = await (async () => {  // get the newly created Sampling Log's ID
+    let _id :string|undefined = undefined
+    await expect(async () => {  // retry a few times b/c of async storage update
+      const ids = await page.evaluate( async () => (await window.FuchsTest.ctx.storage.samplingLogs.getAll(null)).map( ([id,_])=>id ) )
+      expect(ids.length).toStrictEqual(1)
+      _id = ids[0]
+    }).toPass({ timeout: 1000 })
+    assert(_id)
+    return _id
+  })()
+  const get_sl_lastmod = async () =>  // helper to get the Sampling Log's lastModified
+    new Date( await page.evaluate( async i => (await window.FuchsTest.ctx.storage.samplingLogs.get(i)).lastModified, sl_id ) ).toISOString()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T03:03:00.000Z')
   await expect(page.getByRole('heading', { name: /Sampling Log\s*$/ })).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('Spree')
   await page.clock.setFixedTime('2025-01-02T03:13Z')  // just to make sure it took the right time
@@ -542,8 +559,10 @@ test('full integration test', async ({ page, context }) => {
 
   // Start first sampling location
   await page.clock.setFixedTime('2025-01-02T04:04Z')  // S1 start time
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T03:03:00.000Z')
   await page.getByRole('listitem').filter({ hasText: 'S1 / Upper' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:04:00.000Z')
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S1')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Upper')
   await page.clock.setFixedTime('2025-01-02T04:14Z')
@@ -561,8 +580,10 @@ test('full integration test', async ({ page, context }) => {
   await page.getByRole('listitem').filter({ hasText: 'Clean sensor' }).getByText('Completed').click()
 
   // Start S1 first planned sample
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:04:00.000Z')
   await page.getByRole('listitem').filter({ hasText: 'Surface water (general) / Gamma' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:14:00.000Z')
   await expect(page.getByLabel('Sample Type')).toHaveValue('surface-water')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Gamma')
   await expect(page.getByRole('radio', { name: 'Good' })).toBeChecked()
@@ -575,6 +596,7 @@ test('full integration test', async ({ page, context }) => {
 
   // second planned sample (intentionally with warnings and editing afterwards)
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:14:22.000Z')
   await expect(page.getByLabel('Sample Type')).toHaveValue('surface-water-flowing')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Delta')
   await page.getByRole('radio', { name: 'Questionable' }).check()
@@ -583,6 +605,7 @@ test('full integration test', async ({ page, context }) => {
   await page.clock.setFixedTime('2025-01-02T04:14:33Z')  // S1 second sample first measurement time (saved on blur)
   await expect(txtTemp).toHaveValue('-1.3')
   await page.getByRole('listitem').filter({ hasText: 'pH pH' }).getByRole('textbox').fill('6.9')
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:14:33.000Z')
   await page.clock.setFixedTime('2025-01-02T04:14:44Z')  // S1 second sample second measurement time (saved on blur)
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
@@ -590,6 +613,8 @@ test('full integration test', async ({ page, context }) => {
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeHidden()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:14:44.000Z')
+  await page.clock.setFixedTime('2025-01-02T04:14:45Z')
   await page.getByRole('listitem').filter({ hasText: 'Flowing surface water / Delta' }).dblclick()
   await expect(page.getByRole('heading', { name: 'Sample' })).toBeVisible()
   await expect(page.getByLabel('Sample Type')).toHaveValue('surface-water-flowing')
@@ -604,6 +629,7 @@ test('full integration test', async ({ page, context }) => {
 
   // finish up sampling location (intentionally with warnings etc.)
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T04:14:45.000Z')
   await page.clock.setFixedTime('2025-01-02T04:34Z')  // S1 end time
   await doSlider()
   await expect(page.getByRole('heading', { name: 'Warnings' })).toBeVisible()
@@ -621,6 +647,7 @@ test('full integration test', async ({ page, context }) => {
 
   // Now at second sampling location
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T05:05:00.000Z')
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S2')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Middle')
   await page.clock.setFixedTime('2025-01-02T05:15Z')
@@ -660,6 +687,7 @@ test('full integration test', async ({ page, context }) => {
   // (intentionally using save and close here instead of slider)
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T05:15:22.000Z')
 
   // Pretend the "Delta" probe failed and skip that
   await page.getByRole('textbox', { name: 'Notes' }).fill('Delta probe not working')
@@ -685,6 +713,7 @@ test('full integration test', async ({ page, context }) => {
 
   // Now at third and last sampling location
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T06:06:00.000Z')
   await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('S3')
   await expect(page.getByRole('textbox', { name: 'Short Description' })).toHaveValue('Lower')
   await page.clock.setFixedTime('2025-01-02T06:16Z')
@@ -708,6 +737,7 @@ test('full integration test', async ({ page, context }) => {
   await page.getByRole('button', { name: 'Back' }).focus()  // Workaround for stack bug
 
   await page.getByRole('button', { name: 'Save & Close' }).click()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T06:16:11.000Z')
   await page.clock.setFixedTime('2025-01-02T06:36Z')  // S3 end time
   await expect(page.getByRole('heading', { name: 'Sampling Location' })).toBeVisible()
   await page.getByRole('button', { name: 'Save & Close' }).click()
@@ -715,6 +745,7 @@ test('full integration test', async ({ page, context }) => {
   await page.clock.setFixedTime('2025-01-02T07:07Z')  // log end time & last modified time
   await page.getByRole('button', { name: 'Save & Close' }).click()
   await expect(page.getByTestId('accSampLog')).toBeVisible()
+  expect( await get_sl_lastmod() ).toStrictEqual('2025-01-02T07:07:00.000Z')
   await expect(page.getByRole('listitem')).toHaveText([/^Spree/])
   await page.clock.setFixedTime('2025-01-03T08:08Z')  // export time
 
@@ -728,13 +759,13 @@ test('full integration test', async ({ page, context }) => {
   const downloadPromise = page.waitForEvent('download')
   await page.getByTestId('export-log-as-zip').click()
   const zipFile = await dl2file(await downloadPromise)
-  expect(zipFile.name).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.zip')
+  expect(zipFile.name).toStrictEqual('2025-01-02_Spree.2025-01-02-080700.fuchs-log.zip')
   const zipReader = new zip.ZipReader(new zip.BlobReader(zipFile))
   const files = await extractZip(zipReader)
   expect(files.length).toStrictEqual(2)
   files.sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)
-  expect(files[0]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.csv')
-  expect(files[1]?.[0]).toStrictEqual('Spree_2025-01-02.2025-01-02-080700.fuchs-log.json')
+  expect(files[0]?.[0]).toStrictEqual('2025-01-02_Spree.2025-01-02-080700.fuchs-log.csv')
+  expect(files[1]?.[0]).toStrictEqual('2025-01-02_Spree.2025-01-02-080700.fuchs-log.json')
   const csv = Papa.parse(files[0]?.[1] ?? '', { delimiter: ',' })
   expect(csv.errors.length).toStrictEqual(0)
   checkExport(JSON.parse(files[1]?.[1] ?? ''), [], [theLog])

@@ -25,7 +25,7 @@ const tz_tests = {
     'logStartTime': '2024-01-02T02:02',
     'logEndTime': '2024-01-02T05:05',
     'locStartTime': '2024-01-02T03:03',
-    'filename': 'Spree_2024-01-02.2024-01-02-060600.fuchs-log.csv',
+    'filename': '2024-01-02_Spree.2024-01-02-060600.fuchs-log.csv',
     'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,03:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
   'Europe/Berlin': {
@@ -34,7 +34,7 @@ const tz_tests = {
     'logStartTime': '2024-01-02T03:02',
     'logEndTime': '2024-01-02T06:05',
     'locStartTime': '2024-01-02T04:03',
-    'filename': 'Spree_2024-01-02.2024-01-02-070600.fuchs-log.csv',
+    'filename': '2024-01-02_Spree.2024-01-02-070600.fuchs-log.csv',
     'csvLine': '2024-01-02 03:03:00 UTC,02.01.2024,04:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
   'Europe/Paris': {  // DST; Paris is basically the same zone as Berlin
@@ -43,7 +43,7 @@ const tz_tests = {
     'logStartTime': '2024-07-08T04:02',
     'logEndTime': '2024-07-08T07:05',
     'locStartTime': '2024-07-08T05:03',
-    'filename': 'Spree_2024-07-08.2024-07-08-080600.fuchs-log.csv',
+    'filename': '2024-07-08_Spree.2024-07-08-080600.fuchs-log.csv',
     'csvLine': '2024-07-08 03:03:00 UTC,08.07.2024,05:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-07-08 02:02:00 UTC,Foo,,',
   },
   'America/New_York': {
@@ -52,7 +52,7 @@ const tz_tests = {
     'logStartTime': '2024-01-01T21:02',
     'logEndTime': '2024-01-02T00:05',
     'locStartTime': '2024-01-01T22:03',
-    'filename': 'Spree_2024-01-01.2024-01-02-010600.fuchs-log.csv',
+    'filename': '2024-01-01_Spree.2024-01-02-010600.fuchs-log.csv',
     'csvLine': '2024-01-02 03:03:00 UTC,01.01.2024,22:03:00,S1,52.100000,13.100000,,,,,Spree; Start 2024-01-02 02:02:00 UTC,Foo,,',
   },
 } as const

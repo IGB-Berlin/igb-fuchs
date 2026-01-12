@@ -12,6 +12,15 @@ v0.3.5-beta - *noch nicht released*
 - Der "Slider", der zum Speichern des aktuellen und beginnen des nächsten Objekts
   angezeigt wird, wurde vergrößert und hat nun einen größeren Abstand zum Rand des
   Bildschirms, um versehentliche Smartphone-Gesten zu vermeiden.
+- Die Dateinamen für den Export wurden auf Benutzerwunsch geändert:
+  - Messprotokolle:
+    *[Anfangsdatum]*_*[Protokoll-Name]*.*[Datum & Uhrzeit der letzten Änderung]*.fuchs-log.*[Endung]*
+    (Dabei fallen die Datumsangaben jeweils weg, wenn sie nicht gesetzt sind; dies sollte aber
+    selten der Fall sein.)
+  - Messprozeduren: *[Prozedur-Name]*.*[Datum & Uhrzeit des Exports]*.fuchs-procedure.*[Endung]*
+    (In Zukunft könnte das Datumsfeld geändert werden, so dass das Datum der letzten Änderung
+    ausgegeben wird; dies steht aber in der aktuellen Version nicht zur Verfügung.)
+  - Alle Datums & Zeit-Angaben sind wie zuvor in der Ortszeit des exportierenden Geräts.
 - Der Informations-Dialog in der App wurde verbessert.
 - Internes:
   - In den JSON-Daten werden nun keine "leeren" `template` Felder mehr ausgegeben

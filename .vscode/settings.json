@@ -1,6 +1,7 @@
 {
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
+  "editor.rulers": [ 145 ],
   "editor.tabSize": 2,
   "makefile.configureOnOpen": false,
   "eslint.validate": [

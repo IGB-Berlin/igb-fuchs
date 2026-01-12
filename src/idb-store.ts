@@ -99,12 +99,15 @@ function isISettings(o :unknown) :o is ISettings {
   return !!( o && typeof o === 'object' && 'hideHelpTexts' in o && typeof o.hideHelpTexts === 'boolean' ) }
 
 export function makeFilename(obj :SamplingProcedure|SamplingLog|null, ext :'json'|'csv'|'zip') :string {
-  const now = dateTimeToLocalFilenameString(new Date())
-  return ( obj instanceof SamplingProcedure ? `${obj.name.trim().length ? obj.name : '(unnamed)'}.${now}.fuchs-procedure`
-    : obj instanceof SamplingLog ? (obj.name.trim().length ? obj.name : '(unnamed)')
-        +(isTimestampSet(obj.startTime) ? '_'+dateToLocalString(new Date(obj.startTime)) : '')+'.'
-        +dateTimeToLocalFilenameString( isTimestampSet(obj.lastModified) ? new Date(obj.lastModified) : new Date() )+'.fuchs-log'
-      : `FUCHS.${now}.full-export` ) + '.'+ext
+  if ( obj instanceof SamplingLog ) {
+    const st = isTimestampSet(obj.startTime) ? dateToLocalString(new Date(obj.startTime)) : ''
+    const lm = isTimestampSet(obj.lastModified) ? dateTimeToLocalFilenameString(new Date(obj.lastModified)) : ''
+    return `${st?st+'_':''}${obj.name.trim()||'(unnamed)'}.${lm?lm+'.':''}fuchs-log.${ext}`
+  }
+  else if ( obj instanceof SamplingProcedure )
+    return `${obj.name.trim()||'(unnamed)'}.${dateTimeToLocalFilenameString(new Date())}.fuchs-procedure.${ext}`
+  else  // obj is null, meaning full export
+    return `FUCHS.${dateTimeToLocalFilenameString(new Date())}.full-export.${ext}`
 }
 
 class Settings {
