@@ -230,7 +230,7 @@ export class EditorStack {
       assert(Object.is(ed, this.stack.at(-2)))  // make sure the stack looks like we expect it to
       if (await this.top.doSaveAndClose()) nextDoNext = true
     })
-    const theEl = <div class="d-flex justify-content-center p-1 d-none">{sliderNext.el}</div>
+    const theEl = <div class="d-flex justify-content-center pt-1 pb-3 px-4 d-none">{sliderNext.el}</div>
 
     let thisEditorHasChild = false
     let thisEditorsChildIsVisible = false

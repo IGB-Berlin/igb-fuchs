@@ -171,7 +171,7 @@ body:not(.hide-help-texts) {
 .slider-bar {
   width: 25rem;  // seems good
   min-width: max-content;
-  height: 2rem;  // approximately the same height as a small Bootstrap button (good enough)
+  height: 2.5rem;  // approximately the same height as a small Bootstrap button (good enough)
   .slider-button {
     height: inherit;
     user-select: none;
