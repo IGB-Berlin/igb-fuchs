@@ -39,7 +39,7 @@
     },
     {
       "label": "Milestone v0.3.5-beta",
-      "query": "repo:${owner}/${repository} milestone:v0.3.5-beta sort:updated-desc",
+      "query": "repo:${owner}/${repository} milestone:v0.4.0-beta sort:updated-desc is:open",
     },
   ]
 }
